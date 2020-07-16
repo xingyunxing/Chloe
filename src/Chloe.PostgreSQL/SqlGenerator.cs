@@ -747,7 +747,7 @@ namespace Chloe.PostgreSQL
         public override DbExpression Visit(DbParameterExpression exp)
         {
             object paramValue = exp.Value;
-            Type paramType = exp.Type;
+            Type paramType = exp.Type.GetUnderlyingType();
 
             if (paramType.IsEnum)
             {

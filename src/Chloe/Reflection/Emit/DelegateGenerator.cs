@@ -169,7 +169,7 @@ namespace Chloe.Reflection.Emit
             }
             else
             {
-                ret = Expression.Lambda<MethodInvoker>(methodCallExp, parameterExps).Compile();
+                ret = Expression.Lambda<MethodInvoker>(Expression.Convert(methodCallExp, typeof(object)), parameterExps).Compile();
                 ret = MakeMethodInvoker(ret);
             }
 
