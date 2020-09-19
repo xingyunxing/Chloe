@@ -10,9 +10,9 @@ namespace Chloe.Mapper.Activators
 
         }
         public abstract object CreateInstance(IDataReader reader);
-        public virtual async Task<object> CreateInstanceAsync(IDataReader reader)
+        public virtual Task<object> CreateInstanceAsync(IDataReader reader)
         {
-            return this.CreateInstance(reader);
+            return Task.FromResult(this.CreateInstance(reader));
         }
     }
 }
