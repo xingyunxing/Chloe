@@ -14,20 +14,16 @@ namespace ChloeDemo
 {
     class PostgreSQLDemo : DemoBase
     {
-        PostgreSQLContext _dbContext;
         public PostgreSQLDemo()
         {
-            this._dbContext = new PostgreSQLContext(new PostgreSQLConnectionFactory("User ID=postgres;Password=sasa;Host=localhost;Port=5432;Database=Chloe;Pooling=true;"));
-
             DbConfiguration.UseTypeBuilders(typeof(TestEntityMap));
         }
 
-        public override IDbContext DbContext
+        protected override IDbContext CreateDbContext()
         {
-            get
-            {
-                return this._dbContext;
-            }
+            IDbContext dbContext = new PostgreSQLContext(new PostgreSQLConnectionFactory("User ID=postgres;Password=sasa;Host=localhost;Port=5432;Database=Chloe;Pooling=true;"));
+
+            return dbContext;
         }
 
         public override void InitTable<TEntity>()

@@ -16,20 +16,16 @@ namespace ChloeDemo
 {
     class MsSqlDemo : DemoBase
     {
-        MsSqlContext _dbContext;
         public MsSqlDemo()
         {
-            this._dbContext = new MsSqlContext("Data Source = .;Initial Catalog = Chloe;Integrated Security = SSPI;");
-
             DbConfiguration.UseTypeBuilders(typeof(TestEntityMap));
         }
 
-        public override IDbContext DbContext
+        protected override IDbContext CreateDbContext()
         {
-            get
-            {
-                return this._dbContext;
-            }
+            IDbContext dbContext = new MsSqlContext("Data Source = .;Initial Catalog = Chloe;Integrated Security = SSPI;");
+
+            return dbContext;
         }
 
         public override void InitTable<TEntity>()

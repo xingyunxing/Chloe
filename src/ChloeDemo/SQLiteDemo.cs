@@ -14,20 +14,16 @@ namespace ChloeDemo
 {
     class SQLiteDemo : DemoBase
     {
-        SQLiteContext _dbContext;
         public SQLiteDemo()
         {
-            this._dbContext = new SQLiteContext(new SQLiteConnectionFactory("Data Source=..\\..\\..\\Chloe.db;"));
-
             DbConfiguration.UseTypeBuilders(typeof(TestEntityMap));
         }
 
-        public override IDbContext DbContext
+        protected override IDbContext CreateDbContext()
         {
-            get
-            {
-                return this._dbContext;
-            }
+            IDbContext dbContext = new SQLiteContext(new SQLiteConnectionFactory("Data Source=..\\..\\..\\Chloe.db;"));
+
+            return dbContext;
         }
 
         public override void InitTable<TEntity>()

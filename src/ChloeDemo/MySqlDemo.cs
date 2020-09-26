@@ -14,20 +14,16 @@ namespace ChloeDemo
 {
     class MySqlDemo : DemoBase
     {
-        MySqlContext _dbContext;
         public MySqlDemo()
         {
-            this._dbContext = new MySqlContext(new MySqlConnectionFactory("Server=localhost;Port=3306;Database=Chloe;Uid=root;Password=sasa;Charset=utf8; Pooling=True; Max Pool Size=200;Allow User Variables=True;SslMode=none;"));
-
             DbConfiguration.UseTypeBuilders(typeof(TestEntityMap));
         }
 
-        public override IDbContext DbContext
+        protected override IDbContext CreateDbContext()
         {
-            get
-            {
-                return this._dbContext;
-            }
+            MySqlContext dbContext = new MySqlContext(new MySqlConnectionFactory("Server=localhost;Port=3306;Database=Chloe;Uid=root;Password=sasa;Charset=utf8; Pooling=True; Max Pool Size=200;Allow User Variables=True;SslMode=none;"));
+
+            return dbContext;
         }
 
         public override void InitTable<TEntity>()

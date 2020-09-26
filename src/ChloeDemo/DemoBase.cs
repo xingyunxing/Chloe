@@ -14,10 +14,16 @@ namespace ChloeDemo
         object _result;
         public DemoBase()
         {
+            this.DbContext = this.CreateDbContext();
+
+            /* context filter，仅对当前 DbContext 对象有效 */
+            this.DbContext.HasQueryFilter<Person>(a => a.Id > -100);
         }
 
         /* WARNING: DbContext 是非线程安全的，不能设置为 static，并且用完务必要调用 Dispose 方法销毁对象 */
-        public abstract IDbContext DbContext { get; }
+        public IDbContext DbContext { get; private set; }
+
+        protected abstract IDbContext CreateDbContext();
 
         public virtual void Dispose()
         {
@@ -44,7 +50,6 @@ namespace ChloeDemo
             Method();
             ExecuteCommandText();
             DoWithTransaction();
-            DoWithTransactionEx();
 
             ConsoleHelper.WriteLineAndReadKey();
         }
@@ -484,11 +489,6 @@ namespace ChloeDemo
         /* 贪婪加载导航属性 */
         public virtual void QueryWithNavigation()
         {
-            /* context filter */
-            this.DbContext.HasQueryFilter<Person>(a => a.Id > -100);
-            this.DbContext.HasQueryFilter<City>(a => a.Id > -200);
-            this.DbContext.HasQueryFilter<Province>(a => a.Id > -300);
-
             object result = null;
             result = this.DbContext.Query<Person>().Include(a => a.City).ThenInclude(a => a.Province).ToList();
             result = this.DbContext.Query<Person>().IgnoreAllFilters().Include(a => a.City).ThenInclude(a => a.Province).ToList();
@@ -637,8 +637,8 @@ namespace ChloeDemo
                 DiffHours = Sql.DiffHours(startTime, endTime),//CAST((JULIANDAY(@P_0) - JULIANDAY(@P_1)) * 24 AS INTEGER)
                 DiffMinutes = Sql.DiffMinutes(startTime, endTime),//CAST((JULIANDAY(@P_0) - JULIANDAY(@P_1)) * 1440 AS INTEGER)
                 DiffSeconds = Sql.DiffSeconds(startTime, endTime),//CAST((JULIANDAY(@P_0) - JULIANDAY(@P_1)) * 86400 AS INTEGER)
-                //DiffMilliseconds = Sql.DiffMilliseconds(startTime, endTime),//不支持 Millisecond
-                //DiffMicroseconds = Sql.DiffMicroseconds(startTime, endTime),//不支持 Microseconds
+                                                                  //DiffMilliseconds = Sql.DiffMilliseconds(startTime, endTime),//不支持 Millisecond
+                                                                  //DiffMicroseconds = Sql.DiffMicroseconds(startTime, endTime),//不支持 Microseconds
 
                 AddYears = startTime.AddYears(1),//DATETIME(@P_0,'+' || 1 || ' years')
                 AddMonths = startTime.AddMonths(1),//DATETIME(@P_0,'+' || 1 || ' months')
@@ -646,7 +646,7 @@ namespace ChloeDemo
                 AddHours = startTime.AddHours(1),//DATETIME(@P_0,'+' || 1 || ' hours')
                 AddMinutes = startTime.AddMinutes(2),//DATETIME(@P_0,'+' || 2 || ' minutes')
                 AddSeconds = startTime.AddSeconds(120),//DATETIME(@P_0,'+' || 120 || ' seconds')
-                //AddMilliseconds = startTime.AddMilliseconds(2000),//不支持
+                                                       //AddMilliseconds = startTime.AddMilliseconds(2000),//不支持
 
                 Now = DateTime.Now,//DATETIME('NOW','LOCALTIME')
                 UtcNow = DateTime.UtcNow,//DATETIME()
@@ -667,8 +667,8 @@ namespace ChloeDemo
                 Long_Parse = long.Parse("2"),//CAST('2' AS INTEGER)
                 Double_Parse = double.Parse("3.1"),//CAST('3.1' AS REAL)
                 Float_Parse = float.Parse("4.1"),//CAST('4.1' AS REAL)
-                //Decimal_Parse = decimal.Parse("5"),//不支持
-                //Guid_Parse = Guid.Parse("D544BC4C-739E-4CD3-A3D3-7BF803FCE179"),//不支持 'D544BC4C-739E-4CD3-A3D3-7BF803FCE179'
+                                                 //Decimal_Parse = decimal.Parse("5"),//不支持
+                                                 //Guid_Parse = Guid.Parse("D544BC4C-739E-4CD3-A3D3-7BF803FCE179"),//不支持 'D544BC4C-739E-4CD3-A3D3-7BF803FCE179'
 
                 Bool_Parse = bool.Parse("1"),//CAST('1' AS INTEGER)
                 DateTime_Parse = DateTime.Parse("2014-01-01"),//DATETIME('2014-01-01')
@@ -695,18 +695,9 @@ namespace ChloeDemo
             ConsoleHelper.WriteLineAndReadKey();
         }
 
-        public virtual void DoWithTransactionEx()
-        {
-            this.DbContext.UseTransaction(() =>
-            {
-                this.DbContext.Update<Person>(a => a.Id == 1, a => new Person() { Name = a.Name, Age = a.Age + 1, Gender = Gender.Male, EditTime = DateTime.Now });
-                this.DbContext.Delete<Person>(a => a.Id == 1024);
-            });
-
-            ConsoleHelper.WriteLineAndReadKey();
-        }
         public virtual void DoWithTransaction()
         {
+            /*--------------1--------------*/
             using (ITransientTransaction tran = this.DbContext.BeginTransaction())
             {
                 /* do some things here */
@@ -715,8 +706,38 @@ namespace ChloeDemo
 
                 tran.Commit();
             }
+            ConsoleHelper.WriteLineAndReadKey();
 
+
+
+            /*--------------2--------------*/
+            this.DbContext.UseTransaction(() =>
+            {
+                this.DbContext.Update<Person>(a => a.Id == 1, a => new Person() { Name = a.Name, Age = a.Age + 1, Gender = Gender.Male, EditTime = DateTime.Now });
+                this.DbContext.Delete<Person>(a => a.Id == 1024);
+            });
+            ConsoleHelper.WriteLineAndReadKey();
+
+
+
+            /*--------------3--------------*/
+            this.DbContext.Session.BeginTransaction();
+            try
+            {
+                /* do some things here */
+                this.DbContext.Update<Person>(a => a.Id == 1, a => new Person() { Name = a.Name, Age = a.Age + 1, Gender = Gender.Male, EditTime = DateTime.Now });
+                this.DbContext.Delete<Person>(a => a.Id == 1024);
+
+                this.DbContext.Session.CommitTransaction();
+            }
+            catch
+            {
+                if (this.DbContext.Session.IsInTransaction)
+                    this.DbContext.Session.RollbackTransaction();
+                throw;
+            }
             ConsoleHelper.WriteLineAndReadKey();
         }
+
     }
 }

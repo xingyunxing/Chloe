@@ -14,20 +14,16 @@ namespace ChloeDemo
 {
     class OracleDemo : DemoBase
     {
-        OracleContext _dbContext;
         public OracleDemo()
         {
-            this._dbContext = new OracleContext(new OracleConnectionFactory("Data Source=localhost/Chloe;User ID=system;Password=sasa;"));
-
             DbConfiguration.UseTypeBuilders(typeof(OracleTestEntityMap));
         }
 
-        public override IDbContext DbContext
+        protected override IDbContext CreateDbContext()
         {
-            get
-            {
-                return this._dbContext;
-            }
+            IDbContext dbContext = new OracleContext(new OracleConnectionFactory("Data Source=localhost/Chloe;User ID=system;Password=sasa;"));
+
+            return dbContext;
         }
 
         public override void InitTable<TEntity>()

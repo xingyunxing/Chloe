@@ -39,11 +39,15 @@ namespace ChloeDemo
                 //For PostgreSQL json
                 NpgsqlParameter pgsqlParameter = (NpgsqlParameter)parameter;
 
-                DbType jsonDbType = DbTypeConsts.NpgJson;
-                if (param.DbType == jsonDbType)
+                if (param.DbType == DbTypeConsts.NpgJson)
                 {
                     parameter.DbType = DbType.String;
                     pgsqlParameter.NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Json;
+                }
+                else if (param.DbType == DbTypeConsts.NpgJsonb)
+                {
+                    parameter.DbType = DbType.String;
+                    pgsqlParameter.NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Jsonb;
                 }
             }
             else if (parameter is OracleParameter)
