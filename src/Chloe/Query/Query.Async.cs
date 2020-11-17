@@ -35,7 +35,8 @@ namespace Chloe.Query
 
         public async Task<bool> AnyAsync()
         {
-            var q = (Query<string>)this.Select(a => "1").Take(1);
+            string v = "1";
+            var q = (Query<string>)this.Select(a => v).Take(1);
             return (await q.GenerateIteratorAsync()).Any();
         }
         public async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate)
