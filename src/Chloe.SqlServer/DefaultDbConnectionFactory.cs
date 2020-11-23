@@ -1,6 +1,11 @@
 ﻿using Chloe.Infrastructure;
 using System.Data;
+
+#if net5
+using Microsoft.Data.SqlClient;
+#else
 using System.Data.SqlClient;
+#endif
 
 namespace Chloe.SqlServer
 {

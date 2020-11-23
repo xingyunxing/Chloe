@@ -23,7 +23,7 @@ namespace Chloe.Query.Internals
             return new QueryEnumerator<T>(commandFactor, dataReaderGetter);
         }
     }
-    internal class QueryEnumerator<T> : IEnumerator<T>, IAsyncEnumerator<T>
+    internal class QueryEnumerator<T> : IEnumerator<T>, Chloe.Collections.IAsyncEnumerator<T>
     {
         DbCommandFactor _commandFactor;
         Func<DbCommandFactor, bool, Task<IDataReader>> _dataReaderGetter;

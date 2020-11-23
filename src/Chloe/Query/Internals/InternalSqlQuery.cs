@@ -45,7 +45,7 @@ namespace Chloe.Query.Internals
         }
         public async Task<List<T>> ExecuteAsync()
         {
-            IAsyncEnumerator<T> enumerator = this.GetEnumerator() as IAsyncEnumerator<T>;
+            Chloe.Collections.IAsyncEnumerator<T> enumerator = this.GetEnumerator() as Chloe.Collections.IAsyncEnumerator<T>;
 
             List<T> list = new List<T>();
             using (enumerator)
@@ -68,7 +68,7 @@ namespace Chloe.Query.Internals
             return this.GetEnumerator();
         }
 
-        class QueryEnumerator : IEnumerator<T>, IAsyncEnumerator<T>
+        class QueryEnumerator : IEnumerator<T>, Chloe.Collections.IAsyncEnumerator<T>
         {
             InternalSqlQuery<T> _internalSqlQuery;
 

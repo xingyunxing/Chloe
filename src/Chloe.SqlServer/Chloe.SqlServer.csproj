@@ -3,7 +3,7 @@
   <PropertyGroup>
     <!--<TargetFramework>netstandard2.0</TargetFramework>-->
     <!--<TargetFramework>net45</TargetFramework>-->
-    <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net45;net5.0</TargetFrameworks>
 
     <Version>4.8.1</Version>
     <AssemblyVersion>4.8.1.0</AssemblyVersion>
@@ -23,6 +23,9 @@
   <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <DefineConstants>netcore</DefineConstants>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net5.0'">
+    <DefineConstants>netcore;net5</DefineConstants>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == 'net45'">
     <DefineConstants>netfx;net45</DefineConstants>
   </PropertyGroup>
@@ -32,7 +35,11 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <!--<PackageReference Include="Microsoft.Data.SqlClient" Version="1.1.0" />-->
+    <!--<PackageReference Include="Microsoft.Data.SqlClient" Version="2.1.0" />-->
     <PackageReference Include="System.Data.SqlClient" Version="4.7.0" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="2.1.0" />
+    <!--<PackageReference Include="System.Data.SqlClient" Version="4.7.0" />-->
   </ItemGroup>
 </Project>
