@@ -31,17 +31,15 @@ namespace Chloe
             set
             {
                 this._value = value;
-                if (value != null)
+                if (value != null && value != DBNull.Value)
                     this.Type = value.GetType();
-                else
-                    this.Type = typeof(object);
             }
         }
         public DbType? DbType { get; set; }
         public byte? Precision { get; set; }
         public byte? Scale { get; set; }
         public int? Size { get; set; }
-        public Type Type { get; set; }
+        public Type Type { get; set; } = PublicConstants.TypeOfObject;
         public ParamDirection Direction { get; set; } = ParamDirection.Input;
         /// <summary>
         /// 如果设置了该自定义参数，框架内部就会忽视 DbParam 类的其他属性，使用该属性值
