@@ -38,9 +38,6 @@ namespace Chloe.Extension
                 fieldExps = newArrayExpression.Expressions;
             }
 
-            Type entityType = parameterExpression.Type;
-            TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(entityType);
-
             List<string> fields = new List<string>(fieldExps.Count);
 
             foreach (var item in fieldExps)
