@@ -1,15 +1,16 @@
 ﻿using Chloe.DbExpressions;
+using Chloe.RDBMS;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 
 namespace Chloe.SQLite
 {
-    partial class SqlGenerator : DbExpressionVisitor<DbExpression>
+    partial class SqlGenerator : SqlGeneratorBase
     {
-        static Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGenerator>> InitBinaryWithMethodHandlers()
+        static Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> InitBinaryWithMethodHandlers()
         {
-            var binaryWithMethodHandlers = new Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGenerator>>();
+            var binaryWithMethodHandlers = new Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>>();
             binaryWithMethodHandlers.Add(PublicConstants.MethodInfo_String_Concat_String_String, StringConcat);
             binaryWithMethodHandlers.Add(PublicConstants.MethodInfo_String_Concat_Object_Object, StringConcat);
 
@@ -17,7 +18,7 @@ namespace Chloe.SQLite
             return ret;
         }
 
-        static void StringConcat(DbBinaryExpression exp, SqlGenerator generator)
+        static void StringConcat(DbBinaryExpression exp, SqlGeneratorBase generator)
         {
             List<DbExpression> operands = new List<DbExpression>();
             operands.Add(exp.Right);
@@ -54,29 +55,29 @@ namespace Chloe.SQLite
                 operandExps.Add(opBody);
             }
 
-            generator._sqlBuilder.Append("CASE", " WHEN ");
+            generator.SqlBuilder.Append("CASE", " WHEN ");
             whenExp.Accept(generator);
-            generator._sqlBuilder.Append(" THEN ");
+            generator.SqlBuilder.Append(" THEN ");
             DbConstantExpression.Null.Accept(generator);
-            generator._sqlBuilder.Append(" ELSE ");
+            generator.SqlBuilder.Append(" ELSE ");
 
-            generator._sqlBuilder.Append("(");
+            generator.SqlBuilder.Append("(");
 
             for (int i = 0; i < operandExps.Count; i++)
             {
                 if (i > 0)
-                    generator._sqlBuilder.Append(" || ");
+                    generator.SqlBuilder.Append(" || ");
 
-                generator._sqlBuilder.Append("IFNULL(");
+                generator.SqlBuilder.Append("IFNULL(");
                 operandExps[i].Accept(generator);
-                generator._sqlBuilder.Append(",");
+                generator.SqlBuilder.Append(",");
                 DbConstantExpression.StringEmpty.Accept(generator);
-                generator._sqlBuilder.Append(")");
+                generator.SqlBuilder.Append(")");
             }
 
-            generator._sqlBuilder.Append(")");
+            generator.SqlBuilder.Append(")");
 
-            generator._sqlBuilder.Append(" END");
+            generator.SqlBuilder.Append(" END");
         }
     }
 }

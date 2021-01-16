@@ -1,5 +1,6 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.InternalExtensions;
+using Chloe.RDBMS;
 using System.Reflection;
 
 namespace Chloe.SqlServer.MethodHandlers
@@ -16,7 +17,7 @@ namespace Chloe.SqlServer.MethodHandlers
 
             return true;
         }
-        public void Process(DbMethodCallExpression exp, SqlGenerator generator)
+        public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
             MethodInfo method = exp.Method;
 

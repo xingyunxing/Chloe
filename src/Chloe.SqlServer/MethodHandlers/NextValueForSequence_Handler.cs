@@ -1,5 +1,6 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.InternalExtensions;
+using Chloe.RDBMS;
 using System;
 
 namespace Chloe.SqlServer.MethodHandlers
@@ -13,7 +14,7 @@ namespace Chloe.SqlServer.MethodHandlers
 
             return true;
         }
-        public void Process(DbMethodCallExpression exp, SqlGenerator generator)
+        public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
             string sequenceName = (string)exp.Arguments[0].Evaluate();
             if (string.IsNullOrEmpty(sequenceName))
@@ -25,11 +26,11 @@ namespace Chloe.SqlServer.MethodHandlers
 
             if (!string.IsNullOrEmpty(sequenceSchema))
             {
-                generator.QuoteName(sequenceSchema);
+                (generator as SqlGenerator).QuoteName(sequenceSchema);
                 generator.SqlBuilder.Append(".");
             }
 
-            generator.QuoteName(sequenceName);
+            (generator as SqlGenerator).QuoteName(sequenceName);
         }
     }
 }

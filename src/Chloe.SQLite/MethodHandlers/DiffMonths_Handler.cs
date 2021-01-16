@@ -1,4 +1,5 @@
 ﻿using Chloe.DbExpressions;
+using Chloe.RDBMS;
 
 namespace Chloe.SQLite.MethodHandlers
 {
@@ -11,7 +12,7 @@ namespace Chloe.SQLite.MethodHandlers
 
             return true;
         }
-        public void Process(DbMethodCallExpression exp, SqlGenerator generator)
+        public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
             DbExpression startDateTimeExp = exp.Arguments[0];
             DbExpression endDateTimeExp = exp.Arguments[1];

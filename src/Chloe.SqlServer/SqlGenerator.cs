@@ -2,6 +2,7 @@
 using Chloe.Core.Visitors;
 using Chloe.DbExpressions;
 using Chloe.InternalExtensions;
+using Chloe.RDBMS;
 using Chloe.Reflection;
 using System;
 using System.Collections.Generic;
@@ -10,14 +11,13 @@ using System.Reflection;
 
 namespace Chloe.SqlServer
 {
-    partial class SqlGenerator : DbExpressionVisitor<DbExpression>
+    partial class SqlGenerator : SqlGeneratorBase
     {
-        ISqlBuilder _sqlBuilder = new SqlBuilder();
         DbParamCollection _parameters = new DbParamCollection();
 
         public static readonly Dictionary<string, IMethodHandler> MethodHandlers = GetMethodHandlers();
-        static readonly Dictionary<string, Action<DbAggregateExpression, SqlGenerator>> AggregateHandlers = InitAggregateHandlers();
-        static readonly Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGenerator>> BinaryWithMethodHandlers = InitBinaryWithMethodHandlers();
+        static readonly Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers = InitAggregateHandlers();
+        static readonly Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers = InitBinaryWithMethodHandlers();
         static readonly Dictionary<Type, string> CastTypeMap;
         public static readonly Dictionary<Type, Type> NumericTypes;
         static readonly List<string> CacheParameterNames;
@@ -64,7 +64,6 @@ namespace Chloe.SqlServer
             CacheParameterNames = cacheParameterNames;
         }
 
-        public ISqlBuilder SqlBuilder { get { return this._sqlBuilder; } }
         public List<DbParam> Parameters { get { return this._parameters.ToParameterList(); } }
 
         public static SqlGenerator CreateInstance()
@@ -229,10 +228,10 @@ namespace Chloe.SqlServer
 
         public override DbExpression Visit(DbNotExpression exp)
         {
-            this._sqlBuilder.Append("NOT ");
-            this._sqlBuilder.Append("(");
+            this.SqlBuilder.Append("NOT ");
+            this.SqlBuilder.Append("(");
             exp.Operand.Accept(this);
-            this._sqlBuilder.Append(")");
+            this.SqlBuilder.Append(")");
 
             return exp;
         }
@@ -272,7 +271,7 @@ namespace Chloe.SqlServer
             MethodInfo method = exp.Method;
             if (method != null)
             {
-                Action<DbBinaryExpression, SqlGenerator> handler;
+                Action<DbBinaryExpression, SqlGeneratorBase> handler;
                 if (BinaryWithMethodHandlers.TryGetValue(method, out handler))
                 {
                     handler(exp, this);
@@ -319,19 +318,19 @@ namespace Chloe.SqlServer
         }
         public override DbExpression Visit(DbNegateExpression exp)
         {
-            this._sqlBuilder.Append("(");
+            this.SqlBuilder.Append("(");
 
-            this._sqlBuilder.Append("-");
+            this.SqlBuilder.Append("-");
             exp.Operand.Accept(this);
 
-            this._sqlBuilder.Append(")");
+            this.SqlBuilder.Append(")");
             return exp;
         }
         // <
         public override DbExpression Visit(DbLessThanExpression exp)
         {
             exp.Left.Accept(this);
-            this._sqlBuilder.Append(" < ");
+            this.SqlBuilder.Append(" < ");
             exp.Right.Accept(this);
 
             return exp;
@@ -340,7 +339,7 @@ namespace Chloe.SqlServer
         public override DbExpression Visit(DbLessThanOrEqualExpression exp)
         {
             exp.Left.Accept(this);
-            this._sqlBuilder.Append(" <= ");
+            this.SqlBuilder.Append(" <= ");
             exp.Right.Accept(this);
 
             return exp;
@@ -349,7 +348,7 @@ namespace Chloe.SqlServer
         public override DbExpression Visit(DbGreaterThanExpression exp)
         {
             exp.Left.Accept(this);
-            this._sqlBuilder.Append(" > ");
+            this.SqlBuilder.Append(" > ");
             exp.Right.Accept(this);
 
             return exp;
@@ -358,7 +357,7 @@ namespace Chloe.SqlServer
         public override DbExpression Visit(DbGreaterThanOrEqualExpression exp)
         {
             exp.Left.Accept(this);
-            this._sqlBuilder.Append(" >= ");
+            this.SqlBuilder.Append(" >= ");
             exp.Right.Accept(this);
 
             return exp;
@@ -367,7 +366,7 @@ namespace Chloe.SqlServer
 
         public override DbExpression Visit(DbAggregateExpression exp)
         {
-            Action<DbAggregateExpression, SqlGenerator> aggregateHandler;
+            Action<DbAggregateExpression, SqlGeneratorBase> aggregateHandler;
             if (!AggregateHandlers.TryGetValue(exp.Method.Name, out aggregateHandler))
             {
                 throw UtilExceptions.NotSupportedMethod(exp.Method);
@@ -386,7 +385,7 @@ namespace Chloe.SqlServer
         public override DbExpression Visit(DbColumnAccessExpression exp)
         {
             this.QuoteName(exp.Table.Name);
-            this._sqlBuilder.Append(".");
+            this.SqlBuilder.Append(".");
             this.QuoteName(exp.Column.Name);
 
             return exp;
@@ -422,9 +421,9 @@ namespace Chloe.SqlServer
             else
                 throw new NotSupportedException("JoinType: " + joinTablePart.JoinType);
 
-            this._sqlBuilder.Append(joinString);
+            this.SqlBuilder.Append(joinString);
             this.AppendTableSegment(joinTablePart.Table);
-            this._sqlBuilder.Append(" ON ");
+            this.SqlBuilder.Append(" ON ");
             JoinConditionExpressionTransformer.Transform(joinTablePart.Condition).Accept(this);
             this.VisitDbJoinTableExpressions(joinTablePart.JoinTables);
 
@@ -434,9 +433,9 @@ namespace Chloe.SqlServer
 
         public override DbExpression Visit(DbSubQueryExpression exp)
         {
-            this._sqlBuilder.Append("(");
+            this.SqlBuilder.Append("(");
             exp.SqlQuery.Accept(this);
-            this._sqlBuilder.Append(")");
+            this.SqlBuilder.Append(")");
 
             return exp;
         }
@@ -460,27 +459,27 @@ namespace Chloe.SqlServer
         {
             string separator = "";
 
-            this._sqlBuilder.Append("INSERT INTO ");
+            this.SqlBuilder.Append("INSERT INTO ");
             this.AppendTable(exp.Table);
-            this._sqlBuilder.Append("(");
+            this.SqlBuilder.Append("(");
 
             separator = "";
             foreach (var item in exp.InsertColumns)
             {
-                this._sqlBuilder.Append(separator);
+                this.SqlBuilder.Append(separator);
                 this.QuoteName(item.Key.Name);
                 separator = ",";
             }
 
-            this._sqlBuilder.Append(")");
+            this.SqlBuilder.Append(")");
 
             this.AppendOutputClause(exp.Returns);
 
-            this._sqlBuilder.Append(" VALUES(");
+            this.SqlBuilder.Append(" VALUES(");
             separator = "";
             foreach (var item in exp.InsertColumns)
             {
-                this._sqlBuilder.Append(separator);
+                this.SqlBuilder.Append(separator);
 
                 DbExpression valExp = DbExpressionExtension.StripInvalidConvert(item.Value);
                 AmendDbInfo(item.Key, valExp);
@@ -488,15 +487,15 @@ namespace Chloe.SqlServer
                 separator = ",";
             }
 
-            this._sqlBuilder.Append(")");
+            this.SqlBuilder.Append(")");
 
             return exp;
         }
         public override DbExpression Visit(DbUpdateExpression exp)
         {
-            this._sqlBuilder.Append("UPDATE ");
+            this.SqlBuilder.Append("UPDATE ");
             this.AppendTable(exp.Table);
-            this._sqlBuilder.Append(" SET ");
+            this.SqlBuilder.Append(" SET ");
 
             bool first = true;
             foreach (var item in exp.UpdateColumns)
@@ -504,10 +503,10 @@ namespace Chloe.SqlServer
                 if (first)
                     first = false;
                 else
-                    this._sqlBuilder.Append(",");
+                    this.SqlBuilder.Append(",");
 
                 this.QuoteName(item.Key.Name);
-                this._sqlBuilder.Append("=");
+                this.SqlBuilder.Append("=");
 
                 DbExpression valExp = DbExpressionExtension.StripInvalidConvert(item.Value);
                 AmendDbInfo(item.Key, valExp);
@@ -521,7 +520,7 @@ namespace Chloe.SqlServer
         }
         public override DbExpression Visit(DbDeleteExpression exp)
         {
-            this._sqlBuilder.Append("DELETE ");
+            this.SqlBuilder.Append("DELETE ");
             this.AppendTable(exp.Table);
             this.BuildWhereState(exp.Condition);
 
@@ -530,11 +529,10 @@ namespace Chloe.SqlServer
 
         public override DbExpression Visit(DbExistsExpression exp)
         {
-            this._sqlBuilder.Append("Exists ");
+            this.SqlBuilder.Append("Exists ");
 
             DbSqlQueryExpression rawSqlQuery = exp.SqlQuery;
-            DbSqlQueryExpression sqlQuery = new DbSqlQueryExpression()
-            {
+            DbSqlQueryExpression sqlQuery = new DbSqlQueryExpression() {
                 TakeCount = rawSqlQuery.TakeCount,
                 SkipCount = rawSqlQuery.SkipCount,
                 Table = rawSqlQuery.Table,
@@ -553,30 +551,30 @@ namespace Chloe.SqlServer
 
         public override DbExpression Visit(DbCoalesceExpression exp)
         {
-            this._sqlBuilder.Append("ISNULL(");
+            this.SqlBuilder.Append("ISNULL(");
             EnsureDbExpressionReturnCSharpBoolean(exp.CheckExpression).Accept(this);
-            this._sqlBuilder.Append(",");
+            this.SqlBuilder.Append(",");
             EnsureDbExpressionReturnCSharpBoolean(exp.ReplacementValue).Accept(this);
-            this._sqlBuilder.Append(")");
+            this.SqlBuilder.Append(")");
 
             return exp;
         }
         // then 部分必须返回 C# type，所以得判断是否是诸如 a>1,a=b,in,like 等等的情况，如果是则将其构建成一个 case when 
         public override DbExpression Visit(DbCaseWhenExpression exp)
         {
-            this._sqlBuilder.Append("CASE");
+            this.SqlBuilder.Append("CASE");
             foreach (var whenThen in exp.WhenThenPairs)
             {
                 // then 部分得判断是否是诸如 a>1,a=b,in,like 等等的情况，如果是则将其构建成一个 case when 
-                this._sqlBuilder.Append(" WHEN ");
+                this.SqlBuilder.Append(" WHEN ");
                 whenThen.When.Accept(this);
-                this._sqlBuilder.Append(" THEN ");
+                this.SqlBuilder.Append(" THEN ");
                 EnsureDbExpressionReturnCSharpBoolean(whenThen.Then).Accept(this);
             }
 
-            this._sqlBuilder.Append(" ELSE ");
+            this.SqlBuilder.Append(" ELSE ");
             EnsureDbExpressionReturnCSharpBoolean(exp.Else).Accept(this);
-            this._sqlBuilder.Append(" END");
+            this.SqlBuilder.Append(" END");
 
             return exp;
         }
@@ -623,19 +621,19 @@ namespace Chloe.SqlServer
                 string functionName = string.IsNullOrEmpty(dbFunction.Name) ? exp.Method.Name : dbFunction.Name;
 
                 this.QuoteName(schema);
-                this._sqlBuilder.Append(".");
+                this.SqlBuilder.Append(".");
                 this.QuoteName(functionName);
-                this._sqlBuilder.Append("(");
+                this.SqlBuilder.Append("(");
 
                 string c = "";
                 foreach (DbExpression argument in exp.Arguments)
                 {
-                    this._sqlBuilder.Append(c);
+                    this.SqlBuilder.Append(c);
                     argument.Accept(this);
                     c = ",";
                 }
 
-                this._sqlBuilder.Append(")");
+                this.SqlBuilder.Append(")");
 
                 return exp;
             }
@@ -656,13 +654,13 @@ namespace Chloe.SqlServer
             {
                 if (member == PublicConstants.PropertyInfo_DateTime_Now)
                 {
-                    this._sqlBuilder.Append("GETDATE()");
+                    this.SqlBuilder.Append("GETDATE()");
                     return exp;
                 }
 
                 if (member == PublicConstants.PropertyInfo_DateTime_UtcNow)
                 {
-                    this._sqlBuilder.Append("GETUTCDATE()");
+                    this.SqlBuilder.Append("GETUTCDATE()");
                     return exp;
                 }
 
@@ -686,9 +684,9 @@ namespace Chloe.SqlServer
 
             if (member.Name == "Length" && member.DeclaringType == PublicConstants.TypeOfString)
             {
-                this._sqlBuilder.Append("LEN(");
+                this.SqlBuilder.Append("LEN(");
                 exp.Expression.Accept(this);
-                this._sqlBuilder.Append(")");
+                this.SqlBuilder.Append(")");
 
                 return exp;
             }
@@ -711,29 +709,29 @@ namespace Chloe.SqlServer
         {
             if (exp.Value == null || exp.Value == DBNull.Value)
             {
-                this._sqlBuilder.Append("NULL");
+                this.SqlBuilder.Append("NULL");
                 return exp;
             }
 
             var objType = exp.Value.GetType();
             if (objType == PublicConstants.TypeOfBoolean)
             {
-                this._sqlBuilder.Append(((bool)exp.Value) ? "CAST(1 AS BIT)" : "CAST(0 AS BIT)");
+                this.SqlBuilder.Append(((bool)exp.Value) ? "CAST(1 AS BIT)" : "CAST(0 AS BIT)");
                 return exp;
             }
             else if (objType == PublicConstants.TypeOfString)
             {
-                this._sqlBuilder.Append("N'", exp.Value, "'");
+                this.SqlBuilder.Append("N'", exp.Value, "'");
                 return exp;
             }
             else if (objType.IsEnum)
             {
-                this._sqlBuilder.Append(Convert.ChangeType(exp.Value, Enum.GetUnderlyingType(objType)).ToString());
+                this.SqlBuilder.Append(Convert.ChangeType(exp.Value, Enum.GetUnderlyingType(objType)).ToString());
                 return exp;
             }
             else if (NumericTypes.ContainsKey(exp.Value.GetType()))
             {
-                this._sqlBuilder.Append(exp.Value);
+                this.SqlBuilder.Append(exp.Value);
                 return exp;
             }
 
@@ -761,7 +759,7 @@ namespace Chloe.SqlServer
 
             if (p != null)
             {
-                this._sqlBuilder.Append(p.Name);
+                this.SqlBuilder.Append(p.Name);
                 return exp;
             }
 
@@ -780,7 +778,7 @@ namespace Chloe.SqlServer
                 p.DbType = exp.DbType;
 
             this._parameters.Add(p);
-            this._sqlBuilder.Append(paramName);
+            this.SqlBuilder.Append(paramName);
             return exp;
         }
 
@@ -788,7 +786,7 @@ namespace Chloe.SqlServer
         void AppendTableSegment(DbTableSegment seg)
         {
             seg.Body.Accept(this);
-            this._sqlBuilder.Append(" AS ");
+            this.SqlBuilder.Append(" AS ");
             this.QuoteName(seg.Alias);
 
             string lockString = null;
@@ -806,12 +804,12 @@ namespace Chloe.SqlServer
                     throw new NotSupportedException($"lock type: {seg.Lock.ToString()}");
             }
 
-            this._sqlBuilder.Append(" WITH(", lockString, ")");
+            this.SqlBuilder.Append(" WITH(", lockString, ")");
         }
         internal void AppendColumnSegment(DbColumnSegment seg)
         {
             DbValueExpressionTransformer.Transform(seg.Body).Accept(this);
-            this._sqlBuilder.Append(" AS ");
+            this.SqlBuilder.Append(" AS ");
             this.QuoteName(seg.Alias);
         }
         void AppendOrdering(DbOrdering ordering)
@@ -819,13 +817,13 @@ namespace Chloe.SqlServer
             if (ordering.OrderType == DbOrderType.Asc)
             {
                 ordering.Expression.Accept(this);
-                this._sqlBuilder.Append(" ASC");
+                this.SqlBuilder.Append(" ASC");
                 return;
             }
             else if (ordering.OrderType == DbOrderType.Desc)
             {
                 ordering.Expression.Accept(this);
-                this._sqlBuilder.Append(" DESC");
+                this.SqlBuilder.Append(" DESC");
                 return;
             }
 
@@ -841,24 +839,24 @@ namespace Chloe.SqlServer
         }
         void BuildGeneralSql(DbSqlQueryExpression exp)
         {
-            this._sqlBuilder.Append("SELECT ");
+            this.SqlBuilder.Append("SELECT ");
 
             this.AppendDistinct(exp.IsDistinct);
 
             if (exp.TakeCount != null)
-                this._sqlBuilder.Append("TOP ", exp.TakeCount.ToString(), " ");
+                this.SqlBuilder.Append("TOP ", exp.TakeCount.ToString(), " ");
 
             List<DbColumnSegment> columns = exp.ColumnSegments;
             for (int i = 0; i < columns.Count; i++)
             {
                 DbColumnSegment column = columns[i];
                 if (i > 0)
-                    this._sqlBuilder.Append(",");
+                    this.SqlBuilder.Append(",");
 
                 this.AppendColumnSegment(column);
             }
 
-            this._sqlBuilder.Append(" FROM ");
+            this.SqlBuilder.Append(" FROM ");
             exp.Table.Accept(this);
             this.BuildWhereState(exp.Condition);
             this.BuildGroupState(exp);
@@ -869,15 +867,15 @@ namespace Chloe.SqlServer
             bool shouldSortResults = false;
             if (exp.TakeCount != null)
                 shouldSortResults = true;
-            else if (this._sqlBuilder.Length == 0)
+            else if (this.SqlBuilder.Length == 0)
                 shouldSortResults = true;
 
-            this._sqlBuilder.Append("SELECT ");
+            this.SqlBuilder.Append("SELECT ");
 
             this.AppendDistinct(exp.IsDistinct);
 
             if (exp.TakeCount != null)
-                this._sqlBuilder.Append("TOP ", exp.TakeCount.ToString(), " ");
+                this.SqlBuilder.Append("TOP ", exp.TakeCount.ToString(), " ");
 
             string tableAlias = "T";
 
@@ -886,28 +884,28 @@ namespace Chloe.SqlServer
             {
                 DbColumnSegment column = columns[i];
                 if (i > 0)
-                    this._sqlBuilder.Append(",");
+                    this.SqlBuilder.Append(",");
 
                 this.QuoteName(tableAlias);
-                this._sqlBuilder.Append(".");
+                this.SqlBuilder.Append(".");
                 this.QuoteName(column.Alias);
-                this._sqlBuilder.Append(" AS ");
+                this.SqlBuilder.Append(" AS ");
                 this.QuoteName(column.Alias);
             }
 
-            this._sqlBuilder.Append(" FROM ");
-            this._sqlBuilder.Append("(");
+            this.SqlBuilder.Append(" FROM ");
+            this.SqlBuilder.Append("(");
 
             //------------------------//
-            this._sqlBuilder.Append("SELECT ");
+            this.SqlBuilder.Append("SELECT ");
             for (int i = 0; i < columns.Count; i++)
             {
                 DbColumnSegment column = columns[i];
                 if (i > 0)
-                    this._sqlBuilder.Append(",");
+                    this.SqlBuilder.Append(",");
 
                 DbValueExpressionTransformer.Transform(column.Body).Accept(this);
-                this._sqlBuilder.Append(" AS ");
+                this.SqlBuilder.Append(" AS ");
                 this.QuoteName(column.Alias);
             }
 
@@ -920,39 +918,39 @@ namespace Chloe.SqlServer
             }
 
             string row_numberName = GenRowNumberName(columns);
-            this._sqlBuilder.Append(",ROW_NUMBER() OVER(ORDER BY ");
+            this.SqlBuilder.Append(",ROW_NUMBER() OVER(ORDER BY ");
             this.ConcatOrderings(orderings);
-            this._sqlBuilder.Append(") AS ");
+            this.SqlBuilder.Append(") AS ");
             this.QuoteName(row_numberName);
-            this._sqlBuilder.Append(" FROM ");
+            this.SqlBuilder.Append(" FROM ");
             exp.Table.Accept(this);
             this.BuildWhereState(exp.Condition);
             this.BuildGroupState(exp);
             //------------------------//
 
-            this._sqlBuilder.Append(")");
-            this._sqlBuilder.Append(" AS ");
+            this.SqlBuilder.Append(")");
+            this.SqlBuilder.Append(" AS ");
             this.QuoteName(tableAlias);
-            this._sqlBuilder.Append(" WHERE ");
+            this.SqlBuilder.Append(" WHERE ");
             this.QuoteName(tableAlias);
-            this._sqlBuilder.Append(".");
+            this.SqlBuilder.Append(".");
             this.QuoteName(row_numberName);
-            this._sqlBuilder.Append(" > ");
-            this._sqlBuilder.Append(exp.SkipCount.ToString());
+            this.SqlBuilder.Append(" > ");
+            this.SqlBuilder.Append(exp.SkipCount.ToString());
 
             if (shouldSortResults)
             {
-                this._sqlBuilder.Append(" ORDER BY ");
+                this.SqlBuilder.Append(" ORDER BY ");
                 this.QuoteName(tableAlias);
-                this._sqlBuilder.Append(".");
+                this.SqlBuilder.Append(".");
                 this.QuoteName(row_numberName);
-                this._sqlBuilder.Append(" ASC");
+                this.SqlBuilder.Append(" ASC");
             }
         }
         protected void AppendDistinct(bool isDistinct)
         {
             if (isDistinct)
-                this._sqlBuilder.Append("DISTINCT ");
+                this.SqlBuilder.Append("DISTINCT ");
         }
 
 
@@ -960,7 +958,7 @@ namespace Chloe.SqlServer
         {
             if (whereExpression != null)
             {
-                this._sqlBuilder.Append(" WHERE ");
+                this.SqlBuilder.Append(" WHERE ");
                 whereExpression.Accept(this);
             }
         }
@@ -968,7 +966,7 @@ namespace Chloe.SqlServer
         {
             if (orderings.Count > 0)
             {
-                this._sqlBuilder.Append(" ORDER BY ");
+                this.SqlBuilder.Append(" ORDER BY ");
                 this.ConcatOrderings(orderings);
             }
         }
@@ -978,7 +976,7 @@ namespace Chloe.SqlServer
             {
                 if (i > 0)
                 {
-                    this._sqlBuilder.Append(",");
+                    this.SqlBuilder.Append(",");
                 }
 
                 this.AppendOrdering(orderings[i]);
@@ -990,25 +988,25 @@ namespace Chloe.SqlServer
             if (groupSegments.Count == 0)
                 return;
 
-            this._sqlBuilder.Append(" GROUP BY ");
+            this.SqlBuilder.Append(" GROUP BY ");
             for (int i = 0; i < groupSegments.Count; i++)
             {
                 if (i > 0)
-                    this._sqlBuilder.Append(",");
+                    this.SqlBuilder.Append(",");
 
                 groupSegments[i].Accept(this);
             }
 
             if (exp.HavingCondition != null)
             {
-                this._sqlBuilder.Append(" HAVING ");
+                this.SqlBuilder.Append(" HAVING ");
                 exp.HavingCondition.Accept(this);
             }
         }
 
         void ConcatOperands(IEnumerable<DbExpression> operands, string connector)
         {
-            this._sqlBuilder.Append("(");
+            this.SqlBuilder.Append("(");
 
             bool first = true;
             foreach (DbExpression operand in operands)
@@ -1016,12 +1014,12 @@ namespace Chloe.SqlServer
                 if (first)
                     first = false;
                 else
-                    this._sqlBuilder.Append(connector);
+                    this.SqlBuilder.Append(connector);
 
                 operand.Accept(this);
             }
 
-            this._sqlBuilder.Append(")");
+            this.SqlBuilder.Append(")");
             return;
         }
 
@@ -1030,14 +1028,14 @@ namespace Chloe.SqlServer
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentException("name");
 
-            this._sqlBuilder.Append("[", name, "]");
+            this.SqlBuilder.Append("[", name, "]");
         }
         void AppendTable(DbTable table)
         {
             if (!string.IsNullOrEmpty(table.Schema))
             {
                 this.QuoteName(table.Schema);
-                this._sqlBuilder.Append(".");
+                this.SqlBuilder.Append(".");
             }
 
             this.QuoteName(table.Name);
@@ -1045,13 +1043,13 @@ namespace Chloe.SqlServer
 
         void BuildCastState(DbExpression castExp, string targetDbTypeString)
         {
-            this._sqlBuilder.Append("CAST(");
+            this.SqlBuilder.Append("CAST(");
             castExp.Accept(this);
-            this._sqlBuilder.Append(" AS ", targetDbTypeString, ")");
+            this.SqlBuilder.Append(" AS ", targetDbTypeString, ")");
         }
         void BuildCastState(object castObject, string targetDbTypeString)
         {
-            this._sqlBuilder.Append("CAST(", castObject, " AS ", targetDbTypeString, ")");
+            this.SqlBuilder.Append("CAST(", castObject, " AS ", targetDbTypeString, ")");
         }
 
         bool IsDatePart(DbMemberExpression exp)
@@ -1102,9 +1100,9 @@ namespace Chloe.SqlServer
 
             if (member == PublicConstants.PropertyInfo_DateTime_DayOfWeek)
             {
-                this._sqlBuilder.Append("(");
+                this.SqlBuilder.Append("(");
                 DbFunction_DATEPART(this, "WEEKDAY", exp.Expression);
-                this._sqlBuilder.Append(" - 1)");
+                this.SqlBuilder.Append(" - 1)");
 
                 return true;
             }
@@ -1116,12 +1114,12 @@ namespace Chloe.SqlServer
         {
             if (returns.Count > 0)
             {
-                this._sqlBuilder.Append(" output ");
+                this.SqlBuilder.Append(" output ");
                 string separator = "";
                 foreach (DbColumn returnColumn in returns)
                 {
-                    this._sqlBuilder.Append(separator);
-                    this._sqlBuilder.Append("inserted.");
+                    this.SqlBuilder.Append(separator);
+                    this.SqlBuilder.Append("inserted.");
                     this.QuoteName(returnColumn.Name);
                     separator = ",";
                 }

@@ -1,4 +1,5 @@
 ﻿using Chloe.DbExpressions;
+using Chloe.RDBMS;
 
 namespace Chloe.MySql.MethodHandlers
 {
@@ -11,7 +12,7 @@ namespace Chloe.MySql.MethodHandlers
 
             return true;
         }
-        public void Process(DbMethodCallExpression exp, SqlGenerator generator)
+        public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
             MethodHandlerHelper.EnsureTrimCharArgumentIsSpaces(exp.Arguments[0]);
 

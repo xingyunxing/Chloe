@@ -2,6 +2,7 @@
 using Chloe.Core.Visitors;
 using Chloe.DbExpressions;
 using Chloe.InternalExtensions;
+using Chloe.RDBMS;
 using Chloe.Reflection;
 using System;
 using System.Collections.Generic;
@@ -10,14 +11,13 @@ using System.Reflection;
 
 namespace Chloe.PostgreSQL
 {
-    partial class SqlGenerator : DbExpressionVisitor<DbExpression>
+    partial class SqlGenerator : SqlGeneratorBase
     {
-        ISqlBuilder _sqlBuilder = new SqlBuilder();
         DbParamCollection _parameters = new DbParamCollection();
 
         public static readonly Dictionary<string, IMethodHandler> MethodHandlers = GetMethodHandlers();
-        static readonly Dictionary<string, Action<DbAggregateExpression, SqlGenerator>> AggregateHandlers = InitAggregateHandlers();
-        static readonly Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGenerator>> BinaryWithMethodHandlers = InitBinaryWithMethodHandlers();
+        static readonly Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers = InitAggregateHandlers();
+        static readonly Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers = InitBinaryWithMethodHandlers();
         static readonly Dictionary<Type, string> CastTypeMap;
         public static readonly Dictionary<Type, Type> NumericTypes;
         static readonly List<string> CacheParameterNames;
@@ -64,7 +64,6 @@ namespace Chloe.PostgreSQL
             CacheParameterNames = cacheParameterNames;
         }
 
-        public ISqlBuilder SqlBuilder { get { return this._sqlBuilder; } }
         public List<DbParam> Parameters { get { return this._parameters.ToParameterList(); } }
 
         public static SqlGenerator CreateInstance()
@@ -229,10 +228,10 @@ namespace Chloe.PostgreSQL
 
         public override DbExpression Visit(DbNotExpression exp)
         {
-            this._sqlBuilder.Append("NOT ");
-            this._sqlBuilder.Append("(");
+            this.SqlBuilder.Append("NOT ");
+            this.SqlBuilder.Append("(");
             exp.Operand.Accept(this);
-            this._sqlBuilder.Append(")");
+            this.SqlBuilder.Append(")");
 
             return exp;
         }
@@ -272,7 +271,7 @@ namespace Chloe.PostgreSQL
             MethodInfo method = exp.Method;
             if (method != null)
             {
-                Action<DbBinaryExpression, SqlGenerator> handler;
+                Action<DbBinaryExpression, SqlGeneratorBase> handler;
                 if (BinaryWithMethodHandlers.TryGetValue(method, out handler))
                 {
                     handler(exp, this);
@@ -319,19 +318,19 @@ namespace Chloe.PostgreSQL
         }
         public override DbExpression Visit(DbNegateExpression exp)
         {
-            this._sqlBuilder.Append("(");
+            this.SqlBuilder.Append("(");
 
-            this._sqlBuilder.Append("-");
+            this.SqlBuilder.Append("-");
             exp.Operand.Accept(this);
 
-            this._sqlBuilder.Append(")");
+            this.SqlBuilder.Append(")");
             return exp;
         }
         // <
         public override DbExpression Visit(DbLessThanExpression exp)
         {
             exp.Left.Accept(this);
-            this._sqlBuilder.Append(" < ");
+            this.SqlBuilder.Append(" < ");
             exp.Right.Accept(this);
 
             return exp;
@@ -340,7 +339,7 @@ namespace Chloe.PostgreSQL
         public override DbExpression Visit(DbLessThanOrEqualExpression exp)
         {
             exp.Left.Accept(this);
-            this._sqlBuilder.Append(" <= ");
+            this.SqlBuilder.Append(" <= ");
             exp.Right.Accept(this);
 
             return exp;
@@ -349,7 +348,7 @@ namespace Chloe.PostgreSQL
         public override DbExpression Visit(DbGreaterThanExpression exp)
         {
             exp.Left.Accept(this);
-            this._sqlBuilder.Append(" > ");
+            this.SqlBuilder.Append(" > ");
             exp.Right.Accept(this);
 
             return exp;
@@ -358,7 +357,7 @@ namespace Chloe.PostgreSQL
         public override DbExpression Visit(DbGreaterThanOrEqualExpression exp)
         {
             exp.Left.Accept(this);
-            this._sqlBuilder.Append(" >= ");
+            this.SqlBuilder.Append(" >= ");
             exp.Right.Accept(this);
 
             return exp;
@@ -367,7 +366,7 @@ namespace Chloe.PostgreSQL
 
         public override DbExpression Visit(DbAggregateExpression exp)
         {
-            Action<DbAggregateExpression, SqlGenerator> aggregateHandler;
+            Action<DbAggregateExpression, SqlGeneratorBase> aggregateHandler;
             if (!AggregateHandlers.TryGetValue(exp.Method.Name, out aggregateHandler))
             {
                 throw UtilExceptions.NotSupportedMethod(exp.Method);
@@ -386,7 +385,7 @@ namespace Chloe.PostgreSQL
         public override DbExpression Visit(DbColumnAccessExpression exp)
         {
             this.QuoteName(exp.Table.Name);
-            this._sqlBuilder.Append(".");
+            this.SqlBuilder.Append(".");
             this.QuoteName(exp.Column.Name);
 
             return exp;
@@ -422,9 +421,9 @@ namespace Chloe.PostgreSQL
             else
                 throw new NotSupportedException("JoinType: " + joinTablePart.JoinType);
 
-            this._sqlBuilder.Append(joinString);
+            this.SqlBuilder.Append(joinString);
             this.AppendTableSegment(joinTablePart.Table);
-            this._sqlBuilder.Append(" ON ");
+            this.SqlBuilder.Append(" ON ");
             JoinConditionExpressionTransformer.Transform(joinTablePart.Condition).Accept(this);
             this.VisitDbJoinTableExpressions(joinTablePart.JoinTables);
 
@@ -434,9 +433,9 @@ namespace Chloe.PostgreSQL
 
         public override DbExpression Visit(DbSubQueryExpression exp)
         {
-            this._sqlBuilder.Append("(");
+            this.SqlBuilder.Append("(");
             exp.SqlQuery.Accept(this);
-            this._sqlBuilder.Append(")");
+            this.SqlBuilder.Append(")");
 
             return exp;
         }
@@ -449,25 +448,25 @@ namespace Chloe.PostgreSQL
         {
             string separator = "";
 
-            this._sqlBuilder.Append("INSERT INTO ");
+            this.SqlBuilder.Append("INSERT INTO ");
             this.AppendTable(exp.Table);
-            this._sqlBuilder.Append("(");
+            this.SqlBuilder.Append("(");
 
             separator = "";
             foreach (var item in exp.InsertColumns)
             {
-                this._sqlBuilder.Append(separator);
+                this.SqlBuilder.Append(separator);
                 this.QuoteName(item.Key.Name);
                 separator = ",";
             }
 
-            this._sqlBuilder.Append(")");
+            this.SqlBuilder.Append(")");
 
-            this._sqlBuilder.Append(" VALUES(");
+            this.SqlBuilder.Append(" VALUES(");
             separator = "";
             foreach (var item in exp.InsertColumns)
             {
-                this._sqlBuilder.Append(separator);
+                this.SqlBuilder.Append(separator);
 
                 DbExpression valExp = DbExpressionExtension.StripInvalidConvert(item.Value);
                 AmendDbInfo(item.Key, valExp);
@@ -475,15 +474,15 @@ namespace Chloe.PostgreSQL
                 separator = ",";
             }
 
-            this._sqlBuilder.Append(")");
+            this.SqlBuilder.Append(")");
 
             if (exp.Returns.Count > 0)
             {
-                this._sqlBuilder.Append(" returning ");
+                this.SqlBuilder.Append(" returning ");
                 separator = "";
                 foreach (DbColumn returnColumn in exp.Returns)
                 {
-                    this._sqlBuilder.Append(separator);
+                    this.SqlBuilder.Append(separator);
                     this.QuoteName(returnColumn.Name);
                     separator = ",";
                 }
@@ -493,9 +492,9 @@ namespace Chloe.PostgreSQL
         }
         public override DbExpression Visit(DbUpdateExpression exp)
         {
-            this._sqlBuilder.Append("UPDATE ");
+            this.SqlBuilder.Append("UPDATE ");
             this.AppendTable(exp.Table);
-            this._sqlBuilder.Append(" SET ");
+            this.SqlBuilder.Append(" SET ");
 
             bool first = true;
             foreach (var item in exp.UpdateColumns)
@@ -503,10 +502,10 @@ namespace Chloe.PostgreSQL
                 if (first)
                     first = false;
                 else
-                    this._sqlBuilder.Append(",");
+                    this.SqlBuilder.Append(",");
 
                 this.QuoteName(item.Key.Name);
-                this._sqlBuilder.Append("=");
+                this.SqlBuilder.Append("=");
 
                 DbExpression valExp = DbExpressionExtension.StripInvalidConvert(item.Value);
                 AmendDbInfo(item.Key, valExp);
@@ -519,7 +518,7 @@ namespace Chloe.PostgreSQL
         }
         public override DbExpression Visit(DbDeleteExpression exp)
         {
-            this._sqlBuilder.Append("DELETE FROM ");
+            this.SqlBuilder.Append("DELETE FROM ");
             this.AppendTable(exp.Table);
             this.BuildWhereState(exp.Condition);
 
@@ -528,11 +527,10 @@ namespace Chloe.PostgreSQL
 
         public override DbExpression Visit(DbExistsExpression exp)
         {
-            this._sqlBuilder.Append("Exists ");
+            this.SqlBuilder.Append("Exists ");
 
             DbSqlQueryExpression rawSqlQuery = exp.SqlQuery;
-            DbSqlQueryExpression sqlQuery = new DbSqlQueryExpression()
-            {
+            DbSqlQueryExpression sqlQuery = new DbSqlQueryExpression() {
                 TakeCount = rawSqlQuery.TakeCount,
                 SkipCount = rawSqlQuery.SkipCount,
                 Table = rawSqlQuery.Table,
@@ -551,29 +549,29 @@ namespace Chloe.PostgreSQL
 
         public override DbExpression Visit(DbCoalesceExpression exp)
         {
-            this._sqlBuilder.Append("Coalesce COALESCE(");
+            this.SqlBuilder.Append("Coalesce COALESCE(");
             exp.CheckExpression.Accept(this);
-            this._sqlBuilder.Append(",");
+            this.SqlBuilder.Append(",");
             exp.ReplacementValue.Accept(this);
-            this._sqlBuilder.Append(")");
+            this.SqlBuilder.Append(")");
 
             return exp;
         }
 
         public override DbExpression Visit(DbCaseWhenExpression exp)
         {
-            this._sqlBuilder.Append("CASE");
+            this.SqlBuilder.Append("CASE");
             foreach (var whenThen in exp.WhenThenPairs)
             {
-                this._sqlBuilder.Append(" WHEN ");
+                this.SqlBuilder.Append(" WHEN ");
                 whenThen.When.Accept(this);
-                this._sqlBuilder.Append(" THEN ");
+                this.SqlBuilder.Append(" THEN ");
                 whenThen.Then.Accept(this);
             }
 
-            this._sqlBuilder.Append(" ELSE ");
+            this.SqlBuilder.Append(" ELSE ");
             exp.Else.Accept(this);
-            this._sqlBuilder.Append(" END");
+            this.SqlBuilder.Append(" END");
 
             return exp;
         }
@@ -622,21 +620,21 @@ namespace Chloe.PostgreSQL
                 if (!string.IsNullOrEmpty(schema))
                 {
                     this.QuoteName(schema);
-                    this._sqlBuilder.Append(".");
+                    this.SqlBuilder.Append(".");
                 }
 
                 this.QuoteName(functionName);
-                this._sqlBuilder.Append("(");
+                this.SqlBuilder.Append("(");
 
                 string c = "";
                 foreach (DbExpression argument in exp.Arguments)
                 {
-                    this._sqlBuilder.Append(c);
+                    this.SqlBuilder.Append(c);
                     argument.Accept(this);
                     c = ",";
                 }
 
-                this._sqlBuilder.Append(")");
+                this.SqlBuilder.Append(")");
 
                 return exp;
             }
@@ -657,14 +655,14 @@ namespace Chloe.PostgreSQL
             {
                 if (member == PublicConstants.PropertyInfo_DateTime_Now)
                 {
-                    this._sqlBuilder.Append("NOW()");
+                    this.SqlBuilder.Append("NOW()");
                     return exp;
                 }
 
                 //not supported
                 //if (member == PublicConstants.PropertyInfo_DateTime_UtcNow)
                 //{
-                //    this._sqlBuilder.Append("GETUTCDATE()");
+                //    this.SqlBuilder.Append("GETUTCDATE()");
                 //    return exp;
                 //}
 
@@ -688,9 +686,9 @@ namespace Chloe.PostgreSQL
 
             if (member.Name == "Length" && member.DeclaringType == PublicConstants.TypeOfString)
             {
-                this._sqlBuilder.Append("LENGTH(");
+                this.SqlBuilder.Append("LENGTH(");
                 exp.Expression.Accept(this);
-                this._sqlBuilder.Append(")");
+                this.SqlBuilder.Append(")");
 
                 return exp;
             }
@@ -713,29 +711,29 @@ namespace Chloe.PostgreSQL
         {
             if (exp.Value == null || exp.Value == DBNull.Value)
             {
-                this._sqlBuilder.Append("NULL");
+                this.SqlBuilder.Append("NULL");
                 return exp;
             }
 
             var objType = exp.Value.GetType();
             if (objType == PublicConstants.TypeOfBoolean)
             {
-                this._sqlBuilder.Append(((bool)exp.Value) ? "true" : "false");
+                this.SqlBuilder.Append(((bool)exp.Value) ? "true" : "false");
                 return exp;
             }
             else if (objType == PublicConstants.TypeOfString)
             {
-                this._sqlBuilder.Append("N'", exp.Value, "'");
+                this.SqlBuilder.Append("N'", exp.Value, "'");
                 return exp;
             }
             else if (objType.IsEnum)
             {
-                this._sqlBuilder.Append(Convert.ChangeType(exp.Value, Enum.GetUnderlyingType(objType)).ToString());
+                this.SqlBuilder.Append(Convert.ChangeType(exp.Value, Enum.GetUnderlyingType(objType)).ToString());
                 return exp;
             }
             else if (NumericTypes.ContainsKey(exp.Value.GetType()))
             {
-                this._sqlBuilder.Append(exp.Value);
+                this.SqlBuilder.Append(exp.Value);
                 return exp;
             }
 
@@ -763,7 +761,7 @@ namespace Chloe.PostgreSQL
 
             if (p != null)
             {
-                this._sqlBuilder.Append(p.Name);
+                this.SqlBuilder.Append(p.Name);
                 return exp;
             }
 
@@ -782,7 +780,7 @@ namespace Chloe.PostgreSQL
                 p.DbType = exp.DbType;
 
             this._parameters.Add(p);
-            this._sqlBuilder.Append(paramName);
+            this.SqlBuilder.Append(paramName);
             return exp;
         }
 
@@ -790,13 +788,13 @@ namespace Chloe.PostgreSQL
         void AppendTableSegment(DbTableSegment seg)
         {
             seg.Body.Accept(this);
-            this._sqlBuilder.Append(" AS ");
+            this.SqlBuilder.Append(" AS ");
             this.QuoteName(seg.Alias);
         }
         internal void AppendColumnSegment(DbColumnSegment seg)
         {
             DbValueExpressionTransformer.Transform(seg.Body).Accept(this);
-            this._sqlBuilder.Append(" AS ");
+            this.SqlBuilder.Append(" AS ");
             this.QuoteName(seg.Alias);
         }
         void AppendOrdering(DbOrdering ordering)
@@ -804,13 +802,13 @@ namespace Chloe.PostgreSQL
             if (ordering.OrderType == DbOrderType.Asc)
             {
                 ordering.Expression.Accept(this);
-                this._sqlBuilder.Append(" ASC");
+                this.SqlBuilder.Append(" ASC");
                 return;
             }
             else if (ordering.OrderType == DbOrderType.Desc)
             {
                 ordering.Expression.Accept(this);
-                this._sqlBuilder.Append(" DESC");
+                this.SqlBuilder.Append(" DESC");
                 return;
             }
 
@@ -826,22 +824,22 @@ namespace Chloe.PostgreSQL
         }
         void BuildGeneralSql(DbSqlQueryExpression exp)
         {
-            this._sqlBuilder.Append("SELECT ");
+            this.SqlBuilder.Append("SELECT ");
 
             if (exp.IsDistinct)
-                this._sqlBuilder.Append("DISTINCT ");
+                this.SqlBuilder.Append("DISTINCT ");
 
             List<DbColumnSegment> columns = exp.ColumnSegments;
             for (int i = 0; i < columns.Count; i++)
             {
                 DbColumnSegment column = columns[i];
                 if (i > 0)
-                    this._sqlBuilder.Append(",");
+                    this.SqlBuilder.Append(",");
 
                 this.AppendColumnSegment(column);
             }
 
-            this._sqlBuilder.Append(" FROM ");
+            this.SqlBuilder.Append(" FROM ");
             exp.Table.Accept(this);
             this.BuildWhereState(exp.Condition);
             this.BuildGroupState(exp);
@@ -854,13 +852,13 @@ namespace Chloe.PostgreSQL
                 if (exp.TakeCount != null)
                     takeCount = exp.TakeCount.Value;
 
-                this._sqlBuilder.Append(" LIMIT ", takeCount.ToString(), " OFFSET ", skipCount.ToString());
+                this.SqlBuilder.Append(" LIMIT ", takeCount.ToString(), " OFFSET ", skipCount.ToString());
             }
 
             DbTableSegment seg = exp.Table.Table;
             if (seg.Lock == LockType.UpdLock)
             {
-                this._sqlBuilder.Append(" FOR UPDATE");
+                this.SqlBuilder.Append(" FOR UPDATE");
             }
             else if (seg.Lock == LockType.Unspecified || seg.Lock == LockType.NoLock)
             {
@@ -875,7 +873,7 @@ namespace Chloe.PostgreSQL
         {
             if (whereExpression != null)
             {
-                this._sqlBuilder.Append(" WHERE ");
+                this.SqlBuilder.Append(" WHERE ");
                 whereExpression.Accept(this);
             }
         }
@@ -883,7 +881,7 @@ namespace Chloe.PostgreSQL
         {
             if (orderings.Count > 0)
             {
-                this._sqlBuilder.Append(" ORDER BY ");
+                this.SqlBuilder.Append(" ORDER BY ");
                 this.ConcatOrderings(orderings);
             }
         }
@@ -893,7 +891,7 @@ namespace Chloe.PostgreSQL
             {
                 if (i > 0)
                 {
-                    this._sqlBuilder.Append(",");
+                    this.SqlBuilder.Append(",");
                 }
 
                 this.AppendOrdering(orderings[i]);
@@ -905,25 +903,25 @@ namespace Chloe.PostgreSQL
             if (groupSegments.Count == 0)
                 return;
 
-            this._sqlBuilder.Append(" GROUP BY ");
+            this.SqlBuilder.Append(" GROUP BY ");
             for (int i = 0; i < groupSegments.Count; i++)
             {
                 if (i > 0)
-                    this._sqlBuilder.Append(",");
+                    this.SqlBuilder.Append(",");
 
                 groupSegments[i].Accept(this);
             }
 
             if (exp.HavingCondition != null)
             {
-                this._sqlBuilder.Append(" HAVING ");
+                this.SqlBuilder.Append(" HAVING ");
                 exp.HavingCondition.Accept(this);
             }
         }
 
         void ConcatOperands(IEnumerable<DbExpression> operands, string connector)
         {
-            this._sqlBuilder.Append("(");
+            this.SqlBuilder.Append("(");
 
             bool first = true;
             foreach (DbExpression operand in operands)
@@ -931,12 +929,12 @@ namespace Chloe.PostgreSQL
                 if (first)
                     first = false;
                 else
-                    this._sqlBuilder.Append(connector);
+                    this.SqlBuilder.Append(connector);
 
                 operand.Accept(this);
             }
 
-            this._sqlBuilder.Append(")");
+            this.SqlBuilder.Append(")");
             return;
         }
 
@@ -945,14 +943,14 @@ namespace Chloe.PostgreSQL
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentException("name");
 
-            this._sqlBuilder.Append("\"", name, "\"");
+            this.SqlBuilder.Append("\"", name, "\"");
         }
         void AppendTable(DbTable table)
         {
             if (!string.IsNullOrEmpty(table.Schema))
             {
                 this.QuoteName(table.Schema);
-                this._sqlBuilder.Append(".");
+                this.SqlBuilder.Append(".");
             }
 
             this.QuoteName(table.Name);
@@ -960,13 +958,13 @@ namespace Chloe.PostgreSQL
 
         void BuildCastState(DbExpression castExp, string targetDbTypeString)
         {
-            this._sqlBuilder.Append("CAST(");
+            this.SqlBuilder.Append("CAST(");
             castExp.Accept(this);
-            this._sqlBuilder.Append(" AS ", targetDbTypeString, ")");
+            this.SqlBuilder.Append(" AS ", targetDbTypeString, ")");
         }
         void BuildCastState(object castObject, string targetDbTypeString)
         {
-            this._sqlBuilder.Append("CAST(", castObject, " AS ", targetDbTypeString, ")");
+            this.SqlBuilder.Append("CAST(", castObject, " AS ", targetDbTypeString, ")");
         }
 
         bool IsDatePart(DbMemberExpression exp)

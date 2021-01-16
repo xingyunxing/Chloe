@@ -1,4 +1,5 @@
 ﻿using Chloe.DbExpressions;
+using Chloe.RDBMS;
 using System;
 
 namespace Chloe.PostgreSQL.MethodHandlers
@@ -20,7 +21,7 @@ namespace Chloe.PostgreSQL.MethodHandlers
 
             return true;
         }
-        public void Process(DbMethodCallExpression exp, SqlGenerator generator)
+        public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
             DbExpression arg = exp.Arguments[0];
             DbExpression e = DbExpression.Convert(arg, exp.Method.ReturnType);

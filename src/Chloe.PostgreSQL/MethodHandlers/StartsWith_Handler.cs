@@ -1,4 +1,5 @@
 ﻿using Chloe.DbExpressions;
+using Chloe.RDBMS;
 using System.Linq;
 
 namespace Chloe.PostgreSQL.MethodHandlers
@@ -12,7 +13,7 @@ namespace Chloe.PostgreSQL.MethodHandlers
 
             return true;
         }
-        public void Process(DbMethodCallExpression exp, SqlGenerator generator)
+        public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
             exp.Object.Accept(generator);
             generator.SqlBuilder.Append(" ILIKE ");

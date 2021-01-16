@@ -1,9 +1,11 @@
 ﻿using System.Text;
 
-namespace Chloe.MySql
+namespace Chloe.RDBMS
 {
-    interface ISqlBuilder
+    public interface ISqlBuilder
     {
+        int Length { get; }
+
         string ToSql();
         ISqlBuilder Append(object obj);
         ISqlBuilder Append(object obj1, object obj2);
@@ -16,6 +18,9 @@ namespace Chloe.MySql
     class SqlBuilder : ISqlBuilder
     {
         StringBuilder _sb = new StringBuilder();
+
+        public int Length { get { return this._sb.Length; } }
+
         public string ToSql()
         {
             return this._sb.ToString();

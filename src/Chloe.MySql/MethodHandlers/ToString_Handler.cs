@@ -1,4 +1,5 @@
 ﻿using Chloe.DbExpressions;
+using Chloe.RDBMS;
 using Chloe.Reflection;
 
 namespace Chloe.MySql.MethodHandlers
@@ -24,7 +25,7 @@ namespace Chloe.MySql.MethodHandlers
 
             return true;
         }
-        public void Process(DbMethodCallExpression exp, SqlGenerator generator)
+        public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
             if (exp.Object.Type == PublicConstants.TypeOfString)
             {
