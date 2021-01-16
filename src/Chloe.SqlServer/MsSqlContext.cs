@@ -15,6 +15,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Chloe.RDBMS;
 
 #if net5
 using Microsoft.Data.SqlClient;
@@ -41,6 +42,22 @@ namespace Chloe.SqlServer
         }
         public MsSqlContext(Func<IDbConnection> dbConnectionFactory) : this(new DbConnectionFactory(dbConnectionFactory))
         {
+        }
+
+
+        /// <summary>
+        /// 设置方法解析器。
+        /// </summary>
+        /// <param name="methodName"></param>
+        /// <param name="handler"></param>
+        public static void SetMethodHandler(string methodName, IMethodHandler handler)
+        {
+            PublicHelper.CheckNull(methodName, nameof(methodName));
+            PublicHelper.CheckNull(handler, nameof(handler));
+            lock (SqlGenerator.MethodHandlers)
+            {
+                SqlGenerator.MethodHandlers[methodName] = handler;
+            }
         }
 
         /// <summary>
