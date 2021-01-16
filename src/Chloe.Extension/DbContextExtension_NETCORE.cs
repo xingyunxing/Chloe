@@ -12,44 +12,67 @@ namespace Chloe
     {
         /// <summary>
         /// int id = 1;
-        /// dbContext.FormatSqlQuery&lt;User&gt;($"select Id,Name from Users where Id={id}");
+        /// dbContext.SqlQueryFmt&lt;User&gt;($"select Id,Name from Users where Id={id}");
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="dbContext"></param>
         /// <param name="sql"></param>
         /// <returns></returns>
-        public static List<T> FormatSqlQuery<T>(this IDbContext dbContext, FormattableString sql)
+        public static List<T> SqlQueryFmt<T>(this IDbContext dbContext, FormattableString sql)
         {
             /*
              * Usage:
              * int id = 1;
-             * dbContext.FormatSqlQuery<User>($"select Id,Name from Users where Id={id}");
+             * dbContext.SqlQueryFmt<User>($"select Id,Name from Users where Id={id}");
              */
 
             (string Sql, DbParam[] Parameters) r = BuildSqlAndParameters(dbContext, sql);
             return dbContext.SqlQuery<T>(r.Sql, r.Parameters);
         }
-        public static List<T> FormatSqlQuery<T>(this IDbContext dbContext, FormattableString sql, CommandType cmdType)
+        public static List<T> SqlQueryFmt<T>(this IDbContext dbContext, FormattableString sql, CommandType cmdType)
         {
             /*
              * Usage:
              * int id = 1;
-             * dbContext.FormatSqlQuery<User>($"select Id,Name from Users where Id={id}");
+             * dbContext.SqlQueryFmt<User>($"select Id,Name from Users where Id={id}");
              */
 
             (string Sql, DbParam[] Parameters) r = BuildSqlAndParameters(dbContext, sql);
             return dbContext.SqlQuery<T>(r.Sql, cmdType, r.Parameters);
         }
-        public static async Task<List<T>> FormatSqlQueryAsync<T>(this IDbContext dbContext, FormattableString sql)
+        public static async Task<List<T>> SqlQueryFmtAsync<T>(this IDbContext dbContext, FormattableString sql)
         {
             (string Sql, DbParam[] Parameters) r = BuildSqlAndParameters(dbContext, sql);
             return await dbContext.SqlQueryAsync<T>(r.Sql, r.Parameters);
         }
-        public static async Task<List<T>> FormatSqlQueryAsync<T>(this IDbContext dbContext, FormattableString sql, CommandType cmdType)
+        public static async Task<List<T>> SqlQueryFmtAsync<T>(this IDbContext dbContext, FormattableString sql, CommandType cmdType)
         {
             (string Sql, DbParam[] Parameters) r = BuildSqlAndParameters(dbContext, sql);
             return await dbContext.SqlQueryAsync<T>(r.Sql, cmdType, r.Parameters);
         }
+
+        [Obsolete("This method will be removed in future versions. Instead of using `SqlQueryFmt` method.")]
+        public static List<T> FormatSqlQuery<T>(this IDbContext dbContext, FormattableString sql)
+        {
+            return dbContext.SqlQueryFmt<T>(sql);
+        }
+        [Obsolete("This method will be removed in future versions. Instead of using `SqlQueryFmt` method.")]
+        public static List<T> FormatSqlQuery<T>(this IDbContext dbContext, FormattableString sql, CommandType cmdType)
+        {
+            return dbContext.SqlQueryFmt<T>(sql, cmdType);
+        }
+        [Obsolete("This method will be removed in future versions. Instead of using `SqlQueryFmtAsync` method.")]
+        public static async Task<List<T>> FormatSqlQueryAsync<T>(this IDbContext dbContext, FormattableString sql)
+        {
+            return await dbContext.SqlQueryFmtAsync<T>(sql);
+        }
+        [Obsolete("This method will be removed in future versions. Instead of using `SqlQueryFmtAsync` method.")]
+        public static async Task<List<T>> FormatSqlQueryAsync<T>(this IDbContext dbContext, FormattableString sql, CommandType cmdType)
+        {
+            return await dbContext.SqlQueryFmtAsync<T>(sql, cmdType);
+        }
+
+
 
         static (string Sql, DbParam[] Parameters) BuildSqlAndParameters(IDbContext dbContext, FormattableString sql)
         {
