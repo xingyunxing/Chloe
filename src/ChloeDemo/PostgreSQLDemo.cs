@@ -164,8 +164,7 @@ namespace ChloeDemo
 
             DateTime startTime = DateTime.Now;
             DateTime endTime = DateTime.Now.AddDays(1);
-            var result = q.Select(a => new
-            {
+            var result = q.OrderBy(a => a.Id).Select(a => new {
                 Id = a.Id,
 
                 //CustomFunction = DbFunctions.MyFunction(a.Id), //自定义函数
@@ -177,7 +176,8 @@ namespace ChloeDemo
                 ToLower = a.Name.ToLower(),//
                 ToUpper = a.Name.ToUpper(),//
                 IsNullOrEmpty = string.IsNullOrEmpty(a.Name),//
-                Contains = (bool?)a.Name.Contains("s"),//
+                Contains = (bool?)a.Name.Contains("s"),// ILIKE(不区分大小写匹配)
+                Like = (bool?)a.Name.StringLike("s"),// LIKE(区分大小写匹配)
                 Trim = a.Name.Trim(),//
                 TrimStart = a.Name.TrimStart(space),//
                 TrimEnd = a.Name.TrimEnd(space),//

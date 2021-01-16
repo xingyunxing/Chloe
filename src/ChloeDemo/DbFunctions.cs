@@ -6,12 +6,17 @@ using System.Text;
 
 namespace ChloeDemo
 {
-    public class DbFunctions
+    public static class DbFunctions
     {
         [Chloe.Annotations.DbFunctionAttribute()]
         public static string MyFunction(int value)
         {
             throw new NotImplementedException();
+        }
+
+        public static bool StringLike(this string str, string value)
+        {
+            return str.Contains(value);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Chloe.Infrastructure;
 using Chloe.Infrastructure.Interception;
+using Chloe.PostgreSQL;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -18,6 +19,7 @@ namespace ChloeDemo
             DbConfiguration.UseInterceptors(interceptor);
 
             ConfigureMappingType();
+            ConfigureMethodHandler();
 
             /* fluent mapping */
             DbConfiguration.UseTypeBuilders(typeof(PersonMap));
@@ -52,6 +54,14 @@ namespace ChloeDemo
             MappingTypeBuilder stringTypeBuilder = DbConfiguration.ConfigureMappingType<string>();
             stringTypeBuilder.HasDbParameterAssembler<String_MappingType>();
             //stringTypeBuilder.HasDbValueConverter<String_MappingType>();
+        }
+
+        /// <summary>
+        /// 配置方法翻译解析器。
+        /// </summary>
+        static void ConfigureMethodHandler()
+        {
+            PostgreSQLContext.SetMethodHandler("StringLike", new PostgreSQL_StringLike_MethodHandler());
         }
     }
 }
