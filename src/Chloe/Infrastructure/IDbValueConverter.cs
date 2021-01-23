@@ -4,6 +4,11 @@ namespace Chloe.Infrastructure
 {
     public interface IDbValueConverter
     {
+        /// <summary>
+        /// 从数据库读取数据时，当表字段类型与实体属性类型不一致时调用。
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         object Convert(object value);
     }
     public class DbValueConverter : IDbValueConverter

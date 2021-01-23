@@ -1,4 +1,5 @@
-﻿using Chloe.Infrastructure;
+﻿using Chloe;
+using Chloe.Infrastructure;
 using Chloe.Infrastructure.Interception;
 using Chloe.PostgreSQL;
 using System;
@@ -17,6 +18,7 @@ namespace ChloeDemo
             /* 添加拦截器，输出 sql 语句极其相应的参数 */
             IDbCommandInterceptor interceptor = new DbCommandInterceptor();
             DbConfiguration.UseInterceptors(interceptor);
+            DbConfiguration.UseInterceptors(new ChloeDiagnosticListenerInterceptor());
 
             ConfigureMappingType();
             ConfigureMethodHandler();
@@ -53,7 +55,7 @@ namespace ChloeDemo
         {
             MappingTypeBuilder stringTypeBuilder = DbConfiguration.ConfigureMappingType<string>();
             stringTypeBuilder.HasDbParameterAssembler<String_MappingType>();
-            //stringTypeBuilder.HasDbValueConverter<String_MappingType>();
+            stringTypeBuilder.HasDbValueConverter<String_MappingType>();
         }
 
         /// <summary>

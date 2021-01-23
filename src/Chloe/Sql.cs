@@ -168,7 +168,7 @@ namespace Chloe
         {
             throw new NotSupportedException();
         }
-        public static int? DiffDays(DateTime? dateTime1, DateTime? ddateTime2)
+        public static int? DiffDays(DateTime? dateTime1, DateTime? dateTime2)
         {
             throw new NotSupportedException();
         }

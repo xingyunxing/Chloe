@@ -13,6 +13,11 @@ namespace Chloe
     {
         IDbSession Session { get; }
 
+        /// <summary>
+        /// 针对当前上下文设置过滤器。
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="filter"></param>
         void HasQueryFilter<TEntity>(Expression<Func<TEntity, bool>> filter);
 
         IQuery<TEntity> Query<TEntity>();

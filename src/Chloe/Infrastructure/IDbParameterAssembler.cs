@@ -5,6 +5,11 @@ namespace Chloe.Infrastructure
 {
     public interface IDbParameterAssembler
     {
+        /// <summary>
+        /// 修正 IDbDataParameter 对象各项属性。
+        /// </summary>
+        /// <param name="parameter"></param>
+        /// <param name="param"></param>
         void SetupParameter(IDbDataParameter parameter, DbParam param);
     }
 

@@ -98,6 +98,10 @@ namespace Chloe
         void CommitTransaction();
         void RollbackTransaction();
 
+        /// <summary>
+        /// 添加拦截器。注：仅对当前上下文起作用。
+        /// </summary>
+        /// <param name="interceptor"></param>
         void AddInterceptor(IDbCommandInterceptor interceptor);
         void RemoveInterceptor(IDbCommandInterceptor interceptor);
     }
