@@ -61,13 +61,7 @@ namespace Chloe.Core.Visitors
         public override DbExpression Visit(DbConvertExpression exp)
         {
             exp = DbExpression.Convert(exp.Operand.Accept(this), exp.Type);
-
-            if (!IsConstantOrParameter(exp.Operand))
-            {
-                return exp;
-            }
-
-            return DbExpression.Parameter(exp.Evaluate(), exp.Type);
+            return exp;
         }
         public override DbExpression Visit(DbCoalesceExpression exp)
         {
