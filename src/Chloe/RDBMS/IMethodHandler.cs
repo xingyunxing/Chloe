@@ -2,6 +2,9 @@
 
 namespace Chloe.RDBMS
 {
+    /// <summary>
+    /// 方法解析处理器。
+    /// </summary>
     public interface IMethodHandler
     {
         /// <summary>

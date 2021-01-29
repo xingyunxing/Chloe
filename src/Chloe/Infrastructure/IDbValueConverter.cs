@@ -2,6 +2,9 @@
 
 namespace Chloe.Infrastructure
 {
+    /// <summary>
+    /// 数据库数据转换器。
+    /// </summary>
     public interface IDbValueConverter
     {
         /// <summary>

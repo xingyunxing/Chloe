@@ -15,7 +15,7 @@ namespace Chloe.RDBMS
         ISqlBuilder Append(params object[] objs);
     }
 
-    class SqlBuilder : ISqlBuilder
+    public class SqlBuilder : ISqlBuilder
     {
         StringBuilder _sb = new StringBuilder();
 

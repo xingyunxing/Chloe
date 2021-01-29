@@ -108,7 +108,7 @@ namespace Chloe
         TEntity Insert<TEntity>(TEntity entity);
         TEntity Insert<TEntity>(TEntity entity, string table);
         /// <summary>
-        /// context.Insert&lt;User&gt;(() => new User() { Name = "lu", Age = 18, Gender = Gender.Woman, CityId = 1, OpTime = DateTime.Now })
+        /// context.Insert&lt;User&gt;(() => new User() { Name = "lu", Age = 18, Gender = Gender.Female, CityId = 1, OpTime = DateTime.Now })
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="content"></param>
@@ -129,7 +129,7 @@ namespace Chloe
         int Update<TEntity>(TEntity entity);
         int Update<TEntity>(TEntity entity, string table);
         /// <summary>
-        /// context.Update&lt;User&gt;(a => a.Id == 1, a => new User() { Name = "lu", Age = a.Age + 1, Gender = Gender.Woman, OpTime = DateTime.Now })
+        /// context.Update&lt;User&gt;(a => a.Id == 1, a => new User() { Name = "lu", Age = a.Age + 1, Gender = Gender.Female, OpTime = DateTime.Now })
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="condition"></param>

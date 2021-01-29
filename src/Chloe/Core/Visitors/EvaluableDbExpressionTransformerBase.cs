@@ -50,19 +50,12 @@ namespace Chloe.Core.Visitors
                     return exp;
             }
 
-            MemberInfo member = exp.Member;
-
             if (this.CanTranslateToSql(exp))
                 return exp;
 
             return DbExpression.Parameter(exp.Evaluate(), exp.Type);
         }
 
-        public override DbExpression Visit(DbConvertExpression exp)
-        {
-            exp = DbExpression.Convert(exp.Operand.Accept(this), exp.Type);
-            return exp;
-        }
         public override DbExpression Visit(DbCoalesceExpression exp)
         {
             exp = new DbCoalesceExpression(exp.CheckExpression.Accept(this), exp.ReplacementValue.Accept(this));
