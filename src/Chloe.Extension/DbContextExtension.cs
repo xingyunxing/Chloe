@@ -49,7 +49,7 @@ namespace Chloe
             ConstantExpression entityConstantExp = Expression.Constant(entity);
             foreach (PrimitivePropertyDescriptor propertyDescriptor in typeDescriptor.PrimitivePropertyDescriptors)
             {
-                if (propertyDescriptor.IsPrimaryKey || propertyDescriptor.IsAutoIncrement || propertyDescriptor.HasSequence() || propertyDescriptor.IsRowVersion)
+                if (propertyDescriptor.CannotUpdate())
                 {
                     continue;
                 }

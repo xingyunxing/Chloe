@@ -151,5 +151,16 @@ namespace Chloe.Entity
 
             return this;
         }
+
+        public IPrimitivePropertyBuilder<TProperty> UpdateIgnore(bool updateIgnore = true)
+        {
+            this.AsNonGenericBuilder().UpdateIgnore(updateIgnore);
+            return this;
+        }
+        IPrimitivePropertyBuilder IPrimitivePropertyBuilder.UpdateIgnore(bool updateIgnore)
+        {
+            this.Property.UpdateIgnore = updateIgnore;
+            return this;
+        }
     }
 }

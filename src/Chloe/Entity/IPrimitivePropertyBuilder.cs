@@ -16,6 +16,7 @@ namespace Chloe.Entity
         IPrimitivePropertyBuilder HasScale(byte? scale);
         IPrimitivePropertyBuilder HasPrecision(byte? precision);
         IPrimitivePropertyBuilder HasSequence(string name, string schema = null);
+        IPrimitivePropertyBuilder UpdateIgnore(bool updateIgnore = true);
     }
     public interface IPrimitivePropertyBuilder<TProperty> : IPrimitivePropertyBuilder
     {
@@ -30,5 +31,11 @@ namespace Chloe.Entity
         new IPrimitivePropertyBuilder<TProperty> HasScale(byte? scale);
         new IPrimitivePropertyBuilder<TProperty> HasPrecision(byte? precision);
         new IPrimitivePropertyBuilder<TProperty> HasSequence(string name, string schema = null);
+        /// <summary>
+        /// 更新忽略
+        /// </summary>
+        /// <param name="updateIgnore"></param>
+        /// <returns></returns>
+        new IPrimitivePropertyBuilder<TProperty> UpdateIgnore(bool updateIgnore = true);
     }
 }

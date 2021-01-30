@@ -47,16 +47,6 @@ namespace Chloe.Entity
                 var propertyAttributes = propertyInfo.GetCustomAttributes();
                 foreach (Attribute propertyAttribute in propertyAttributes)
                 {
-                    if (propertyAttribute is NotMappedAttribute)
-                    {
-                        this.Ignore(propertyInfo.Name);
-                    }
-
-                    if (propertyAttribute is NotNullAttribute)
-                    {
-                        propertyBuilder.IsNullable(false);
-                    }
-
                     propertyBuilder.HasAnnotation(propertyAttribute);
 
                     if (propertyAttribute is ColumnAttribute)
@@ -74,11 +64,32 @@ namespace Chloe.Entity
                         propertyBuilder.HasSize(columnAttribute.GetSize());
                         propertyBuilder.HasScale(columnAttribute.GetScale());
                         propertyBuilder.HasPrecision(columnAttribute.GetPrecision());
+
+                        continue;
+                    }
+
+                    if (propertyAttribute is NotMappedAttribute)
+                    {
+                        this.Ignore(propertyInfo.Name);
+                        continue;
+                    }
+
+                    if (propertyAttribute is NotNullAttribute)
+                    {
+                        propertyBuilder.IsNullable(false);
+                        continue;
                     }
 
                     if (propertyAttribute is AutoIncrementAttribute)
                     {
                         propertyBuilder.IsAutoIncrement(true);
+                        continue;
+                    }
+
+                    if (propertyAttribute is UpdateIgnoreAttribute)
+                    {
+                        propertyBuilder.UpdateIgnore(true);
+                        continue;
                     }
 
                     SequenceAttribute sequenceAttribute = propertyAttribute as SequenceAttribute;

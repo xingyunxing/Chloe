@@ -20,6 +20,7 @@ namespace ChloeDemo
         {
             this.MapTo("Person");
             this.Property(a => a.Gender).HasDbType(DbType.Int32);
+            this.Property(a => a.CreateTime).UpdateIgnore(); //更新实体时不更新此字段
 
             this.HasOne(a => a.Ex).WithForeignKey(a => a.Id);
             this.HasOne(a => a.City).WithForeignKey(a => a.CityId);

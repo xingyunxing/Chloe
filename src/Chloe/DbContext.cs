@@ -588,7 +588,7 @@ namespace Chloe
                     continue;
                 }
 
-                if (propertyDescriptor.IsAutoIncrement || propertyDescriptor.HasSequence() || propertyDescriptor.IsRowVersion)
+                if (propertyDescriptor.CannotUpdate())
                     continue;
 
                 object val = propertyDescriptor.GetValue(entity);
