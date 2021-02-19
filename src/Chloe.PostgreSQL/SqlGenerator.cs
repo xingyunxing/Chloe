@@ -84,11 +84,12 @@ namespace Chloe.PostgreSQL
             /* Sql.Equals(left, right) */
             DbMethodCallExpression left_equals_right = DbExpression.MethodCall(null, method_Sql_Equals, new List<DbExpression>(2) { left, right });
 
-            if (right.NodeType == DbExpressionType.Parameter || right.NodeType == DbExpressionType.Constant || left.NodeType == DbExpressionType.Parameter || left.NodeType == DbExpressionType.Constant || right.NodeType == DbExpressionType.SubQuery || left.NodeType == DbExpressionType.SubQuery)
+            if (right.NodeType == DbExpressionType.Parameter || right.NodeType == DbExpressionType.Constant || left.NodeType == DbExpressionType.Parameter || left.NodeType == DbExpressionType.Constant || right.NodeType == DbExpressionType.SubQuery || left.NodeType == DbExpressionType.SubQuery || !left.Type.CanNull() || !right.Type.CanNull())
             {
                 /*
                  * a.Name == name --> a.Name == name
-                 * a.Id == (select top 1 T.Id from T) --> a.Id == (select top 1 T.Id from T)，对于这种查询，我们不考虑 null
+                 * a.Id == (select top 1 T.Id from T) --> a.Id == (select top 1 T.Id from T)
+                 * 对于上述查询，我们不考虑 null
                  */
 
                 left_equals_right.Accept(this);
@@ -530,7 +531,8 @@ namespace Chloe.PostgreSQL
             this.SqlBuilder.Append("Exists ");
 
             DbSqlQueryExpression rawSqlQuery = exp.SqlQuery;
-            DbSqlQueryExpression sqlQuery = new DbSqlQueryExpression() {
+            DbSqlQueryExpression sqlQuery = new DbSqlQueryExpression()
+            {
                 TakeCount = rawSqlQuery.TakeCount,
                 SkipCount = rawSqlQuery.SkipCount,
                 Table = rawSqlQuery.Table,
@@ -540,7 +542,7 @@ namespace Chloe.PostgreSQL
 
             sqlQuery.GroupSegments.AddRange(rawSqlQuery.GroupSegments);
 
-            DbColumnSegment columnSegment = new DbColumnSegment(DbExpression.Constant("1"), "C");
+            DbColumnSegment columnSegment = new DbColumnSegment(DbExpression.Parameter("1"), "C");
             sqlQuery.ColumnSegments.Add(columnSegment);
 
             DbSubQueryExpression subQuery = new DbSubQueryExpression(sqlQuery);
