@@ -23,6 +23,7 @@ namespace ChloeDemo
             ConfigureMappingType();
             ConfigureMethodHandler();
 
+
             /* fluent mapping */
             DbConfiguration.UseTypeBuilders(typeof(PersonMap));
             DbConfiguration.UseTypeBuilders(typeof(CityMap));
