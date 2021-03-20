@@ -204,7 +204,7 @@ namespace ChloeDemo
             this._result = await q.SumAsync(a => a.Id);
             this._result = await q.AverageAsync(a => a.Age);
 
-            person = new Person() { Name = "chloe", Age = 18, Gender = Gender.Female, CityId = 1 };
+            person = new Person() { Name = "Chloe", Age = 18, Gender = Gender.Female, CityId = 1 };
 
             //插入
             person = await this.DbContext.InsertAsync(person);
@@ -224,7 +224,7 @@ namespace ChloeDemo
             this._result = await this.DbContext.DeleteAsync<Person>(person);
 
             //lambda 表达式插入，返回主键
-            var insertedId = await this.DbContext.InsertAsync(() => new Person() { Name = "chloe", Age = 18, Gender = Gender.Female, CityId = 1, CreateTime = DateTime.Now });
+            var insertedId = await this.DbContext.InsertAsync(() => new Person() { Name = "Chloe", Age = 18, Gender = Gender.Female, CityId = 1, CreateTime = DateTime.Now });
 
             //根据主键删除
             this._result = await this.DbContext.DeleteByKeyAsync<Person>(insertedId);
@@ -236,7 +236,7 @@ namespace ChloeDemo
         {
             IQuery<Person> q = this.DbContext.Query<Person>();
 
-            string name = "chloe";
+            string name = "Chloe";
             this._result = q.Where(a => a.Name == name).ToList();
 
             this._result = q.Where(a => a.Id == 1).FirstOrDefault();
@@ -260,12 +260,12 @@ namespace ChloeDemo
 
 
             /* like 查询 */
-            this._result = q.Where(a => a.Name.Contains("so") || a.Name.StartsWith("s") || a.Name.EndsWith("o")).ToList();
+            this._result = q.Where(a => a.Name.Contains("Chloe") || a.Name.StartsWith("C") || a.Name.EndsWith("o")).ToList();
             /*
              * SELECT 
              *      [Person].[Gender] AS [Gender],[Person].[Age] AS [Age],[Person].[CityId] AS [CityId],[Person].[EditTime] AS [EditTime],[Person].[Id] AS [Id],[Person].[Name] AS [Name] 
              * FROM [Person] AS [Person] 
-             * WHERE ([Person].[Name] LIKE '%' || 'so' || '%' OR [Person].[Name] LIKE 's' || '%' OR [Person].[Name] LIKE '%' || 'o')
+             * WHERE ([Person].[Name] LIKE '%' || 'Chloe' || '%' OR [Person].[Name] LIKE 'C' || '%' OR [Person].[Name] LIKE '%' || 'o')
              */
 
 
@@ -506,22 +506,22 @@ namespace ChloeDemo
         public virtual void Insert()
         {
             //返回主键 Id
-            int id = (int)this.DbContext.Insert<Person>(() => new Person() { Name = "lu", Age = 18, Gender = Gender.Male, CityId = 1, CreateTime = DateTime.Now });
+            int id = (int)this.DbContext.Insert<Person>(() => new Person() { Name = "Chloe", Age = 18, Gender = Gender.Female, CityId = 1, CreateTime = DateTime.Now });
             /*
-             * INSERT INTO [Person]([Name],[Age],[Gender],[CityId],[CreateTime]) VALUES('lu',18,1,1,DATETIME('NOW','LOCALTIME'));SELECT LAST_INSERT_ROWID()
+             * INSERT INTO [Person]([Name],[Age],[Gender],[CityId],[CreateTime]) VALUES('Chloe',18,2,1,DATETIME('NOW','LOCALTIME'));SELECT LAST_INSERT_ROWID()
              */
 
             Person person = new Person();
-            person.Name = "lu";
+            person.Name = "Chloe";
             person.Age = 18;
-            person.Gender = Gender.Male;
+            person.Gender = Gender.Female;
             person.CityId = 1;
 
             //会自动将自增 Id 设置到 person 的 Id 属性上
             person = this.DbContext.Insert(person);
             /*
-             * String @P_0 = 'lu';
-               Gender @P_1 = Man;
+             * String @P_0 = 'Chloe';
+               Gender @P_1 = Female;
                Int32 @P_2 = 18;
                Int32 @P_3 = 1;
                DateTime @P_4 = '2016/8/6 22:03:42';
@@ -532,7 +532,7 @@ namespace ChloeDemo
         }
         public virtual void Update()
         {
-            this.DbContext.Update<Person>(a => a.Id == 1, a => new Person() { Name = a.Name, Age = a.Age + 1, Gender = Gender.Male, EditTime = DateTime.Now });
+            this.DbContext.Update<Person>(a => a.Id == 1, a => new Person() { Name = a.Name, Age = a.Age + 1, Gender = Gender.Female, EditTime = DateTime.Now });
             /*
              * UPDATE [Person] SET [Name]=[Person].[Name],[Age]=([Person].[Age] + 1),[Gender]=1,[EditTime]=DATETIME('NOW','LOCALTIME') WHERE [Person].[Id] = 1
              */
@@ -546,15 +546,15 @@ namespace ChloeDemo
 
             Person person = new Person();
             person.Id = 1;
-            person.Name = "lu";
+            person.Name = "Chloe";
             person.Age = 28;
-            person.Gender = Gender.Male;
+            person.Gender = Gender.Female;
             person.EditTime = DateTime.Now;
 
             this.DbContext.Update(person); //会更新所有映射的字段
             /*
-             * String @P_0 = 'lu';
-               Gender @P_1 = Man;
+             * String @P_0 = 'Chloe';
+               Gender @P_1 = Female;
                Int32 @P_2 = 28;
                Nullable<Int32> @P_3 = NULL;
                DateTime @P_4 = '2016/8/6 22:05:02';
