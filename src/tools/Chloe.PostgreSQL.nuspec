@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Chloe.PostgreSQL</id>
-    <version>4.12.0</version>
+    <version>4.12.1</version>
     <title>Chloe.PostgreSQL</title>
     <authors>Shuxin Qin</authors>
     <owners>Shuxin Qin</owners>
