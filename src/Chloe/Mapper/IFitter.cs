@@ -4,6 +4,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 
+#if netfx
+using VoidTask = System.Threading.Tasks.Task;
+#else
+using VoidTask = System.Threading.Tasks.ValueTask;
+#endif
+
 namespace Chloe.Mapper
 {
     /// <summary>
@@ -12,7 +18,7 @@ namespace Chloe.Mapper
     public interface IFitter
     {
         void Prepare(IDataReader reader);
-        void Fill(object obj, object owner, IDataReader reader);
+        VoidTask Fill(object obj, object owner, IDataReader reader, bool @async);
     }
 
     public class ComplexObjectFitter : IFitter
@@ -33,7 +39,7 @@ namespace Chloe.Mapper
             }
         }
 
-        public void Fill(object entity, object owner, IDataReader reader)
+        public async VoidTask Fill(object entity, object owner, IDataReader reader, bool @async)
         {
             for (int i = 0; i < this._includings.Count; i++)
             {
@@ -43,7 +49,7 @@ namespace Chloe.Mapper
                 if (propertyValue == null)
                     continue;
 
-                kv.Item2.Fill(propertyValue, entity, reader);
+                await kv.Item2.Fill(propertyValue, entity, reader, @async);
             }
         }
     }
@@ -68,7 +74,7 @@ namespace Chloe.Mapper
             this._elementFitter.Prepare(reader);
         }
 
-        public void Fill(object collection, object owner, IDataReader reader)
+        public async VoidTask Fill(object collection, object owner, IDataReader reader, bool @async)
         {
             IList entityContainer = collection as IList;
 
@@ -78,7 +84,7 @@ namespace Chloe.Mapper
 
             if (entity == null || !this._entityRowComparer.IsEntityRow(entity, reader))
             {
-                entity = this._elementActivator.CreateInstance(reader);
+                entity = await this._elementActivator.CreateInstance(reader, @async);
 
                 if (entity == null)
                     return;
@@ -87,7 +93,7 @@ namespace Chloe.Mapper
                 entityContainer.Add(entity);
             }
 
-            this._elementFitter.Fill(entity, null, reader);
+            await this._elementFitter.Fill(entity, null, reader, @async);
         }
     }
 }

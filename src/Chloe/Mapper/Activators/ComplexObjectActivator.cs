@@ -1,8 +1,15 @@
 ﻿using Chloe.Exceptions;
 using Chloe.Mapper.Binders;
+using Chloe.Reflection;
 using System;
 using System.Collections.Generic;
 using System.Data;
+
+#if netfx
+using ObjectResultTask = System.Threading.Tasks.Task<object>;
+#else
+using ObjectResultTask = System.Threading.Tasks.ValueTask<object>;
+#endif
 
 namespace Chloe.Mapper.Activators
 {
@@ -34,7 +41,7 @@ namespace Chloe.Mapper.Activators
                 binder.Prepare(reader);
             }
         }
-        public override object CreateInstance(IDataReader reader)
+        public override async ObjectResultTask CreateInstance(IDataReader reader, bool @async)
         {
             if (this._checkNullOrdinal != null)
             {
@@ -42,7 +49,13 @@ namespace Chloe.Mapper.Activators
                     return null;
             }
 
-            object obj = this._instanceCreator(reader, this._argumentActivators);
+            object[] arguments = new object[this._argumentActivators.Count];
+            for (int i = 0; i < this._argumentActivators.Count; i++)
+            {
+                arguments[i] = await this._argumentActivators[i].CreateInstance(reader, @async);
+            }
+
+            object obj = this._instanceCreator(arguments);
 
             IMemberBinder memberBinder = null;
             try
@@ -51,7 +64,7 @@ namespace Chloe.Mapper.Activators
                 for (int i = 0; i < count; i++)
                 {
                     memberBinder = this._memberBinders[i];
-                    memberBinder.Bind(obj, reader);
+                    await memberBinder.Bind(obj, reader, @async);
                 }
             }
             catch (ChloeException)
@@ -98,9 +111,9 @@ namespace Chloe.Mapper.Activators
             this._dbContext = dbContext;
         }
 
-        public override object CreateInstance(IDataReader reader)
+        public override async ObjectResultTask CreateInstance(IDataReader reader, bool @async)
         {
-            object obj = base.CreateInstance(reader);
+            object obj = await base.CreateInstance(reader, @async);
 
             if (obj != null)
                 this._dbContext.TrackEntity(obj);

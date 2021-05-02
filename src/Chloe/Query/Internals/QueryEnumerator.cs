@@ -61,10 +61,7 @@ namespace Chloe.Query.Internals
                     this._objectActivator = this._objectActivatorCreator(this._dataReaderEnumerator.Current);
                 }
 
-                if (@async)
-                    this._current = (T)(await this._objectActivator.CreateInstanceAsync(this._dataReaderEnumerator.Current));
-                else
-                    this._current = (T)this._objectActivator.CreateInstance(this._dataReaderEnumerator.Current);
+                this._current = (T)(await this._objectActivator.CreateInstance(this._dataReaderEnumerator.Current, @async));
             }
             else
             {

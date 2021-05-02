@@ -3,6 +3,12 @@ using Chloe.Exceptions;
 using System;
 using System.Data;
 
+#if netfx
+using ObjectResultTask = System.Threading.Tasks.Task<object>;
+#else
+using ObjectResultTask = System.Threading.Tasks.ValueTask<object>;
+#endif
+
 namespace Chloe.Mapper.Activators
 {
     public class PrimitiveObjectActivator : ObjectActivatorBase, IObjectActivator
@@ -18,11 +24,11 @@ namespace Chloe.Mapper.Activators
             this._dbValueReader = DataReaderConstant.GetDbValueReader(primitiveType);
         }
 
-        public override object CreateInstance(IDataReader reader)
+        public override async ObjectResultTask CreateInstance(IDataReader reader, bool @async)
         {
             try
             {
-                return this._dbValueReader.GetValue(reader, _readerOrdinal);
+                return this._dbValueReader.GetValue(reader, this._readerOrdinal);
             }
             catch (Exception ex)
             {

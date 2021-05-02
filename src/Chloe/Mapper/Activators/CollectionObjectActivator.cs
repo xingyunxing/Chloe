@@ -4,6 +4,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
 
+#if netfx
+using ObjectResultTask = System.Threading.Tasks.Task<object>;
+#else
+using ObjectResultTask = System.Threading.Tasks.ValueTask<object>;
+#endif
+
 namespace Chloe.Mapper.Activators
 {
     public class CollectionObjectActivator : ObjectActivatorBase, IObjectActivator
@@ -44,7 +50,7 @@ namespace Chloe.Mapper.Activators
             this._activator = GetActivator(collectionType);
         }
 
-        public override object CreateInstance(IDataReader reader)
+        public override async ObjectResultTask CreateInstance(IDataReader reader, bool @async)
         {
             return this._activator();
         }

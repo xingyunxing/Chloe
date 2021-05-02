@@ -2,6 +2,12 @@
 using System.Data;
 using System.Threading.Tasks;
 
+#if netfx
+using ObjectResultTask = System.Threading.Tasks.Task<object>;
+#else
+using ObjectResultTask = System.Threading.Tasks.ValueTask<object>;
+#endif
+
 namespace Chloe.Mapper.Activators
 {
     public class RootEntityActivator : IObjectActivator
@@ -23,17 +29,17 @@ namespace Chloe.Mapper.Activators
             this._fitter.Prepare(reader);
         }
 
-        public object CreateInstance(IDataReader reader)
+        public async ObjectResultTask CreateInstance(IDataReader reader, bool @async)
         {
-            var entity = this._entityActivator.CreateInstance(reader);
+            var entity = await this._entityActivator.CreateInstance(reader, @async);
 
             //导航属性
-            this._fitter.Fill(entity, null, reader);
+            await this._fitter.Fill(entity, null, reader, @async);
 
             IQueryDataReader queryDataReader = (IQueryDataReader)reader;
             queryDataReader.AllowReadNextRecord = true;
 
-            while (queryDataReader.Read())
+            while (await queryDataReader.Read(true))
             {
                 if (!_entityRowComparer.IsEntityRow(entity, reader))
                 {
@@ -41,30 +47,7 @@ namespace Chloe.Mapper.Activators
                     break;
                 }
 
-                this._fitter.Fill(entity, null, reader);
-            }
-
-            return entity;
-        }
-        public async Task<object> CreateInstanceAsync(IDataReader reader)
-        {
-            var entity = this._entityActivator.CreateInstance(reader);
-
-            //导航属性
-            this._fitter.Fill(entity, null, reader);
-
-            IQueryDataReader queryDataReader = (IQueryDataReader)reader;
-            queryDataReader.AllowReadNextRecord = true;
-
-            while (await queryDataReader.Read(true))
-            {
-                if (!this._entityRowComparer.IsEntityRow(entity, reader))
-                {
-                    queryDataReader.AllowReadNextRecord = false;
-                    break;
-                }
-
-                this._fitter.Fill(entity, null, reader);
+                await this._fitter.Fill(entity, null, reader, @async);
             }
 
             return entity;

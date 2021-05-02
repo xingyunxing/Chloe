@@ -3,6 +3,12 @@ using System;
 using System.Data;
 using System.Reflection;
 
+#if netfx
+using VoidTask = System.Threading.Tasks.Task;
+#else
+using VoidTask = System.Threading.Tasks.ValueTask;
+#endif
+
 namespace Chloe.Mapper.Binders
 {
     public class PrimitiveMemberBinder : IMemberBinder
@@ -32,7 +38,7 @@ namespace Chloe.Mapper.Binders
 
             this._mMapper = this._mrmTuple.SafeMRM.Value;
         }
-        public void Bind(object obj, IDataReader reader)
+        public virtual async VoidTask Bind(object obj, IDataReader reader, bool @async)
         {
             this._mMapper.Map(obj, reader, this._ordinal);
         }

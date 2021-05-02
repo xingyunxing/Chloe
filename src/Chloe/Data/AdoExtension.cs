@@ -2,6 +2,12 @@
 using System.Data.Common;
 using System.Threading.Tasks;
 
+#if netfx
+using BoolResultTask = System.Threading.Tasks.Task<bool>;
+#else
+using BoolResultTask = System.Threading.Tasks.ValueTask<bool>;
+#endif
+
 namespace System.Data
 {
     internal static class AdoExtension
@@ -118,7 +124,7 @@ namespace System.Data
             return Task.FromResult(cmd.ExecuteNonQuery());
         }
 
-        public static async Task<bool> Read(this IDataReader dataReader, bool @async)
+        public static async BoolResultTask Read(this IDataReader dataReader, bool @async)
         {
             if (!@async)
             {

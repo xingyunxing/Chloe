@@ -1,6 +1,12 @@
 ﻿using Chloe.Reflection;
 using System.Data;
 
+#if netfx
+using VoidTask = System.Threading.Tasks.Task;
+#else
+using VoidTask = System.Threading.Tasks.ValueTask;
+#endif
+
 namespace Chloe.Mapper.Binders
 {
     public class MemberBinder : IMemberBinder
@@ -16,9 +22,9 @@ namespace Chloe.Mapper.Binders
         {
             this._activtor.Prepare(reader);
         }
-        public virtual void Bind(object obj, IDataReader reader)
+        public virtual async VoidTask Bind(object obj, IDataReader reader, bool @async)
         {
-            object val = this._activtor.CreateInstance(reader);
+            object val = await this._activtor.CreateInstance(reader, @async);
             this._setter(obj, val);
         }
     }

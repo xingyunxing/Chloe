@@ -49,9 +49,8 @@ namespace Chloe.Reflection.Emit
         {
             PublicHelper.CheckNull(constructor);
 
-            var pExp_reader = Expression.Parameter(typeof(IDataReader), "reader");
-            var pExp_argumentActivators = Expression.Parameter(typeof(List<IObjectActivator>), "argumentActivators");
-            var getItemMethod = typeof(List<IObjectActivator>).GetMethod("get_Item");
+            var pExp_arguments = Expression.Parameter(typeof(object[]), "arguments");
+            var getItemMethod = typeof(object[]).GetMethod("GetValue", new Type[] { typeof(int) });
 
             ParameterInfo[] parameters = constructor.GetParameters();
             List<Expression> arguments = new List<Expression>(parameters.Length);
@@ -60,17 +59,15 @@ namespace Chloe.Reflection.Emit
             {
                 ParameterInfo parameter = parameters[i];
 
-                //IObjectActivator oa = argumentActivators[i];
-                var oa = Expression.Call(pExp_argumentActivators, getItemMethod, Expression.Constant(i));
-                //object obj = oa.CreateInstance(IDataReader reader);
-                var obj = Expression.Call(oa, typeof(IObjectActivator).GetMethod("CreateInstance"), pExp_reader);
+                //object obj = arguments[i];
+                var obj = Expression.Call(pExp_arguments, getItemMethod, Expression.Constant(i));
                 //T argument = (T)obj;
                 var argument = Expression.Convert(obj, parameter.ParameterType);
                 arguments.Add(argument);
             }
 
             var body = Expression.New(constructor, arguments);
-            InstanceCreator ret = Expression.Lambda<InstanceCreator>(body, pExp_reader, pExp_argumentActivators).Compile();
+            InstanceCreator ret = Expression.Lambda<InstanceCreator>(body, pExp_arguments).Compile();
 
             return ret;
         }
