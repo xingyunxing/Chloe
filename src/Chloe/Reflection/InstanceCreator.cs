@@ -1,5 +1,5 @@
 ﻿
 namespace Chloe.Reflection
 {
-    public delegate object InstanceCreator(object[] arguments);
+    public delegate object InstanceCreator(params object[] arguments);
 }
