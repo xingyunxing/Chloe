@@ -24,7 +24,7 @@ using BoolResultTask = System.Threading.Tasks.ValueTask<bool>;
 
 namespace Chloe.Query.Internals
 {
-    class InternalSqlQuery<T> : IEnumerable<T>, IEnumerable
+    class InternalSqlQuery<T> : IEnumerable<T>, Chloe.Collections.Generic.IAsyncEnumerable<T>
     {
         DbContext _dbContext;
         string _sql;
@@ -39,297 +39,191 @@ namespace Chloe.Query.Internals
             this._parameters = parameters;
         }
 
-        public List<T> Execute()
-        {
-            return this.ToList();
-        }
-        public async Task<List<T>> ExecuteAsync()
-        {
-            Chloe.Collections.IAsyncEnumerator<T> enumerator = this.GetEnumerator() as Chloe.Collections.IAsyncEnumerator<T>;
-
-            List<T> list = new List<T>();
-            using (enumerator)
-            {
-                while (await enumerator.MoveNextAsync())
-                {
-                    list.Add(enumerator.Current);
-                }
-            }
-
-            return list;
-        }
-
         public IEnumerator<T> GetEnumerator()
         {
-            return new QueryEnumerator(this);
+            return new QueryEnumerator<T>(this.ExecuteReader, this.CreateObjectActivator);
         }
         IEnumerator IEnumerable.GetEnumerator()
         {
             return this.GetEnumerator();
         }
 
-        class QueryEnumerator : IEnumerator<T>, Chloe.Collections.IAsyncEnumerator<T>
+        Chloe.Collections.Generic.IAsyncEnumerator<T> Chloe.Collections.Generic.IAsyncEnumerable<T>.GetEnumerator()
         {
-            InternalSqlQuery<T> _internalSqlQuery;
+            Chloe.Collections.Generic.IAsyncEnumerator<T> enumerator = this.GetEnumerator() as Chloe.Collections.Generic.IAsyncEnumerator<T>;
+            return enumerator;
+        }
 
-            IDataReader _reader;
-            IObjectActivator _objectActivator;
+        IObjectActivator CreateObjectActivator(IDataReader dataReader)
+        {
+            Type type = typeof(T);
 
-            T _current;
-            bool _hasFinished;
-            bool _disposed;
-            public QueryEnumerator(InternalSqlQuery<T> internalSqlQuery)
+            if (type != PublicConstants.TypeOfObject && MappingTypeSystem.IsMappingType(type))
             {
-                this._internalSqlQuery = internalSqlQuery;
-                this._reader = null;
-                this._objectActivator = null;
-
-                this._current = default(T);
-                this._hasFinished = false;
-                this._disposed = false;
+                PrimitiveObjectActivatorCreator activatorCreator = new PrimitiveObjectActivatorCreator(type, 0);
+                return activatorCreator.CreateObjectActivator();
             }
 
-            public T Current { get { return this._current; } }
+            return GetObjectActivator(type, dataReader);
+        }
 
-            object IEnumerator.Current { get { return this._current; } }
+        async Task<IDataReader> ExecuteReader(bool @async)
+        {
+            IDataReader reader = await this._dbContext.AdoSession.ExecuteReader(this._sql, this._parameters, this._cmdType, @async);
+            return reader;
+        }
 
-            public bool MoveNext()
+        static IObjectActivator GetObjectActivator(Type type, IDataReader reader)
+        {
+            if (type == PublicConstants.TypeOfObject || type == typeof(DapperRow))
             {
-                return this.MoveNext(false).GetResult();
+                return new DapperRowObjectActivator();
             }
 
-            public BoolResultTask MoveNextAsync()
+            List<CacheInfo> caches;
+            if (!ObjectActivatorCache.TryGetValue(type, out caches))
             {
-                return this.MoveNext(true);
-            }
-
-            async BoolResultTask MoveNext(bool @async)
-            {
-                if (this._hasFinished || this._disposed)
-                    return false;
-
-                if (this._reader == null)
+                if (!Monitor.TryEnter(type))
                 {
-                    await this.Prepare(@async);
+                    return CreateObjectActivator(type, reader);
                 }
 
-                bool readResult = @async ? await this._reader.Read(@async) : this._reader.Read();
-                if (readResult)
+                try
                 {
-                    this._current = (T)this._objectActivator.CreateInstance(this._reader);
-                    return true;
+                    caches = ObjectActivatorCache.GetOrAdd(type, new List<CacheInfo>(1));
                 }
-                else
+                finally
                 {
-                    this._reader.Close();
-                    this._current = default(T);
-                    this._hasFinished = true;
-                    return false;
+                    Monitor.Exit(type);
                 }
             }
 
-            public void Dispose()
+            CacheInfo cache = TryGetCacheInfoFromList(caches, reader);
+
+            if (cache == null)
             {
-                if (this._disposed)
-                    return;
-
-                if (this._reader != null)
+                lock (caches)
                 {
-                    if (!this._reader.IsClosed)
-                        this._reader.Close();
-                    this._reader.Dispose();
-                    this._reader = null;
-                }
-
-                if (!this._hasFinished)
-                {
-                    this._hasFinished = true;
-                }
-
-                this._current = default(T);
-                this._disposed = true;
-            }
-
-            public void Reset()
-            {
-                throw new NotSupportedException();
-            }
-
-            async Task Prepare(bool @async)
-            {
-                Type type = typeof(T);
-
-                if (type != PublicConstants.TypeOfObject && MappingTypeSystem.IsMappingType(type))
-                {
-                    PrimitiveObjectActivatorCreator activatorCreator = new PrimitiveObjectActivatorCreator(type, 0);
-                    this._objectActivator = activatorCreator.CreateObjectActivator();
-                    this._reader = await this.ExecuteReader(@async);
-                    return;
-                }
-
-                this._reader = await this.ExecuteReader(@async);
-                this._objectActivator = GetObjectActivator(type, this._reader);
-            }
-
-            async Task<IDataReader> ExecuteReader(bool @async)
-            {
-                IDataReader reader = await this._internalSqlQuery._dbContext.AdoSession.ExecuteReader(this._internalSqlQuery._sql, this._internalSqlQuery._parameters, this._internalSqlQuery._cmdType, @async);
-
-                return reader;
-            }
-
-            static IObjectActivator GetObjectActivator(Type type, IDataReader reader)
-            {
-                if (type == PublicConstants.TypeOfObject || type == typeof(DapperRow))
-                {
-                    return new DapperRowObjectActivator();
-                }
-
-                List<CacheInfo> caches;
-                if (!ObjectActivatorCache.TryGetValue(type, out caches))
-                {
-                    if (!Monitor.TryEnter(type))
+                    cache = TryGetCacheInfoFromList(caches, reader);
+                    if (cache == null)
                     {
-                        return CreateObjectActivator(type, reader);
-                    }
-
-                    try
-                    {
-                        caches = ObjectActivatorCache.GetOrAdd(type, new List<CacheInfo>(1));
-                    }
-                    finally
-                    {
-                        Monitor.Exit(type);
+                        ComplexObjectActivator activator = CreateObjectActivator(type, reader);
+                        cache = new CacheInfo(activator, reader);
+                        caches.Add(cache);
                     }
                 }
+            }
 
-                CacheInfo cache = TryGetCacheInfoFromList(caches, reader);
+            return cache.ObjectActivator;
+        }
+        static ComplexObjectActivator CreateObjectActivator(Type type, IDataReader reader)
+        {
+            ConstructorInfo constructor = type.GetConstructor(Type.EmptyTypes);
+            if (constructor == null)
+                throw new ArgumentException(string.Format("The type of '{0}' does't define a none parameter constructor.", type.FullName));
 
-                if (cache == null)
+            ConstructorDescriptor constructorDescriptor = ConstructorDescriptor.GetInstance(constructor);
+            ObjectMemberMapper mapper = constructorDescriptor.GetEntityMemberMapper();
+            InstanceCreator instanceCreator = constructorDescriptor.GetInstanceCreator();
+            List<IMemberBinder> memberBinders = PrepareMemberBinders(type, reader, mapper);
+
+            ComplexObjectActivator objectActivator = new ComplexObjectActivator(instanceCreator, new List<IObjectActivator>(), memberBinders, null);
+            objectActivator.Prepare(reader);
+
+            return objectActivator;
+        }
+        static List<IMemberBinder> PrepareMemberBinders(Type type, IDataReader reader, ObjectMemberMapper mapper)
+        {
+            List<IMemberBinder> memberBinders = new List<IMemberBinder>(reader.FieldCount);
+
+            MemberInfo[] properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.SetProperty);
+            MemberInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.SetField);
+            List<MemberInfo> members = new List<MemberInfo>(properties.Length + fields.Length);
+            members.AddRange(properties);
+            members.AddRange(fields);
+
+            TypeDescriptor typeDescriptor = EntityTypeContainer.TryGetDescriptor(type);
+
+            for (int i = 0; i < reader.FieldCount; i++)
+            {
+                string name = reader.GetName(i);
+                MemberInfo mapMember = TryGetMapMember(members, name, typeDescriptor);
+
+                if (mapMember == null)
+                    continue;
+
+                MRMTuple mMapperTuple = mapper.GetMappingMemberMapper(mapMember);
+                if (mMapperTuple == null)
+                    continue;
+
+                PrimitiveMemberBinder memberBinder = new PrimitiveMemberBinder(mapMember, mMapperTuple, i);
+                memberBinders.Add(memberBinder);
+            }
+
+            return memberBinders;
+        }
+
+        static MemberInfo TryGetMapMember(List<MemberInfo> members, string readerName, TypeDescriptor typeDescriptor)
+        {
+            MemberInfo mapMember = null;
+
+            foreach (MemberInfo member in members)
+            {
+                string columnName = null;
+                if (typeDescriptor != null)
                 {
-                    lock (caches)
-                    {
-                        cache = TryGetCacheInfoFromList(caches, reader);
-                        if (cache == null)
-                        {
-                            ComplexObjectActivator activator = CreateObjectActivator(type, reader);
-                            cache = new CacheInfo(activator, reader);
-                            caches.Add(cache);
-                        }
-                    }
+                    PrimitivePropertyDescriptor propertyDescriptor = typeDescriptor.FindPrimitivePropertyDescriptor(member);
+                    if (propertyDescriptor != null)
+                        columnName = propertyDescriptor.Column.Name;
                 }
 
-                return cache.ObjectActivator;
-            }
-            static ComplexObjectActivator CreateObjectActivator(Type type, IDataReader reader)
-            {
-                ConstructorInfo constructor = type.GetConstructor(Type.EmptyTypes);
-                if (constructor == null)
-                    throw new ArgumentException(string.Format("The type of '{0}' does't define a none parameter constructor.", type.FullName));
-
-                ConstructorDescriptor constructorDescriptor = ConstructorDescriptor.GetInstance(constructor);
-                ObjectMemberMapper mapper = constructorDescriptor.GetEntityMemberMapper();
-                InstanceCreator instanceCreator = constructorDescriptor.GetInstanceCreator();
-                List<IMemberBinder> memberBinders = PrepareMemberBinders(type, reader, mapper);
-
-                ComplexObjectActivator objectActivator = new ComplexObjectActivator(instanceCreator, new List<IObjectActivator>(), memberBinders, null);
-                objectActivator.Prepare(reader);
-
-                return objectActivator;
-            }
-            static List<IMemberBinder> PrepareMemberBinders(Type type, IDataReader reader, ObjectMemberMapper mapper)
-            {
-                List<IMemberBinder> memberBinders = new List<IMemberBinder>(reader.FieldCount);
-
-                MemberInfo[] properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.SetProperty);
-                MemberInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.SetField);
-                List<MemberInfo> members = new List<MemberInfo>(properties.Length + fields.Length);
-                members.AddRange(properties);
-                members.AddRange(fields);
-
-                TypeDescriptor typeDescriptor = EntityTypeContainer.TryGetDescriptor(type);
-
-                for (int i = 0; i < reader.FieldCount; i++)
+                if (string.IsNullOrEmpty(columnName))
                 {
-                    string name = reader.GetName(i);
-                    MemberInfo mapMember = TryGetMapMember(members, name, typeDescriptor);
-
-                    if (mapMember == null)
-                        continue;
-
-                    MRMTuple mMapperTuple = mapper.GetMappingMemberMapper(mapMember);
-                    if (mMapperTuple == null)
-                        continue;
-
-                    PrimitiveMemberBinder memberBinder = new PrimitiveMemberBinder(mapMember, mMapperTuple, i);
-                    memberBinders.Add(memberBinder);
+                    ColumnAttribute columnAttribute = member.GetCustomAttribute<ColumnAttribute>();
+                    if (columnAttribute != null)
+                        columnName = columnAttribute.Name;
                 }
 
-                return memberBinders;
+                if (string.IsNullOrEmpty(columnName))
+                    continue;
+
+                if (!string.Equals(columnName, readerName, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                mapMember = member;
+                break;
             }
 
-            static MemberInfo TryGetMapMember(List<MemberInfo> members, string readerName, TypeDescriptor typeDescriptor)
+            if (mapMember == null)
             {
-                MemberInfo mapMember = null;
+                mapMember = members.Find(a => a.Name == readerName);
+            }
 
-                foreach (MemberInfo member in members)
+            if (mapMember == null)
+            {
+                mapMember = members.Find(a => string.Equals(a.Name, readerName, StringComparison.OrdinalIgnoreCase));
+            }
+
+            return mapMember;
+        }
+
+        static CacheInfo TryGetCacheInfoFromList(List<CacheInfo> caches, IDataReader reader)
+        {
+            CacheInfo cache = null;
+            for (int i = 0; i < caches.Count; i++)
+            {
+                var item = caches[i];
+                if (item.IsTheSameFields(reader))
                 {
-                    string columnName = null;
-                    if (typeDescriptor != null)
-                    {
-                        PrimitivePropertyDescriptor propertyDescriptor = typeDescriptor.FindPrimitivePropertyDescriptor(member);
-                        if (propertyDescriptor != null)
-                            columnName = propertyDescriptor.Column.Name;
-                    }
-
-                    if (string.IsNullOrEmpty(columnName))
-                    {
-                        ColumnAttribute columnAttribute = member.GetCustomAttribute<ColumnAttribute>();
-                        if (columnAttribute != null)
-                            columnName = columnAttribute.Name;
-                    }
-
-                    if (string.IsNullOrEmpty(columnName))
-                        continue;
-
-                    if (!string.Equals(columnName, readerName, StringComparison.OrdinalIgnoreCase))
-                        continue;
-
-                    mapMember = member;
+                    cache = item;
                     break;
                 }
-
-                if (mapMember == null)
-                {
-                    mapMember = members.Find(a => a.Name == readerName);
-                }
-
-                if (mapMember == null)
-                {
-                    mapMember = members.Find(a => string.Equals(a.Name, readerName, StringComparison.OrdinalIgnoreCase));
-                }
-
-                return mapMember;
             }
 
-            static CacheInfo TryGetCacheInfoFromList(List<CacheInfo> caches, IDataReader reader)
-            {
-                CacheInfo cache = null;
-                for (int i = 0; i < caches.Count; i++)
-                {
-                    var item = caches[i];
-                    if (item.IsTheSameFields(reader))
-                    {
-                        cache = item;
-                        break;
-                    }
-                }
-
-                return cache;
-            }
-
-            static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, List<CacheInfo>> ObjectActivatorCache = new System.Collections.Concurrent.ConcurrentDictionary<Type, List<CacheInfo>>();
+            return cache;
         }
+
+        static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, List<CacheInfo>> ObjectActivatorCache = new System.Collections.Concurrent.ConcurrentDictionary<Type, List<CacheInfo>>();
 
         public class CacheInfo
         {

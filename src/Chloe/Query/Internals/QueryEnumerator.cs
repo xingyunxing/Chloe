@@ -16,39 +16,25 @@ using BoolResultTask = System.Threading.Tasks.ValueTask<bool>;
 
 namespace Chloe.Query.Internals
 {
-    internal static class QueryEnumeratorCreator
+    internal class QueryEnumerator<T> : IEnumerator<T>, Chloe.Collections.Generic.IAsyncEnumerator<T>
     {
-        public static QueryEnumerator<T> CreateEnumerator<T>(DbCommandFactor commandFactor, Func<DbCommandFactor, bool, Task<IDataReader>> dataReaderGetter)
-        {
-            return new QueryEnumerator<T>(commandFactor, dataReaderGetter);
-        }
-    }
-    internal class QueryEnumerator<T> : IEnumerator<T>, Chloe.Collections.IAsyncEnumerator<T>
-    {
-        DbCommandFactor _commandFactor;
-        Func<DbCommandFactor, bool, Task<IDataReader>> _dataReaderGetter;
-        IObjectActivator _objectActivator;
-
-        IDataReader _reader;
-
-        T _current;
-        bool _hasFinished;
         bool _disposed;
-        public QueryEnumerator(DbCommandFactor commandFactor, Func<DbCommandFactor, bool, Task<IDataReader>> dataReaderGetter)
+        DataReaderEnumerator _dataReaderEnumerator;
+        Func<IDataReader, IObjectActivator> _objectActivatorCreator;
+        IObjectActivator _objectActivator;
+        T _current;
+
+        public QueryEnumerator(Func<bool, Task<IDataReader>> dataReaderCreator, IObjectActivator objectActivator) : this(dataReaderCreator, dataReader => objectActivator)
         {
-            this._commandFactor = commandFactor;
-            this._dataReaderGetter = dataReaderGetter;
-            this._objectActivator = commandFactor.ObjectActivator;
 
-            this._reader = null;
-
-            this._current = default(T);
-            this._hasFinished = false;
-            this._disposed = false;
+        }
+        public QueryEnumerator(Func<bool, Task<IDataReader>> dataReaderCreator, Func<IDataReader, IObjectActivator> objectActivatorCreator)
+        {
+            this._dataReaderEnumerator = new DataReaderEnumerator(dataReaderCreator);
+            this._objectActivatorCreator = objectActivatorCreator;
         }
 
         public T Current { get { return this._current; } }
-
         object IEnumerator.Current { get { return this._current; } }
 
         public bool MoveNext()
@@ -63,32 +49,29 @@ namespace Chloe.Query.Internals
 
         async BoolResultTask MoveNext(bool @async)
         {
-            if (this._hasFinished || this._disposed)
+            if (this._disposed)
                 return false;
 
-            if (this._reader == null)
-            {
-                //TODO 执行 sql 语句，获取 DataReader
-                this._reader = await this._dataReaderGetter(this._commandFactor, @async);
-            }
+            bool nextResult = @async ? await this._dataReaderEnumerator.MoveNextAsync() : this._dataReaderEnumerator.MoveNext();
 
-            bool readResult = @async ? await this._reader.Read(@async) : this._reader.Read();
-            if (readResult)
+            if (nextResult)
             {
+                if (this._objectActivator == null)
+                {
+                    this._objectActivator = this._objectActivatorCreator(this._dataReaderEnumerator.Current);
+                }
+
                 if (@async)
-                    this._current = (T)(await this._objectActivator.CreateInstanceAsync(this._reader));
+                    this._current = (T)(await this._objectActivator.CreateInstanceAsync(this._dataReaderEnumerator.Current));
                 else
-                    this._current = (T)this._objectActivator.CreateInstance(this._reader);
-
-                return true;
+                    this._current = (T)this._objectActivator.CreateInstance(this._dataReaderEnumerator.Current);
             }
             else
             {
-                this._reader.Close();
-                this._current = default(T);
-                this._hasFinished = true;
-                return false;
+                this._current = default;
             }
+
+            return nextResult;
         }
 
         public void Dispose()
@@ -96,20 +79,8 @@ namespace Chloe.Query.Internals
             if (this._disposed)
                 return;
 
-            if (this._reader != null)
-            {
-                if (!this._reader.IsClosed)
-                    this._reader.Close();
-                this._reader.Dispose();
-                this._reader = null;
-            }
-
-            if (!this._hasFinished)
-            {
-                this._hasFinished = true;
-            }
-
-            this._current = default(T);
+            this._dataReaderEnumerator.Dispose();
+            this._current = default;
             this._disposed = true;
         }
 

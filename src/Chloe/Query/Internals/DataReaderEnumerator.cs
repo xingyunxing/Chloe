@@ -1,0 +1,91 @@
+﻿using Chloe.Threading.Tasks;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Data;
+using System.Threading.Tasks;
+
+#if netfx
+using BoolResultTask = System.Threading.Tasks.Task<bool>;
+#else
+using BoolResultTask = System.Threading.Tasks.ValueTask<bool>;
+#endif
+
+namespace Chloe.Query.Internals
+{
+    internal class DataReaderEnumerator : IEnumerator<IDataReader>, Chloe.Collections.Generic.IAsyncEnumerator<IDataReader>
+    {
+        bool _disposed;
+        bool _hasFinished;
+        Func<bool, Task<IDataReader>> _dataReaderCreator;
+        IDataReader _reader;
+        IDataReader _current;
+
+        public DataReaderEnumerator(Func<bool, Task<IDataReader>> dataReaderCreator)
+        {
+            this._dataReaderCreator = dataReaderCreator;
+        }
+
+        public IDataReader Current { get { return this._current; } }
+
+        object IEnumerator.Current { get { return this._current; } }
+
+        public bool MoveNext()
+        {
+            return this.MoveNext(false).GetResult();
+        }
+
+        public BoolResultTask MoveNextAsync()
+        {
+            return this.MoveNext(true);
+        }
+
+        async BoolResultTask MoveNext(bool @async)
+        {
+            if (this._hasFinished || this._disposed)
+                return false;
+
+            if (this._reader == null)
+            {
+                this._reader = await this._dataReaderCreator(@async);
+            }
+
+            bool readResult = @async ? await this._reader.Read(@async) : this._reader.Read();
+            if (readResult)
+            {
+                this._current = this._reader;
+                return true;
+            }
+            else
+            {
+                this._reader.Close();
+                this._current = default;
+                this._hasFinished = true;
+                return false;
+            }
+        }
+
+        public void Dispose()
+        {
+            if (this._disposed)
+                return;
+
+            if (this._reader != null)
+            {
+                if (!this._reader.IsClosed)
+                    this._reader.Close();
+                this._reader.Dispose();
+                this._reader = null;
+            }
+
+            this._hasFinished = true;
+            this._current = default;
+            this._disposed = true;
+        }
+
+        public void Reset()
+        {
+            throw new NotSupportedException();
+        }
+    }
+}

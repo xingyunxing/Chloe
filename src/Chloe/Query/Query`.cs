@@ -430,10 +430,10 @@ namespace Chloe.Query
             InternalQuery<T> internalQuery = new InternalQuery<T>(this);
             return internalQuery;
         }
-        async Task<List<T>> GenerateIteratorAsync()
+        Task<List<T>> GenerateIteratorAsync()
         {
-            InternalQuery<T> internalQuery = new InternalQuery<T>(this);
-            return await internalQuery.ExecuteAsync();
+            InternalQuery<T> query = new InternalQuery<T>(this);
+            return Chloe.Collections.Generic.AsyncEnumerableExtension.ToListAsync(query);
         }
 
 

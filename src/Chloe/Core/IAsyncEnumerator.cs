@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Threading.Tasks;
 
 #if netfx
 using BoolResultTask = System.Threading.Tasks.Task<bool>;
@@ -8,7 +7,7 @@ using BoolResultTask = System.Threading.Tasks.Task<bool>;
 using BoolResultTask = System.Threading.Tasks.ValueTask<bool>;
 #endif
 
-namespace Chloe.Collections
+namespace Chloe.Collections.Generic
 {
     internal interface IAsyncEnumerator : IEnumerator
     {

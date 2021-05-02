@@ -1,5 +1,4 @@
-﻿using Chloe.Collections;
-using Chloe.Core;
+﻿using Chloe.Core;
 using Chloe.Data;
 using Chloe.Infrastructure;
 using Chloe.Mapper;
@@ -19,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace Chloe.Query.Internals
 {
-    class InternalQuery<T> : IEnumerable<T>, IEnumerable
+    class InternalQuery<T> : IEnumerable<T>, Chloe.Collections.Generic.IAsyncEnumerable<T>
     {
         Query<T> _query;
 
@@ -49,12 +48,12 @@ namespace Chloe.Query.Internals
         public IEnumerator<T> GetEnumerator()
         {
             DbCommandFactor commandFactor = this.GenerateCommandFactor();
-            QueryEnumerator<T> enumerator = QueryEnumeratorCreator.CreateEnumerator<T>(commandFactor, async (cmdFactor, @async) =>
-            {
-                IDataReader dataReader = await this._query.DbContext.Session.ExecuteReader(cmdFactor.CommandText, CommandType.Text, cmdFactor.Parameters, @async);
+            QueryEnumerator<T> enumerator = new QueryEnumerator<T>(async (@async) =>
+           {
+               IDataReader dataReader = await this._query.DbContext.Session.ExecuteReader(commandFactor.CommandText, CommandType.Text, commandFactor.Parameters, @async);
 
-                return DataReaderReady(dataReader, cmdFactor.ObjectActivator);
-            });
+               return DataReaderReady(dataReader, commandFactor.ObjectActivator);
+           }, commandFactor.ObjectActivator);
             return enumerator;
         }
         IEnumerator IEnumerable.GetEnumerator()
@@ -62,24 +61,10 @@ namespace Chloe.Query.Internals
             return this.GetEnumerator();
         }
 
-        public List<T> Execute()
+        Chloe.Collections.Generic.IAsyncEnumerator<T> Chloe.Collections.Generic.IAsyncEnumerable<T>.GetEnumerator()
         {
-            return this.ToList();
-        }
-        public async Task<List<T>> ExecuteAsync()
-        {
-            Chloe.Collections.IAsyncEnumerator<T> enumerator = this.GetEnumerator() as Chloe.Collections.IAsyncEnumerator<T>;
-
-            List<T> list = new List<T>();
-            using (enumerator)
-            {
-                while (await enumerator.MoveNextAsync())
-                {
-                    list.Add(enumerator.Current);
-                }
-            }
-
-            return list;
+            Chloe.Collections.Generic.IAsyncEnumerator<T> enumerator = this.GetEnumerator() as Chloe.Collections.Generic.IAsyncEnumerator<T>;
+            return enumerator;
         }
 
         public override string ToString()

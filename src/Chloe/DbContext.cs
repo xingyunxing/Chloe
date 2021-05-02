@@ -194,7 +194,7 @@ namespace Chloe
         public virtual List<T> SqlQuery<T>(string sql, CommandType cmdType, params DbParam[] parameters)
         {
             PublicHelper.CheckNull(sql, "sql");
-            return new InternalSqlQuery<T>(this, sql, cmdType, parameters).Execute();
+            return new InternalSqlQuery<T>(this, sql, cmdType, parameters).ToList();
         }
         public virtual Task<List<T>> SqlQueryAsync<T>(string sql, params DbParam[] parameters)
         {
@@ -203,7 +203,8 @@ namespace Chloe
         public virtual Task<List<T>> SqlQueryAsync<T>(string sql, CommandType cmdType, params DbParam[] parameters)
         {
             PublicHelper.CheckNull(sql, "sql");
-            return new InternalSqlQuery<T>(this, sql, cmdType, parameters).ExecuteAsync();
+            var query = new InternalSqlQuery<T>(this, sql, cmdType, parameters);
+            return Chloe.Collections.Generic.AsyncEnumerableExtension.ToListAsync(query);
         }
 
         public List<T> SqlQuery<T>(string sql, object parameter)
