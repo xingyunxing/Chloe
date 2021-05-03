@@ -16,6 +16,8 @@ namespace Chloe
             MethodInfo_Enumerable_Contains = method_Enumerable_Contains;
         }
 
+        public static readonly object[] EmptyArray = new object[0];
+
         #region Types
         public static readonly Type TypeOfVoid = typeof(void);
         public static readonly Type TypeOfInt16 = typeof(Int16);

@@ -49,7 +49,9 @@ namespace Chloe.Mapper.Activators
                     return null;
             }
 
-            object[] arguments = new object[this._argumentActivators.Count];
+
+            object[] arguments = this._argumentActivators.Count == 0 ? PublicConstants.EmptyArray : new object[this._argumentActivators.Count];
+
             for (int i = 0; i < this._argumentActivators.Count; i++)
             {
                 arguments[i] = await this._argumentActivators[i].CreateInstance(reader, @async);
