@@ -12,9 +12,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Chloe.Query.Internals
 {
@@ -49,11 +47,11 @@ namespace Chloe.Query.Internals
         {
             DbCommandFactor commandFactor = this.GenerateCommandFactor();
             QueryEnumerator<T> enumerator = new QueryEnumerator<T>(async (@async) =>
-           {
-               IDataReader dataReader = await this._query.DbContext.Session.ExecuteReader(commandFactor.CommandText, CommandType.Text, commandFactor.Parameters, @async);
+            {
+                IDataReader dataReader = await this._query.DbContext.Session.ExecuteReader(commandFactor.CommandText, CommandType.Text, commandFactor.Parameters, @async);
 
-               return DataReaderReady(dataReader, commandFactor.ObjectActivator);
-           }, commandFactor.ObjectActivator);
+                return DataReaderReady(dataReader, commandFactor.ObjectActivator);
+            }, commandFactor.ObjectActivator);
             return enumerator;
         }
         IEnumerator IEnumerable.GetEnumerator()
