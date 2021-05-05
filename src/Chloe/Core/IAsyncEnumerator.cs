@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 
 #if netfx
 using BoolResultTask = System.Threading.Tasks.Task<bool>;
@@ -9,12 +8,10 @@ using BoolResultTask = System.Threading.Tasks.ValueTask<bool>;
 
 namespace Chloe.Collections.Generic
 {
-    internal interface IAsyncEnumerator : IEnumerator
+    internal interface IAsyncEnumerator<out T> : IDisposable
     {
-        BoolResultTask MoveNextAsync();
-    }
-    internal interface IAsyncEnumerator<out T> : IAsyncEnumerator, IDisposable
-    {
-        new T Current { get; }
+        T Current { get; }
+
+        BoolResultTask MoveNext();
     }
 }

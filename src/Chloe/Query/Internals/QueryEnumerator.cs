@@ -1,6 +1,4 @@
-﻿using Chloe.Collections;
-using Chloe.Core;
-using Chloe.Mapper;
+﻿using Chloe.Mapper;
 using Chloe.Threading.Tasks;
 using System;
 using System.Collections;
@@ -42,7 +40,7 @@ namespace Chloe.Query.Internals
             return this.MoveNext(false).GetResult();
         }
 
-        public BoolResultTask MoveNextAsync()
+        BoolResultTask Chloe.Collections.Generic.IAsyncEnumerator<T>.MoveNext()
         {
             return this.MoveNext(true);
         }

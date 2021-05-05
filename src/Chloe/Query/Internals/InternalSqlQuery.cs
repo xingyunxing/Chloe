@@ -37,6 +37,15 @@ namespace Chloe.Query.Internals
             this._parameters = parameters;
         }
 
+        public IEnumerable<T> AsIEnumerable()
+        {
+            return this;
+        }
+        public Chloe.Collections.Generic.IAsyncEnumerable<T> AsIAsyncEnumerable()
+        {
+            return this;
+        }
+
         public IEnumerator<T> GetEnumerator()
         {
             return new QueryEnumerator<T>(this.ExecuteReader, this.CreateObjectActivator);

@@ -35,6 +35,11 @@ namespace Chloe.Query.Internals
             return this.MoveNext(false).GetResult();
         }
 
+        BoolResultTask Chloe.Collections.Generic.IAsyncEnumerator<IDataReader>.MoveNext()
+        {
+            return this.MoveNext(true);
+        }
+
         public BoolResultTask MoveNextAsync()
         {
             return this.MoveNext(true);
