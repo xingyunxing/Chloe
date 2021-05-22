@@ -12,9 +12,19 @@ namespace ChloeDemo
 {
     public class Program
     {
-        /* documentation：http://www.52chloe.com/Wiki/Document */
+        /* documentation：https://github.com/shuxinqin/Chloe/wiki */
         public static void Main(string[] args)
         {
+            /*
+             * Q: 查询如 q.Where(a=> a.Name == “Chloe”) 为什么生成的不是参数化 sql ？
+             * A: 因为框架内部解析 lambda 时对于常量（ConstantExpression）不做参数化处理（刻意的，不要问为什么，问我也不告诉你），如需参数化，请使用变量，如：
+             * var name = "Chloe";
+             * q = q.Where(a=> a.Name == name);
+             * ...
+             * Tip: 自行拼接 lambda 表达式树的注意了，##千万不要用 ConstantExpression 包装你的变量，否则会生成非参数化 sql，存在 sql 注入风险哦！！！##包装变量方式参考这个 MakeWrapperAccess 方法：
+             * https://github.com/shuxinqin/Chloe/blob/master/src/Chloe/Extensions/ExpressionExtension.cs#L117
+             */
+
             /* 添加拦截器，输出 sql 语句极其相应的参数 */
             IDbCommandInterceptor interceptor = new DbCommandInterceptor();
             DbConfiguration.UseInterceptors(interceptor);
@@ -22,8 +32,8 @@ namespace ChloeDemo
 
             ConfigureMappingType();
             ConfigureMethodHandler();
-
-
+          
+ 
             /* fluent mapping */
             DbConfiguration.UseTypeBuilders(typeof(PersonMap));
             DbConfiguration.UseTypeBuilders(typeof(CityMap));
