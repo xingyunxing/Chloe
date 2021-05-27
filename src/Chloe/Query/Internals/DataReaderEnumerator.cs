@@ -55,7 +55,7 @@ namespace Chloe.Query.Internals
                 this._reader = await this._dataReaderCreator(@async);
             }
 
-            bool readResult = @async ? await this._reader.Read(@async) : this._reader.Read();
+            bool readResult = await this._reader.Read(@async);
             if (readResult)
             {
                 this._current = this._reader;
