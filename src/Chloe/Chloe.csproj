@@ -5,9 +5,9 @@
     <!--<TargetFramework>net45</TargetFramework>-->
     <TargetFrameworks>netstandard2.0;net45;net5.0</TargetFrameworks>
 
-    <Version>4.14.0</Version>
-    <AssemblyVersion>4.14.0.0</AssemblyVersion>
-    <FileVersion>4.14.0.0</FileVersion>
+    <Version>4.15.0</Version>
+    <AssemblyVersion>4.15.0.0</AssemblyVersion>
+    <FileVersion>4.15.0.0</FileVersion>
     <Description>A lightweight and high-performance Object/Relational Mapping(ORM) library.</Description>
     <PackageId>Chloe</PackageId>
     <Product>Chloe.ORM</Product>
