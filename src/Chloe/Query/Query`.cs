@@ -1,5 +1,4 @@
-﻿using Chloe.Collections.Generic;
-using Chloe.Descriptors;
+﻿using Chloe.Descriptors;
 using Chloe.Infrastructure;
 using Chloe.Query.Internals;
 using Chloe.Query.QueryExpressions;
@@ -431,7 +430,7 @@ namespace Chloe.Query
             InternalQuery<T> internalQuery = new InternalQuery<T>(this);
             return internalQuery;
         }
-        Chloe.Collections.Generic.IAsyncEnumerable<T> GenerateAsyncIterator()
+        IAsyncEnumerable<T> GenerateAsyncIterator()
         {
             InternalQuery<T> internalQuery = new InternalQuery<T>(this);
             return internalQuery;
@@ -448,7 +447,7 @@ namespace Chloe.Query
         {
             var q = this.CreateAggregateQuery<TResult>(method, argument, checkArgument);
             var iterator = q.GenerateAsyncIterator();
-            return await iterator.Single();
+            return await iterator.SingleAsync();
         }
 
         Query<TResult> CreateAggregateQuery<TResult>(MethodInfo method, Expression argument, bool checkArgument)

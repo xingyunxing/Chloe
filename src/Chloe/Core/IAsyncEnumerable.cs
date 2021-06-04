@@ -1,22 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
+﻿#if netfx
+using System;
+using System.Threading;
 using System.Threading.Tasks;
 
-namespace Chloe.Collections.Generic
+namespace System.Collections.Generic
 {
     internal interface IAsyncEnumerable<out T>
     {
-        IAsyncEnumerator<T> GetEnumerator();
+        IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default);
     }
 
     internal static class AsyncEnumerableExtension
     {
-        public static async Task<List<T>> ToList<T>(this IAsyncEnumerable<T> source)
+        public static async Task<List<T>> ToListAsync<T>(this IAsyncEnumerable<T> source)
         {
             List<T> list = new List<T>();
-            using (var enumerator = source.GetEnumerator())
+            using (var enumerator = source.GetAsyncEnumerator())
             {
-                while (await enumerator.MoveNext())
+                while (await enumerator.MoveNextAsync())
                 {
                     list.Add(enumerator.Current);
                 }
@@ -25,11 +26,11 @@ namespace Chloe.Collections.Generic
             return list;
         }
 
-        public static async Task<T> First<T>(this IAsyncEnumerable<T> source)
+        public static async Task<T> FirstAsync<T>(this IAsyncEnumerable<T> source)
         {
-            using (var enumerator = source.GetEnumerator())
+            using (var enumerator = source.GetAsyncEnumerator())
             {
-                if (await enumerator.MoveNext())
+                if (await enumerator.MoveNextAsync())
                 {
                     return enumerator.Current;
                 }
@@ -38,11 +39,11 @@ namespace Chloe.Collections.Generic
             throw new InvalidOperationException("The source sequence is empty.");
         }
 
-        public static async Task<T> FirstOrDefault<T>(this IAsyncEnumerable<T> source)
+        public static async Task<T> FirstOrDefaultAsync<T>(this IAsyncEnumerable<T> source)
         {
-            using (var enumerator = source.GetEnumerator())
+            using (var enumerator = source.GetAsyncEnumerator())
             {
-                if (await enumerator.MoveNext())
+                if (await enumerator.MoveNextAsync())
                 {
                     return enumerator.Current;
                 }
@@ -51,15 +52,15 @@ namespace Chloe.Collections.Generic
             return default(T);
         }
 
-        public static async Task<T> Single<T>(this IAsyncEnumerable<T> source)
+        public static async Task<T> SingleAsync<T>(this IAsyncEnumerable<T> source)
         {
-            using (var enumerator = source.GetEnumerator())
+            using (var enumerator = source.GetAsyncEnumerator())
             {
-                if (await enumerator.MoveNext())
+                if (await enumerator.MoveNextAsync())
                 {
                     T t = enumerator.Current;
 
-                    if (await enumerator.MoveNext())
+                    if (await enumerator.MoveNextAsync())
                     {
                         throw new InvalidOperationException("The source has more than one element.");
                     }
@@ -71,12 +72,13 @@ namespace Chloe.Collections.Generic
             throw new InvalidOperationException("The source sequence is empty.");
         }
 
-        public static async Task<bool> Any<T>(this IAsyncEnumerable<T> source)
+        public static async Task<bool> AnyAsync<T>(this IAsyncEnumerable<T> source)
         {
-            using (var enumerator = source.GetEnumerator())
+            using (var enumerator = source.GetAsyncEnumerator())
             {
-                return await enumerator.MoveNext();
+                return await enumerator.MoveNextAsync();
             }
         }
     }
 }
+#endif

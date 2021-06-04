@@ -13,7 +13,7 @@ using BoolResultTask = System.Threading.Tasks.ValueTask<bool>;
 
 namespace Chloe.Query.Internals
 {
-    internal class DataReaderEnumerator : IEnumerator<IDataReader>, Chloe.Collections.Generic.IAsyncEnumerator<IDataReader>
+    internal class DataReaderEnumerator : IEnumerator<IDataReader>, IAsyncEnumerator<IDataReader>
     {
         bool _disposed;
         bool _hasFinished;
@@ -35,7 +35,7 @@ namespace Chloe.Query.Internals
             return this.MoveNext(false).GetResult();
         }
 
-        BoolResultTask Chloe.Collections.Generic.IAsyncEnumerator<IDataReader>.MoveNext()
+        BoolResultTask IAsyncEnumerator<IDataReader>.MoveNextAsync()
         {
             return this.MoveNext(true);
         }
@@ -55,8 +55,8 @@ namespace Chloe.Query.Internals
                 this._reader = await this._dataReaderCreator(@async);
             }
 
-            bool readResult = await this._reader.Read(@async);
-            if (readResult)
+            bool hasData = await this._reader.Read(@async);
+            if (hasData)
             {
                 this._current = this._reader;
                 return true;
@@ -87,6 +87,14 @@ namespace Chloe.Query.Internals
             this._current = default;
             this._disposed = true;
         }
+
+#if netcore
+        public ValueTask DisposeAsync()
+        {
+            this.Dispose();
+            return default;
+        }
+#endif
 
         public void Reset()
         {

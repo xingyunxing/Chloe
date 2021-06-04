@@ -1,5 +1,4 @@
-﻿using Chloe.Collections.Generic;
-using Chloe.Core;
+﻿using Chloe.Core;
 using Chloe.Core.Visitors;
 using Chloe.Data;
 using Chloe.DbExpressions;
@@ -204,7 +203,7 @@ namespace Chloe
         public virtual Task<List<T>> SqlQueryAsync<T>(string sql, CommandType cmdType, params DbParam[] parameters)
         {
             PublicHelper.CheckNull(sql, "sql");
-            return new InternalSqlQuery<T>(this, sql, cmdType, parameters).AsIAsyncEnumerable().ToList();
+            return new InternalSqlQuery<T>(this, sql, cmdType, parameters).AsIAsyncEnumerable().ToListAsync().AsTask();
         }
 
         public List<T> SqlQuery<T>(string sql, object parameter)

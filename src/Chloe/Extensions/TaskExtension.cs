@@ -21,3 +21,16 @@ namespace Chloe.Threading.Tasks
 #endif
     }
 }
+
+namespace System.Threading.Tasks
+{
+#if netfx
+    internal static class TaskExtension
+    {
+        public static Task<TResult> AsTask<TResult>(this Task<TResult> task)
+        {
+            return task;
+        }
+    }
+#endif
+}

@@ -13,10 +13,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
+using System.Threading;
 
 namespace Chloe.Query.Internals
 {
-    class InternalQuery<T> : IEnumerable<T>, Chloe.Collections.Generic.IAsyncEnumerable<T>
+    class InternalQuery<T> : IEnumerable<T>, IAsyncEnumerable<T>
     {
         Query<T> _query;
 
@@ -59,9 +60,9 @@ namespace Chloe.Query.Internals
             return this.GetEnumerator();
         }
 
-        Chloe.Collections.Generic.IAsyncEnumerator<T> Chloe.Collections.Generic.IAsyncEnumerable<T>.GetEnumerator()
+        IAsyncEnumerator<T> IAsyncEnumerable<T>.GetAsyncEnumerator(CancellationToken cancellationToken)
         {
-            Chloe.Collections.Generic.IAsyncEnumerator<T> enumerator = this.GetEnumerator() as Chloe.Collections.Generic.IAsyncEnumerator<T>;
+            IAsyncEnumerator<T> enumerator = this.GetEnumerator() as IAsyncEnumerator<T>;
             return enumerator;
         }
 

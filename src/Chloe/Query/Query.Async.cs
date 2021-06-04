@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Chloe.Collections.Generic;
 
 namespace Chloe.Query
 {
@@ -13,7 +12,7 @@ namespace Chloe.Query
         {
             var q = (Query<T>)this.Take(1);
             var iterator = q.GenerateAsyncIterator();
-            return await iterator.First();
+            return await iterator.FirstAsync();
         }
         public async Task<T> FirstAsync(Expression<Func<T, bool>> predicate)
         {
@@ -23,7 +22,7 @@ namespace Chloe.Query
         {
             var q = (Query<T>)this.Take(1);
             var iterator = q.GenerateAsyncIterator();
-            return await iterator.FirstOrDefault();
+            return await iterator.FirstOrDefaultAsync();
         }
         public async Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate)
         {
@@ -31,14 +30,14 @@ namespace Chloe.Query
         }
         public Task<List<T>> ToListAsync()
         {
-            return this.GenerateAsyncIterator().ToList();
+            return this.GenerateAsyncIterator().ToListAsync().AsTask();
         }
 
         public async Task<bool> AnyAsync()
         {
             string v = "1";
             var q = (Query<string>)this.Select(a => v).Take(1);
-            return await q.GenerateAsyncIterator().Any();
+            return await q.GenerateAsyncIterator().AnyAsync();
         }
         public async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate)
         {

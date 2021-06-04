@@ -14,7 +14,7 @@ using BoolResultTask = System.Threading.Tasks.ValueTask<bool>;
 
 namespace Chloe.Query.Internals
 {
-    internal class QueryEnumerator<T> : IEnumerator<T>, Chloe.Collections.Generic.IAsyncEnumerator<T>
+    internal class QueryEnumerator<T> : IEnumerator<T>, IAsyncEnumerator<T>
     {
         bool _disposed;
         DataReaderEnumerator _dataReaderEnumerator;
@@ -40,7 +40,7 @@ namespace Chloe.Query.Internals
             return this.MoveNext(false).GetResult();
         }
 
-        BoolResultTask Chloe.Collections.Generic.IAsyncEnumerator<T>.MoveNext()
+        BoolResultTask IAsyncEnumerator<T>.MoveNextAsync()
         {
             return this.MoveNext(true);
         }
@@ -50,9 +50,9 @@ namespace Chloe.Query.Internals
             if (this._disposed)
                 return false;
 
-            bool nextResult = @async ? await this._dataReaderEnumerator.MoveNextAsync() : this._dataReaderEnumerator.MoveNext();
+            bool hasData = @async ? await this._dataReaderEnumerator.MoveNextAsync() : this._dataReaderEnumerator.MoveNext();
 
-            if (nextResult)
+            if (hasData)
             {
                 if (this._objectActivator == null)
                 {
@@ -66,7 +66,7 @@ namespace Chloe.Query.Internals
                 this._current = default;
             }
 
-            return nextResult;
+            return hasData;
         }
 
         public void Dispose()
@@ -78,6 +78,14 @@ namespace Chloe.Query.Internals
             this._current = default;
             this._disposed = true;
         }
+
+#if netcore
+        public ValueTask DisposeAsync()
+        {
+            this.Dispose();
+            return default;
+        }
+#endif
 
         public void Reset()
         {
