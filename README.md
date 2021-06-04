@@ -118,7 +118,7 @@ view.Where(a => a.User.Id == 1).Select(a => new { UserId = a.User.Id, CityName =
 
 /*
  * Chloe also supports left join,right join and full join query.
- * For details please see 'https://github.com/shuxinqin/Chloe/blob/master/src/DotNet/Chloe/IQuery%60.cs'.
+ * For details please see 'https://github.com/shuxinqin/Chloe/blob/master/src/Chloe/IQuery%60.cs'.
  */
 ```
 * **Group Query**
@@ -251,7 +251,7 @@ q.Select(a => new
     Guid_Parse = Guid.Parse("D544BC4C-739E-4CD3-A3D3-7BF803FCE179"),//CAST(N'D544BC4C-739E-4CD3-A3D3-7BF803FCE179' AS UNIQUEIDENTIFIER) AS [Guid_Parse]
 
     Bool_Parse = bool.Parse("1"),//CASE WHEN CAST(N'1' AS BIT) = CAST(1 AS BIT) THEN CAST(1 AS BIT) WHEN NOT (CAST(N'1' AS BIT) = CAST(1 AS BIT)) THEN CAST(0 AS BIT) ELSE NULL END AS [Bool_Parse]
-    DateTime_Parse = DateTime.Parse("1992-1-16"),//CAST(N'1992-1-16' AS DATETIME) AS [DateTime_Parse]
+    DateTime_Parse = DateTime.Parse("1949-10-01"),//CAST(N'1949-10-01' AS DATETIME) AS [DateTime_Parse]
 
     B = a.Age == null ? false : a.Age > 1,
 }).ToList();
@@ -266,13 +266,13 @@ int id = (int)context.Insert<User>(() => new User() { Name = "lu", Age = 18, Gen
  * INSERT INTO [Users]([Name],[Age],[Gender],[CityId],[OpTime]) VALUES(N'lu',18,1,1,GETDATE());SELECT @@IDENTITY
  */
 
- 
+
 User user = new User();
 user.Name = "lu";
 user.Age = 18;
 user.Gender = Gender.Man;
 user.CityId = 1;
-user.OpTime = new DateTime(1992, 1, 16);
+user.OpTime = new DateTime(1970, 1, 1);
 
 user = context.Insert(user);
 /*
@@ -280,7 +280,7 @@ user = context.Insert(user);
    Gender @P_1 = Man;
    Int32 @P_2 = 18;
    Int32 @P_3 = 1;
-   DateTime @P_4 = "1992/1/16 0:00:00";
+   DateTime @P_4 = "1970/1/1 0:00:00";
    INSERT INTO [Users]([Name],[Gender],[Age],[CityId],[OpTime]) VALUES(@P_0,@P_1,@P_2,@P_3,@P_4);SELECT @@IDENTITY
  */
 ```
