@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Chloe</id>
-    <version>4.15.0</version>
+    <version>4.16.0</version>
     <title>Chloe</title>
     <authors>Shuxin Qin</authors>
     <owners>Shuxin Qin</owners>
@@ -24,10 +24,12 @@ A lightweight and high-performance Object/Relational Mapping(ORM) library.
       <group targetFramework="netstandard2.0">
 	    <dependency id="System.Threading.Tasks.Extensions" version="4.5.4" />
         <dependency id="System.Reflection.Emit" version="4.7.0" />
+		<dependency id="Microsoft.Bcl.AsyncInterfaces" version="1.0.0" />
+		<dependency id="System.Linq.Async" version="4.0.0" />
       </group> 
 	  
 	  <group targetFramework="net5.0">
-       
+        <dependency id="System.Linq.Async" version="4.0.0" />
       </group>
     </dependencies>
 	
