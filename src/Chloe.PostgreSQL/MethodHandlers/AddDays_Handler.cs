@@ -1,5 +1,6 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.RDBMS;
+using System.Collections.Generic;
 
 namespace Chloe.PostgreSQL.MethodHandlers
 {
@@ -14,7 +15,11 @@ namespace Chloe.PostgreSQL.MethodHandlers
         }
         public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
-            SqlGenerator.DbFunction_DATEADD(generator, "days", exp);
+            List<DbExpression> arguments = new List<DbExpression>(exp.Arguments.Count);
+            arguments.Add(new DbConvertExpression(typeof(int), exp.Arguments[0]));
+            DbMethodCallExpression e = new DbMethodCallExpression(exp.Object, exp.Method, arguments);
+
+            SqlGenerator.DbFunction_DATEADD(generator, "days", e);
         }
     }
 }
