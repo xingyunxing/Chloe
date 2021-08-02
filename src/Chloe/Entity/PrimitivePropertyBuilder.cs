@@ -3,12 +3,17 @@ using System.Data;
 
 namespace Chloe.Entity
 {
-    public class PrimitivePropertyBuilder<TProperty> : IPrimitivePropertyBuilder<TProperty>
+    public class PrimitivePropertyBuilder<TProperty, TEntity> : IPrimitivePropertyBuilder<TProperty, TEntity>
     {
-        public PrimitivePropertyBuilder(PrimitiveProperty property)
+        public PrimitivePropertyBuilder(PrimitiveProperty property, IEntityTypeBuilder<TEntity> declaringBuilder)
         {
             this.Property = property;
+            this.DeclaringBuilder = declaringBuilder;
         }
+
+        IEntityTypeBuilder IPrimitivePropertyBuilder.DeclaringBuilder { get { return this.DeclaringBuilder; } }
+        public IEntityTypeBuilder<TEntity> DeclaringBuilder { get; }
+
         public PrimitiveProperty Property { get; private set; }
 
         IPrimitivePropertyBuilder AsNonGenericBuilder()
@@ -16,7 +21,7 @@ namespace Chloe.Entity
             return this;
         }
 
-        public IPrimitivePropertyBuilder<TProperty> MapTo(string column)
+        public IPrimitivePropertyBuilder<TProperty, TEntity> MapTo(string column)
         {
             this.AsNonGenericBuilder().MapTo(column);
             return this;
@@ -27,7 +32,7 @@ namespace Chloe.Entity
             return this;
         }
 
-        public IPrimitivePropertyBuilder<TProperty> HasAnnotation(object value)
+        public IPrimitivePropertyBuilder<TProperty, TEntity> HasAnnotation(object value)
         {
             this.AsNonGenericBuilder().HasAnnotation(value);
             return this;
@@ -41,7 +46,7 @@ namespace Chloe.Entity
             return this;
         }
 
-        public IPrimitivePropertyBuilder<TProperty> IsPrimaryKey(bool isPrimaryKey = true)
+        public IPrimitivePropertyBuilder<TProperty, TEntity> IsPrimaryKey(bool isPrimaryKey = true)
         {
             this.AsNonGenericBuilder().IsPrimaryKey(isPrimaryKey);
             return this;
@@ -52,7 +57,7 @@ namespace Chloe.Entity
             return this;
         }
 
-        public IPrimitivePropertyBuilder<TProperty> IsAutoIncrement(bool isAutoIncrement = true)
+        public IPrimitivePropertyBuilder<TProperty, TEntity> IsAutoIncrement(bool isAutoIncrement = true)
         {
             this.AsNonGenericBuilder().IsAutoIncrement(isAutoIncrement);
             return this;
@@ -69,7 +74,7 @@ namespace Chloe.Entity
             return this;
         }
 
-        public IPrimitivePropertyBuilder<TProperty> IsNullable(bool isNullable = true)
+        public IPrimitivePropertyBuilder<TProperty, TEntity> IsNullable(bool isNullable = true)
         {
             this.AsNonGenericBuilder().IsNullable(isNullable);
             return this;
@@ -80,7 +85,7 @@ namespace Chloe.Entity
             return this;
         }
 
-        public IPrimitivePropertyBuilder<TProperty> IsRowVersion(bool isRowVersion = true)
+        public IPrimitivePropertyBuilder<TProperty, TEntity> IsRowVersion(bool isRowVersion = true)
         {
             this.AsNonGenericBuilder().IsRowVersion(isRowVersion);
             return this;
@@ -91,7 +96,7 @@ namespace Chloe.Entity
             return this;
         }
 
-        public IPrimitivePropertyBuilder<TProperty> HasDbType(DbType dbType)
+        public IPrimitivePropertyBuilder<TProperty, TEntity> HasDbType(DbType dbType)
         {
             this.AsNonGenericBuilder().HasDbType(dbType);
             return this;
@@ -102,7 +107,7 @@ namespace Chloe.Entity
             return this;
         }
 
-        public IPrimitivePropertyBuilder<TProperty> HasSize(int? size)
+        public IPrimitivePropertyBuilder<TProperty, TEntity> HasSize(int? size)
         {
             this.AsNonGenericBuilder().HasSize(size);
             return this;
@@ -113,7 +118,7 @@ namespace Chloe.Entity
             return this;
         }
 
-        public IPrimitivePropertyBuilder<TProperty> HasScale(byte? scale)
+        public IPrimitivePropertyBuilder<TProperty, TEntity> HasScale(byte? scale)
         {
             this.AsNonGenericBuilder().HasScale(scale);
             return this;
@@ -124,7 +129,7 @@ namespace Chloe.Entity
             return this;
         }
 
-        public IPrimitivePropertyBuilder<TProperty> HasPrecision(byte? precision)
+        public IPrimitivePropertyBuilder<TProperty, TEntity> HasPrecision(byte? precision)
         {
             this.AsNonGenericBuilder().HasPrecision(precision);
             return this;
@@ -135,7 +140,7 @@ namespace Chloe.Entity
             return this;
         }
 
-        public IPrimitivePropertyBuilder<TProperty> HasSequence(string name, string schema)
+        public IPrimitivePropertyBuilder<TProperty, TEntity> HasSequence(string name, string schema)
         {
             this.AsNonGenericBuilder().HasSequence(name, schema);
             return this;
@@ -152,7 +157,7 @@ namespace Chloe.Entity
             return this;
         }
 
-        public IPrimitivePropertyBuilder<TProperty> UpdateIgnore(bool updateIgnore = true)
+        public IPrimitivePropertyBuilder<TProperty, TEntity> UpdateIgnore(bool updateIgnore = true)
         {
             this.AsNonGenericBuilder().UpdateIgnore(updateIgnore);
             return this;

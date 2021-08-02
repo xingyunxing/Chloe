@@ -4,6 +4,7 @@ namespace Chloe.Entity
 {
     public interface IPrimitivePropertyBuilder
     {
+        IEntityTypeBuilder DeclaringBuilder { get; }
         PrimitiveProperty Property { get; }
         IPrimitivePropertyBuilder MapTo(string column);
         IPrimitivePropertyBuilder HasAnnotation(object value);
@@ -18,24 +19,25 @@ namespace Chloe.Entity
         IPrimitivePropertyBuilder HasSequence(string name, string schema = null);
         IPrimitivePropertyBuilder UpdateIgnore(bool updateIgnore = true);
     }
-    public interface IPrimitivePropertyBuilder<TProperty> : IPrimitivePropertyBuilder
+    public interface IPrimitivePropertyBuilder<TProperty, TEntity> : IPrimitivePropertyBuilder
     {
-        new IPrimitivePropertyBuilder<TProperty> MapTo(string column);
-        new IPrimitivePropertyBuilder<TProperty> HasAnnotation(object value);
-        new IPrimitivePropertyBuilder<TProperty> IsPrimaryKey(bool isPrimaryKey = true);
-        new IPrimitivePropertyBuilder<TProperty> IsAutoIncrement(bool autoIncrement = true);
-        new IPrimitivePropertyBuilder<TProperty> IsNullable(bool isNullable = true);
-        new IPrimitivePropertyBuilder<TProperty> IsRowVersion(bool isRowVersion = true);
-        new IPrimitivePropertyBuilder<TProperty> HasDbType(DbType dbType);
-        new IPrimitivePropertyBuilder<TProperty> HasSize(int? size);
-        new IPrimitivePropertyBuilder<TProperty> HasScale(byte? scale);
-        new IPrimitivePropertyBuilder<TProperty> HasPrecision(byte? precision);
-        new IPrimitivePropertyBuilder<TProperty> HasSequence(string name, string schema = null);
+        new IEntityTypeBuilder<TEntity> DeclaringBuilder { get; }
+        new IPrimitivePropertyBuilder<TProperty, TEntity> MapTo(string column);
+        new IPrimitivePropertyBuilder<TProperty, TEntity> HasAnnotation(object value);
+        new IPrimitivePropertyBuilder<TProperty, TEntity> IsPrimaryKey(bool isPrimaryKey = true);
+        new IPrimitivePropertyBuilder<TProperty, TEntity> IsAutoIncrement(bool autoIncrement = true);
+        new IPrimitivePropertyBuilder<TProperty, TEntity> IsNullable(bool isNullable = true);
+        new IPrimitivePropertyBuilder<TProperty, TEntity> IsRowVersion(bool isRowVersion = true);
+        new IPrimitivePropertyBuilder<TProperty, TEntity> HasDbType(DbType dbType);
+        new IPrimitivePropertyBuilder<TProperty, TEntity> HasSize(int? size);
+        new IPrimitivePropertyBuilder<TProperty, TEntity> HasScale(byte? scale);
+        new IPrimitivePropertyBuilder<TProperty, TEntity> HasPrecision(byte? precision);
+        new IPrimitivePropertyBuilder<TProperty, TEntity> HasSequence(string name, string schema = null);
         /// <summary>
         /// 更新忽略
         /// </summary>
         /// <param name="updateIgnore"></param>
         /// <returns></returns>
-        new IPrimitivePropertyBuilder<TProperty> UpdateIgnore(bool updateIgnore = true);
+        new IPrimitivePropertyBuilder<TProperty, TEntity> UpdateIgnore(bool updateIgnore = true);
     }
 }
