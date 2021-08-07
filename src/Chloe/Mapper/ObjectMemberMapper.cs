@@ -10,7 +10,7 @@ namespace Chloe.Mapper
     public class ObjectMemberMapper
     {
         Dictionary<MemberInfo, MRMTuple> _mappingMemberMappers;
-        Dictionary<MemberInfo, Lazy<MemberValueSetter>> _memberSetters;
+        Dictionary<MemberInfo, Lazy<MemberSetter>> _memberSetters;
 
         ObjectMemberMapper(Type t)
         {
@@ -23,7 +23,7 @@ namespace Chloe.Mapper
             Type t = this.Type;
             var members = t.GetMembers(BindingFlags.Public | BindingFlags.Instance);
             Dictionary<MemberInfo, MRMTuple> mappingMemberMappers = new Dictionary<MemberInfo, MRMTuple>();
-            Dictionary<MemberInfo, Lazy<MemberValueSetter>> memberSetters = new Dictionary<MemberInfo, Lazy<MemberValueSetter>>();
+            Dictionary<MemberInfo, Lazy<MemberSetter>> memberSetters = new Dictionary<MemberInfo, Lazy<MemberSetter>>();
 
             foreach (var member in members)
             {
@@ -35,9 +35,9 @@ namespace Chloe.Mapper
                 //只支持公共属性和字段
                 Type memberType = member.GetMemberType();
 
-                memberSetters.Add(member, new Lazy<MemberValueSetter>(() =>
+                memberSetters.Add(member, new Lazy<MemberSetter>(() =>
                 {
-                    MemberValueSetter valueSetter = MemberValueSetterContainer.GetMemberValueSetter(member);
+                    MemberSetter valueSetter = MemberSetterContainer.GetSetter(member);
                     return valueSetter;
                 }, LazyThreadSafetyMode.ExecutionAndPublication));
 
@@ -62,10 +62,10 @@ namespace Chloe.Mapper
             this._mappingMemberMappers.TryGetValue(memberInfo, out mapperTuple);
             return mapperTuple;
         }
-        public MemberValueSetter GetMemberSetter(MemberInfo memberInfo)
+        public MemberSetter GetMemberSetter(MemberInfo memberInfo)
         {
             memberInfo = memberInfo.AsReflectedMemberOf(this.Type);
-            Lazy<MemberValueSetter> valueSetter = null;
+            Lazy<MemberSetter> valueSetter = null;
             this._memberSetters.TryGetValue(memberInfo, out valueSetter);
             return valueSetter.Value;
         }

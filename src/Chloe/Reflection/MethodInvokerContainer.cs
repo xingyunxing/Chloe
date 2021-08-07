@@ -6,7 +6,7 @@ namespace Chloe.Reflection
     public class MethodInvokerContainer
     {
         static readonly System.Collections.Concurrent.ConcurrentDictionary<MethodInfo, MethodInvoker> Cache = new System.Collections.Concurrent.ConcurrentDictionary<MethodInfo, MethodInvoker>();
-        public static MethodInvoker GetMethodInvoker(MethodInfo method)
+        public static MethodInvoker GetInvoker(MethodInfo method)
         {
             MethodInvoker invoker = null;
             if (!Cache.TryGetValue(method, out invoker))
@@ -15,7 +15,7 @@ namespace Chloe.Reflection
                 {
                     if (!Cache.TryGetValue(method, out invoker))
                     {
-                        invoker = DelegateGenerator.CreateMethodInvoker(method);
+                        invoker = DelegateGenerator.CreateInvoker(method);
                         Cache.GetOrAdd(method, invoker);
                     }
                 }

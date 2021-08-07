@@ -11,9 +11,9 @@ namespace Chloe.Mapper.Binders
 {
     public class MemberBinder : IMemberBinder
     {
-        MemberValueSetter _setter;
+        MemberSetter _setter;
         IObjectActivator _activtor;
-        public MemberBinder(MemberValueSetter setter, IObjectActivator activtor)
+        public MemberBinder(MemberSetter setter, IObjectActivator activtor)
         {
             this._setter = setter;
             this._activtor = activtor;

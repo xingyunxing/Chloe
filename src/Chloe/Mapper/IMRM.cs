@@ -72,12 +72,12 @@ namespace Chloe.Mapper
 
     class MRM2 : IMRM
     {
-        MemberValueSetter _valueSetter;
+        MemberSetter _valueSetter;
         MappingType _mappingType;
         public MRM2(MemberInfo member, MappingType mappingType)
         {
             this._mappingType = mappingType;
-            this._valueSetter = MemberValueSetterContainer.GetMemberValueSetter(member);
+            this._valueSetter = MemberSetterContainer.GetSetter(member);
         }
 
         public void Map(object instance, IDataReader reader, int ordinal)

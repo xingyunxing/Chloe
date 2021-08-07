@@ -88,7 +88,7 @@ namespace Chloe.Query.Mapping
 
             foreach (var kv in this.ComplexMembers)
             {
-                MemberValueSetter setter = mapper.GetMemberSetter(kv.Key);
+                MemberSetter setter = mapper.GetMemberSetter(kv.Key);
                 IObjectActivator memberActivtor = kv.Value.CreateObjectActivator(dbContext);
                 ComplexMemberBinder binder = new ComplexMemberBinder(setter, memberActivtor);
                 memberBinders.Add(binder);
@@ -96,7 +96,7 @@ namespace Chloe.Query.Mapping
 
             foreach (var kv in this.CollectionMembers)
             {
-                MemberValueSetter setter = mapper.GetMemberSetter(kv.Key);
+                MemberSetter setter = mapper.GetMemberSetter(kv.Key);
                 IObjectActivator memberActivtor = kv.Value.CreateObjectActivator(dbContext);
                 CollectionMemberBinder binder = new CollectionMemberBinder(setter, memberActivtor);
                 memberBinders.Add(binder);

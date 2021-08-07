@@ -72,7 +72,7 @@ namespace Chloe.Reflection.Emit
             return ret;
         }
 
-        public static MemberValueSetter CreateValueSetter(MemberInfo propertyOrField)
+        public static MemberSetter CreateSetter(MemberInfo propertyOrField)
         {
             ParameterExpression p = Expression.Parameter(typeof(object), "instance");
             ParameterExpression pValue = Expression.Parameter(typeof(object), "value");
@@ -87,12 +87,12 @@ namespace Chloe.Reflection.Emit
 
             Expression body = setValue;
 
-            var lambda = Expression.Lambda<MemberValueSetter>(body, p, pValue);
-            MemberValueSetter ret = lambda.Compile();
+            var lambda = Expression.Lambda<MemberSetter>(body, p, pValue);
+            MemberSetter ret = lambda.Compile();
 
             return ret;
         }
-        public static MemberValueGetter CreateValueGetter(MemberInfo propertyOrField)
+        public static MemberGetter CreateGetter(MemberInfo propertyOrField)
         {
             ParameterExpression p = Expression.Parameter(typeof(object), "a");
             Expression instance = null;
@@ -111,20 +111,20 @@ namespace Chloe.Reflection.Emit
                 body = Expression.Convert(memberAccess, typeof(object));
             }
 
-            var lambda = Expression.Lambda<MemberValueGetter>(body, p);
-            MemberValueGetter ret = lambda.Compile();
+            var lambda = Expression.Lambda<MemberGetter>(body, p);
+            MemberGetter ret = lambda.Compile();
 
             return ret;
         }
 
-        public static Func<object> CreateInstanceActivator(Type type)
+        public static Func<object> CreateActivator(Type type)
         {
             var body = Expression.New(type.GetDefaultConstructor());
             var ret = Expression.Lambda<Func<object>>(body).Compile();
             return ret;
         }
 
-        public static MethodInvoker CreateMethodInvoker(MethodInfo method)
+        public static MethodInvoker CreateInvoker(MethodInfo method)
         {
             List<ParameterExpression> parameterExps = new List<ParameterExpression>();
             ParameterExpression p = Expression.Parameter(typeof(object), "instance");

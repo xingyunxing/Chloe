@@ -38,7 +38,7 @@ namespace Chloe.Mapper.Activators
                    throw new NotSupportedException($"Not supported collection type '{type.Name}'");
                }
 
-               return DelegateGenerator.CreateInstanceActivator(implTypeDefinition.MakeGenericType(type.GetGenericArguments()[0]));
+               return DelegateGenerator.CreateActivator(implTypeDefinition.MakeGenericType(type.GetGenericArguments()[0]));
            });
 
             return activator;

@@ -9,8 +9,8 @@ namespace Chloe.Descriptors
 {
     public class PropertyDescriptor
     {
-        MemberValueGetter _valueGetter;
-        MemberValueSetter _valueSetter;
+        MemberGetter _valueGetter;
+        MemberSetter _valueSetter;
 
         protected PropertyDescriptor(PropertyDefinition definition, TypeDescriptor declaringTypeDescriptor)
         {
@@ -27,7 +27,7 @@ namespace Chloe.Descriptors
         {
             if (null == this._valueGetter)
             {
-                this._valueGetter = MemberValueGetterContainer.GetMemberValueGetter(this.Definition.Property);
+                this._valueGetter = MemberGetterContainer.GetGetter(this.Definition.Property);
             }
 
             return this._valueGetter(instance);
@@ -36,7 +36,7 @@ namespace Chloe.Descriptors
         {
             if (null == this._valueSetter)
             {
-                this._valueSetter = MemberValueSetterContainer.GetMemberValueSetter(this.Definition.Property);
+                this._valueSetter = MemberSetterContainer.GetSetter(this.Definition.Property);
             }
 
             this._valueSetter(instance, value);

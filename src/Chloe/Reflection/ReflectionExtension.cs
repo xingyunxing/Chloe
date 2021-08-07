@@ -74,13 +74,13 @@ namespace Chloe.Reflection
 
         public static void FastSetMemberValue(this MemberInfo propertyOrField, object obj, object value)
         {
-            MemberValueSetter setter = MemberValueSetterContainer.GetMemberValueSetter(propertyOrField);
+            MemberSetter setter = MemberSetterContainer.GetSetter(propertyOrField);
             setter(obj, value);
             return;
         }
         public static object FastGetMemberValue(this MemberInfo propertyOrField, object obj)
         {
-            MemberValueGetter getter = MemberValueGetterContainer.GetMemberValueGetter(propertyOrField);
+            MemberGetter getter = MemberGetterContainer.GetGetter(propertyOrField);
             return getter(obj);
         }
 
@@ -90,7 +90,7 @@ namespace Chloe.Reflection
         }
         public static object FastInvoke(this MethodInfo method, object obj, params object[] parameters)
         {
-            MethodInvoker invoker = MethodInvokerContainer.GetMethodInvoker(method);
+            MethodInvoker invoker = MethodInvokerContainer.GetInvoker(method);
             return invoker(obj, parameters);
         }
 

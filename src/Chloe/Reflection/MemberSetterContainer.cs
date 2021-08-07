@@ -3,19 +3,19 @@ using System.Reflection;
 
 namespace Chloe.Reflection
 {
-    public class MemberValueSetterContainer
+    public class MemberSetterContainer
     {
-        static readonly System.Collections.Concurrent.ConcurrentDictionary<MemberInfo, MemberValueSetter> Cache = new System.Collections.Concurrent.ConcurrentDictionary<MemberInfo, MemberValueSetter>();
-        public static MemberValueSetter GetMemberValueSetter(MemberInfo memberInfo)
+        static readonly System.Collections.Concurrent.ConcurrentDictionary<MemberInfo, MemberSetter> Cache = new System.Collections.Concurrent.ConcurrentDictionary<MemberInfo, MemberSetter>();
+        public static MemberSetter GetSetter(MemberInfo memberInfo)
         {
-            MemberValueSetter setter = null;
+            MemberSetter setter = null;
             if (!Cache.TryGetValue(memberInfo, out setter))
             {
                 lock (memberInfo)
                 {
                     if (!Cache.TryGetValue(memberInfo, out setter))
                     {
-                        setter = DelegateGenerator.CreateValueSetter(memberInfo);
+                        setter = DelegateGenerator.CreateSetter(memberInfo);
                         Cache.GetOrAdd(memberInfo, setter);
                     }
                 }
