@@ -1,5 +1,4 @@
-﻿using Chloe.Reflection.Emit;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace Chloe.Reflection
 {
@@ -15,7 +14,7 @@ namespace Chloe.Reflection
                 {
                     if (!Cache.TryGetValue(method, out invoker))
                     {
-                        invoker = DelegateGenerator.CreateInvoker(method);
+                        invoker = DefaultDelegateFactory.Instance.CreateInvoker(method);
                         Cache.GetOrAdd(method, invoker);
                     }
                 }

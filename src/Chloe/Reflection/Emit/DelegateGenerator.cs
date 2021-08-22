@@ -1,7 +1,5 @@
 ﻿using Chloe.Data;
 using Chloe.Extensions;
-using Chloe.Mapper;
-using Chloe.Reflection;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -12,6 +10,8 @@ namespace Chloe.Reflection.Emit
 {
     public static class DelegateGenerator
     {
+        static readonly MethodInfo GetArrayItemMethod = typeof(object[]).GetMethod("GetValue", new Type[] { typeof(int) });
+
         public static Func<IDataReader, int, object> CreateDataReaderGetValueHandler(Type valueType)
         {
             var reader = Expression.Parameter(typeof(IDataReader), "reader");
@@ -45,12 +45,32 @@ namespace Chloe.Reflection.Emit
             return del;
         }
 
-        public static InstanceCreator CreateInstanceCreator(ConstructorInfo constructor)
+        static BinaryExpression MakeAssign(MemberInfo propertyOrField, Expression instance, Expression value)
         {
-            PublicHelper.CheckNull(constructor);
+            var member = MakeMemberExpression(propertyOrField, instance);
+            var setValue = Expression.Assign(member, value);
+            return setValue;
+        }
+        static MemberExpression MakeMemberExpression(MemberInfo propertyOrField, Expression instance)
+        {
+            if (propertyOrField.MemberType == MemberTypes.Property)
+            {
+                var prop = Expression.Property(instance, (PropertyInfo)propertyOrField);
+                return prop;
+            }
 
+            if (propertyOrField.MemberType == MemberTypes.Field)
+            {
+                var field = Expression.Field(instance, (FieldInfo)propertyOrField);
+                return field;
+            }
+
+            throw new ArgumentException();
+        }
+
+        public static InstanceCreator CreateCreator(ConstructorInfo constructor)
+        {
             var pExp_arguments = Expression.Parameter(typeof(object[]), "arguments");
-            var getItemMethod = typeof(object[]).GetMethod("GetValue", new Type[] { typeof(int) });
 
             ParameterInfo[] parameters = constructor.GetParameters();
             List<Expression> arguments = new List<Expression>(parameters.Length);
@@ -60,7 +80,7 @@ namespace Chloe.Reflection.Emit
                 ParameterInfo parameter = parameters[i];
 
                 //object obj = arguments[i];
-                var obj = Expression.Call(pExp_arguments, getItemMethod, Expression.Constant(i));
+                var obj = Expression.Call(pExp_arguments, GetArrayItemMethod, Expression.Constant(i));
                 //T argument = (T)obj;
                 var argument = Expression.Convert(obj, parameter.ParameterType);
                 arguments.Add(argument);
@@ -70,6 +90,10 @@ namespace Chloe.Reflection.Emit
             InstanceCreator ret = Expression.Lambda<InstanceCreator>(body, pExp_arguments).Compile();
 
             return ret;
+        }
+        public static InstanceCreator CreateActivator(Type type)
+        {
+            return CreateCreator(type.GetDefaultConstructor());
         }
 
         public static MemberSetter CreateSetter(MemberInfo propertyOrField)
@@ -83,7 +107,7 @@ namespace Chloe.Reflection.Emit
             }
 
             var value = Expression.Convert(pValue, propertyOrField.GetMemberType());
-            var setValue = ExpressionExtension.Assign(propertyOrField, instance, value);
+            var setValue = MakeAssign(propertyOrField, instance, value);
 
             Expression body = setValue;
 
@@ -114,13 +138,6 @@ namespace Chloe.Reflection.Emit
             var lambda = Expression.Lambda<MemberGetter>(body, p);
             MemberGetter ret = lambda.Compile();
 
-            return ret;
-        }
-
-        public static Func<object> CreateActivator(Type type)
-        {
-            var body = Expression.New(type.GetDefaultConstructor());
-            var ret = Expression.Lambda<Func<object>>(body).Compile();
             return ret;
         }
 

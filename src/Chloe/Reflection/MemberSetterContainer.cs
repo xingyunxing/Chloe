@@ -1,5 +1,4 @@
-﻿using Chloe.Reflection.Emit;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace Chloe.Reflection
 {
@@ -15,7 +14,7 @@ namespace Chloe.Reflection
                 {
                     if (!Cache.TryGetValue(memberInfo, out setter))
                     {
-                        setter = DelegateGenerator.CreateSetter(memberInfo);
+                        setter = DefaultDelegateFactory.Instance.CreateSetter(memberInfo);
                         Cache.GetOrAdd(memberInfo, setter);
                     }
                 }

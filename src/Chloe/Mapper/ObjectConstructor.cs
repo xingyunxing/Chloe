@@ -19,7 +19,7 @@ namespace Chloe.Mapper
         void Init()
         {
             ConstructorInfo constructor = this.ConstructorInfo;
-            InstanceCreator instanceCreator = DelegateGenerator.CreateInstanceCreator(constructor);
+            InstanceCreator instanceCreator = InstanceCreatorContainer.GetCreator(constructor);
             this.InstanceCreator = instanceCreator;
         }
 

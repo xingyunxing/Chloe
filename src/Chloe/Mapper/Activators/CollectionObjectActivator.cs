@@ -1,4 +1,4 @@
-﻿using Chloe.Reflection.Emit;
+﻿using Chloe.Reflection;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -15,13 +15,13 @@ namespace Chloe.Mapper.Activators
     public class CollectionObjectActivator : ObjectActivatorBase, IObjectActivator
     {
         Type _collectionType;
-        Func<object> _activator;
+        InstanceCreator _activator;
 
-        static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, Func<object>> ActivatorCache = new System.Collections.Concurrent.ConcurrentDictionary<Type, Func<object>>();
+        static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, InstanceCreator> ActivatorCache = new System.Collections.Concurrent.ConcurrentDictionary<Type, InstanceCreator>();
 
-        static Func<object> GetActivator(Type collectionType)
+        static InstanceCreator GetActivator(Type collectionType)
         {
-            Func<object> activator = ActivatorCache.GetOrAdd(collectionType, type =>
+            InstanceCreator activator = ActivatorCache.GetOrAdd(collectionType, type =>
            {
                var typeDefinition = type.GetGenericTypeDefinition();
                Type implTypeDefinition = null;
@@ -38,7 +38,7 @@ namespace Chloe.Mapper.Activators
                    throw new NotSupportedException($"Not supported collection type '{type.Name}'");
                }
 
-               return DelegateGenerator.CreateActivator(implTypeDefinition.MakeGenericType(type.GetGenericArguments()[0]));
+               return InstanceCreatorContainer.GetCreator(implTypeDefinition.MakeGenericType(type.GetGenericArguments()[0]).GetDefaultConstructor());
            });
 
             return activator;
