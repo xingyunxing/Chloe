@@ -58,10 +58,10 @@ namespace Chloe.Mapper
 
     class MRM : IMRM
     {
-        Action<object, IDataReader, int> _mapper;
+        MemberMapper _mapper;
         public MRM(MemberInfo member)
         {
-            this._mapper = DelegateGenerator.CreateSetValueFromReaderDelegate(member);
+            this._mapper = MemberMapperContainer.Get(member);
         }
 
         public void Map(object instance, IDataReader reader, int ordinal)
@@ -77,7 +77,7 @@ namespace Chloe.Mapper
         public MRM2(MemberInfo member, MappingType mappingType)
         {
             this._mappingType = mappingType;
-            this._valueSetter = MemberSetterContainer.GetSetter(member);
+            this._valueSetter = MemberSetterContainer.Get(member);
         }
 
         public void Map(object instance, IDataReader reader, int ordinal)

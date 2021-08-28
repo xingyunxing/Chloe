@@ -5,7 +5,7 @@ namespace Chloe.Reflection
     public class MemberGetterContainer
     {
         static readonly System.Collections.Concurrent.ConcurrentDictionary<MemberInfo, MemberGetter> Cache = new System.Collections.Concurrent.ConcurrentDictionary<MemberInfo, MemberGetter>();
-        public static MemberGetter GetGetter(MemberInfo memberInfo)
+        public static MemberGetter Get(MemberInfo memberInfo)
         {
             MemberGetter getter = null;
             if (!Cache.TryGetValue(memberInfo, out getter))

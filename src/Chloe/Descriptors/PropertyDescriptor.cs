@@ -27,7 +27,7 @@ namespace Chloe.Descriptors
         {
             if (null == this._valueGetter)
             {
-                this._valueGetter = MemberGetterContainer.GetGetter(this.Definition.Property);
+                this._valueGetter = MemberGetterContainer.Get(this.Definition.Property);
             }
 
             return this._valueGetter(instance);
@@ -36,7 +36,7 @@ namespace Chloe.Descriptors
         {
             if (null == this._valueSetter)
             {
-                this._valueSetter = MemberSetterContainer.GetSetter(this.Definition.Property);
+                this._valueSetter = MemberSetterContainer.Get(this.Definition.Property);
             }
 
             this._valueSetter(instance, value);

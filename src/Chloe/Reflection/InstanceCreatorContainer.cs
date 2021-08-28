@@ -8,7 +8,7 @@ namespace Chloe.Reflection
     public class InstanceCreatorContainer
     {
         static readonly System.Collections.Concurrent.ConcurrentDictionary<ConstructorInfo, InstanceCreator> Cache = new System.Collections.Concurrent.ConcurrentDictionary<ConstructorInfo, InstanceCreator>();
-        public static InstanceCreator GetCreator(ConstructorInfo constructor)
+        public static InstanceCreator Get(ConstructorInfo constructor)
         {
             InstanceCreator creator = null;
             if (!Cache.TryGetValue(constructor, out creator))

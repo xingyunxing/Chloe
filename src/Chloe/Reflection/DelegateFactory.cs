@@ -14,6 +14,7 @@ namespace Chloe.Reflection
         public abstract MemberGetter CreateGetter(MemberInfo propertyOrField);
         public abstract MemberSetter CreateSetter(MemberInfo propertyOrField);
         public abstract MethodInvoker CreateInvoker(MethodInfo method);
+        public abstract MemberMapper CreateMapper(MemberInfo propertyOrField);
     }
 
     internal class DefaultDelegateFactory : DelegateFactory
@@ -73,6 +74,14 @@ namespace Chloe.Reflection
 
             return ReflectionDelegateFactory.Instance.CreateInvoker(method);
         }
+
+        public override MemberMapper CreateMapper(MemberInfo propertyOrField)
+        {
+            if (AllowEmit)
+                return EmitDelegateFactory.Instance.CreateMapper(propertyOrField);
+
+            return ReflectionDelegateFactory.Instance.CreateMapper(propertyOrField);
+        }
     }
 
     internal class EmitDelegateFactory : DelegateFactory
@@ -107,6 +116,12 @@ namespace Chloe.Reflection
         {
             MethodInvoker invoker = DelegateGenerator.CreateInvoker(method);
             return invoker;
+        }
+
+        public override MemberMapper CreateMapper(MemberInfo propertyOrField)
+        {
+            MemberMapper mapper = DelegateGenerator.CreateMapper(propertyOrField);
+            return mapper;
         }
     }
 
@@ -158,6 +173,18 @@ namespace Chloe.Reflection
             };
 
             return invoker;
+        }
+
+        public override MemberMapper CreateMapper(MemberInfo propertyOrField)
+        {
+            var readerMethod = Data.DataReaderConstant.GetReaderMethod(propertyOrField.GetMemberType());
+            MemberMapper mapper = (object instance, System.Data.IDataReader dataReader, int ordinal) =>
+            {
+                var value = readerMethod.Invoke(null, dataReader, ordinal);
+                propertyOrField.SetMemberValue(instance, value);
+            };
+
+            return mapper;
         }
     }
 }

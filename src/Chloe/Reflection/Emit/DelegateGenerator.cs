@@ -28,7 +28,7 @@ namespace Chloe.Reflection.Emit
             return del;
         }
 
-        public static Action<object, IDataReader, int> CreateSetValueFromReaderDelegate(MemberInfo member)
+        public static MemberMapper CreateMapper(MemberInfo member)
         {
             var p = Expression.Parameter(typeof(object), "instance");
             var instance = Expression.Convert(p, member.DeclaringType);
@@ -38,9 +38,9 @@ namespace Chloe.Reflection.Emit
             var readerMethod = DataReaderConstant.GetReaderMethod(member.GetMemberType());
             var getValue = Expression.Call(null, readerMethod, reader, ordinal);
             var assign = ExpressionExtension.Assign(member, instance, getValue);
-            var lambda = Expression.Lambda<Action<object, IDataReader, int>>(assign, p, reader, ordinal);
+            var lambda = Expression.Lambda<MemberMapper>(assign, p, reader, ordinal);
 
-            Action<object, IDataReader, int> del = lambda.Compile();
+            MemberMapper del = lambda.Compile();
 
             return del;
         }

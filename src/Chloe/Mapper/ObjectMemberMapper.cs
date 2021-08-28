@@ -37,7 +37,7 @@ namespace Chloe.Mapper
 
                 memberSetters.Add(member, new Lazy<MemberSetter>(() =>
                 {
-                    MemberSetter valueSetter = MemberSetterContainer.GetSetter(member);
+                    MemberSetter valueSetter = MemberSetterContainer.Get(member);
                     return valueSetter;
                 }, LazyThreadSafetyMode.ExecutionAndPublication));
 
