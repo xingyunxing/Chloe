@@ -87,5 +87,14 @@ namespace Chloe.Infrastructure
                 });
             }
         }
+
+        public static Type[] GetRegisteredTypes()
+        {
+            return InstanceCache.Keys.ToArray();
+        }
+        public static TypeDescriptor[] GetRegisteredTypeDescriptors()
+        {
+            return InstanceCache.Values.ToArray();
+        }
     }
 }

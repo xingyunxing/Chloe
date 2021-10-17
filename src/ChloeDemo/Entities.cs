@@ -23,6 +23,9 @@ namespace ChloeDemo
 
     public class EntityBase : IEntity
     {
+        /// <summary>
+        /// 实体id
+        /// </summary>
         [Column(IsPrimaryKey = true)]
         [AutoIncrement]
         public virtual int Id { get; set; }
@@ -37,6 +40,9 @@ namespace ChloeDemo
         [Chloe.Annotations.NavigationAttribute("CityId")]
         public City City { get; set; }
 
+        /// <summary>
+        /// 姓名
+        /// </summary>
         [Column(DbType = DbType.String)]
         public string Name { get; set; }
         [Column(DbType = DbType.Int32)]

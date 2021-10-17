@@ -80,5 +80,13 @@ namespace Chloe.Oracle
         {
             return UtilConstants.OutputParameterNamePrefix + columnName;
         }
+
+        public static string QuoteName(string name, bool convertToUppercase)
+        {
+            if (convertToUppercase)
+                return string.Concat("\"", name.ToUpper(), "\"");
+
+            return string.Concat("\"", name, "\"");
+        }
     }
 }

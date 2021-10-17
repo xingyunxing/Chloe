@@ -46,5 +46,10 @@ namespace Chloe.Descriptors
         {
             return this.Definition.Annotations.Any(a => a.GetType() == attributeType);
         }
+        public bool TryGetAnnotation(Type attributeType, out object annotation)
+        {
+            annotation = this.Definition.Annotations.Where(a => a.GetType() == attributeType).FirstOrDefault();
+            return annotation != null;
+        }
     }
 }

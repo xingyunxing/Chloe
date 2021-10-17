@@ -56,16 +56,9 @@ namespace ChloeDemo
 
         public virtual void InitDatabase()
         {
-            this.InitTable<TestEntity>();
-            this.InitTable<Person>();
-            this.InitTable<PersonEx>();
-            this.InitTable<City>();
-            this.InitTable<Province>();
-        }
-        public virtual void InitTable<TEntity>()
-        {
 
         }
+
         public virtual void InitData()
         {
             List<Province> provinces = new List<Province>();

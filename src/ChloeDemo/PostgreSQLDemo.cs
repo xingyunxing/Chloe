@@ -1,7 +1,9 @@
 ﻿using Chloe;
+using Chloe.DDL;
 using Chloe.Descriptors;
 using Chloe.Infrastructure;
 using Chloe.PostgreSQL;
+using Chloe.PostgreSQL.DDL;
 using Chloe.Reflection;
 using System;
 using System.Collections.Generic;
@@ -26,134 +28,9 @@ namespace ChloeDemo
             return dbContext;
         }
 
-        public override void InitTable<TEntity>()
+        public override void InitDatabase()
         {
-            Type entityType = typeof(TEntity);
-
-            string createTableScript = this.CreateTableScript(entityType);
-
-            this.DbContext.Session.ExecuteNonQuery(createTableScript);
-        }
-        string CreateTableScript(Type entityType)
-        {
-            TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(entityType);
-            string tableName = typeDescriptor.Table.Name;
-
-            StringBuilder sb = new StringBuilder();
-            sb.Append($"CREATE TABLE IF NOT EXISTS {this.QuoteName(tableName)}(");
-
-            string c = "";
-            foreach (var propertyDescriptor in typeDescriptor.PrimitivePropertyDescriptors)
-            {
-                sb.AppendLine(c);
-                sb.Append($"  {this.BuildColumnPart(propertyDescriptor)}");
-                c = ",";
-            }
-
-            if (typeDescriptor.PrimaryKeys.Count > 0)
-            {
-                string key = typeDescriptor.PrimaryKeys.First().Column.Name;
-                sb.AppendLine(c);
-                sb.Append($"  PRIMARY KEY ({this.QuoteName(key)})");
-            }
-
-            sb.AppendLine();
-            sb.Append(");");
-
-            return sb.ToString();
-        }
-        string QuoteName(string name)
-        {
-            return string.Concat("\"", name.ToLower(), "\"");
-        }
-
-        string BuildColumnPart(PrimitivePropertyDescriptor propertyDescriptor)
-        {
-            string part = $"{this.QuoteName(propertyDescriptor.Column.Name)} {this.GetMappedDbTypeName(propertyDescriptor)}";
-
-            if (!propertyDescriptor.IsNullable)
-            {
-                part += " NOT NULL";
-            }
-            else
-            {
-                part += " NULL";
-            }
-
-            return part;
-        }
-
-        string GetMappedDbTypeName(PrimitivePropertyDescriptor propertyDescriptor)
-        {
-            Type type = propertyDescriptor.PropertyType.GetUnderlyingType();
-            if (type.IsEnum)
-            {
-                type = type.GetEnumUnderlyingType();
-            }
-
-            if (type == typeof(string))
-            {
-                int stringLength = propertyDescriptor.Column.Size ?? 4000;
-                return $"varchar({stringLength})";
-            }
-
-            if (type == typeof(int))
-            {
-                if (propertyDescriptor.IsAutoIncrement)
-                    return "serial4";
-
-                return "int4";
-            }
-
-            if (type == typeof(byte))
-            {
-                return "int2";
-            }
-
-            if (type == typeof(Int16))
-            {
-                return "int2";
-            }
-
-            if (type == typeof(long))
-            {
-                if (propertyDescriptor.IsAutoIncrement)
-                    return "serial8";
-
-                return "int8";
-            }
-
-            if (type == typeof(float))
-            {
-                return "float4";
-            }
-
-            if (type == typeof(double))
-            {
-                return "float8";
-            }
-
-            if (type == typeof(decimal))
-            {
-                return "decimal(18,4)";
-            }
-
-            if (type == typeof(bool))
-            {
-                return "boolean";
-            }
-
-            if (type == typeof(DateTime))
-            {
-                return "timestamp";
-            }
-
-            if (type == typeof(Guid))
-            {
-                return "uuid";
-            }
-
-            throw new NotSupportedException(type.FullName);
+            new PostgreSQLTableGenerator(this.DbContext).CreateTables(TableCreateMode.CreateNew);
         }
 
         public override void Method()
@@ -164,7 +41,8 @@ namespace ChloeDemo
 
             DateTime startTime = DateTime.Now;
             DateTime endTime = DateTime.Now.AddDays(1);
-            var result = q.OrderBy(a => a.Id).Select(a => new {
+            var result = q.OrderBy(a => a.Id).Select(a => new
+            {
                 Id = a.Id,
 
                 //CustomFunction = DbFunctions.MyFunction(a.Id), //自定义函数

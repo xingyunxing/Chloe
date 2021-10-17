@@ -3,6 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
+using Chloe.MySql;
+using Chloe.Oracle;
+using Chloe.PostgreSQL;
+using Chloe.SQLite;
+using Chloe.SqlServer;
 
 namespace ChloeDemo
 {
@@ -28,6 +33,18 @@ namespace ChloeDemo
 
             /* global filter */
             this.HasQueryFilter(a => a.Id > -1);
+
+            this.ConfigDataType();
+        }
+
+        void ConfigDataType()
+        {
+            this.Property(a => a.Name)
+                .HasMySqlDataType("varchar(50)")
+                .HasOracleDataType("NVARCHAR2(50)")
+                .HasPostgreSQLDataType("varchar(50)")
+                .HasSQLiteDataType("NVARCHAR(50)")
+                .HasSqlServerDataType("NVARCHAR(50)");
         }
     }
 

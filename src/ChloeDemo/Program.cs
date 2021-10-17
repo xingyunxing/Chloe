@@ -5,6 +5,7 @@ using Chloe.PostgreSQL;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -32,10 +33,11 @@ namespace ChloeDemo
 
             ConfigureMappingType();
             ConfigureMethodHandler();
-          
- 
+
+
             /* fluent mapping */
             DbConfiguration.UseTypeBuilders(typeof(PersonMap));
+            DbConfiguration.UseTypeBuilders(typeof(PersonExMap));
             DbConfiguration.UseTypeBuilders(typeof(CityMap));
             DbConfiguration.UseTypeBuilders(typeof(ProvinceMap));
             DbConfiguration.UseTypeBuilders(typeof(TestEntityMap));
