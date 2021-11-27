@@ -56,14 +56,17 @@ namespace Chloe.Mapper
     public class CollectionObjectFitter : IFitter
     {
         IObjectActivator _elementActivator;
-        IEntityRowComparer _entityRowComparer;
+        IEntityKey _entityKey;
         IFitter _elementFitter;
         PropertyDescriptor _elementOwnerProperty;
 
-        public CollectionObjectFitter(IObjectActivator elementActivator, IEntityRowComparer entityRowComparer, IFitter elementFitter, PropertyDescriptor elementOwnerProperty)
+        HashSet<object> _keySet = new HashSet<object>();
+        object _collection;
+
+        public CollectionObjectFitter(IObjectActivator elementActivator, IEntityKey entityKey, IFitter elementFitter, PropertyDescriptor elementOwnerProperty)
         {
             this._elementActivator = elementActivator;
-            this._entityRowComparer = entityRowComparer;
+            this._entityKey = entityKey;
             this._elementFitter = elementFitter;
             this._elementOwnerProperty = elementOwnerProperty;
         }
@@ -76,24 +79,33 @@ namespace Chloe.Mapper
 
         public async VoidTask Fill(object collection, object owner, IDataReader reader, bool @async)
         {
+            if (this._collection != collection)
+            {
+                this._keySet.Clear();
+                this._collection = collection;
+            }
+
             IList entityContainer = collection as IList;
 
             object entity = null;
-            if (entityContainer.Count > 0)
-                entity = entityContainer[entityContainer.Count - 1];
 
-            if (entity == null || !this._entityRowComparer.IsEntityRow(entity, reader))
+            var keyValue = this._entityKey.GetKeyValue(reader);
+            if (!this._keySet.Contains(keyValue))
             {
                 entity = await this._elementActivator.CreateInstance(reader, @async);
-
-                if (entity == null)
-                    return;
-
-                this._elementOwnerProperty.SetValue(entity, owner); //entity.XX = owner
-                entityContainer.Add(entity);
+                if (entity != null)
+                {
+                    this._elementOwnerProperty.SetValue(entity, owner); //entity.XX = owner
+                    entityContainer.Add(entity);
+                    this._keySet.Add(keyValue);
+                }
             }
 
-            await this._elementFitter.Fill(entity, null, reader, @async);
+            if (entityContainer.Count > 0)
+            {
+                entity = entityContainer[entityContainer.Count - 1];
+                await this._elementFitter.Fill(entity, null, reader, @async);
+            }
         }
     }
 }

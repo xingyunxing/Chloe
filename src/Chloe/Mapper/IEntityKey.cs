@@ -6,16 +6,17 @@ using System.Data;
 
 namespace Chloe.Mapper
 {
-    public interface IEntityRowComparer
+    public interface IEntityKey
     {
+        object GetKeyValue(IDataReader reader);
         bool IsEntityRow(object entity, IDataReader reader);
     }
-    public class EntityRowComparer : IEntityRowComparer
+    public class EntityKey : IEntityKey
     {
         List<Tuple<PropertyDescriptor, int, IDbValueReader>> _keys;
         object _entity;
         object[] _keyValues;
-        public EntityRowComparer(List<Tuple<PropertyDescriptor, int>> keys)
+        public EntityKey(List<Tuple<PropertyDescriptor, int>> keys)
         {
             List<Tuple<PropertyDescriptor, int, IDbValueReader>> keyList = new List<Tuple<PropertyDescriptor, int, IDbValueReader>>(keys.Count);
             for (int i = 0; i < keys.Count; i++)
@@ -28,6 +29,19 @@ namespace Chloe.Mapper
 
             this._keys = keyList;
             this._keyValues = new object[keys.Count];
+        }
+
+        public object GetKeyValue(IDataReader reader)
+        {
+            if (this._keys.Count > 1)
+                throw new NotSupportedException();
+
+            var tuple = this._keys[0];
+            int ordinal = tuple.Item2;
+            var dbValueReader = tuple.Item3;
+            object keyValue = dbValueReader.GetValue(reader, ordinal);
+
+            return keyValue;
         }
 
         public bool IsEntityRow(object entity, IDataReader reader)

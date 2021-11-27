@@ -14,13 +14,13 @@ namespace Chloe.Mapper.Activators
     {
         IObjectActivator _entityActivator;
         IFitter _fitter;
-        IEntityRowComparer _entityRowComparer;
+        IEntityKey _entityKey;
 
-        public RootEntityActivator(IObjectActivator entityActivator, IFitter fitter, IEntityRowComparer entityRowComparer)
+        public RootEntityActivator(IObjectActivator entityActivator, IFitter fitter, IEntityKey entityKey)
         {
             this._entityActivator = entityActivator;
             this._fitter = fitter;
-            this._entityRowComparer = entityRowComparer;
+            this._entityKey = entityKey;
         }
 
         public void Prepare(IDataReader reader)
@@ -41,7 +41,7 @@ namespace Chloe.Mapper.Activators
 
             while (await queryDataReader.Read(true))
             {
-                if (!_entityRowComparer.IsEntityRow(entity, reader))
+                if (!this._entityKey.IsEntityRow(entity, reader))
                 {
                     queryDataReader.AllowReadNextRecord = false;
                     break;

@@ -46,11 +46,11 @@ namespace Chloe.Query.Mapping
                 keys.Add(new Tuple<PropertyDescriptor, int>(primaryKey, elementActivatorCreator.PrimitiveMembers[primaryKey.Definition.Property]));
             }
 
-            IEntityRowComparer entityRowComparer = new EntityRowComparer(keys);
+            IEntityKey entityKey = new EntityKey(keys);
 
             PropertyDescriptor elementOwnerProperty = elementTypeDescriptor.ComplexPropertyDescriptors.Where(a => a.Definition.Property.PropertyType == this.OwnerType).First();
 
-            CollectionObjectFitter fitter = new CollectionObjectFitter(this.ElementActivatorCreator.CreateObjectActivator(dbContext), entityRowComparer, elementFitter, elementOwnerProperty);
+            CollectionObjectFitter fitter = new CollectionObjectFitter(this.ElementActivatorCreator.CreateObjectActivator(dbContext), entityKey, elementFitter, elementOwnerProperty);
             return fitter;
         }
     }

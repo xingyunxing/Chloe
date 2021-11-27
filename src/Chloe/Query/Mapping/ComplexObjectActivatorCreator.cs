@@ -68,8 +68,8 @@ namespace Chloe.Query.Mapping
                     keys.Add(new Tuple<PropertyDescriptor, int>(primaryKey, this.PrimitiveMembers[primaryKey.Definition.Property]));
                 }
 
-                IEntityRowComparer entityRowComparer = new EntityRowComparer(keys);
-                objectActivator = new RootEntityActivator(objectActivator, this.CreateFitter(dbContext), entityRowComparer);
+                IEntityKey entityKey = new EntityKey(keys);
+                objectActivator = new RootEntityActivator(objectActivator, this.CreateFitter(dbContext), entityKey);
             }
 
             return objectActivator;
