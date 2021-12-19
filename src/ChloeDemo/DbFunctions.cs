@@ -18,5 +18,10 @@ namespace ChloeDemo
         {
             return str.Contains(value);
         }
+
+        public static bool GroupConcat<T>(T field)
+        {
+            throw new NotSupportedException("Using in lambda only.");
+        }
     }
 }

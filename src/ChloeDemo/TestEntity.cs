@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Chloe.Annotations;
 
 namespace ChloeDemo
 {
+    [Table("TestEntity")]
     public class TestEntity
     {
-        [Chloe.Annotations.Column(IsPrimaryKey = true)]
-        [Chloe.Annotations.AutoIncrement]
+        [Column(IsPrimaryKey = true)]
+        [AutoIncrement]
         public int Id { get; set; }
         public byte? F_Byte { get; set; }
         public Int16? F_Int16 { get; set; }
