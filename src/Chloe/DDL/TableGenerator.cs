@@ -61,6 +61,9 @@ namespace Chloe.DDL
         }
         public static string FindComment(PrimitivePropertyDescriptor propertyDescriptor, XDocument doc)
         {
+            if (doc == null)
+                return "";
+
             var root = doc.Root;
 
             string attrName = $"P:{propertyDescriptor.Definition.Property.DeclaringType.FullName}.{propertyDescriptor.Definition.Property.Name}";

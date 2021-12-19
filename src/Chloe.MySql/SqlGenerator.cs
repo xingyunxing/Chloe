@@ -933,6 +933,12 @@ namespace Chloe.MySql
         }
         void AppendTable(DbTable table)
         {
+            if (!string.IsNullOrEmpty(table.Schema))
+            {
+                this.QuoteName(table.Schema);
+                this.SqlBuilder.Append(".");
+            }
+
             this.QuoteName(table.Name);
         }
 
