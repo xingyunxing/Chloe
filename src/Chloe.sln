@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26730.10
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31919.166
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chloe", "Chloe\Chloe.csproj", "{6F1079AC-8197-4A0D-86BB-4BCF7ABE491A}"
 EndProject
@@ -19,7 +19,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chloe.Extension", "Chloe.Ex
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chloe.Oracle", "Chloe.Oracle\Chloe.Oracle.csproj", "{01834F04-15E7-4206-974B-C269BE1A5486}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chloe.PostgreSQL", "Chloe.PostgreSQL\Chloe.PostgreSQL.csproj", "{C593C92B-011D-4444-A225-865612E4694F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chloe.PostgreSQL", "Chloe.PostgreSQL\Chloe.PostgreSQL.csproj", "{C593C92B-011D-4444-A225-865612E4694F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BD7C9BB0-BA57-4710-B476-38485DB71E0B}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
