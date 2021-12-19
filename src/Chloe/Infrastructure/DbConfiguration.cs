@@ -1,6 +1,5 @@
 ﻿using Chloe.Entity;
 using Chloe.Infrastructure.Interception;
-using System;
 
 namespace Chloe.Infrastructure
 {

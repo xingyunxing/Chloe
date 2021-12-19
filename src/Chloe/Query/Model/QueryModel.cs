@@ -1,8 +1,6 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.InternalExtensions;
 using Chloe.Utility;
-using System;
-using System.Collections.Generic;
 
 namespace Chloe.Query
 {

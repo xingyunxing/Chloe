@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Chloe.Core
+﻿namespace Chloe.Core
 {
     public class DbCommandInfo
     {

@@ -2,7 +2,6 @@
 using Chloe.Query.QueryExpressions;
 using Chloe.Query.QueryState;
 using Chloe.Utility;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace Chloe.Query.Visitors

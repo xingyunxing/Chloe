@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Chloe.SqlServer
+﻿namespace Chloe.SqlServer
 {
     public static class MsSqlContextExtension
     {

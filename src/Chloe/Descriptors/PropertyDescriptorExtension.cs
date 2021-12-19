@@ -1,5 +1,4 @@
 ﻿using Chloe.Infrastructure;
-using System;
 
 namespace Chloe.Descriptors
 {

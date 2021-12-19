@@ -1,8 +1,6 @@
 ﻿using Chloe.Exceptions;
 using Chloe.Mapper.Binders;
 using Chloe.Reflection;
-using System;
-using System.Collections.Generic;
 using System.Data;
 
 #if netfx

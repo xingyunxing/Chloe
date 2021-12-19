@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Chloe.Utility
+﻿namespace Chloe.Utility
 {
     public class PairList<T1, T2> : List<Tuple<T1, T2>>
     {

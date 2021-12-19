@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Chloe
+﻿namespace Chloe
 {
     public class Sql
     {

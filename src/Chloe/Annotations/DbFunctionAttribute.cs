@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Chloe.Annotations
+﻿namespace Chloe.Annotations
 {
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public class DbFunctionAttribute : Attribute

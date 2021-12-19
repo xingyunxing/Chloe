@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Chloe.MySql
+﻿namespace Chloe.MySql
 {
     public class DataTypeAttribute : Attribute
     {

@@ -1,5 +1,4 @@
 ﻿using Chloe.Query.QueryExpressions;
-using System;
 using System.Linq.Expressions;
 
 namespace Chloe.Query

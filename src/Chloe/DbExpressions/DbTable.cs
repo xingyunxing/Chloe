@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Chloe.DbExpressions
+﻿namespace Chloe.DbExpressions
 {
     [System.Diagnostics.DebuggerDisplay("Name = {Name}")]
     public class DbTable

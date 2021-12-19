@@ -8,11 +8,8 @@ using Chloe.Query.QueryState;
 using Chloe.Query.Visitors;
 using Chloe.Reflection;
 using Chloe.Utility;
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Data;
-using System.Text;
 using System.Threading;
 
 namespace Chloe.Query.Internals

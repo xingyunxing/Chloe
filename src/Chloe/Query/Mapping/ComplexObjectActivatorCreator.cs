@@ -5,9 +5,6 @@ using Chloe.Mapper;
 using Chloe.Mapper.Activators;
 using Chloe.Mapper.Binders;
 using Chloe.Reflection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 
 namespace Chloe.Query.Mapping

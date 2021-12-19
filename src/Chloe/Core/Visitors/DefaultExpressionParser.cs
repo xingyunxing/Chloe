@@ -1,8 +1,6 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.Descriptors;
 using Chloe.Extensions;
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace Chloe.Core.Visitors

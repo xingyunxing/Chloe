@@ -4,8 +4,6 @@
  * Home page: https://github.com/StackExchange/dapper-dot-net
  */
 
-using System;
-using System.Collections.Generic;
 using System.Reflection;
 
 namespace Chloe.Query.Internals

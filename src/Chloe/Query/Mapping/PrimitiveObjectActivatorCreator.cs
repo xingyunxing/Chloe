@@ -1,6 +1,5 @@
 ﻿using Chloe.Mapper;
 using Chloe.Mapper.Activators;
-using System;
 
 namespace Chloe.Query.Mapping
 {

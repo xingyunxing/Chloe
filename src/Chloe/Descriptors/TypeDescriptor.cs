@@ -4,9 +4,7 @@ using Chloe.Entity;
 using Chloe.Exceptions;
 using Chloe.Query;
 using Chloe.Reflection;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Reflection;
 
 namespace Chloe.Descriptors

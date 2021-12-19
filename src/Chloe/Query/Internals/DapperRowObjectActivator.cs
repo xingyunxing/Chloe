@@ -1,6 +1,5 @@
 ﻿using Chloe.Mapper;
 using Chloe.Mapper.Activators;
-using System;
 using System.Data;
 
 #if netfx

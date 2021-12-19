@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Chloe.Annotations
+﻿namespace Chloe.Annotations
 {
     /// <summary>
     /// 更新忽略

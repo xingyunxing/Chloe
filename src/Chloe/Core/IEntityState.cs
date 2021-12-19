@@ -1,5 +1,4 @@
 ﻿using Chloe.Descriptors;
-using System.Collections.Generic;
 using System.Reflection;
 
 namespace Chloe.Core

@@ -4,11 +4,6 @@
  * Home page: https://github.com/StackExchange/dapper-dot-net
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 namespace Chloe.Query.Internals
 {
     sealed partial class DapperRow

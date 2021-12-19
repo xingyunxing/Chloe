@@ -1,7 +1,5 @@
 ﻿using Chloe.Data;
 using Chloe.Descriptors;
-using System;
-using System.Collections.Generic;
 using System.Data;
 
 namespace Chloe.Mapper

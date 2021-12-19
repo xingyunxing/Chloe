@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Chloe.DbExpressions
+﻿namespace Chloe.DbExpressions
 {
     public class DbInsertExpression : DbExpression
     {

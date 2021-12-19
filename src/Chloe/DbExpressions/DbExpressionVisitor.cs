@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace Chloe.DbExpressions
+﻿namespace Chloe.DbExpressions
 {
     public class DbExpressionVisitor : DbExpressionVisitor<DbExpression>
     {

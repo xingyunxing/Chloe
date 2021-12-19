@@ -1,9 +1,6 @@
 ﻿using Chloe.Entity;
 using Chloe.Reflection;
-using System;
-using System.Linq;
 using System.Reflection;
-using System.Threading;
 
 namespace Chloe.Descriptors
 {

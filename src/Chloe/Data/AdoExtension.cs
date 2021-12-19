@@ -2,12 +2,6 @@
 using System.Data.Common;
 using System.Threading.Tasks;
 
-#if netfx
-using BoolResultTask = System.Threading.Tasks.Task<bool>;
-#else
-using BoolResultTask = System.Threading.Tasks.ValueTask<bool>;
-#endif
-
 namespace System.Data
 {
     internal static class AdoExtension

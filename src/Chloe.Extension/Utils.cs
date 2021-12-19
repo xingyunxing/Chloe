@@ -1,10 +1,4 @@
-﻿using Chloe.Infrastructure;
-using Chloe.Reflection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Chloe.Extension
+﻿namespace Chloe.Extension
 {
     static class Utils
     {

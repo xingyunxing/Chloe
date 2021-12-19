@@ -2,9 +2,6 @@
 using Chloe.Infrastructure;
 using Chloe.Mapper;
 using Chloe.Mapper.Activators;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Chloe.Query.Mapping
 {

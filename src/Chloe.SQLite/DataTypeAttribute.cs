@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Chloe.SQLite
+﻿namespace Chloe.SQLite
 {
     public class DataTypeAttribute : Attribute
     {

@@ -1,6 +1,5 @@
 ﻿using Chloe.Data;
 using Chloe.Exceptions;
-using System;
 using System.Data;
 
 #if netfx

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Chloe.Exceptions
+﻿namespace Chloe.Exceptions
 {
     public class ChloeException : Exception
     {

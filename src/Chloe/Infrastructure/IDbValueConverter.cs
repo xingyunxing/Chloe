@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Chloe.Infrastructure
+﻿namespace Chloe.Infrastructure
 {
     /// <summary>
     /// 数据库数据转换器。

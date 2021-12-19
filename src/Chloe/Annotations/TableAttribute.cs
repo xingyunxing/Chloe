@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Chloe.Annotations
+﻿namespace Chloe.Annotations
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public class TableAttribute : Attribute

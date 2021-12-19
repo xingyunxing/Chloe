@@ -3,8 +3,6 @@ using Chloe.Query.Mapping;
 using Chloe.Query.QueryExpressions;
 using Chloe.Query.Visitors;
 using Chloe.Utility;
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace Chloe.Query.QueryState

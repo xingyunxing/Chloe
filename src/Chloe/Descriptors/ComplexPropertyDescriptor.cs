@@ -1,6 +1,5 @@
 ﻿using Chloe.Entity;
 using Chloe.Exceptions;
-using System.Linq;
 
 namespace Chloe.Descriptors
 {

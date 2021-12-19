@@ -1,5 +1,4 @@
 ﻿using Chloe.Core.Visitors;
-using System;
 using System.Linq.Expressions;
 
 namespace Chloe.Entity

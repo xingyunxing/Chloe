@@ -1,5 +1,4 @@
 ﻿using Chloe.Entity;
-using System;
 
 namespace Chloe.Descriptors
 {

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Chloe.Annotations
+﻿namespace Chloe.Annotations
 {
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false)]
     public class NotNullAttribute : Attribute

@@ -1,5 +1,4 @@
 ﻿using Chloe.Data;
-using System;
 using System.Data;
 
 namespace Chloe.SQLite

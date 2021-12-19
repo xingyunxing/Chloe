@@ -1,6 +1,5 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.RDBMS;
-using System.Linq;
 
 namespace Chloe.SQLite.MethodHandlers
 {

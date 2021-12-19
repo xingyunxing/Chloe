@@ -1,6 +1,5 @@
 ﻿using Chloe.Data;
 using System.Data;
-using System.Threading.Tasks;
 
 #if netfx
 using ObjectResultTask = System.Threading.Tasks.Task<object>;

@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Chloe.Utility
+﻿namespace Chloe.Utility
 {
     public class StringSet : HashSet<string>
     {

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Chloe.Query.QueryExpressions
+﻿namespace Chloe.Query.QueryExpressions
 {
     abstract class QueryExpression
     {

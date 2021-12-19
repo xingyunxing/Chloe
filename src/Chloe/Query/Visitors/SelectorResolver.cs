@@ -5,7 +5,6 @@ using Chloe.Infrastructure;
 using Chloe.Query.Visitors;
 using Chloe.Reflection;
 using Chloe.Utility;
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
 

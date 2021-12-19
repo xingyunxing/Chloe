@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Chloe.Annotations
+﻿namespace Chloe.Annotations
 {
     /// <summary>
     /// Marks a property as navigation property.

@@ -6,19 +6,11 @@ using Chloe.Mapper.Activators;
 using Chloe.Mapper.Binders;
 using Chloe.Query.Mapping;
 using Chloe.Reflection;
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-
-#if netfx
-using BoolResultTask = System.Threading.Tasks.Task<bool>;
-#else
-using BoolResultTask = System.Threading.Tasks.ValueTask<bool>;
-#endif
 
 namespace Chloe.Query.Internals
 {

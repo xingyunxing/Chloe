@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace Chloe.Infrastructure.Interception
+﻿namespace Chloe.Infrastructure.Interception
 {
     public static class DbInterception
     {

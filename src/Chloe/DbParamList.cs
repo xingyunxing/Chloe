@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Chloe
+﻿namespace Chloe
 {
     public class DbParamList : List<DbParam>
     {

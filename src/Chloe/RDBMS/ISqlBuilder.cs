@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace Chloe.RDBMS
+﻿namespace Chloe.RDBMS
 {
     public interface ISqlBuilder
     {

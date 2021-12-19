@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Chloe.DbExpressions
+﻿namespace Chloe.DbExpressions
 {
     public class DbBitAndExpression : DbBinaryExpression
     {

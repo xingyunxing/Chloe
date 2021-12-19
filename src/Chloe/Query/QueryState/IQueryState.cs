@@ -1,7 +1,6 @@
 ﻿using Chloe.Query.Mapping;
 using Chloe.Query.QueryExpressions;
 using Chloe.Utility;
-using System;
 using System.Linq.Expressions;
 
 namespace Chloe.Query.QueryState

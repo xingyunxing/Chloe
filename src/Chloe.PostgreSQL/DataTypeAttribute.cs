@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Chloe.PostgreSQL
+﻿namespace Chloe.PostgreSQL
 {
     public class DataTypeAttribute : Attribute
     {

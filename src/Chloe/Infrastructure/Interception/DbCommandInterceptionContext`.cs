@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Chloe.Infrastructure.Interception
+﻿namespace Chloe.Infrastructure.Interception
 {
     public class DbCommandInterceptionContext<TResult>
     {
