@@ -773,12 +773,18 @@ namespace Chloe.SqlServer.Odbc
                 else if (((string)paramValue).Length <= 4000)
                     p.Size = 4000;
             }
+            else if (paramValue.GetType() == PublicConstants.TypeOfDateTime)
+            {
+                //解决日期类型报精度溢出错误问题
+                p.Precision = 23;
+                p.Scale = 3;
+            }
 
             if (exp.DbType != null)
                 p.DbType = exp.DbType;
 
             this._parameters.Add(p);
-            this.SqlBuilder.Append(paramName);
+            this.SqlBuilder.Append("?");
             return exp;
         }
 

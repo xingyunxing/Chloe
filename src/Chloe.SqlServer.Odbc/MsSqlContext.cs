@@ -350,8 +350,15 @@ namespace Chloe.SqlServer.Odbc
 
                         string paramName = UtilConstants.ParameterNamePrefix + dbParams.Count.ToString();
                         DbParam dbParam = new DbParam(paramName, val) { DbType = mappingPropertyDescriptor.Column.DbType };
+                        //解决日期类型报精度溢出错误问题
+                        if (val.GetType() == PublicConstants.TypeOfDateTime)
+                        {
+                            
+                            dbParam.Precision = 23;
+                            dbParam.Scale = 3;
+                        }
                         dbParams.Add(dbParam);
-                        sqlBuilder.Append(paramName);
+                        sqlBuilder.Append("?");
                     }
                     sqlBuilder.Append(")");
 
