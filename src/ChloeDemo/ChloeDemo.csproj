@@ -20,12 +20,14 @@
 		<DefineConstants>netfx</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
+		<PackageReference Include="System.Data.Odbc" Version="6.0.0" />
 		<PackageReference Include="System.Diagnostics.DiagnosticSource" Version="5.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\Chloe.Extension\Chloe.Extension.csproj" />
 		<ProjectReference Include="..\Chloe.Oracle\Chloe.Oracle.csproj" />
+		<ProjectReference Include="..\Chloe.SqlServer.Odbc\Chloe.SqlServer.Odbc.csproj" />
 		<ProjectReference Include="..\Chloe\Chloe.csproj" />
 		<ProjectReference Include="..\Chloe.MySql\Chloe.MySql.csproj" />
 		<ProjectReference Include="..\Chloe.SQLite\Chloe.SQLite.csproj" />
