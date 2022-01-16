@@ -20,12 +20,12 @@ namespace Chloe.Query.Visitors
         static GeneralExpressionParser()
         {
             List<string> aggregateMethods = new List<string>();
-            aggregateMethods.Add("Count");
-            aggregateMethods.Add("LongCount");
-            aggregateMethods.Add("Max");
-            aggregateMethods.Add("Min");
-            aggregateMethods.Add("Sum");
-            aggregateMethods.Add("Average");
+            aggregateMethods.Add(nameof(IQuery<int>.Count));
+            aggregateMethods.Add(nameof(IQuery<int>.LongCount));
+            aggregateMethods.Add(nameof(IQuery<int>.Max));
+            aggregateMethods.Add(nameof(IQuery<int>.Min));
+            aggregateMethods.Add(nameof(IQuery<int>.Sum));
+            aggregateMethods.Add(nameof(IQuery<int>.Average));
             aggregateMethods.TrimExcess();
             AggregateMethods = aggregateMethods;
         }
@@ -97,16 +97,16 @@ namespace Chloe.Query.Visitors
             if (exp.Object != null && IsIQueryType(exp.Object.Type))
             {
                 string methodName = exp.Method.Name;
-                if (methodName == "First" || methodName == "FirstOrDefault")
+                if (methodName == nameof(IQuery<int>.First) || methodName == nameof(IQuery<int>.FirstOrDefault))
                 {
                     return this.Process_MethodCall_First_Or_FirstOrDefault(exp);
                 }
-                else if (methodName == "ToList")
+                else if (methodName == nameof(IQuery<int>.ToList))
                 {
                     EnsureIsMappingType(exp.Type.GetGenericArguments()[0], exp);
                     return this.ConvertToDbSqlQueryExpression(exp.Object, exp.Type);
                 }
-                else if (methodName == "Any")
+                else if (methodName == nameof(IQuery<int>.Any))
                 {
                     /* query.Any() --> exists 查询 */
                     exp = OptimizeCondition(exp);
@@ -132,7 +132,7 @@ namespace Chloe.Query.Visitors
 
             EnsureIsMappingType(exp.Type, exp);
 
-            var takeMethod = exp.Object.Type.GetMethod("Take");
+            var takeMethod = exp.Object.Type.GetMethod(nameof(IQuery<int>.Take));
             var takeMethodExp = Expression.Call(exp.Object, takeMethod, Expression.Constant(1));
 
             return this.ConvertToDbSubQueryExpression(takeMethodExp, exp.Type);
@@ -149,7 +149,7 @@ namespace Chloe.Query.Visitors
 
             var query = ExpressionEvaluator.Evaluate(exp.Object);
             var queryType = query.GetType();
-            MethodInfo method_Query_CreateAggregateQuery = queryType.GetMethod("CreateAggregateQuery");
+            MethodInfo method_Query_CreateAggregateQuery = queryType.GetMethod(nameof(Query<int>.CreateAggregateQuery));
             method_Query_CreateAggregateQuery = method_Query_CreateAggregateQuery.MakeGenericMethod(calledAggregateMethod.ReturnType);
 
             /* query.CreateAggregateQuery(calledAggregateMethod, arguments) */
@@ -201,7 +201,7 @@ namespace Chloe.Query.Visitors
                 LambdaExpression selector = Expression.Lambda(delegateType, selectorBody, parameter);
 
                 Type queryType = ConvertToIQueryType(methodCall.Object.Type);
-                var selectMethod = queryType.GetMethod("Select");
+                var selectMethod = queryType.GetMethod(nameof(IQuery<int>.Select));
                 selectMethod = selectMethod.MakeGenericMethod(selectorBody.Type);
                 var selectMethodCall = Expression.Call(methodCall.Object, selectMethod, Expression.Quote(selector)); /* query.Select(a=> a.xx.Name) */
 
@@ -251,7 +251,7 @@ namespace Chloe.Query.Visitors
                  * query.Any(a=> a.Id==1) --> query.Where(a=> a.Id==1).Any()
                  */
                 Type queryType = exp.Object.Type;
-                var whereMethod = queryType.GetMethod("Where");
+                var whereMethod = queryType.GetMethod(nameof(IQuery<int>.Where));
                 var whereMethodCall = Expression.Call(exp.Object, whereMethod, exp.Arguments[0]);
                 var sameNameMethod = queryType.GetMethod(exp.Method.Name, Type.EmptyTypes);
                 var sameNameMethodCall = Expression.Call(whereMethodCall, sameNameMethod);
@@ -306,7 +306,7 @@ namespace Chloe.Query.Visitors
             }
 
             MethodCallExpression methodCall = (MethodCallExpression)e;
-            if (methodCall.Method.Name != "First" && methodCall.Method.Name != "FirstOrDefault")
+            if (methodCall.Method.Name != nameof(IQuery<int>.First) && methodCall.Method.Name != nameof(IQuery<int>.FirstOrDefault))
                 return false;
 
             return IsIQueryType(methodCall.Object.Type);
@@ -326,7 +326,7 @@ namespace Chloe.Query.Visitors
 
             MethodCallExpression methodCall = (MethodCallExpression)exp.Object;
 
-            return methodCall.Method.Name == "ToList" && IsIQueryType(methodCall.Object.Type);
+            return methodCall.Method.Name == nameof(IQuery<int>.ToList) && IsIQueryType(methodCall.Object.Type);
         }
     }
 }

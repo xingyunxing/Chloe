@@ -3,12 +3,6 @@ using Chloe.Mapper.Binders;
 using Chloe.Reflection;
 using System.Data;
 
-#if netfx
-using ObjectResultTask = System.Threading.Tasks.Task<object>;
-#else
-using ObjectResultTask = System.Threading.Tasks.ValueTask<object>;
-#endif
-
 namespace Chloe.Mapper.Activators
 {
     public class ComplexObjectActivator : ObjectActivatorBase, IObjectActivator

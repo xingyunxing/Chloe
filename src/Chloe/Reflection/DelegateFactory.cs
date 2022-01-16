@@ -14,16 +14,18 @@ namespace Chloe.Reflection
 
     internal class DefaultDelegateFactory : DelegateFactory
     {
-        static readonly DefaultDelegateFactory _instance = new DefaultDelegateFactory();
+        static readonly DefaultDelegateFactory _instance;
         public static DefaultDelegateFactory Instance { get { return _instance; } }
 
 
         /* 如果emit创建失败，则表示运行平台有可能不支持 emit */
         static bool AllowEmit { get; set; }
 
+        DelegateFactory InnerFactory { get; set; }
+
         DefaultDelegateFactory()
         {
-
+            this.InnerFactory = AllowEmit ? EmitDelegateFactory.Instance : ReflectionDelegateFactory.Instance;
         }
         static DefaultDelegateFactory()
         {
@@ -36,46 +38,33 @@ namespace Chloe.Reflection
             catch
             {
             }
+
+            _instance = new DefaultDelegateFactory();
         }
 
         public override InstanceCreator CreateCreator(ConstructorInfo constructor)
         {
-            if (AllowEmit)
-                return EmitDelegateFactory.Instance.CreateCreator(constructor);
-
-            return ReflectionDelegateFactory.Instance.CreateCreator(constructor);
+            return this.InnerFactory.CreateCreator(constructor);
         }
 
         public override MemberGetter CreateGetter(MemberInfo propertyOrField)
         {
-            if (AllowEmit)
-                return EmitDelegateFactory.Instance.CreateGetter(propertyOrField);
-
-            return ReflectionDelegateFactory.Instance.CreateGetter(propertyOrField);
+            return this.InnerFactory.CreateGetter(propertyOrField);
         }
 
         public override MemberSetter CreateSetter(MemberInfo propertyOrField)
         {
-            if (AllowEmit)
-                return EmitDelegateFactory.Instance.CreateSetter(propertyOrField);
-
-            return ReflectionDelegateFactory.Instance.CreateSetter(propertyOrField);
+            return this.InnerFactory.CreateSetter(propertyOrField);
         }
 
         public override MethodInvoker CreateInvoker(MethodInfo method)
         {
-            if (AllowEmit)
-                return EmitDelegateFactory.Instance.CreateInvoker(method);
-
-            return ReflectionDelegateFactory.Instance.CreateInvoker(method);
+            return this.InnerFactory.CreateInvoker(method);
         }
 
         public override MemberMapper CreateMapper(MemberInfo propertyOrField)
         {
-            if (AllowEmit)
-                return EmitDelegateFactory.Instance.CreateMapper(propertyOrField);
-
-            return ReflectionDelegateFactory.Instance.CreateMapper(propertyOrField);
+            return this.InnerFactory.CreateMapper(propertyOrField);
         }
     }
 
