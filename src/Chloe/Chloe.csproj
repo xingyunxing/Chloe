@@ -4,7 +4,7 @@
 		<!--<TargetFramework>netstandard2.0</TargetFramework>-->
 		<!--<TargetFramework>net45</TargetFramework>-->
 		<!--<TargetFramework>net5.0</TargetFramework>-->
-		<TargetFrameworks>netstandard2.0;net45;net5.0</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0;net46;net5.0</TargetFrameworks>
 		<LangVersion>10.0</LangVersion>
 
 		<Version>4.19.0</Version>
@@ -20,6 +20,7 @@
 
 	<PropertyGroup>
 		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
@@ -28,8 +29,8 @@
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net5.0'">
 		<DefineConstants>netcore;net5</DefineConstants>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net45'">
-		<DefineConstants>netfx;net45</DefineConstants>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net46'">
+		<DefineConstants>netfx;net46</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">

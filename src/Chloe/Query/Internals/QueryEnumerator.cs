@@ -2,26 +2,29 @@
 using Chloe.Threading.Tasks;
 using System.Collections;
 using System.Data;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Chloe.Query.Internals
 {
-    internal class QueryEnumerator<T> : IEnumerator<T>, IAsyncEnumerator<T>
+    internal class QueryEnumerator<T> : IFeatureEnumerator<T>, IEnumerator<T>, IAsyncEnumerator<T>
     {
         bool _disposed;
         DataReaderEnumerator _dataReaderEnumerator;
         Func<IDataReader, IObjectActivator> _objectActivatorCreator;
         IObjectActivator _objectActivator;
+        CancellationToken _cancellationToken;
         T _current;
 
-        public QueryEnumerator(Func<bool, Task<IDataReader>> dataReaderCreator, IObjectActivator objectActivator) : this(dataReaderCreator, dataReader => objectActivator)
+        public QueryEnumerator(Func<bool, Task<IDataReader>> dataReaderCreator, IObjectActivator objectActivator, CancellationToken cancellationToken) : this(dataReaderCreator, dataReader => objectActivator, cancellationToken)
         {
 
         }
-        public QueryEnumerator(Func<bool, Task<IDataReader>> dataReaderCreator, Func<IDataReader, IObjectActivator> objectActivatorCreator)
+        public QueryEnumerator(Func<bool, Task<IDataReader>> dataReaderCreator, Func<IDataReader, IObjectActivator> objectActivatorCreator, CancellationToken cancellationToken)
         {
             this._dataReaderEnumerator = new DataReaderEnumerator(dataReaderCreator);
             this._objectActivatorCreator = objectActivatorCreator;
+            this._cancellationToken = cancellationToken;
         }
 
         public T Current { get { return this._current; } }
@@ -71,13 +74,11 @@ namespace Chloe.Query.Internals
             this._disposed = true;
         }
 
-#if netcore
         public ValueTask DisposeAsync()
         {
             this.Dispose();
             return default;
         }
-#endif
 
         public void Reset()
         {

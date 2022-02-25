@@ -92,6 +92,20 @@ namespace Chloe.Reflection
             MethodInvoker invoker = MethodInvokerContainer.Get(method);
             return invoker(obj, parameters);
         }
+        public static object FastInvokeMethod(this object instance, string methodName, params object[] parameters)
+        {
+            return instance.GetType().GetMethod(methodName).FastInvoke(parameters);
+        }
+
+        public static object CreateInstance(this ConstructorInfo constructor, params object[] parameters)
+        {
+            return constructor.Invoke(parameters ?? EmptyArray);
+        }
+        public static object FastCreateInstance(this ConstructorInfo constructor, params object[] parameters)
+        {
+            InstanceCreator creator = InstanceCreatorContainer.Get(constructor);
+            return creator(parameters);
+        }
 
         public static MemberInfo AsReflectedMemberOf(this MemberInfo propertyOrField, Type type)
         {

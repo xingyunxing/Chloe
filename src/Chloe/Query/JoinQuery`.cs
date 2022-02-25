@@ -5,13 +5,13 @@ namespace Chloe.Query
 {
     class JoinQuery<T1, T2> : IJoinQuery<T1, T2>
     {
-        DbContext _dbContext;
+        IDbContextInternal _dbContext;
 
         QueryBase _rootQuery;
         List<JoinQueryInfo> _joinedQueries;
         List<LambdaExpression> _filterPredicates;
 
-        public DbContext DbContext { get { return this._dbContext; } }
+        public IDbContextInternal DbContext { get { return this._dbContext; } }
         public QueryBase RootQuery { get { return this._rootQuery; } }
         public List<JoinQueryInfo> JoinedQueries { get { return this._joinedQueries; } }
         public List<LambdaExpression> FilterPredicates { get { return this._filterPredicates; } }
@@ -119,13 +119,13 @@ namespace Chloe.Query
 
     class JoinQuery<T1, T2, T3> : IJoinQuery<T1, T2, T3>
     {
-        DbContext _dbContext;
+        IDbContextInternal _dbContext;
 
         QueryBase _rootQuery;
         List<JoinQueryInfo> _joinedQueries;
         List<LambdaExpression> _filterPredicates;
 
-        public DbContext DbContext { get { return this._dbContext; } }
+        public IDbContextInternal DbContext { get { return this._dbContext; } }
         public QueryBase RootQuery { get { return this._rootQuery; } }
         public List<JoinQueryInfo> JoinedQueries { get { return this._joinedQueries; } }
         public List<LambdaExpression> FilterPredicates { get { return this._filterPredicates; } }
@@ -225,13 +225,13 @@ namespace Chloe.Query
 
     class JoinQuery<T1, T2, T3, T4> : IJoinQuery<T1, T2, T3, T4>
     {
-        DbContext _dbContext;
+        IDbContextInternal _dbContext;
 
         QueryBase _rootQuery;
         List<JoinQueryInfo> _joinedQueries;
         List<LambdaExpression> _filterPredicates;
 
-        public DbContext DbContext { get { return this._dbContext; } }
+        public IDbContextInternal DbContext { get { return this._dbContext; } }
         public QueryBase RootQuery { get { return this._rootQuery; } }
         public List<JoinQueryInfo> JoinedQueries { get { return this._joinedQueries; } }
         public List<LambdaExpression> FilterPredicates { get { return this._filterPredicates; } }
@@ -331,13 +331,13 @@ namespace Chloe.Query
 
     class JoinQuery<T1, T2, T3, T4, T5> : IJoinQuery<T1, T2, T3, T4, T5>
     {
-        DbContext _dbContext;
+        IDbContextInternal _dbContext;
 
         QueryBase _rootQuery;
         List<JoinQueryInfo> _joinedQueries;
         List<LambdaExpression> _filterPredicates;
 
-        public DbContext DbContext { get { return this._dbContext; } }
+        public IDbContextInternal DbContext { get { return this._dbContext; } }
         public QueryBase RootQuery { get { return this._rootQuery; } }
         public List<JoinQueryInfo> JoinedQueries { get { return this._joinedQueries; } }
         public List<LambdaExpression> FilterPredicates { get { return this._filterPredicates; } }

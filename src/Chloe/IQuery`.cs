@@ -19,6 +19,8 @@ namespace Chloe
         IQuery<T> Skip(int count);
         IQuery<T> Take(int count);
         IQuery<T> TakePage(int pageNumber, int pageSize);
+        PagingResult<T> Paging(int pageNumber, int pageSize);
+        Task<PagingResult<T>> PagingAsync(int pageNumber, int pageSize);
 
         IGroupingQuery<T> GroupBy<K>(Expression<Func<T, K>> keySelector);
         IQuery<T> Distinct();

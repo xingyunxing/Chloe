@@ -1,4 +1,5 @@
 ﻿using Chloe.Core.Visitors;
+using Chloe.Reflection;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -6,6 +7,15 @@ namespace Chloe.Extensions
 {
     public static class ExpressionExtension
     {
+        public static bool IsEvaluable(this Expression exp)
+        {
+            return ExpressionEvaluableJudge.CanEvaluate(exp);
+        }
+        public static object Evaluate(this Expression exp)
+        {
+            return ExpressionEvaluator.Evaluate(exp);
+        }
+
         public static BinaryExpression Assign(MemberInfo propertyOrField, Expression instance, Expression value)
         {
             var member = MakeMemberExpression(propertyOrField, instance);
@@ -30,7 +40,7 @@ namespace Chloe.Extensions
             throw new ArgumentException();
         }
 
-        public static LambdaExpression And(this LambdaExpression a, LambdaExpression b)
+        public static LambdaExpression AndAlso(this LambdaExpression a, LambdaExpression b)
         {
             if (a == null)
                 return b;
@@ -41,7 +51,7 @@ namespace Chloe.Extensions
             var memberParam = Expression.Parameter(rootType, "root");
             var aNewBody = ParameterExpressionReplacer.Replace(a.Body, memberParam);
             var bNewBody = ParameterExpressionReplacer.Replace(b.Body, memberParam);
-            var newBody = Expression.And(aNewBody, bNewBody);
+            var newBody = Expression.AndAlso(aNewBody, bNewBody);
             var lambda = Expression.Lambda(a.Type, newBody, memberParam);
             return lambda;
         }
@@ -162,7 +172,7 @@ namespace Chloe.Extensions
 
             Type wrapperType = typeof(ConstantWrapper<>).MakeGenericType(valueType);
             ConstructorInfo constructor = wrapperType.GetConstructor(new Type[] { valueType });
-            return constructor.Invoke(new object[] { value });
+            return constructor.FastCreateInstance(new object[] { value });
         }
     }
 }

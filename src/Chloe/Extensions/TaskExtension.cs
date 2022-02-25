@@ -18,6 +18,11 @@ namespace Chloe.Threading.Tasks
         {
             return task.GetAwaiter().GetResult();
         }
+
+        public static void GetResult(this ValueTask task)
+        {
+            task.GetAwaiter().GetResult();
+        }
 #endif
     }
 }

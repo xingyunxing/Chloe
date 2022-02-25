@@ -80,13 +80,11 @@ namespace Chloe.Query.Internals
             this._disposed = true;
         }
 
-#if netcore
         public ValueTask DisposeAsync()
         {
             this.Dispose();
             return default;
         }
-#endif
 
         public void Reset()
         {

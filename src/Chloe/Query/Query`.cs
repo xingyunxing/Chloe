@@ -13,15 +13,15 @@ namespace Chloe.Query
     {
         static readonly List<Expression> EmptyArgumentList = new List<Expression>(0);
 
-        DbContext _dbContext;
+        IDbContextInternal _dbContext;
         QueryExpression _expression;
 
         internal bool _trackEntity = false;
-        public DbContext DbContext { get { return this._dbContext; } }
+        public IDbContextInternal DbContext { get { return this._dbContext; } }
 
         Type IQuery.ElementType { get { return typeof(T); } }
 
-        static RootQueryExpression CreateRootQueryExpression(DbContext dbContext, string explicitTable, LockType @lock)
+        static RootQueryExpression CreateRootQueryExpression(IDbContextInternal dbContext, string explicitTable, LockType @lock)
         {
             Type entityType = typeof(T);
             RootQueryExpression ret = new RootQueryExpression(entityType, explicitTable, @lock);
@@ -31,15 +31,15 @@ namespace Chloe.Query
 
             return ret;
         }
-        public Query(DbContext dbContext, string explicitTable, LockType @lock)
+        public Query(IDbContextInternal dbContext, string explicitTable, LockType @lock)
             : this(dbContext, CreateRootQueryExpression(dbContext, explicitTable, @lock), false)
         {
         }
-        public Query(DbContext dbContext, QueryExpression exp)
+        public Query(IDbContextInternal dbContext, QueryExpression exp)
             : this(dbContext, exp, false)
         {
         }
-        public Query(DbContext dbContext, QueryExpression exp, bool trackEntity)
+        public Query(IDbContextInternal dbContext, QueryExpression exp, bool trackEntity)
         {
             this._dbContext = dbContext;
             this._expression = exp;
@@ -209,6 +209,22 @@ namespace Chloe.Query
 
             IQuery<T> q = this.Skip(skipCount).Take(takeCount);
             return q;
+        }
+        public PagingResult<T> Paging(int pageNumber, int pageSize)
+        {
+            PagingResult<T> result = new PagingResult<T>();
+            result.Count = this.Count();
+            result.DataList = this.TakePage(pageNumber, pageSize).ToList();
+
+            return result;
+        }
+        public async Task<PagingResult<T>> PagingAsync(int pageNumber, int pageSize)
+        {
+            PagingResult<T> result = new PagingResult<T>();
+            result.Count = await this.CountAsync();
+            result.DataList = await this.TakePage(pageNumber, pageSize).ToListAsync();
+
+            return result;
         }
 
         public IGroupingQuery<T> GroupBy<K>(Expression<Func<T, K>> keySelector)

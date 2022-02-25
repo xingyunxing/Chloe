@@ -17,6 +17,7 @@ namespace Chloe
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="filter"></param>
         void HasQueryFilter<TEntity>(Expression<Func<TEntity, bool>> filter);
+        void HasQueryFilter(Type entityType, LambdaExpression filter);
 
         IQuery<TEntity> Query<TEntity>();
         IQuery<TEntity> Query<TEntity>(string table);

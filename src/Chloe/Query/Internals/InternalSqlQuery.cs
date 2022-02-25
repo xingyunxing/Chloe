@@ -40,7 +40,7 @@ namespace Chloe.Query.Internals
 
         public IEnumerator<T> GetEnumerator()
         {
-            return new QueryEnumerator<T>(this.ExecuteReader, this.CreateObjectActivator);
+            return new QueryEnumerator<T>(this.ExecuteReader, this.CreateObjectActivator, CancellationToken.None);
         }
         IEnumerator IEnumerable.GetEnumerator()
         {

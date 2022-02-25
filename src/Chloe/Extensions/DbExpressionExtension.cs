@@ -113,7 +113,7 @@ namespace Chloe.InternalExtensions
         /// <summary>
         /// 对 memberExpression 进行求值
         /// </summary>
-        /// <param name="exp"></param>
+        /// <param name="memberExpression"></param>
         /// <returns>返回 DbParameterExpression</returns>
         public static DbParameterExpression ConvertToParameterExpression(this DbMemberExpression memberExpression)
         {

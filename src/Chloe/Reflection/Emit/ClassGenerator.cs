@@ -1,6 +1,5 @@
 ﻿using Chloe.Data;
 using Chloe.Mapper;
-using System.Data;
 using System.Globalization;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -46,7 +45,7 @@ namespace Chloe.Reflection.Emit
 
             tb.DefineDefaultConstructor(MethodAttributes.Public | MethodAttributes.SpecialName);
 
-            MethodBuilder methodBuilder = tb.DefineMethod("Map", MethodAttributes.Public | MethodAttributes.Virtual, CallingConventions.HasThis, typeof(void), new Type[] { typeof(object), typeof(IDataReader), typeof(int) });
+            MethodBuilder methodBuilder = tb.DefineMethod("Map", MethodAttributes.Public | MethodAttributes.Virtual, CallingConventions.HasThis, typeof(void), new Type[] { typeof(object), typeof(System.Data.IDataReader), typeof(int) });
 
             ILGenerator il = methodBuilder.GetILGenerator();
 
@@ -69,6 +68,82 @@ namespace Chloe.Reflection.Emit
             Type t = tb.CreateType();
 
             return t;
+        }
+
+        public static Type CreateDynamicType(List<Type> properties)
+        {
+            Assembly assembly = typeof(ClassGenerator).GetAssembly();
+
+            ModuleBuilder moduleBuilder;
+            if (!_moduleBuilders.TryGetValue(assembly, out moduleBuilder))
+            {
+                lock (assembly)
+                {
+                    if (!_moduleBuilders.TryGetValue(assembly, out moduleBuilder))
+                    {
+                        var assemblyName = new AssemblyName(String.Format(CultureInfo.InvariantCulture, "ChloeMRMs-{0}", assembly.FullName));
+                        assemblyName.Version = new Version(1, 0, 0, 0);
+
+                        AssemblyBuilder assemblyBuilder;
+                        assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+#if netcore
+                        assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+#elif netfx
+                        assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+#endif
+                        moduleBuilder = assemblyBuilder.DefineDynamicModule("ChloeMRMModule");
+
+                        _moduleBuilders.Add(assembly, moduleBuilder);
+                    }
+                }
+            }
+
+            TypeAttributes typeAttributes = TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.Sealed;
+            TypeBuilder tb = moduleBuilder.DefineType($"Chloe.Sharding.PlainType_{System.Threading.Interlocked.Increment(ref _sequenceNumber).ToString()}", typeAttributes, null, new Type[] { });
+
+            tb.DefineDefaultConstructor(MethodAttributes.Public | MethodAttributes.SpecialName);
+
+            for (int i = 0; i < properties.Count; i++)
+            {
+                var propertyType = properties[i];
+
+                string propertyName = $"P_{i}";
+                DefineProperty(tb, propertyType, propertyName);
+            }
+
+            Type t = tb.CreateType();
+
+            return t;
+        }
+
+        static void DefineProperty(TypeBuilder typeBuilder, Type propertyType, string name)
+        {
+            string propertyName = name;
+            var custNamePropBldr = typeBuilder.DefineProperty(propertyName, PropertyAttributes.HasDefault, propertyType, null);
+
+            FieldBuilder customerNameBldr = typeBuilder.DefineField($"_{propertyName}", propertyType, FieldAttributes.Private);
+
+            MethodAttributes getSetAttr = MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig;
+
+            MethodBuilder custNameGetPropMthdBldr = typeBuilder.DefineMethod($"get_{propertyName}", getSetAttr, propertyType, Type.EmptyTypes);
+
+            ILGenerator custNameGetIL = custNameGetPropMthdBldr.GetILGenerator();
+
+            custNameGetIL.Emit(OpCodes.Ldarg_0);
+            custNameGetIL.Emit(OpCodes.Ldfld, customerNameBldr);
+            custNameGetIL.Emit(OpCodes.Ret);
+
+            MethodBuilder custNameSetPropMthdBldr = typeBuilder.DefineMethod($"set_{propertyName}", getSetAttr, null, new Type[] { propertyType });
+
+            ILGenerator custNameSetIL = custNameSetPropMthdBldr.GetILGenerator();
+
+            custNameSetIL.Emit(OpCodes.Ldarg_0);
+            custNameSetIL.Emit(OpCodes.Ldarg_1);
+            custNameSetIL.Emit(OpCodes.Stfld, customerNameBldr);
+            custNameSetIL.Emit(OpCodes.Ret);
+
+            custNamePropBldr.SetGetMethod(custNameGetPropMthdBldr);
+            custNamePropBldr.SetSetMethod(custNameSetPropMthdBldr);
         }
     }
 }

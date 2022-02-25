@@ -14,7 +14,7 @@ using System.Threading;
 
 namespace Chloe.Query.Internals
 {
-    class InternalQuery<T> : IEnumerable<T>, IAsyncEnumerable<T>
+    class InternalQuery<T> : FeatureEnumerable<T>, IEnumerable<T>, IAsyncEnumerable<T>
     {
         Query<T> _query;
 
@@ -34,33 +34,11 @@ namespace Chloe.Query.Internals
             else
                 objectActivator = data.ObjectActivatorCreator.CreateObjectActivator();
 
-            IDbExpressionTranslator translator = this._query.DbContext.DatabaseProvider.CreateDbExpressionTranslator();
+            IDbExpressionTranslator translator = (this._query.DbContext as DbContext).DatabaseProvider.CreateDbExpressionTranslator();
             DbCommandInfo dbCommandInfo = translator.Translate(data.SqlQuery);
 
             DbCommandFactor commandFactor = new DbCommandFactor(objectActivator, dbCommandInfo.CommandText, dbCommandInfo.GetParameters());
             return commandFactor;
-        }
-
-        public IEnumerator<T> GetEnumerator()
-        {
-            DbCommandFactor commandFactor = this.GenerateCommandFactor();
-            QueryEnumerator<T> enumerator = new QueryEnumerator<T>(async (@async) =>
-            {
-                IDataReader dataReader = await this._query.DbContext.Session.ExecuteReader(commandFactor.CommandText, CommandType.Text, commandFactor.Parameters, @async);
-
-                return DataReaderReady(dataReader, commandFactor.ObjectActivator);
-            }, commandFactor.ObjectActivator);
-            return enumerator;
-        }
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return this.GetEnumerator();
-        }
-
-        IAsyncEnumerator<T> IAsyncEnumerable<T>.GetAsyncEnumerator(CancellationToken cancellationToken)
-        {
-            IAsyncEnumerator<T> enumerator = this.GetEnumerator() as IAsyncEnumerator<T>;
-            return enumerator;
         }
 
         public override string ToString()
@@ -129,6 +107,19 @@ namespace Chloe.Query.Internals
             }
 
             return type.Name;
+        }
+
+        public override IFeatureEnumerator<T> GetFeatureEnumerator(CancellationToken cancellationToken = default)
+        {
+            DbCommandFactor commandFactor = this.GenerateCommandFactor();
+            QueryEnumerator<T> enumerator = new QueryEnumerator<T>(async (@async) =>
+            {
+                IDataReader dataReader = await this._query.DbContext.Session.ExecuteReader(commandFactor.CommandText, CommandType.Text, commandFactor.Parameters, @async);
+
+                return DataReaderReady(dataReader, commandFactor.ObjectActivator);
+            }, commandFactor.ObjectActivator, cancellationToken);
+
+            return enumerator;
         }
     }
 }

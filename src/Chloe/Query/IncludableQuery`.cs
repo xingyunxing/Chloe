@@ -8,12 +8,12 @@ namespace Chloe.Query
 {
     class IncludableQuery<TEntity, TNavigation> : Query<TEntity>, IIncludableQuery<TEntity, TNavigation>
     {
-        public IncludableQuery(DbContext dbContext, bool trackEntity, QueryExpression prevExpression, LambdaExpression navigationPath)
+        public IncludableQuery(IDbContextInternal dbContext, bool trackEntity, QueryExpression prevExpression, LambdaExpression navigationPath)
             : base(dbContext, BuildIncludeExpression(dbContext, prevExpression, navigationPath), trackEntity)
         {
 
         }
-        IncludableQuery(DbContext dbContext, bool trackEntity, QueryExpression exp)
+        IncludableQuery(IDbContextInternal dbContext, bool trackEntity, QueryExpression exp)
          : base(dbContext, exp, trackEntity)
         {
 
@@ -39,7 +39,7 @@ namespace Chloe.Query
             members.Reverse();
             return members;
         }
-        static QueryExpression BuildIncludeExpression(DbContext dbContext, QueryExpression prevExpression, LambdaExpression navigationPath)
+        static QueryExpression BuildIncludeExpression(IDbContextInternal dbContext, QueryExpression prevExpression, LambdaExpression navigationPath)
         {
             List<MemberExpression> memberExps = ExtractMemberAccessChain(navigationPath);
 
@@ -65,7 +65,7 @@ namespace Chloe.Query
 
             return ret;
         }
-        static NavigationNode InitNavigationNode(PropertyInfo member, DbContext dbContext)
+        static NavigationNode InitNavigationNode(PropertyInfo member, IDbContextInternal dbContext)
         {
             NavigationNode navigation = new NavigationNode(member);
 
@@ -120,7 +120,7 @@ namespace Chloe.Query
             IncludeExpression prevIncludeExpression = this.QueryExpression as IncludeExpression;
             NavigationNode startNavigation = prevIncludeExpression.NavigationNode.Clone();
             NavigationNode lastNavigation = startNavigation.GetLast();
-            lastNavigation.Condition = lastNavigation.Condition.And(predicate);
+            lastNavigation.Condition = lastNavigation.Condition.AndAlso(predicate);
 
             IncludeExpression includeExpression = new IncludeExpression(typeof(TEntity), prevIncludeExpression.PrevExpression, startNavigation);
 

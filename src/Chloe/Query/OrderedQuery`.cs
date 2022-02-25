@@ -5,7 +5,7 @@ namespace Chloe.Query
 {
     class OrderedQuery<T> : Query<T>, IOrderedQuery<T>
     {
-        public OrderedQuery(DbContext dbContext, QueryExpression exp, bool trackEntity)
+        public OrderedQuery(IDbContextInternal dbContext, QueryExpression exp, bool trackEntity)
             : base(dbContext, exp, trackEntity)
         {
 

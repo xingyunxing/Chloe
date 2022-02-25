@@ -18,11 +18,12 @@ using System.Threading.Tasks;
 
 namespace Chloe
 {
-    public abstract partial class DbContext : IDbContext, IDisposable
+    public abstract partial class DbContext : IDbContext, IDbContextInternal, IDisposable
     {
         bool _disposed = false;
         InnerAdoSession _adoSession;
         DbSession _session;
+        Dictionary<Type, List<LambdaExpression>> _queryFilters = new Dictionary<Type, List<LambdaExpression>>();
 
         Dictionary<Type, TrackEntityCollection> _trackingEntityContainer;
         Dictionary<Type, TrackEntityCollection> TrackingEntityContainer
@@ -38,7 +39,7 @@ namespace Chloe
             }
         }
 
-        internal Dictionary<Type, List<LambdaExpression>> QueryFilters { get; set; } = new Dictionary<Type, List<LambdaExpression>>();
+        Dictionary<Type, List<LambdaExpression>> IDbContextInternal.QueryFilters { get { return this._queryFilters; } }
         internal InnerAdoSession AdoSession
         {
             get
@@ -60,14 +61,17 @@ namespace Chloe
 
         public void HasQueryFilter<TEntity>(Expression<Func<TEntity, bool>> filter)
         {
-            PublicHelper.CheckNull(filter, nameof(filter));
-
             Type entityType = typeof(TEntity);
+            this.HasQueryFilter(entityType, filter);
+        }
+        public void HasQueryFilter(Type entityType, LambdaExpression filter)
+        {
+            PublicHelper.CheckNull(filter, nameof(filter));
             List<LambdaExpression> filters;
-            if (!this.QueryFilters.TryGetValue(entityType, out filters))
+            if (!this._queryFilters.TryGetValue(entityType, out filters))
             {
                 filters = new List<LambdaExpression>(1);
-                this.QueryFilters.Add(entityType, filters);
+                this._queryFilters.Add(entityType, filters);
             }
 
             filters.Add(filter);

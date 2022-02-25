@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;net45;net5.0</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0;net46;net5.0</TargetFrameworks>
 		<LangVersion>10.0</LangVersion>
 
 		<Version>4.13.0</Version>
@@ -25,8 +25,8 @@
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net5.0'">
 		<DefineConstants>netcore;net5</DefineConstants>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net45'">
-		<DefineConstants>netfx;net45</DefineConstants>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net46'">
+		<DefineConstants>netfx;net46</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup>
