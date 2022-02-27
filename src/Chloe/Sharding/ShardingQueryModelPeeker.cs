@@ -1,37 +1,33 @@
 ﻿using Chloe.Descriptors;
 using Chloe.Infrastructure;
 using Chloe.Query.QueryExpressions;
-using Chloe.Sharding;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Chloe.Sharding
 {
     internal class ShardingQueryModelPeeker : QueryExpressionVisitor<QueryExpression>
     {
-        ShardingQueryModel QueryModel = new ShardingQueryModel();
+        ShardingQueryModel _queryModel = new ShardingQueryModel();
 
         public static ShardingQueryModel Peek(QueryExpression queryExpression)
         {
             var peeker = new ShardingQueryModelPeeker();
             queryExpression.Accept(peeker);
 
-            return peeker.QueryModel;
+            return peeker._queryModel;
         }
 
         public override QueryExpression Visit(RootQueryExpression exp)
         {
             TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(exp.ElementType);
 
-            this.QueryModel.GlobalFilters.AddRange(typeDescriptor.Definition.Filters);
-            this.QueryModel.ContextFilters.AddRange(exp.ContextFilters);
+            this._queryModel.GlobalFilters.AddRange(typeDescriptor.Definition.Filters);
+            this._queryModel.ContextFilters.AddRange(exp.ContextFilters);
             return exp;
         }
         public override QueryExpression Visit(WhereExpression exp)
         {
             exp.PrevExpression.Accept(this);
-            this.QueryModel.Conditions.Add(exp.Predicate);
+            this._queryModel.Conditions.Add(exp.Predicate);
             return exp;
         }
         public override QueryExpression Visit(SelectExpression exp)
@@ -41,13 +37,13 @@ namespace Chloe.Sharding
         public override QueryExpression Visit(TakeExpression exp)
         {
             exp.PrevExpression.Accept(this);
-            this.QueryModel.Take = exp.Count;
+            this._queryModel.Take = exp.Count;
             return exp;
         }
         public override QueryExpression Visit(SkipExpression exp)
         {
             exp.PrevExpression.Accept(this);
-            this.QueryModel.Skip = exp.Count;
+            this._queryModel.Skip = exp.Count;
             return exp;
         }
         public override QueryExpression Visit(OrderExpression exp)
@@ -56,7 +52,7 @@ namespace Chloe.Sharding
 
             if (exp.NodeType == QueryExpressionType.OrderBy || exp.NodeType == QueryExpressionType.OrderByDesc)
             {
-                this.QueryModel.Orderings.Clear();
+                this._queryModel.Orderings.Clear();
             }
 
             Ordering ordering = new Ordering();
@@ -79,7 +75,7 @@ namespace Chloe.Sharding
                 ordering.Ascending = false;
             }
 
-            this.QueryModel.Orderings.Add(ordering);
+            this._queryModel.Orderings.Add(ordering);
 
             return exp;
         }
@@ -108,7 +104,7 @@ namespace Chloe.Sharding
         public override QueryExpression Visit(IgnoreAllFiltersExpression exp)
         {
             exp.PrevExpression.Accept(this);
-            this.QueryModel.IgnoreAllFilters = true;
+            this._queryModel.IgnoreAllFilters = true;
             return exp;
         }
 

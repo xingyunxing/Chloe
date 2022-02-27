@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections;
 
 namespace Chloe.Sharding
 {
@@ -107,6 +104,9 @@ namespace Chloe.Sharding
         {
             foreach (var item in this.buffer)
             {
+                if (item == null)
+                    continue;
+
                 yield return item;
             }
         }

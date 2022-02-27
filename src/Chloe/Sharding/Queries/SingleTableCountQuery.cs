@@ -1,9 +1,6 @@
 ﻿using Chloe.Threading.Tasks;
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,40 +10,35 @@ namespace Chloe.Sharding.Queries
     /// 获取单个表的数据量
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    class SingleTableCountQuery<T> : FeatureEnumerable<int>
+    class SingleTableCountQuery<T> : FeatureEnumerable<long>
     {
-        IShareDbContextPool DbContextPool;
-        DataQueryModel QueryModel;
+        IShareDbContextPool _dbContextPool;
+        DataQueryModel _queryModel;
 
         public SingleTableCountQuery(IShareDbContextPool dbContextPool, DataQueryModel queryModel)
         {
-            this.DbContextPool = dbContextPool;
-            this.QueryModel = queryModel;
+            this._dbContextPool = dbContextPool;
+            this._queryModel = queryModel;
         }
 
-        public override IFeatureEnumerator<int> GetFeatureEnumerator()
+        public override IFeatureEnumerator<long> GetFeatureEnumerator(CancellationToken cancellationToken = default)
         {
-            return this.GetFeatureEnumerator(default(CancellationToken));
+            return new Enumerator(this, cancellationToken);
         }
 
-        public override IFeatureEnumerator<int> GetFeatureEnumerator(CancellationToken cancellationToken = default)
+        class Enumerator : IFeatureEnumerator<long>
         {
-            return new Enumerator(this);
-        }
+            SingleTableCountQuery<T> _enumerable;
+            CancellationToken _cancellationToken;
+            long Result = -1;
 
-        class Enumerator : IFeatureEnumerator<int>
-        {
-            IShareDbContextPool DbContextPool;
-            DataQueryModel QueryModel;
-            int Result = -1;
-
-            public Enumerator(SingleTableCountQuery<T> enumerable)
+            public Enumerator(SingleTableCountQuery<T> enumerable, CancellationToken cancellationToken = default)
             {
-                this.DbContextPool = enumerable.DbContextPool;
-                this.QueryModel = enumerable.QueryModel;
+                this._enumerable = enumerable;
+                this._cancellationToken = cancellationToken;
             }
 
-            public int Current => this.Result;
+            public long Current => this.Result;
 
             object IEnumerator.Current => this.Result;
 
@@ -78,23 +70,23 @@ namespace Chloe.Sharding.Queries
                     return false;
                 }
 
-                using var poolResource = await this.DbContextPool.GetOne(@async);
+                using var poolResource = await this._enumerable._dbContextPool.GetOne(@async);
 
 
                 var dbContext = poolResource.Resource;
-                var q = dbContext.Query<T>(this.QueryModel.Table.Name);
+                var q = dbContext.Query<T>(this._enumerable._queryModel.Table.Name);
 
-                foreach (var condition in this.QueryModel.Conditions)
+                foreach (var condition in this._enumerable._queryModel.Conditions)
                 {
                     q = q.Where((Expression<Func<T, bool>>)condition);
                 }
 
-                if (this.QueryModel.IgnoreAllFilters)
+                if (this._enumerable._queryModel.IgnoreAllFilters)
                 {
                     q = q.IgnoreAllFilters();
                 }
 
-                var count = @async ? await q.CountAsync() : q.Count();
+                long count = @async ? await q.LongCountAsync() : q.LongCount();
                 this.Result = count;
 
                 return true;

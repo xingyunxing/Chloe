@@ -94,7 +94,7 @@ namespace Chloe.Reflection
         }
         public static object FastInvokeMethod(this object instance, string methodName, params object[] parameters)
         {
-            return instance.GetType().GetMethod(methodName).FastInvoke(parameters);
+            return instance.GetType().GetMethod(methodName).FastInvoke(instance, parameters);
         }
 
         public static object CreateInstance(this ConstructorInfo constructor, params object[] parameters)

@@ -73,6 +73,11 @@ namespace Chloe.Descriptors
         {
             return this.RowVersion != null;
         }
+        public bool IsPrimaryKey(MemberInfo member)
+        {
+            member = member.AsReflectedMemberOf(this.Definition.Type);
+            return this.PrimaryKeys.Any(a => a.Definition.Property == member);
+        }
         public PrimitivePropertyDescriptor FindPrimitivePropertyDescriptor(MemberInfo member)
         {
             member = member.AsReflectedMemberOf(this.Definition.Type);

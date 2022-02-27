@@ -1,22 +1,11 @@
-﻿using Chloe.Core.Visitors;
-using Chloe.Descriptors;
-using Chloe.Infrastructure;
-using Chloe.Query;
-using Chloe.Query.QueryExpressions;
-using Chloe.Reflection;
-using Chloe.Sharding.Queries;
+﻿using Chloe.Query;
 using Chloe.Threading.Tasks;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Chloe.Sharding
 {
-    internal class ShardingQuery<T> : IQuery<T>
+    internal partial class ShardingQuery<T> : IQuery<T>
     {
         internal Query<T> InnerQuery { get; set; }
 
@@ -62,7 +51,7 @@ namespace Chloe.Sharding
 
         public IEnumerable<T> AsEnumerable()
         {
-            throw new NotImplementedException();
+            return this.Execute().GetResult();
         }
 
         public IQuery<T> AsTracking()
@@ -207,7 +196,7 @@ namespace Chloe.Sharding
 
         public T FirstOrDefault()
         {
-            throw new NotImplementedException();
+            return this.Take(1).AsEnumerable().FirstOrDefault();
         }
 
         public T FirstOrDefault(Expression<Func<T, bool>> predicate)
@@ -466,141 +455,22 @@ namespace Chloe.Sharding
         }
         public async Task<PagingResult<T>> PagingAsync(int pageNumber, int pageSize)
         {
-            var paging = await this.Execute(this.TakePage(pageNumber, pageSize) as ShardingQuery<T>);
+            var pagingResult = await this.ExecutePaging(pageNumber, pageSize);
 
             PagingResult<T> result = new PagingResult<T>();
-            result.Count = paging.Count;
-            result.DataList = await paging.Result.ToListAsync();
+            result.Count = pagingResult.Count;
+            result.DataList = await pagingResult.Result.ToListAsync();
 
             return result;
         }
 
         public List<T> ToList()
         {
-            throw new NotImplementedException();
+            return this.Execute().GetResult().ToList();
         }
-
-        LambdaExpression ConditionCombine(IEnumerable<LambdaExpression> conditions)
+        public async Task<List<T>> ToListAsync()
         {
-            ParameterExpression parameterExpression = null;
-            Expression conditionBody = null;
-            foreach (var condition in conditions)
-            {
-                if (parameterExpression == null)
-                {
-                    parameterExpression = condition.Parameters[0];
-                    conditionBody = condition.Body;
-                    continue;
-                }
-
-                var newBody = ParameterExpressionReplacer.Replace(condition.Body, parameterExpression);
-                conditionBody = Expression.AndAlso(conditionBody, newBody);
-            }
-
-            if (conditionBody == null)
-            {
-                return null;
-            }
-
-            return Expression.Lambda(conditionBody, parameterExpression);
-        }
-
-        async Task<QueryExecuteResult<T>> Execute(ShardingQuery<T> shardingQuery)
-        {
-            ShardingQueryModel queryModel = ShardingQueryModelPeeker.Peek(shardingQuery.InnerQuery.QueryExpression);
-
-            IShardingConfig shardingConfig = ShardingConfigContainer.Get(typeof(T));
-            IShardingContext shardingContext = new ShardingContext((ShardingDbContext)this.InnerQuery.DbContext, shardingConfig);
-
-            IEnumerable<LambdaExpression> conditions = queryModel.Conditions;
-            if (!queryModel.IgnoreAllFilters)
-            {
-                conditions = conditions.Concat(queryModel.GlobalFilters).Concat(queryModel.ContextFilters);
-            }
-
-            var condition = this.ConditionCombine(conditions);
-            List<PhysicTable> physicTables = ShardingTablePeeker.Peek(condition, shardingContext);
-
-            foreach (var physicTable in physicTables)
-            {
-                physicTable.DataSource.DbContextFactory = new PhysicDbContextFactoryWrapper(physicTable.DataSource.DbContextFactory, shardingContext.DbContext);
-            }
-
-            List<Ordering> orderings = queryModel.Orderings;
-
-            //对物理表重排
-            SortResult sortResult;
-            if (orderings.Count == 0)
-            {
-                sortResult = new SortResult() { IsSorted = true, Tables = physicTables };
-            }
-            else
-            {
-                sortResult = shardingContext.SortTables(physicTables, orderings);
-            }
-
-            List<PhysicTable> tables = sortResult.Tables;
-
-            int maxConnectionsPerDatabase = 12;
-            int maxInItems = 1000;
-
-            MultTableCountQuery<T> countQuery = new MultTableCountQuery<T>(tables, queryModel, maxConnectionsPerDatabase);
-
-            List<MultTableCountQueryResult> physicTableCounts = await countQuery.ToListAsync();
-            int totals = physicTableCounts.Select(a => a.Count).Sum();
-
-            if (sortResult.IsSorted)
-            {
-                OrderlyMultTableDataQuery<T> tableDataQuery = new OrderlyMultTableDataQuery<T>(physicTableCounts, queryModel, maxConnectionsPerDatabase);
-
-                return new QueryExecuteResult<T>(totals, tableDataQuery);
-            }
-
-            if (!sortResult.IsSorted)
-            {
-                DisorderedMultTableDataQuery<T> tableDataQuery = new DisorderedMultTableDataQuery<T>(tables, queryModel, maxConnectionsPerDatabase, maxInItems);
-
-                return new QueryExecuteResult<T>(totals, tableDataQuery);
-            }
-
-            /*
-             * 1. 需要 count 的情况，则先取所有的 count
-             *    1.1 无排序，则根据 count 情况定位指定的表查询即可
-             *    1.2 有排序
-             *        1.2.1 无顺序的表，则全部路由，在内存中进行归并（会有连接过多，内存爆炸问题）
-             *        1.2.2 有顺序的表，则根据 count 情况定位指定的表查询即可
-             *        
-             * 2. 不需要 count 的情况
-             *    2.1 无排序，则先从第一个表中分页，数据不够则再从第二个表中再取，直到数据足够为止
-             *    2.2 有排序
-             *        2.2.1 无顺序的表，则全部路由，在内存中进行归并（会有连接过多，内存爆炸问题）
-             *        2.2.2 有顺序的表，则先从第一个表中分页，数据不够则再从第二个表中再取，直到数据足够为止
-             */
-
-            /*
-             * 查询的表过多，可能产生的问题：
-             * 1. 采用流式分页，一个表一个连接，会出现连接数量爆炸问题
-             * 2. 不用流式分页，如果将每个表的 skip + take 数据加载进内存在归并排序，会出现内存爆炸
-             * 
-             * 解决方法：
-             * 表过多，肯定不能采用流式分页了！！！
-             * 1. 同库内的表使用 union 查询结果集，也就是利用了数据库进行归并排序
-             * 2. 不用流式分页
-             *    2.1 先将每个表的 id 和对应的排序字段 skip + take  数据加载进内存，在内存里归并排序取出最终的数据 id
-             *    2.2 拿到 id 后再根据 id 通过构建 in 条件再去数据库查询表数据
-             *        2.2.1 如何避免 in 数据太多？因为 in 有数量限制？
-             *              分批 in 即可
-             * 
-             * 
-             */
-
-
-            throw new NotImplementedException();
-        }
-
-        public Task<List<T>> ToListAsync()
-        {
-            throw new NotImplementedException();
+            return await (await this.Execute()).ToListAsync();
         }
 
         public IQuery<T> Where(Expression<Func<T, bool>> predicate)

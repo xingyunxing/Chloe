@@ -2,17 +2,50 @@
 using Chloe.Descriptors;
 using Chloe.Reflection;
 using Chloe.Sharding.Queries;
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 
 namespace Chloe.Sharding
 {
     internal static class ShardingHelpers
     {
+        public static LambdaExpression ConditionCombine(ShardingQueryModel queryModel)
+        {
+            IEnumerable<LambdaExpression> conditions = queryModel.Conditions;
+            if (!queryModel.IgnoreAllFilters)
+            {
+                conditions = conditions.Concat(queryModel.GlobalFilters).Concat(queryModel.ContextFilters);
+            }
+
+            var condition = ConditionCombine(conditions);
+            return condition;
+        }
+        public static LambdaExpression ConditionCombine(IEnumerable<LambdaExpression> conditions)
+        {
+            ParameterExpression parameterExpression = null;
+            Expression conditionBody = null;
+            foreach (var condition in conditions)
+            {
+                if (parameterExpression == null)
+                {
+                    parameterExpression = condition.Parameters[0];
+                    conditionBody = condition.Body;
+                    continue;
+                }
+
+                var newBody = ParameterExpressionReplacer.Replace(condition.Body, parameterExpression);
+                conditionBody = Expression.AndAlso(conditionBody, newBody);
+            }
+
+            if (conditionBody == null)
+            {
+                return null;
+            }
+
+            return Expression.Lambda(conditionBody, parameterExpression);
+        }
+
         public static IOrderedQuery<T> InnerOrderBy<T>(this IQuery<T> q, Ordering ordering)
         {
             LambdaExpression keySelector = ordering.KeySelector;
@@ -60,8 +93,15 @@ namespace Chloe.Sharding
 
             return dbContexts;
         }
+        public static ShareDbContextPool CreateDbContextPool(IPhysicDbContextFactory physicDbContextFactory, int count, int maxConnectionsPerDatabase)
+        {
+            List<IDbContext> dbContexts = ShardingHelpers.CreateDbContexts(physicDbContextFactory, count, maxConnectionsPerDatabase);
+            ShareDbContextPool dbContextPool = new ShareDbContextPool(dbContexts);
 
-        public static LambdaExpression MakeDynamicSelector<TEntity>(ShardingQueryModel queryModel, DynamicType dynamicType, TypeDescriptor entityTypeDescriptor, int tableIndex)
+            return dbContextPool;
+        }
+
+        public static LambdaExpression MakeDynamicSelector<TEntity>(ShardingQueryPlan queryPlan, DynamicType dynamicType, TypeDescriptor entityTypeDescriptor, int tableIndex)
         {
             // a => new Dynamic() { P1 = a.Id, P2 = tableIndex, P3 = orderKeySelector1, P4 = orderKeySelector2... }
 
@@ -76,6 +116,7 @@ namespace Chloe.Sharding
             MemberAssignment tableIndexBind = Expression.Bind(dynamicProperties[1].Property, Expression.Constant(tableIndex));
             bindings.Add(tableIndexBind);
 
+            ShardingQueryModel queryModel = queryPlan.QueryModel;
             for (int i = 0; i < queryModel.Orderings.Count; i++)
             {
                 var ordering = queryModel.Orderings[i];
@@ -91,9 +132,9 @@ namespace Chloe.Sharding
             return selector;
         }
 
-        public static List<TableDataQueryModel<TEntity>> MakeEntityQueries<TEntity>(ShardingQueryModel queryModel, List<MultTableKeyQueryResult> keyResults, TypeDescriptor typeDescriptor, int maxInItems)
+        public static List<TableDataQueryPlan<TEntity>> MakeEntityQueryPlans<TEntity>(ShardingQueryModel queryModel, List<MultTableKeyQueryResult> keyResults, TypeDescriptor typeDescriptor, int maxInItems)
         {
-            List<TableDataQueryModel<TEntity>> queries = new List<TableDataQueryModel<TEntity>>();
+            List<TableDataQueryPlan<TEntity>> queries = new List<TableDataQueryPlan<TEntity>>();
 
             var listConstructor = typeof(List<>).MakeGenericType(typeDescriptor.PrimaryKeys.First().PropertyType).GetConstructor(new Type[] { typeof(int) });
             InstanceCreator listCreator = InstanceCreatorContainer.Get(listConstructor);
@@ -103,14 +144,10 @@ namespace Chloe.Sharding
 
             foreach (var keyResult in keyResults.Where(a => a.Keys.Count > 0))
             {
-                List<List<object>> batches = Batch(keyResult.Keys, maxInItems);
+                List<List<object>> batches = Slice(keyResult.Keys, maxInItems);
 
                 foreach (var batch in batches)
                 {
-                    TableDataQueryModel<TEntity> query = new TableDataQueryModel<TEntity>();
-
-                    query.Table = keyResult.Table;
-
                     IList keyList = (IList)listCreator(batch.Count);
                     foreach (var inItem in batch)
                     {
@@ -128,6 +165,10 @@ namespace Chloe.Sharding
                     dataQueryModel.Orderings.AddRange(queryModel.Orderings);
                     dataQueryModel.Conditions.Add(condition);
 
+                    TableDataQueryPlan<TEntity> query = new TableDataQueryPlan<TEntity>();
+                    query.Table = keyResult.Table;
+                    query.QueryModel = dataQueryModel;
+
                     queries.Add(query);
                 }
             }
@@ -135,7 +176,32 @@ namespace Chloe.Sharding
             return queries;
         }
 
-        static List<List<object>> Batch(List<object> list, int batchSize)
+        public static DataQueryModel MakeDataQueryModel(PhysicTable table, ShardingQueryModel queryModel)
+        {
+            int? takeCount = null;
+
+            if (queryModel.Take != null)
+            {
+                takeCount = (queryModel.Skip ?? 0) + queryModel.Take.Value;
+            }
+
+            DataQueryModel dataQueryModel = MakeDataQueryModel(table, queryModel, null, takeCount);
+            return dataQueryModel;
+        }
+        public static DataQueryModel MakeDataQueryModel(PhysicTable table, ShardingQueryModel queryModel, int? skip, int? take)
+        {
+            DataQueryModel dataQueryModel = new DataQueryModel();
+            dataQueryModel.Table = table;
+            dataQueryModel.IgnoreAllFilters = queryModel.IgnoreAllFilters;
+            dataQueryModel.Conditions.AddRange(queryModel.Conditions);
+            dataQueryModel.Orderings.AddRange(queryModel.Orderings);
+            dataQueryModel.Skip = skip;
+            dataQueryModel.Take = take;
+
+            return dataQueryModel;
+        }
+
+        static List<List<object>> Slice(List<object> list, int batchSize)
         {
             if (list.Count <= batchSize)
             {

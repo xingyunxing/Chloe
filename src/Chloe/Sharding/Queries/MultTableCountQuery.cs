@@ -1,9 +1,5 @@
 ﻿using Chloe.Threading.Tasks;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,15 +18,15 @@ namespace Chloe.Sharding.Queries
     /// <typeparam name="TEntity"></typeparam>
     internal class MultTableCountQuery<TEntity> : FeatureEnumerable<MultTableCountQueryResult>
     {
+        ShardingQueryPlan _queryPlan;
+        IShardingContext _shardingContext;
         List<PhysicTable> _tables;
-        ShardingQueryModel _queryModel;
-        int _maxConnectionsPerDatabase;
 
-        public MultTableCountQuery(List<PhysicTable> tables, ShardingQueryModel queryModel, int maxConnectionsPerDatabase)
+        public MultTableCountQuery(ShardingQueryPlan queryPlan)
         {
-            this._tables = tables;
-            this._queryModel = queryModel;
-            this._maxConnectionsPerDatabase = maxConnectionsPerDatabase;
+            this._queryPlan = queryPlan;
+            this._shardingContext = queryPlan.ShardingContext;
+            this._tables = queryPlan.RouteTables;
         }
 
         public override IFeatureEnumerator<MultTableCountQueryResult> GetFeatureEnumerator(CancellationToken cancellationToken = default)
@@ -41,13 +37,9 @@ namespace Chloe.Sharding.Queries
         class Enumerator : IFeatureEnumerator<MultTableCountQueryResult>
         {
             MultTableCountQuery<TEntity> _enumerable;
-            List<PhysicTable> _tables;
-            ShardingQueryModel _queryModel;
-            int _maxConnectionsPerDatabase;
-
             CancellationToken _cancellationToken;
 
-            IFeatureEnumerator<int> _innerEnumerator;
+            IFeatureEnumerator<long> _innerEnumerator;
 
             int _currentIdx = 0;
             MultTableCountQueryResult _current;
@@ -55,10 +47,6 @@ namespace Chloe.Sharding.Queries
             public Enumerator(MultTableCountQuery<TEntity> enumerable, CancellationToken cancellationToken = default)
             {
                 this._enumerable = enumerable;
-                this._tables = enumerable._tables;
-                this._queryModel = enumerable._queryModel;
-                this._maxConnectionsPerDatabase = enumerable._maxConnectionsPerDatabase;
-
                 this._cancellationToken = cancellationToken;
             }
 
@@ -91,9 +79,9 @@ namespace Chloe.Sharding.Queries
 
             void Init()
             {
-                var tables = this._tables;
-                var queryModel = this._queryModel;
-                int maxConnectionsPerDatabase = this._maxConnectionsPerDatabase;
+                var tables = this._enumerable._tables;
+                var queryPlan = this._enumerable._queryPlan;
+                int maxConnectionsPerDatabase = this._enumerable._shardingContext.MaxConnectionsPerDatabase;
 
                 List<PhysicTableCountQueryModel<TEntity>> countQueryList = new List<PhysicTableCountQueryModel<TEntity>>(tables.Count);
                 foreach (PhysicTable table in tables)
@@ -103,19 +91,22 @@ namespace Chloe.Sharding.Queries
 
                     DataQueryModel dataQueryModel = new DataQueryModel();
                     dataQueryModel.Table = countQuery.Table;
-                    dataQueryModel.IgnoreAllFilters = queryModel.IgnoreAllFilters;
-                    dataQueryModel.Conditions.AddRange(queryModel.Conditions);
+                    dataQueryModel.IgnoreAllFilters = queryPlan.QueryModel.IgnoreAllFilters;
+                    dataQueryModel.Conditions.AddRange(queryPlan.QueryModel.Conditions);
 
                     countQuery.QueryModel = dataQueryModel;
 
                     countQueryList.Add(countQuery);
                 }
 
+                ParallelQueryContext queryContext = new ParallelQueryContext();
+
                 foreach (var group in countQueryList.GroupBy(a => a.Table.DataSource.Name))
                 {
                     int count = group.Count();
-                    List<IDbContext> dbContexts = ShardingHelpers.CreateDbContexts(group.First().Table.DataSource.DbContextFactory, count, maxConnectionsPerDatabase);
-                    ShareDbContextPool dbContextPool = new ShareDbContextPool(dbContexts);
+
+                    ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(group.First().Table.DataSource.DbContextFactory, count, maxConnectionsPerDatabase);
+                    queryContext.AddManagedResource(dbContextPool);
 
                     foreach (PhysicTableCountQueryModel<TEntity> countQuery in group)
                     {
@@ -124,7 +115,7 @@ namespace Chloe.Sharding.Queries
                     }
                 }
 
-                ParallelConcatEnumerable<int> countQueryEnumerable = new ParallelConcatEnumerable<int>(countQueryList.Select(a => a.Query));
+                ParallelConcatEnumerable<long> countQueryEnumerable = new ParallelConcatEnumerable<long>(queryContext, countQueryList.Select(a => a.Query));
                 this._innerEnumerator = countQueryEnumerable.GetFeatureEnumerator(this._cancellationToken);
             }
             async BoolResultTask MoveNext(bool @async)
@@ -142,7 +133,7 @@ namespace Chloe.Sharding.Queries
                     return false;
                 }
 
-                PhysicTable table = this._tables[this._currentIdx++];
+                PhysicTable table = this._enumerable._tables[this._currentIdx++];
                 this._current = new MultTableCountQueryResult() { Table = table, Count = this._innerEnumerator.GetCurrent() };
                 return true;
             }

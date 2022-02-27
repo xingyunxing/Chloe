@@ -1,15 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Data;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Chloe.Sharding
 {
+    public class ShardingOptions
+    {
+        public int MaxConnectionsPerDatabase { get; set; } = 12;
+        public int MaxInItems { get; set; } = 1000;
+    }
+
     public class ShardingDbContext : IDbContextInternal, IDbContext
     {
         Dictionary<Type, List<LambdaExpression>> _queryFilters = new Dictionary<Type, List<LambdaExpression>>();
+
+        public ShardingDbContext() : this(new ShardingOptions())
+        {
+
+        }
+
+        public ShardingDbContext(ShardingOptions options)
+        {
+            this.Options = options;
+        }
+
+        public ShardingOptions Options { get; set; }
 
         public IDbSession Session => throw new NotImplementedException();
 

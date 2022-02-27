@@ -1,9 +1,6 @@
 ﻿using Chloe.Reflection;
 using Chloe.Threading.Tasks;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Chloe
@@ -167,9 +164,7 @@ namespace Chloe
 
         public DynamicFeatureEnumerator(object enumerator)
         {
-            this._enumerator = enumerator;
-
-            var asyncEnumeratorInterface = this._enumerator.GetType().GetInterface(typeof(IAsyncEnumerator<>).Name);
+            var asyncEnumeratorInterface = enumerator.GetType().GetInterface(typeof(IAsyncEnumerator<>).Name);
             if (asyncEnumeratorInterface != null)
             {
                 this._isAsyncEnumerator = true;
@@ -180,6 +175,15 @@ namespace Chloe
                 var currentProperty = asyncEnumeratorInterface.GetProperty(nameof(IAsyncEnumerator<int>.Current));
                 this._getCurrentGetter = MemberGetterContainer.Get(currentProperty);
             }
+            else
+            {
+                if (!(enumerator is IEnumerator))
+                {
+                    throw new ArgumentException();
+                }
+            }
+
+            this._enumerator = enumerator;
         }
 
         public object Current => this._current;
@@ -188,24 +192,38 @@ namespace Chloe
 
         public void Dispose()
         {
-            if (this._enumerator is IDisposable disposable)
-            {
-                disposable.Dispose();
-                return;
-            }
-
-            this.DisposeAsync().GetAwaiter().GetResult();
+            this.Dispose(false).GetResult();
         }
 
         public async ValueTask DisposeAsync()
         {
-            if (this._enumerator is IAsyncDisposable disposable)
-            {
-                await disposable.DisposeAsync();
-                return;
-            }
+            await this.Dispose(true);
+        }
 
-            this.Dispose();
+        async ValueTask Dispose(bool @async)
+        {
+            if (@async)
+            {
+                if (this._enumerator is IAsyncDisposable asyncDisposable)
+                {
+                    await asyncDisposable.DisposeAsync();
+                }
+                else if (this._enumerator is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
+            }
+            else
+            {
+                if (this._enumerator is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
+                else if (this._enumerator is IAsyncDisposable asyncDisposable)
+                {
+                    await asyncDisposable.DisposeAsync();
+                }
+            }
         }
 
         public bool MoveNext()
@@ -218,7 +236,7 @@ namespace Chloe
                 return hasNext;
             }
 
-            return this.MoveNextAsync().GetAwaiter().GetResult();
+            return this.MoveNextAsync().GetResult();
         }
 
         public async BoolResultTask MoveNextAsync()
@@ -244,6 +262,10 @@ namespace Chloe
 
     class NullFeatureEnumerator<T> : IFeatureEnumerator<T>
     {
+        public NullFeatureEnumerator()
+        {
+        }
+
         public T Current => default;
 
         object IEnumerator.Current => this.Current;
@@ -274,12 +296,14 @@ namespace Chloe
         }
     }
 
-    class FeatureEnumeratorWrapper<T> : IFeatureEnumerator<T>
+    class PreloadableFeatureEnumerator<T> : IFeatureEnumerator<T>
     {
         IFeatureEnumerator<T> _enumerator;
-        bool _firstRead;
+        bool _hasElement;
+        bool _firstRead = true;
+        bool _initialized;
 
-        public FeatureEnumeratorWrapper(IFeatureEnumerator<T> enumerator)
+        public PreloadableFeatureEnumerator(IFeatureEnumerator<T> enumerator)
         {
             this._enumerator = enumerator;
         }
@@ -287,6 +311,19 @@ namespace Chloe
         public T Current => (this._enumerator as IEnumerator<T>).Current;
 
         object IEnumerator.Current => this.Current;
+
+        /// <summary>
+        /// 调用 MoveNext 之前必须先调用此方法
+        /// </summary>
+        /// <returns></returns>
+        public async ValueTask Initialize()
+        {
+            if (this._initialized)
+                return;
+
+            this._hasElement = await this._enumerator.MoveNextAsync();
+            this._initialized = true;
+        }
 
         public void Dispose()
         {
@@ -300,24 +337,22 @@ namespace Chloe
 
         public bool MoveNext()
         {
-            if (!this._firstRead)
-            {
-                this._firstRead = true;
-                return true;
-            }
-
-            return this._enumerator.MoveNext();
+            return this.MoveNext(false).GetResult();
         }
 
         public async BoolResultTask MoveNextAsync()
         {
-            if (!this._firstRead)
+            return await this.MoveNext(true);
+        }
+        async BoolResultTask MoveNext(bool @async)
+        {
+            if (this._firstRead)
             {
-                this._firstRead = true;
-                return true;
+                this._firstRead = false;
+                return this._hasElement;
             }
 
-            return await this._enumerator.MoveNextAsync();
+            return await this._enumerator.MoveNext(@async);
         }
 
         public void Reset()

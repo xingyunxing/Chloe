@@ -190,7 +190,7 @@ namespace Chloe.Query.QueryState
 
             DbTable aliasTable = new DbTable(tableSeg.Alias);
 
-            //TODO 根据旧的生成新 ResultModel
+            //根据旧的生成新 ResultModel
             IObjectModel newResultModel = this.QueryModel.ResultModel.ToNewObjectModel(sqlQuery, aliasTable, fromTable, newQueryModel.IgnoreFilters);
             newQueryModel.ResultModel = newResultModel;
 

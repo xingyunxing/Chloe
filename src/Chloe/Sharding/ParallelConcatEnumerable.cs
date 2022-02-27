@@ -1,8 +1,5 @@
 ﻿using Chloe.Threading.Tasks;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,16 +11,13 @@ namespace Chloe.Sharding
     /// <typeparam name="T"></typeparam>
     internal class ParallelConcatEnumerable<T> : FeatureEnumerable<T>
     {
-        List<IFeatureEnumerable<T>> _enumerables;
+        ParallelQueryContext _queryContext;
+        List<IFeatureEnumerable<T>> _sources;
 
-        public ParallelConcatEnumerable(IEnumerable<IFeatureEnumerable<T>> enumerables)
+        public ParallelConcatEnumerable(ParallelQueryContext queryContext, IEnumerable<IFeatureEnumerable<T>> sources)
         {
-            this._enumerables = enumerables.ToList();
-        }
-
-        public override IFeatureEnumerator<T> GetFeatureEnumerator()
-        {
-            return new Enumerator(this);
+            this._queryContext = queryContext;
+            this._sources = sources.ToList();
         }
 
         public override IFeatureEnumerator<T> GetFeatureEnumerator(CancellationToken cancellationToken = default)
@@ -39,7 +33,6 @@ namespace Chloe.Sharding
             List<IFeatureEnumerator<T>> _enumerators;
             IFeatureEnumerator<T> _currentEnumerator;
             int _currentEnumeratorIndex = -1;
-
 
             public Enumerator(ParallelConcatEnumerable<T> enumerable, CancellationToken cancellationToken = default)
             {
@@ -69,6 +62,8 @@ namespace Chloe.Sharding
                         await enumerator.Dispose(@async);
                     }
                 }
+
+                this._enumerable._queryContext.Dispose();
             }
 
             public bool MoveNext()
@@ -81,10 +76,10 @@ namespace Chloe.Sharding
                 return this.MoveNext(true);
             }
 
-            async Task StartEnumeratorAsync(IFeatureEnumerator<T> enumerator)
+            async Task StartEnumeratorAsync(PreloadableFeatureEnumerator<T> enumerator)
             {
                 await Task.Yield();
-                await enumerator.MoveNextAsync();
+                await enumerator.Initialize();
             }
             async ValueTask LazyInit(bool @async)
             {
@@ -93,13 +88,13 @@ namespace Chloe.Sharding
                     return;
                 }
 
-                List<IFeatureEnumerator<T>> enumerators = new List<IFeatureEnumerator<T>>(this._enumerable._enumerables.Count);
-                Task[] tasks = new Task[this._enumerable._enumerables.Count];
+                List<IFeatureEnumerator<T>> enumerators = new List<IFeatureEnumerator<T>>(this._enumerable._sources.Count);
+                Task[] tasks = new Task[this._enumerable._sources.Count];
 
                 int i = 0;
-                foreach (var enumerable in this._enumerable._enumerables)
+                foreach (var source in this._enumerable._sources)
                 {
-                    var enumerator = enumerable.GetFeatureEnumerator(this._cancellationToken);
+                    var enumerator = new PreloadableFeatureEnumerator<T>(source.GetFeatureEnumerator(this._cancellationToken));
                     enumerators.Add(enumerator);
                     tasks[i] = this.StartEnumeratorAsync(enumerator);
                     i++;
@@ -110,15 +105,15 @@ namespace Chloe.Sharding
                     //TODO 处理异常
                     await Task.WhenAll(tasks);
                 }
-                finally
+                catch
                 {
                     foreach (var enumerator in enumerators)
                     {
                         await enumerator.Dispose(@async);
                     }
-                }
 
-                enumerators = enumerators.Select(a => new FeatureEnumeratorWrapper<T>(a) as IFeatureEnumerator<T>).ToList();
+                    throw;
+                }
 
                 if (enumerators.Count == 0)
                 {

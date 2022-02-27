@@ -1,7 +1,4 @@
-﻿using Chloe.Reflection;
-using Chloe.Threading.Tasks;
-using System.Collections;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 
 namespace Chloe.Sharding
@@ -12,18 +9,13 @@ namespace Chloe.Sharding
     /// <typeparam name="T"></typeparam>
     class OrderedFeatureEnumerable<T> : FeatureEnumerable<T>
     {
-        IFeatureEnumerable<T> _enumerable;
+        IFeatureEnumerable<T> _source;
         List<OrderProperty> _orders;
 
-        public OrderedFeatureEnumerable(IFeatureEnumerable<T> enumerable, List<OrderProperty> orders)
+        public OrderedFeatureEnumerable(IFeatureEnumerable<T> source, List<OrderProperty> orders)
         {
-            this._enumerable = enumerable;
+            this._source = source;
             this._orders = orders;
-        }
-
-        public override IFeatureEnumerator<T> GetFeatureEnumerator()
-        {
-            return this.GetFeatureEnumerator(default(CancellationToken));
         }
 
         public override IFeatureEnumerator<T> GetFeatureEnumerator(CancellationToken cancellationToken = default)
@@ -36,7 +28,7 @@ namespace Chloe.Sharding
             OrderedFeatureEnumerable<T> _enumerable;
             List<OrderProperty> _orders;
 
-            List<object> _orderValues;
+            object[] _orderValues;
             CancellationToken _cancellationToken;
 
             public Enumerator(OrderedFeatureEnumerable<T> enumerable, CancellationToken cancellationToken = default)
@@ -44,10 +36,10 @@ namespace Chloe.Sharding
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;
                 this._orders = enumerable._orders;
-                this._orderValues = new List<object>(this._orders.Count);
+                this._orderValues = new object[this._orders.Count];
             }
 
-            public List<object> GetOrderValues()
+            public object[] GetOrderValues()
             {
                 return this._orderValues;
             }
@@ -55,7 +47,11 @@ namespace Chloe.Sharding
             {
                 if (!hasNext)
                 {
-                    this._orderValues.Clear();
+                    //for (int i = 0; i < this._orderValues.Length; i++)
+                    //{
+                    //    this._orderValues[i] = null;
+                    //}
+
                     return;
                 }
 
@@ -119,7 +115,7 @@ namespace Chloe.Sharding
 
             protected override async Task<IFeatureEnumerator<T>> CreateEnumerator(bool async)
             {
-                return this._enumerable._enumerable.GetFeatureEnumerator(this._cancellationToken);
+                return this._enumerable._source.GetFeatureEnumerator(this._cancellationToken);
             }
 
             protected override async BoolResultTask MoveNext(bool @async)

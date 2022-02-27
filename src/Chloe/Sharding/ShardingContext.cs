@@ -1,35 +1,46 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Chloe.Descriptors;
 using System.Reflection;
-using System.Text;
 
 namespace Chloe.Sharding
 {
     internal interface IShardingContext
     {
+        TypeDescriptor TypeDescriptor { get; }
         ShardingDbContext DbContext { get; }
         IShardingRoute Route { get; }
+        int MaxConnectionsPerDatabase { get; }
+        int MaxInItems { get; }
+        bool IsPrimaryKey(MemberInfo member);
         bool IsShardingMember(MemberInfo member);
     }
 
     class ShardingContext : IShardingContext
     {
-        public ShardingContext(ShardingDbContext dbContext, IShardingConfig shardingConfig)
+        public ShardingContext(ShardingDbContext dbContext, IShardingConfig shardingConfig, TypeDescriptor typeDescriptor)
         {
             this.DbContext = dbContext;
+            this.TypeDescriptor = typeDescriptor;
             this.ShardingConfig = shardingConfig;
             this.Route = shardingConfig.RouteFactory.CreateRoute();
         }
 
+        public TypeDescriptor TypeDescriptor { get; set; }
         public ShardingDbContext DbContext { get; set; }
-
         public IShardingRoute Route { get; private set; }
+
+        public int MaxConnectionsPerDatabase { get { return this.DbContext.Options.MaxConnectionsPerDatabase; } }
+        public int MaxInItems { get { return this.DbContext.Options.MaxInItems; } }
 
         public IShardingConfig ShardingConfig { get; private set; }
 
         public bool IsShardingMember(MemberInfo member)
         {
             return this.ShardingConfig.ShardingKey == member;
+        }
+
+        public bool IsPrimaryKey(MemberInfo member)
+        {
+            return this.TypeDescriptor.IsPrimaryKey(member);
         }
     }
 
@@ -94,7 +105,7 @@ namespace Chloe.Sharding
 
     public class SortResult
     {
-        public bool IsSorted { get; set; }
+        public bool IsOrdered { get; set; }
         public List<PhysicTable> Tables { get; set; }
     }
 }

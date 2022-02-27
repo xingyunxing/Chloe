@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace Chloe.Sharding
 {
     static class ShareObjectPoolExtension
     {
-        public static async Task<IPoolResource<T>> GetOne<T>(this IShareObjectPool<T> pool, bool @async)
+        public static async Task<IPoolItem<T>> GetOne<T>(this IShareObjectPool<T> pool, bool @async)
         {
             if (async)
             {
@@ -22,17 +18,15 @@ namespace Chloe.Sharding
 
     internal interface IShareObjectPool<T> : IDisposable
     {
-        Task<IPoolResource<T>> GetAsync();
-        IPoolResource<T> Get();
-        //void Return(T obj);
+        int Size { get; }
+        Task<IPoolItem<T>> GetAsync();
+        IPoolItem<T> Get();
     }
 
-    internal interface IPoolResource<T> : IDisposable
+    internal interface IPoolItem<T> : IDisposable
     {
         public T Resource { get; }
     }
-
-
 
     interface IShareDbContextPool : IShareObjectPool<IDbContext>
     {
@@ -52,6 +46,8 @@ namespace Chloe.Sharding
             this.Stocks = new Queue<T>(objects);
             this.Waitings = new Queue<TaskCompletionSource<T>>();
         }
+
+        public int Size { get { return this.All.Count; } }
 
         public void Dispose()
         {
@@ -75,7 +71,7 @@ namespace Chloe.Sharding
             this._disposed = true;
         }
 
-        public async Task<IPoolResource<T>> GetAsync()
+        public async Task<IPoolItem<T>> GetAsync()
         {
             if (this._disposed)
             {
@@ -90,10 +86,10 @@ namespace Chloe.Sharding
             }
 
             var resource = await tcs.Task;
-            return new PoolResource(resource, this);
+            return new PoolItem(resource, this);
         }
 
-        public IPoolResource<T> Get()
+        public IPoolItem<T> Get()
         {
             return this.GetAsync().GetAwaiter().GetResult();
         }
@@ -122,12 +118,12 @@ namespace Chloe.Sharding
             tcs.TrySetResult(obj);
         }
 
-        class PoolResource : IPoolResource<T>
+        class PoolItem : IPoolItem<T>
         {
             ShareObjectPool<T> Pool;
             bool _disposed;
 
-            public PoolResource(T resource, ShareObjectPool<T> pool)
+            public PoolItem(T resource, ShareObjectPool<T> pool)
             {
                 this.Resource = resource;
                 this.Pool = pool;

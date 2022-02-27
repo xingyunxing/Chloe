@@ -1,9 +1,6 @@
 ﻿using Chloe.Threading.Tasks;
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,20 +12,17 @@ namespace Chloe.Sharding.Queries
     /// <typeparam name="T"></typeparam>
     class SingleTableDataQuery<T> : FeatureEnumerable<T>
     {
+        IParallelQueryContext QueryContext;
         IShareDbContextPool DbContextPool;
         DataQueryModel QueryModel;
         bool LazyQuery;
 
-        public SingleTableDataQuery(IShareDbContextPool dbContextPool, DataQueryModel queryModel, bool lazyQuery)
+        public SingleTableDataQuery(IParallelQueryContext queryContext, IShareDbContextPool dbContextPool, DataQueryModel queryModel, bool lazyQuery)
         {
+            this.QueryContext = queryContext;
             this.DbContextPool = dbContextPool;
             this.QueryModel = queryModel;
             this.LazyQuery = lazyQuery;
-        }
-
-        public override IFeatureEnumerator<T> GetFeatureEnumerator()
-        {
-            return this.GetFeatureEnumerator(default(CancellationToken));
         }
 
         public override IFeatureEnumerator<T> GetFeatureEnumerator(CancellationToken cancellationToken = default)
@@ -38,18 +32,14 @@ namespace Chloe.Sharding.Queries
 
         class Enumerator : IFeatureEnumerator<T>
         {
-            IShareDbContextPool DbContextPool;
-            DataQueryModel QueryModel;
-            bool LazyQuery;
+            SingleTableDataQuery<T> _enumerable;
 
             IFeatureEnumerator<T> _enumerator;
-            IPoolResource<IDbContext> PoolResource;
+            IPoolItem<IDbContext> _poolItem;
 
             public Enumerator(SingleTableDataQuery<T> enumerable)
             {
-                this.DbContextPool = enumerable.DbContextPool;
-                this.QueryModel = enumerable.QueryModel;
-                this.LazyQuery = enumerable.LazyQuery;
+                this._enumerable = enumerable;
             }
 
             public T Current => (this._enumerator as IEnumerator<T>).Current;
@@ -58,13 +48,28 @@ namespace Chloe.Sharding.Queries
 
             public void Dispose()
             {
-                this.PoolResource?.Dispose();
+                this.Dispose(false).GetResult();
             }
 
             public ValueTask DisposeAsync()
             {
-                this.PoolResource?.Dispose();
-                return default;
+                return this.Dispose(true);
+            }
+
+            async ValueTask Dispose(bool @async)
+            {
+                this._poolItem?.Dispose();
+                if (@async)
+                {
+                    if (this._enumerator != null)
+                    {
+                        await this._enumerator.DisposeAsync();
+                    }
+                }
+                else
+                {
+                    this._enumerator.Dispose();
+                }
             }
 
             public bool MoveNext()
@@ -81,28 +86,41 @@ namespace Chloe.Sharding.Queries
             {
                 if (this._enumerator == null)
                 {
-                    IPoolResource<IDbContext> poolResource = await this.DbContextPool.GetOne(@async);
-                    this.PoolResource = poolResource;
+                    IPoolItem<IDbContext> poolItem = await this._enumerable.DbContextPool.GetOne(@async);
+
+                    this._poolItem = poolItem;
                     try
                     {
-                        var q = this.MakeQuery(poolResource.Resource);
+                        var q = this.MakeQuery(poolItem.Resource);
 
-                        if (!this.LazyQuery)
+                        bool canceled = this._enumerable.QueryContext.BeforeExecuteCommand();
+                        if (canceled)
                         {
-                            var dataList = @async ? await q.ToListAsync() : q.ToList();
-                            this._enumerator = new FeatureEnumeratorAdapter<T>(dataList.GetEnumerator());
+                            this._enumerator = new NullFeatureEnumerator<T>();
+                            poolItem.Dispose();
+                            return;
+                        }
+
+                        if (this._enumerable.LazyQuery)
+                        {
+                            var en = q.AsEnumerable();
+                            this._enumerable.QueryContext.AfterExecuteCommand(en);
+                            this._enumerator = new FeatureEnumeratorAdapter<T>(en.GetEnumerator());
                         }
                         else
                         {
-                            this._enumerator = new FeatureEnumeratorAdapter<T>(q.AsEnumerable().GetEnumerator());
 
+                            var dataList = @async ? await q.ToListAsync() : q.ToList();
+                            this._enumerable.QueryContext.AfterExecuteCommand(dataList);
+                            this._enumerator = new FeatureEnumeratorAdapter<T>(dataList.GetEnumerator());
                         }
                     }
                     finally
                     {
-                        if (!this.LazyQuery)
+                        if (!this._enumerable.LazyQuery)
                         {
-                            poolResource.Dispose();
+                            poolItem.Dispose();
+                            this._poolItem = null;
                         }
                     }
                 }
@@ -120,7 +138,7 @@ namespace Chloe.Sharding.Queries
 
             IQuery<T> MakeQuery(IDbContext dbContext)
             {
-                var queryModel = this.QueryModel;
+                var queryModel = this._enumerable.QueryModel;
                 var q = dbContext.Query<T>(queryModel.Table.Name);
 
                 //var whereMethod = q.GetType().GetMethod(nameof(IQuery<int>.Where));

@@ -1,6 +1,4 @@
-﻿using System.Data;
-
-namespace Chloe.Sharding
+﻿namespace Chloe.Sharding
 {
     public interface IPhysicDbContextFactory
     {

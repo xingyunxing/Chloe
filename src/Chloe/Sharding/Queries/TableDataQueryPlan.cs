@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Chloe.Sharding.Queries
+﻿namespace Chloe.Sharding.Queries
 {
-    class TableDataQueryModel<T>
+    class TableDataQueryPlan<T>
     {
         public PhysicTable Table { get; set; }
         public DataQueryModel QueryModel { get; set; }

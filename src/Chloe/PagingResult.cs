@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Chloe
+﻿namespace Chloe
 {
     public class PagingResult<T>
     {
-        public int Count { get; set; }
+        public long Count { get; set; }
         public List<T> DataList { get; set; }
     }
 }

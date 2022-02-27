@@ -438,12 +438,7 @@ namespace Chloe.Query
             return this.GenerateIterator();
         }
 
-        IEnumerable<T> GenerateIterator()
-        {
-            InternalQuery<T> internalQuery = new InternalQuery<T>(this);
-            return internalQuery;
-        }
-        IAsyncEnumerable<T> GenerateAsyncIterator()
+        FeatureEnumerable<T> GenerateIterator()
         {
             InternalQuery<T> internalQuery = new InternalQuery<T>(this);
             return internalQuery;
@@ -459,7 +454,7 @@ namespace Chloe.Query
         async Task<TResult> ExecuteAggregateQueryAsync<TResult>(MethodInfo method, Expression argument, bool checkArgument = true)
         {
             var q = this.CreateAggregateQuery<TResult>(method, argument, checkArgument);
-            var iterator = q.GenerateAsyncIterator();
+            var iterator = q.GenerateIterator();
             return await iterator.SingleAsync();
         }
 

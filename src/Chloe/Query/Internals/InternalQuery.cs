@@ -8,7 +8,6 @@ using Chloe.Query.QueryState;
 using Chloe.Query.Visitors;
 using Chloe.Reflection;
 using Chloe.Utility;
-using System.Collections;
 using System.Data;
 using System.Threading;
 

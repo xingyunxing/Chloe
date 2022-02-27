@@ -1,26 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Chloe.Reflection;
 using System.Linq.Expressions;
-using System.Reflection;
-using Chloe.Extensions;
 
 namespace Chloe.Sharding
 {
-    public class Ordering
-    {
-        /// <summary>
-        /// 必须是属性成员，不然没办法在内存里计算排序值
-        /// </summary>
-        public MemberInfo Member { get; set; }
-        public LambdaExpression KeySelector { get; set; }
-        public bool Ascending { get; set; }
-    }
-    public enum OrderType
-    {
-        Asc,
-        Desc
-    }
-
     internal class ShardingQueryModel
     {
         public int? Skip { get; set; }
@@ -34,29 +16,18 @@ namespace Chloe.Sharding
         public List<LambdaExpression> GlobalFilters { get; set; } = new List<LambdaExpression>();
         public List<LambdaExpression> ContextFilters { get; set; } = new List<LambdaExpression>();
 
-        //public void AppendCondition(LambdaExpression condition)
-        //{
-        //    if (this.Condition == null)
-        //    {
-        //        this.Condition = condition;
-        //        return;
-        //    }
+        public List<OrderProperty> MakeOrderProperties()
+        {
+            List<OrderProperty> orders = new List<OrderProperty>(this.Orderings.Count);
+            for (int i = 0; i < this.Orderings.Count; i++)
+            {
+                var ordering = this.Orderings[i];
+                var valueGetter = MemberGetterContainer.Get(ordering.Member);
+                var orderProperty = new OrderProperty() { Member = ordering.Member, Ascending = ordering.Ascending, ValueGetter = valueGetter };
+                orders.Add(orderProperty);
+            }
 
-        //    this.Condition.AndAlso(condition);
-        //}
-    }
-
-    internal class DataQueryModel
-    {
-        public PhysicTable Table { get; set; }
-
-        public int? Skip { get; set; }
-        public int? Take { get; set; }
-
-        public bool IgnoreAllFilters { get; set; }
-
-        public List<LambdaExpression> Conditions { get; set; } = new List<LambdaExpression>();
-        public List<Ordering> Orderings { get; set; } = new List<Ordering>();
-        public LambdaExpression Selector { get; set; }
+            return orders;
+        }
     }
 }

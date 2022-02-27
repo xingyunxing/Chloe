@@ -1,24 +1,17 @@
-﻿using Chloe.Core.Visitors;
-using Chloe.Descriptors;
-using Chloe.Infrastructure;
+﻿using Chloe.Descriptors;
 using Chloe.Reflection;
-using Chloe.Threading.Tasks;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Chloe.Sharding.Queries
 {
-    class DynamicDataQueryModel<TEntity>
+    class DynamicDataQueryPlan<TEntity>
     {
         public PhysicTable Table { get; set; }
         public DataQueryModel QueryModel { get; set; }
 
-        public DynamicQueryEnumerable<TEntity> Query { get; set; }
+        public DynamicModelQuery<TEntity> Query { get; set; }
 
         //public List<object> DataList { get; set; }
         public List<object> Keys { get; set; } = new List<object>();
@@ -30,15 +23,11 @@ namespace Chloe.Sharding.Queries
     /// <typeparam name="TEntity"></typeparam>
     internal class MultTableKeyQuery<TEntity> : FeatureEnumerable<MultTableKeyQueryResult>
     {
-        List<PhysicTable> _tables;
-        ShardingQueryModel _queryModel;
-        int _maxConnectionsPerDatabase;
+        ShardingQueryPlan _queryPlan;
 
-        public MultTableKeyQuery(List<PhysicTable> tables, ShardingQueryModel queryModel, int maxConnectionsPerDatabase)
+        public MultTableKeyQuery(ShardingQueryPlan queryPlan)
         {
-            this._tables = tables;
-            this._queryModel = queryModel;
-            this._maxConnectionsPerDatabase = maxConnectionsPerDatabase;
+            this._queryPlan = queryPlan;
         }
 
         public override IFeatureEnumerator<MultTableKeyQueryResult> GetFeatureEnumerator(CancellationToken cancellationToken = default)
@@ -49,72 +38,95 @@ namespace Chloe.Sharding.Queries
         class Enumerator : FeatureEnumerator<MultTableKeyQueryResult>
         {
             MultTableKeyQuery<TEntity> _enumerable;
-            List<PhysicTable> _tables;
-            ShardingQueryModel _queryModel;
-            int _maxConnectionsPerDatabase;
-
             CancellationToken _cancellationToken;
 
             public Enumerator(MultTableKeyQuery<TEntity> enumerable, CancellationToken cancellationToken = default)
             {
                 this._enumerable = enumerable;
-                this._tables = enumerable._tables;
-                this._queryModel = enumerable._queryModel;
-                this._maxConnectionsPerDatabase = enumerable._maxConnectionsPerDatabase;
-
                 this._cancellationToken = cancellationToken;
             }
 
+            ShardingQueryPlan QueryPlan { get { return this._enumerable._queryPlan; } }
+            IShardingContext ShardingContext { get { return this._enumerable._queryPlan.ShardingContext; } }
+            ShardingQueryModel QueryModel { get { return this._enumerable._queryPlan.QueryModel; } }
+            List<PhysicTable> Tables { get { return this._enumerable._queryPlan.RouteTables; } }
+            TypeDescriptor EntityTypeDescriptor { get { return this._enumerable._queryPlan.ShardingContext.TypeDescriptor; } }
+
             protected override async Task<IFeatureEnumerator<MultTableKeyQueryResult>> CreateEnumerator(bool @async)
             {
-                List<PhysicTable> tables = this._tables;
-                ShardingQueryModel queryModel = this._queryModel;
-                int maxConnectionsPerDatabase = this._maxConnectionsPerDatabase;
+                ParallelQueryContext queryContext = new ParallelQueryContext();
 
-                List<Type> dynamicTypeProperties = new List<Type>(2 + queryModel.Orderings.Count);
-                TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(TEntity));
-                dynamicTypeProperties.Add(typeDescriptor.PrimaryKeys.First().PropertyType);
+                DynamicType dynamicType = this.GetDynamicType();
+                try
+                {
+                    List<DynamicDataQueryPlan<TEntity>> dataQueryPlans = this.MakeDynamicDataQueryPlans(queryContext, dynamicType);
+                    List<OrderProperty> orders = this.MakeOrderings(dynamicType);
+
+                    await this.ExecuteQuery(queryContext, dataQueryPlans, dynamicType, orders);
+
+                    var tableKeyResult = dataQueryPlans.Select(a => new MultTableKeyQueryResult() { Table = a.Table, Keys = a.Keys });
+
+                    return new FeatureEnumeratorAdapter<MultTableKeyQueryResult>(tableKeyResult.GetEnumerator());
+                }
+                catch
+                {
+                    queryContext.Dispose();
+                    throw;
+                }
+            }
+
+            DynamicType GetDynamicType()
+            {
+                List<Type> dynamicTypeProperties = new List<Type>(2 + this.QueryModel.Orderings.Count);
+
+                dynamicTypeProperties.Add(this.ShardingContext.TypeDescriptor.PrimaryKeys.First().PropertyType);
                 dynamicTypeProperties.Add(typeof(int));
-                dynamicTypeProperties.AddRange(queryModel.Orderings.Select(a => a.Member.GetMemberType()));
+                dynamicTypeProperties.AddRange(this.QueryModel.Orderings.Select(a => a.Member.GetMemberType()));
 
                 //new Dynamic() { Id,Ordinal,Order1,Order2... }
                 DynamicType dynamicType = DynamicTypeContainer.Get(dynamicTypeProperties);
 
-                List<DynamicDataQueryModel<TEntity>> dataQueries = new List<DynamicDataQueryModel<TEntity>>(tables.Count);
-                for (int i = 0; i < tables.Count; i++)
+                return dynamicType;
+            }
+            List<DynamicDataQueryPlan<TEntity>> MakeDynamicDataQueryPlans(ParallelQueryContext queryContext, DynamicType dynamicType)
+            {
+                List<DynamicDataQueryPlan<TEntity>> dataQueryPlans = new List<DynamicDataQueryPlan<TEntity>>(this.Tables.Count);
+                for (int i = 0; i < this.Tables.Count; i++)
                 {
-                    var table = tables[i];
-                    LambdaExpression selector = ShardingHelpers.MakeDynamicSelector<TEntity>(queryModel, dynamicType, typeDescriptor, i);
-
-                    DynamicDataQueryModel<TEntity> dataQuery = new DynamicDataQueryModel<TEntity>();
-                    DataQueryModel dataQueryModel = new DataQueryModel();
-                    dataQueryModel.Table = table;
-                    dataQueryModel.IgnoreAllFilters = queryModel.IgnoreAllFilters;
-                    dataQueryModel.Conditions.AddRange(queryModel.Conditions);
-                    dataQueryModel.Orderings.AddRange(queryModel.Orderings);
+                    var table = this.Tables[i];
+                    LambdaExpression selector = ShardingHelpers.MakeDynamicSelector<TEntity>(this.QueryPlan, dynamicType, this.EntityTypeDescriptor, i);
+                    DataQueryModel dataQueryModel = ShardingHelpers.MakeDataQueryModel(table, this.QueryPlan.QueryModel);
                     dataQueryModel.Selector = selector;
 
-                    dataQuery.QueryModel = dataQueryModel;
-                    dataQuery.Table = table;
+                    DynamicDataQueryPlan<TEntity> dataQueryPlan = new DynamicDataQueryPlan<TEntity>();
+                    dataQueryPlan.QueryModel = dataQueryModel;
+                    dataQueryPlan.Table = table;
 
-                    dataQueries.Add(dataQuery);
+                    dataQueryPlans.Add(dataQueryPlan);
                 }
 
-                foreach (var group in dataQueries.GroupBy(a => a.Table.DataSource.Name))
+                foreach (var group in dataQueryPlans.GroupBy(a => a.Table.DataSource.Name))
                 {
                     int count = group.Count();
 
-                    List<IDbContext> dbContexts = ShardingHelpers.CreateDbContexts(group.First().Table.DataSource.DbContextFactory, count, maxConnectionsPerDatabase);
-                    ShareDbContextPool dbContextPool = new ShareDbContextPool(dbContexts);
+                    ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(group.First().Table.DataSource.DbContextFactory, count, this.QueryPlan.ShardingContext.MaxConnectionsPerDatabase);
+                    queryContext.AddManagedResource(dbContextPool);
 
-                    bool lazyQuery = dbContexts.Count >= count;
+                    bool lazyQuery = dbContextPool.Size >= count;
 
                     foreach (var dataQuery in group)
                     {
-                        DynamicQueryEnumerable<TEntity> query = new DynamicQueryEnumerable<TEntity>(dbContextPool, dataQuery.QueryModel, lazyQuery);
+                        DynamicModelQuery<TEntity> query = new DynamicModelQuery<TEntity>(dbContextPool, dataQuery.QueryModel, lazyQuery);
                         dataQuery.Query = query;
                     }
                 }
+
+                return dataQueryPlans;
+            }
+
+            List<OrderProperty> MakeOrderings(DynamicType dynamicType)
+            {
+                var queryModel = this._enumerable._queryPlan.QueryModel;
 
                 List<OrderProperty> orders = new List<OrderProperty>(queryModel.Orderings.Count);
 
@@ -126,31 +138,39 @@ namespace Chloe.Sharding.Queries
                     orders.Add(orderProperty);
                 }
 
-                ParallelMergeEnumerable<object> mergeEnumerable = new ParallelMergeEnumerable<object>(dataQueries.Select(a => new OrderedFeatureEnumerable<object>(a.Query, orders)));
+                return orders;
+            }
+
+            async Task ExecuteQuery(ParallelQueryContext queryContext, List<DynamicDataQueryPlan<TEntity>> dataQueryPlans, DynamicType dynamicType, List<OrderProperty> orders)
+            {
+                ParallelMergeEnumerable<object> mergeEnumerable = new ParallelMergeEnumerable<object>(queryContext, dataQueryPlans.Select(a => new OrderedFeatureEnumerable<object>(a.Query, orders)));
 
                 MemberGetter keyGetter = dynamicType.GetPrimaryKeyGetter();
 
-                using (var mergeEnumerator = mergeEnumerable.GetFeatureEnumerator(this._cancellationToken))
+                IAsyncEnumerable<object> asyncEnumerable = mergeEnumerable;
+
+                if (this.QueryModel.Skip != null)
                 {
-                    var tableIndexGetter = dynamicType.GetTableIndexGetter();
-                    int idx = 0;
-
-                    while (await mergeEnumerator.MoveNextAsync())
-                    {
-                        object obj = mergeEnumerator.GetCurrent();
-                        int tableIndex = (int)tableIndexGetter(obj);
-                        var stub = dataQueries[tableIndex];
-                        //stub.DataList.Add(obj);
-
-                        object key = keyGetter(obj);
-                        stub.Keys.Add(key);
-                        idx++;
-                    }
+                    asyncEnumerable = asyncEnumerable.Skip(this.QueryModel.Skip.Value);
+                }
+                if (this.QueryModel.Take != null)
+                {
+                    asyncEnumerable = asyncEnumerable.Take(this.QueryModel.Take.Value);
                 }
 
-                var tableKeyResult = dataQueries.Select(a => new MultTableKeyQueryResult() { Table = a.Table, Keys = a.Keys });
+                var tableIndexGetter = dynamicType.GetTableIndexGetter();
+                await asyncEnumerable.ForEach(obj =>
+                {
+                    int tableIndex = (int)tableIndexGetter(obj);
+                    object key = keyGetter(obj);
 
-                return new FeatureEnumeratorAdapter<MultTableKeyQueryResult>(tableKeyResult.GetEnumerator());
+                    var stub = dataQueryPlans[tableIndex];
+                    stub.Keys.Add(key);
+                    //stub.DataList.Add(obj);
+
+                    //Console.WriteLine($"key: {key} index: {tableIndex} skips: {skips} {stub.QueryModel.Table.Name} {stub.QueryModel.Table.DataSource.Name}");
+
+                }, this._cancellationToken);
             }
         }
     }
