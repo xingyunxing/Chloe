@@ -22,9 +22,9 @@ namespace Chloe.Sharding
 
         }
 
-        Query<T> AsQuery(IQuery<T> query)
+        ShardingQuery<T> AsShardingQuery(IQuery<T> query)
         {
-            return query as Query<T>;
+            return query as ShardingQuery<T>;
         }
 
         Type IQuery.ElementType { get { return typeof(T); } }
@@ -176,22 +176,23 @@ namespace Chloe.Sharding
 
         public T First()
         {
-            throw new NotImplementedException();
+            return this.Take(1).AsEnumerable().First();
         }
 
         public T First(Expression<Func<T, bool>> predicate)
         {
-            throw new NotImplementedException();
+            return this.Where(predicate).First();
         }
 
-        public Task<T> FirstAsync()
+        public async Task<T> FirstAsync()
         {
-            throw new NotImplementedException();
+            var q = this.Take(1) as ShardingQuery<T>;
+            return await (await q.Execute()).FirstAsync();
         }
 
         public Task<T> FirstAsync(Expression<Func<T, bool>> predicate)
         {
-            throw new NotImplementedException();
+            return this.Where(predicate).FirstAsync();
         }
 
         public T FirstOrDefault()
@@ -201,17 +202,18 @@ namespace Chloe.Sharding
 
         public T FirstOrDefault(Expression<Func<T, bool>> predicate)
         {
-            throw new NotImplementedException();
+            return this.Where(predicate).FirstOrDefault();
         }
 
-        public Task<T> FirstOrDefaultAsync()
+        public async Task<T> FirstOrDefaultAsync()
         {
-            throw new NotImplementedException();
+            var q = this.Take(1) as ShardingQuery<T>;
+            return await (await q.Execute()).FirstOrDefaultAsync();
         }
 
         public Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate)
         {
-            throw new NotImplementedException();
+            return this.Where(predicate).FirstOrDefaultAsync();
         }
 
         public IJoinQuery<T, TOther> FullJoin<TOther>(Expression<Func<T, TOther, bool>> on)
