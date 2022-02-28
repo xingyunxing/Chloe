@@ -1,4 +1,10 @@
-﻿using System.Collections;
+﻿/*
+ * Copy from sharding-core: https://github.com/dotnetcore/sharding-core/blob/main/src/ShardingCore/Core/Internal/PriorityQueues/PriorityQueue.cs
+ * License: Apache License 2.0 https://github.com/dotnetcore/sharding-core/blob/main/LICENSE 
+ * Home page: https://github.com/dotnetcore/sharding-core
+ */
+
+using System.Collections;
 
 namespace Chloe.Sharding
 {

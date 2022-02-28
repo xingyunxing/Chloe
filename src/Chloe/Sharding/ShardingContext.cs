@@ -50,48 +50,35 @@ namespace Chloe.Sharding
         //{
         //    return shardingContext.Route.is
         //}
-        public static List<PhysicTable> GetPhysicTables(this IShardingContext shardingContext)
+        public static List<RouteTable> GetTables(this IShardingContext shardingContext)
         {
-            return shardingContext.Route.GetPhysicTables(shardingContext.DbContext);
+            return shardingContext.Route.GetTables(shardingContext.DbContext);
         }
-        public static List<PhysicTable> GetPhysicTables(this IShardingContext shardingContext, object shardingValue, ShardingOperator shardingOperator)
+        public static List<RouteTable> GetTables(this IShardingContext shardingContext, object shardingValue, ShardingOperator shardingOperator)
         {
-            return shardingContext.Route.GetPhysicTables(shardingContext.DbContext, shardingValue, shardingOperator);
+            return shardingContext.Route.GetTables(shardingContext.DbContext, shardingValue, shardingOperator);
         }
-        public static PhysicTable GetPhysicTable(this IShardingContext shardingContext, object shardingValue)
+        public static RouteTable GetTable(this IShardingContext shardingContext, object shardingValue)
         {
-            return shardingContext.Route.GetPhysicTable(shardingContext.DbContext, shardingValue);
+            return shardingContext.Route.GetTable(shardingContext.DbContext, shardingValue);
         }
-        public static List<PhysicTable> GetPhysicTableByKey(this IShardingContext shardingContext, object keyValue)
+        public static List<RouteTable> GetTablesByKey(this IShardingContext shardingContext, object keyValue)
         {
-            return shardingContext.Route.GetPhysicTableByKey(shardingContext.DbContext, keyValue);
+            return shardingContext.Route.GetTablesByKey(shardingContext.DbContext, keyValue);
         }
-        public static SortResult SortTables(this IShardingContext shardingContext, List<PhysicTable> physicTables, List<Ordering> orderings)
+        public static SortResult SortTables(this IShardingContext shardingContext, List<RouteTable> tables, List<Ordering> orderings)
         {
-            return shardingContext.Route.SortTables(shardingContext.DbContext, physicTables, orderings);
+            return shardingContext.Route.SortTables(shardingContext.DbContext, tables, orderings);
         }
     }
 
-    //public interface PhysicTable
+    //public interface RouteTable
     //{
     //    string Name { get; set; }
     //    string Schema { get; set; }
     //    //string Database { get; set; }
     //    DataSource DataSource { get; set; }
     //}
-
-    public class PhysicTable
-    {
-        public string Name { get; set; }
-        public string Schema { get; set; }
-        public DataSource DataSource { get; set; }
-    }
-
-    public class DataSource
-    {
-        public string Name { get; set; }
-        public IPhysicDbContextFactory DbContextFactory { get; set; }
-    }
 
     public enum ShardingOperator
     {
@@ -106,6 +93,6 @@ namespace Chloe.Sharding
     public class SortResult
     {
         public bool IsOrdered { get; set; }
-        public List<PhysicTable> Tables { get; set; }
+        public List<RouteTable> Tables { get; set; }
     }
 }

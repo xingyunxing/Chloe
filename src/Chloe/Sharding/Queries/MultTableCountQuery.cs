@@ -5,9 +5,8 @@ using System.Threading.Tasks;
 
 namespace Chloe.Sharding.Queries
 {
-    class PhysicTableCountQueryModel<T>
+    class TableCountQueryPlan<T>
     {
-        public PhysicTable Table { get; set; }
         public DataQueryModel QueryModel { get; set; }
         public SingleTableCountQuery<T> Query { get; set; }
     }
@@ -20,7 +19,7 @@ namespace Chloe.Sharding.Queries
     {
         ShardingQueryPlan _queryPlan;
         IShardingContext _shardingContext;
-        List<PhysicTable> _tables;
+        List<RouteTable> _tables;
 
         public MultTableCountQuery(ShardingQueryPlan queryPlan)
         {
@@ -83,39 +82,38 @@ namespace Chloe.Sharding.Queries
                 var queryPlan = this._enumerable._queryPlan;
                 int maxConnectionsPerDatabase = this._enumerable._shardingContext.MaxConnectionsPerDatabase;
 
-                List<PhysicTableCountQueryModel<TEntity>> countQueryList = new List<PhysicTableCountQueryModel<TEntity>>(tables.Count);
-                foreach (PhysicTable table in tables)
+                List<TableCountQueryPlan<TEntity>> countQueryPlans = new List<TableCountQueryPlan<TEntity>>(tables.Count);
+                foreach (RouteTable table in tables)
                 {
-                    PhysicTableCountQueryModel<TEntity> countQuery = new PhysicTableCountQueryModel<TEntity>();
-                    countQuery.Table = table;
+                    TableCountQueryPlan<TEntity> countQuery = new TableCountQueryPlan<TEntity>();
 
                     DataQueryModel dataQueryModel = new DataQueryModel();
-                    dataQueryModel.Table = countQuery.Table;
+                    dataQueryModel.Table = table;
                     dataQueryModel.IgnoreAllFilters = queryPlan.QueryModel.IgnoreAllFilters;
                     dataQueryModel.Conditions.AddRange(queryPlan.QueryModel.Conditions);
 
                     countQuery.QueryModel = dataQueryModel;
 
-                    countQueryList.Add(countQuery);
+                    countQueryPlans.Add(countQuery);
                 }
 
                 ParallelQueryContext queryContext = new ParallelQueryContext();
 
-                foreach (var group in countQueryList.GroupBy(a => a.Table.DataSource.Name))
+                foreach (var group in countQueryPlans.GroupBy(a => a.QueryModel.Table.DataSource.Name))
                 {
                     int count = group.Count();
 
-                    ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(group.First().Table.DataSource.DbContextFactory, count, maxConnectionsPerDatabase);
+                    ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(group.First().QueryModel.Table.DataSource.DbContextFactory, count, maxConnectionsPerDatabase);
                     queryContext.AddManagedResource(dbContextPool);
 
-                    foreach (PhysicTableCountQueryModel<TEntity> countQuery in group)
+                    foreach (TableCountQueryPlan<TEntity> countQuery in group)
                     {
                         SingleTableCountQuery<TEntity> query = new SingleTableCountQuery<TEntity>(dbContextPool, countQuery.QueryModel);
                         countQuery.Query = query;
                     }
                 }
 
-                ParallelConcatEnumerable<long> countQueryEnumerable = new ParallelConcatEnumerable<long>(queryContext, countQueryList.Select(a => a.Query));
+                ParallelConcatEnumerable<long> countQueryEnumerable = new ParallelConcatEnumerable<long>(queryContext, countQueryPlans.Select(a => a.Query));
                 this._innerEnumerator = countQueryEnumerable.GetFeatureEnumerator(this._cancellationToken);
             }
             async BoolResultTask MoveNext(bool @async)
@@ -133,7 +131,7 @@ namespace Chloe.Sharding.Queries
                     return false;
                 }
 
-                PhysicTable table = this._enumerable._tables[this._currentIdx++];
+                RouteTable table = this._enumerable._tables[this._currentIdx++];
                 this._current = new MultTableCountQueryResult() { Table = table, Count = this._innerEnumerator.GetCurrent() };
                 return true;
             }

@@ -12,7 +12,7 @@ namespace Chloe.Sharding.Queries
     {
         ShardingQueryPlan _queryPlan;
         IShardingContext _shardingContext;
-        List<PhysicTable> _tables;
+        List<RouteTable> _tables;
 
         public DisorderedMultTableDataQuery(ShardingQueryPlan queryPlan)
         {
@@ -40,7 +40,7 @@ namespace Chloe.Sharding.Queries
             ShardingQueryPlan QueryPlan { get { return this._enumerable._queryPlan; } }
             IShardingContext ShardingContext { get { return this._enumerable._queryPlan.ShardingContext; } }
             ShardingQueryModel QueryModel { get { return this._enumerable._queryPlan.QueryModel; } }
-            List<PhysicTable> Tables { get { return this._enumerable._queryPlan.RouteTables; } }
+            List<RouteTable> Tables { get { return this._enumerable._queryPlan.RouteTables; } }
             TypeDescriptor EntityTypeDescriptor { get { return this._enumerable._queryPlan.ShardingContext.TypeDescriptor; } }
 
             protected override async Task<IFeatureEnumerator<T>> CreateEnumerator(bool @async)
@@ -87,11 +87,11 @@ namespace Chloe.Sharding.Queries
 
                 List<TableDataQueryPlan<T>> dataQueryPlans = ShardingHelpers.MakeEntityQueryPlans<T>(this.QueryModel, keyResult, this.EntityTypeDescriptor, this.ShardingContext.MaxInItems);
 
-                foreach (var group in dataQueryPlans.GroupBy(a => a.Table.DataSource.Name))
+                foreach (var group in dataQueryPlans.GroupBy(a => a.QueryModel.Table.DataSource.Name))
                 {
                     int count = group.Count();
 
-                    ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(group.First().Table.DataSource.DbContextFactory, count, this.ShardingContext.MaxConnectionsPerDatabase);
+                    ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(group.First().QueryModel.Table.DataSource.DbContextFactory, count, this.ShardingContext.MaxConnectionsPerDatabase);
                     queryContext.AddManagedResource(dbContextPool);
 
                     bool lazyQuery = dbContextPool.Size >= count;

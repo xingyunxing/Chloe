@@ -45,12 +45,12 @@ namespace Chloe.Sharding
         {
             MultTableCountQuery<T> countQuery = new MultTableCountQuery<T>(queryPlan);
 
-            List<MultTableCountQueryResult> physicTableCounts = await countQuery.ToListAsync();
-            long totals = physicTableCounts.Select(a => a.Count).Sum();
+            List<MultTableCountQueryResult> routeTableCounts = await countQuery.ToListAsync();
+            long totals = routeTableCounts.Select(a => a.Count).Sum();
 
             if (queryPlan.IsOrderedRouteTables)
             {
-                OrderedMultTableDataQuery<T> orderlyMultTableDataQuery = new OrderedMultTableDataQuery<T>(queryPlan, physicTableCounts);
+                OrderedMultTableDataQuery<T> orderlyMultTableDataQuery = new OrderedMultTableDataQuery<T>(queryPlan, routeTableCounts);
                 return new PagingExecuteResult<T>(totals, orderlyMultTableDataQuery);
             }
 
@@ -71,12 +71,7 @@ namespace Chloe.Sharding
 
             var condition = ShardingHelpers.ConditionCombine(queryPlan.QueryModel);
             queryPlan.Condition = condition;
-            List<PhysicTable> physicTables = ShardingTablePeeker.Peek(condition, shardingContext);
-
-            foreach (var physicTable in physicTables)
-            {
-                physicTable.DataSource.DbContextFactory = new PhysicDbContextFactoryWrapper(physicTable.DataSource.DbContextFactory, shardingContext.DbContext);
-            }
+            List<RouteTable> routeTables = ShardingTablePeeker.Peek(condition, shardingContext);
 
             List<Ordering> orderings = queryPlan.QueryModel.Orderings;
 
@@ -84,11 +79,16 @@ namespace Chloe.Sharding
             SortResult sortResult;
             if (orderings.Count == 0)
             {
-                sortResult = new SortResult() { IsOrdered = true, Tables = physicTables };
+                sortResult = new SortResult() { IsOrdered = true, Tables = routeTables };
             }
             else
             {
-                sortResult = shardingContext.SortTables(physicTables, orderings);
+                sortResult = shardingContext.SortTables(routeTables, orderings);
+            }
+
+            foreach (var routeTable in sortResult.Tables)
+            {
+                routeTable.DataSource.DbContextFactory = new RouteDbContextFactoryWrapper(routeTable.DataSource.DbContextFactory, shardingContext.DbContext);
             }
 
             queryPlan.RouteTables = sortResult.Tables;

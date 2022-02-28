@@ -8,7 +8,6 @@ namespace Chloe.Sharding.Queries
 {
     class DynamicDataQueryPlan<TEntity>
     {
-        public PhysicTable Table { get; set; }
         public DataQueryModel QueryModel { get; set; }
 
         public DynamicModelQuery<TEntity> Query { get; set; }
@@ -49,7 +48,7 @@ namespace Chloe.Sharding.Queries
             ShardingQueryPlan QueryPlan { get { return this._enumerable._queryPlan; } }
             IShardingContext ShardingContext { get { return this._enumerable._queryPlan.ShardingContext; } }
             ShardingQueryModel QueryModel { get { return this._enumerable._queryPlan.QueryModel; } }
-            List<PhysicTable> Tables { get { return this._enumerable._queryPlan.RouteTables; } }
+            List<RouteTable> Tables { get { return this._enumerable._queryPlan.RouteTables; } }
             TypeDescriptor EntityTypeDescriptor { get { return this._enumerable._queryPlan.ShardingContext.TypeDescriptor; } }
 
             protected override async Task<IFeatureEnumerator<MultTableKeyQueryResult>> CreateEnumerator(bool @async)
@@ -64,7 +63,7 @@ namespace Chloe.Sharding.Queries
 
                     await this.ExecuteQuery(queryContext, dataQueryPlans, dynamicType, orders);
 
-                    var tableKeyResult = dataQueryPlans.Select(a => new MultTableKeyQueryResult() { Table = a.Table, Keys = a.Keys });
+                    var tableKeyResult = dataQueryPlans.Select(a => new MultTableKeyQueryResult() { Table = a.QueryModel.Table, Keys = a.Keys });
 
                     return new FeatureEnumeratorAdapter<MultTableKeyQueryResult>(tableKeyResult.GetEnumerator());
                 }
@@ -100,16 +99,15 @@ namespace Chloe.Sharding.Queries
 
                     DynamicDataQueryPlan<TEntity> dataQueryPlan = new DynamicDataQueryPlan<TEntity>();
                     dataQueryPlan.QueryModel = dataQueryModel;
-                    dataQueryPlan.Table = table;
 
                     dataQueryPlans.Add(dataQueryPlan);
                 }
 
-                foreach (var group in dataQueryPlans.GroupBy(a => a.Table.DataSource.Name))
+                foreach (var group in dataQueryPlans.GroupBy(a => a.QueryModel.Table.DataSource.Name))
                 {
                     int count = group.Count();
 
-                    ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(group.First().Table.DataSource.DbContextFactory, count, this.QueryPlan.ShardingContext.MaxConnectionsPerDatabase);
+                    ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(group.First().QueryModel.Table.DataSource.DbContextFactory, count, this.QueryPlan.ShardingContext.MaxConnectionsPerDatabase);
                     queryContext.AddManagedResource(dbContextPool);
 
                     bool lazyQuery = dbContextPool.Size >= count;

@@ -6,7 +6,7 @@ namespace Chloe.Sharding
     {
         public ShardingQueryModel QueryModel { get; set; }
 
-        public List<PhysicTable> RouteTables { get; set; } = new List<PhysicTable>();
+        public List<RouteTable> RouteTables { get; set; } = new List<RouteTable>();
         public bool IsOrderedRouteTables { get; set; }
 
         public IShardingContext ShardingContext { get; set; }

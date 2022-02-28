@@ -1,16 +1,16 @@
 ﻿namespace Chloe.Sharding
 {
-    public interface IPhysicDbContextFactory
+    public interface IRouteDbContextFactory
     {
         IDbContext CreateDbContext();
     }
 
-    class PhysicDbContextFactoryWrapper : IPhysicDbContextFactory
+    class RouteDbContextFactoryWrapper : IRouteDbContextFactory
     {
-        IPhysicDbContextFactory _dbContextFactory;
+        IRouteDbContextFactory _dbContextFactory;
         ShardingDbContext _shardingDbContext;
 
-        public PhysicDbContextFactoryWrapper(IPhysicDbContextFactory dbContextFactory, ShardingDbContext shardingDbContext)
+        public RouteDbContextFactoryWrapper(IRouteDbContextFactory dbContextFactory, ShardingDbContext shardingDbContext)
         {
             this._dbContextFactory = dbContextFactory;
             this._shardingDbContext = shardingDbContext;

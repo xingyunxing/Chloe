@@ -2,7 +2,7 @@
 {
     class MultTableKeyQueryResult
     {
-        public PhysicTable Table { get; set; }
+        public RouteTable Table { get; set; }
         public List<object> Keys { get; set; } = new List<object>();
     }
 }

@@ -2,7 +2,7 @@
 {
     class MultTableCountQueryResult
     {
-        public PhysicTable Table { get; set; }
+        public RouteTable Table { get; set; }
         public long Count { get; set; }
     }
 }

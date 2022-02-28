@@ -76,7 +76,6 @@ namespace Chloe.Sharding.Queries
 
                         TableDataQueryPlan<T> queryPlan = new TableDataQueryPlan<T>();
                         queryPlan.QueryModel = dataQueryModel;
-                        queryPlan.Table = countQueryResult.Table;
 
                         nextTableSkip = 0;
                         nextTableTake = nextTableTake - dataQueryModel.Take.Value;
@@ -94,11 +93,11 @@ namespace Chloe.Sharding.Queries
                     }
                 }
 
-                foreach (var group in dataQueryPlans.GroupBy(a => a.Table.DataSource.Name))
+                foreach (var group in dataQueryPlans.GroupBy(a => a.QueryModel.Table.DataSource.Name))
                 {
                     int count = group.Count();
 
-                    ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(group.First().Table.DataSource.DbContextFactory, count, this.ShardingContext.MaxConnectionsPerDatabase);
+                    ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(group.First().QueryModel.Table.DataSource.DbContextFactory, count, this.ShardingContext.MaxConnectionsPerDatabase);
                     queryContext.AddManagedResource(dbContextPool);
 
                     bool lazyQuery = dbContextPool.Size >= count;

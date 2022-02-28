@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace Chloe.Sharding
 {
-    internal class ShardingTablePeeker : ExpressionVisitor<List<PhysicTable>>
+    internal class ShardingTablePeeker : ExpressionVisitor<List<RouteTable>>
     {
         public ShardingTablePeeker(IShardingContext shardingContext)
         {
@@ -14,26 +14,26 @@ namespace Chloe.Sharding
 
         IShardingContext ShardingContext { get; set; }
 
-        public static List<PhysicTable> Peek(Expression exp, IShardingContext shardingContext)
+        public static List<RouteTable> Peek(Expression exp, IShardingContext shardingContext)
         {
             if (exp == null)
-                return shardingContext.GetPhysicTables();
+                return shardingContext.GetTables();
 
             ShardingTablePeeker peeker = new ShardingTablePeeker(shardingContext);
             return peeker.Visit(exp);
         }
 
-        protected override List<PhysicTable> VisitExpression(Expression exp)
+        protected override List<RouteTable> VisitExpression(Expression exp)
         {
-            return this.ShardingContext.GetPhysicTables();
+            return this.ShardingContext.GetTables();
         }
 
-        protected override List<PhysicTable> VisitLambda(LambdaExpression exp)
+        protected override List<RouteTable> VisitLambda(LambdaExpression exp)
         {
             return this.Visit(exp.Body);
         }
 
-        List<PhysicTable> VisitComparison(BinaryExpression exp, ShardingOperator shardingOperator, ShardingOperator inversiveShardingOperator)
+        List<RouteTable> VisitComparison(BinaryExpression exp, ShardingOperator shardingOperator, ShardingOperator inversiveShardingOperator)
         {
             MemberInfo member = null;
             if (this.IsShardingMemberAccess(exp.Left, out member))
@@ -44,7 +44,7 @@ namespace Chloe.Sharding
                 {
                     // a.CreateTime == dt
                     object value = exp.Right.Evaluate();
-                    return this.ShardingContext.GetPhysicTables(value, shardingOperator);
+                    return this.ShardingContext.GetTables(value, shardingOperator);
                 }
             }
 
@@ -55,7 +55,7 @@ namespace Chloe.Sharding
                 {
                     // dt == a.CreateTime
                     object value = exp.Left.Evaluate();
-                    return this.ShardingContext.GetPhysicTables(value, inversiveShardingOperator);
+                    return this.ShardingContext.GetTables(value, inversiveShardingOperator);
                 }
             }
 
@@ -78,7 +78,7 @@ namespace Chloe.Sharding
                     if (isEvaluable)
                     {
                         var value = otherSideExp.Evaluate();
-                        return this.ShardingContext.GetPhysicTableByKey(value);
+                        return this.ShardingContext.GetTablesByKey(value);
                     }
                 }
             }
@@ -86,7 +86,7 @@ namespace Chloe.Sharding
             return base.VisitBinary(exp);
         }
 
-        protected override List<PhysicTable> VisitBinary(BinaryExpression exp)
+        protected override List<RouteTable> VisitBinary(BinaryExpression exp)
         {
             //TODO 考虑 Equal 方法
             switch (exp.NodeType)
@@ -108,13 +108,13 @@ namespace Chloe.Sharding
             }
         }
 
-        protected override List<PhysicTable> VisitBinary_AndAlso(BinaryExpression exp)
+        protected override List<RouteTable> VisitBinary_AndAlso(BinaryExpression exp)
         {
-            return this.Visit(exp.Left).Intersect(this.Visit(exp.Right), PhysicTableEqualityComparer.Instance).ToList();
+            return this.Visit(exp.Left).Intersect(this.Visit(exp.Right), RouteTableEqualityComparer.Instance).ToList();
         }
-        protected override List<PhysicTable> VisitBinary_OrElse(BinaryExpression exp)
+        protected override List<RouteTable> VisitBinary_OrElse(BinaryExpression exp)
         {
-            return this.Visit(exp.Left).Union(this.Visit(exp.Right), PhysicTableEqualityComparer.Instance).ToList();
+            return this.Visit(exp.Left).Union(this.Visit(exp.Right), RouteTableEqualityComparer.Instance).ToList();
         }
 
         bool IsShardingMemberAccess(Expression exp, out MemberInfo member)
@@ -157,21 +157,21 @@ namespace Chloe.Sharding
         }
     }
 
-    public class PhysicTableEqualityComparer : IEqualityComparer<PhysicTable>
+    public class RouteTableEqualityComparer : IEqualityComparer<RouteTable>
     {
-        public static readonly PhysicTableEqualityComparer Instance = new PhysicTableEqualityComparer();
+        public static readonly RouteTableEqualityComparer Instance = new RouteTableEqualityComparer();
 
-        PhysicTableEqualityComparer()
+        RouteTableEqualityComparer()
         {
 
         }
 
-        public bool Equals(PhysicTable x, PhysicTable y)
+        public bool Equals(RouteTable x, RouteTable y)
         {
             return x.Name == y.Name && x.Schema == y.Schema && x.DataSource.Name == y.DataSource.Name;
         }
 
-        public int GetHashCode(PhysicTable obj)
+        public int GetHashCode(RouteTable obj)
         {
             return $"{obj.Name}_{obj.Schema}_{obj.DataSource.Name}".GetHashCode();
             //return obj.GetHashCode();

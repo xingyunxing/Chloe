@@ -79,7 +79,7 @@ namespace Chloe.Sharding
             return orderedQuery;
         }
 
-        public static List<IDbContext> CreateDbContexts(IPhysicDbContextFactory physicDbContextFactory, int count, int maxConnectionsPerDatabase)
+        public static List<IDbContext> CreateDbContexts(IRouteDbContextFactory routeDbContextFactory, int count, int maxConnectionsPerDatabase)
         {
             int connectionsCount = Math.Min(count, maxConnectionsPerDatabase);
 
@@ -87,15 +87,15 @@ namespace Chloe.Sharding
 
             for (int i = 0; i < connectionsCount; i++)
             {
-                var dbContext = physicDbContextFactory.CreateDbContext();
+                var dbContext = routeDbContextFactory.CreateDbContext();
                 dbContexts.Add(dbContext);
             }
 
             return dbContexts;
         }
-        public static ShareDbContextPool CreateDbContextPool(IPhysicDbContextFactory physicDbContextFactory, int count, int maxConnectionsPerDatabase)
+        public static ShareDbContextPool CreateDbContextPool(IRouteDbContextFactory routeDbContextFactory, int count, int maxConnectionsPerDatabase)
         {
-            List<IDbContext> dbContexts = ShardingHelpers.CreateDbContexts(physicDbContextFactory, count, maxConnectionsPerDatabase);
+            List<IDbContext> dbContexts = ShardingHelpers.CreateDbContexts(routeDbContextFactory, count, maxConnectionsPerDatabase);
             ShareDbContextPool dbContextPool = new ShareDbContextPool(dbContexts);
 
             return dbContextPool;
@@ -134,7 +134,7 @@ namespace Chloe.Sharding
 
         public static List<TableDataQueryPlan<TEntity>> MakeEntityQueryPlans<TEntity>(ShardingQueryModel queryModel, List<MultTableKeyQueryResult> keyResults, TypeDescriptor typeDescriptor, int maxInItems)
         {
-            List<TableDataQueryPlan<TEntity>> queries = new List<TableDataQueryPlan<TEntity>>();
+            List<TableDataQueryPlan<TEntity>> queryPlans = new List<TableDataQueryPlan<TEntity>>();
 
             var listConstructor = typeof(List<>).MakeGenericType(typeDescriptor.PrimaryKeys.First().PropertyType).GetConstructor(new Type[] { typeof(int) });
             InstanceCreator listCreator = InstanceCreatorContainer.Get(listConstructor);
@@ -165,18 +165,17 @@ namespace Chloe.Sharding
                     dataQueryModel.Orderings.AddRange(queryModel.Orderings);
                     dataQueryModel.Conditions.Add(condition);
 
-                    TableDataQueryPlan<TEntity> query = new TableDataQueryPlan<TEntity>();
-                    query.Table = keyResult.Table;
-                    query.QueryModel = dataQueryModel;
+                    TableDataQueryPlan<TEntity> queryPlan = new TableDataQueryPlan<TEntity>();
+                    queryPlan.QueryModel = dataQueryModel;
 
-                    queries.Add(query);
+                    queryPlans.Add(queryPlan);
                 }
             }
 
-            return queries;
+            return queryPlans;
         }
 
-        public static DataQueryModel MakeDataQueryModel(PhysicTable table, ShardingQueryModel queryModel)
+        public static DataQueryModel MakeDataQueryModel(RouteTable table, ShardingQueryModel queryModel)
         {
             int? takeCount = null;
 
@@ -188,7 +187,7 @@ namespace Chloe.Sharding
             DataQueryModel dataQueryModel = MakeDataQueryModel(table, queryModel, null, takeCount);
             return dataQueryModel;
         }
-        public static DataQueryModel MakeDataQueryModel(PhysicTable table, ShardingQueryModel queryModel, int? skip, int? take)
+        public static DataQueryModel MakeDataQueryModel(RouteTable table, ShardingQueryModel queryModel, int? skip, int? take)
         {
             DataQueryModel dataQueryModel = new DataQueryModel();
             dataQueryModel.Table = table;

@@ -2,10 +2,10 @@
 {
     public interface IShardingRoute
     {
-        List<PhysicTable> GetPhysicTables(ShardingDbContext shardingDbContext);
-        List<PhysicTable> GetPhysicTables(ShardingDbContext shardingDbContext, object shardingValue, ShardingOperator shardingOperator);
-        PhysicTable GetPhysicTable(ShardingDbContext shardingDbContext, object shardingValue);
-        List<PhysicTable> GetPhysicTableByKey(ShardingDbContext shardingDbContext, object keyValue);
-        SortResult SortTables(ShardingDbContext shardingDbContext, List<PhysicTable> physicTables, List<Ordering> orderings);
+        List<RouteTable> GetTables(ShardingDbContext shardingDbContext);
+        List<RouteTable> GetTables(ShardingDbContext shardingDbContext, object shardingValue, ShardingOperator shardingOperator);
+        RouteTable GetTable(ShardingDbContext shardingDbContext, object shardingValue);
+        List<RouteTable> GetTablesByKey(ShardingDbContext shardingDbContext, object keyValue);
+        SortResult SortTables(ShardingDbContext shardingDbContext, List<RouteTable> tables, List<Ordering> orderings);
     }
 }
