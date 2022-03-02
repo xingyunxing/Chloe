@@ -8,10 +8,10 @@ namespace Chloe.Sharding
         TypeDescriptor TypeDescriptor { get; }
         ShardingDbContext DbContext { get; }
         IShardingRoute Route { get; }
-        int MaxConnectionsPerDatabase { get; }
         int MaxInItems { get; }
         bool IsPrimaryKey(MemberInfo member);
         bool IsShardingMember(MemberInfo member);
+        List<IDbContext> CreateDbContexts(IPhysicDataSource dataSource, int count);
     }
 
     class ShardingContext : IShardingContext
@@ -28,7 +28,7 @@ namespace Chloe.Sharding
         public ShardingDbContext DbContext { get; set; }
         public IShardingRoute Route { get; private set; }
 
-        public int MaxConnectionsPerDatabase { get { return this.DbContext.Options.MaxConnectionsPerDatabase; } }
+        public int MaxConnectionsPerDataSource { get { return this.DbContext.Options.MaxConnectionsPerDataSource; } }
         public int MaxInItems { get { return this.DbContext.Options.MaxInItems; } }
 
         public IShardingConfig ShardingConfig { get; private set; }
@@ -42,14 +42,37 @@ namespace Chloe.Sharding
         {
             return this.TypeDescriptor.IsPrimaryKey(member);
         }
+
+        public List<IDbContext> CreateDbContexts(IPhysicDataSource dataSource, int count)
+        {
+            var routeDbContextFactory = (dataSource as PhysicDataSource).DataSource.DbContextFactory;
+            int connectionCount = Math.Min(count, this.MaxConnectionsPerDataSource);
+
+            List<IDbContext> dbContexts = new List<IDbContext>(connectionCount);
+
+            for (int i = 0; i < connectionCount; i++)
+            {
+                var dbContext = routeDbContextFactory.CreateDbContext();
+
+                foreach (var kv in (this.DbContext as IDbContextInternal).QueryFilters)
+                {
+                    foreach (var filter in kv.Value)
+                    {
+                        dbContext.HasQueryFilter(kv.Key, filter);
+                    }
+                }
+
+                dbContexts.Add(dbContext);
+            }
+
+            return dbContexts;
+
+            throw new NotImplementedException();
+        }
     }
 
     static class ShardingContextExtension
     {
-        //public static bool IsShardingMember(this IShardingContext shardingContext, MemberInfo member)
-        //{
-        //    return shardingContext.Route.is
-        //}
         public static List<RouteTable> GetTables(this IShardingContext shardingContext)
         {
             return shardingContext.Route.GetTables(shardingContext.DbContext);
@@ -71,14 +94,6 @@ namespace Chloe.Sharding
             return shardingContext.Route.SortTables(shardingContext.DbContext, tables, orderings);
         }
     }
-
-    //public interface RouteTable
-    //{
-    //    string Name { get; set; }
-    //    string Schema { get; set; }
-    //    //string Database { get; set; }
-    //    DataSource DataSource { get; set; }
-    //}
 
     public enum ShardingOperator
     {

@@ -20,12 +20,12 @@ namespace Chloe.Sharding
                 return query;
             }
 
-            if (((queryPlan.QueryModel.Skip ?? 0) == 0) && queryPlan.IsOrderedRouteTables)
+            if (((queryPlan.QueryModel.Skip ?? 0) == 0) && queryPlan.IsOrderedTables)
             {
                 //走串行？
             }
 
-            if (queryPlan.IsOrderedRouteTables && queryPlan.QueryModel.Skip.HasValue)
+            if (queryPlan.IsOrderedTables && queryPlan.QueryModel.Skip.HasValue)
             {
                 //走分页逻辑，对程序性能有可能好点？
                 var pagingResult = await this.ExecutePaging(queryPlan);
@@ -48,7 +48,7 @@ namespace Chloe.Sharding
             List<MultTableCountQueryResult> routeTableCounts = await countQuery.ToListAsync();
             long totals = routeTableCounts.Select(a => a.Count).Sum();
 
-            if (queryPlan.IsOrderedRouteTables)
+            if (queryPlan.IsOrderedTables)
             {
                 OrderedMultTableDataQuery<T> orderlyMultTableDataQuery = new OrderedMultTableDataQuery<T>(queryPlan, routeTableCounts);
                 return new PagingExecuteResult<T>(totals, orderlyMultTableDataQuery);
@@ -86,13 +86,8 @@ namespace Chloe.Sharding
                 sortResult = shardingContext.SortTables(routeTables, orderings);
             }
 
-            foreach (var routeTable in sortResult.Tables)
-            {
-                routeTable.DataSource.DbContextFactory = new RouteDbContextFactoryWrapper(routeTable.DataSource.DbContextFactory, shardingContext.DbContext);
-            }
-
-            queryPlan.RouteTables = sortResult.Tables;
-            queryPlan.IsOrderedRouteTables = sortResult.IsOrdered;
+            queryPlan.IsOrderedTables = sortResult.IsOrdered;
+            queryPlan.Tables.AddRange(sortResult.Tables.Select(a => new PhysicTable(a)));
 
             return queryPlan;
         }

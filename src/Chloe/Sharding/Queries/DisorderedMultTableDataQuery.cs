@@ -12,13 +12,13 @@ namespace Chloe.Sharding.Queries
     {
         ShardingQueryPlan _queryPlan;
         IShardingContext _shardingContext;
-        List<RouteTable> _tables;
+        List<IPhysicTable> _tables;
 
         public DisorderedMultTableDataQuery(ShardingQueryPlan queryPlan)
         {
             this._queryPlan = queryPlan;
             this._shardingContext = queryPlan.ShardingContext;
-            this._tables = queryPlan.RouteTables;
+            this._tables = queryPlan.Tables;
         }
 
         public override IFeatureEnumerator<T> GetFeatureEnumerator(CancellationToken cancellationToken = default)
@@ -40,7 +40,7 @@ namespace Chloe.Sharding.Queries
             ShardingQueryPlan QueryPlan { get { return this._enumerable._queryPlan; } }
             IShardingContext ShardingContext { get { return this._enumerable._queryPlan.ShardingContext; } }
             ShardingQueryModel QueryModel { get { return this._enumerable._queryPlan.QueryModel; } }
-            List<RouteTable> Tables { get { return this._enumerable._queryPlan.RouteTables; } }
+            List<IPhysicTable> Tables { get { return this._enumerable._queryPlan.Tables; } }
             TypeDescriptor EntityTypeDescriptor { get { return this._enumerable._queryPlan.ShardingContext.TypeDescriptor; } }
 
             protected override async Task<IFeatureEnumerator<T>> CreateEnumerator(bool @async)
@@ -91,7 +91,7 @@ namespace Chloe.Sharding.Queries
                 {
                     int count = group.Count();
 
-                    ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(group.First().QueryModel.Table.DataSource.DbContextFactory, count, this.ShardingContext.MaxConnectionsPerDatabase);
+                    ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(this.ShardingContext, group.First().QueryModel.Table.DataSource, count);
                     queryContext.AddManagedResource(dbContextPool);
 
                     bool lazyQuery = dbContextPool.Size >= count;

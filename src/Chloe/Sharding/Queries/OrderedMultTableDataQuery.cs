@@ -97,7 +97,7 @@ namespace Chloe.Sharding.Queries
                 {
                     int count = group.Count();
 
-                    ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(group.First().QueryModel.Table.DataSource.DbContextFactory, count, this.ShardingContext.MaxConnectionsPerDatabase);
+                    ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(this.ShardingContext, group.First().QueryModel.Table.DataSource, count);
                     queryContext.AddManagedResource(dbContextPool);
 
                     bool lazyQuery = dbContextPool.Size >= count;

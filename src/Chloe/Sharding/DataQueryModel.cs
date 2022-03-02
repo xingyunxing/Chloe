@@ -4,7 +4,7 @@ namespace Chloe.Sharding
 {
     internal class DataQueryModel
     {
-        public RouteTable Table { get; set; }
+        public IPhysicTable Table { get; set; }
 
         public int? Skip { get; set; }
         public int? Take { get; set; }

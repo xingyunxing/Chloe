@@ -61,7 +61,7 @@ namespace Chloe.Sharding.Queries
             {
                 List<TableDataQueryPlan<T>> dataQueryPlans = new List<TableDataQueryPlan<T>>();
 
-                foreach (RouteTable table in this.QueryPlan.RouteTables)
+                foreach (IPhysicTable table in this.QueryPlan.Tables)
                 {
                     DataQueryModel dataQueryModel = ShardingHelpers.MakeDataQueryModel(table, this.QueryModel);
 
@@ -75,7 +75,7 @@ namespace Chloe.Sharding.Queries
                 {
                     int count = group.Count();
 
-                    ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(group.First().QueryModel.Table.DataSource.DbContextFactory, count, this.ShardingContext.MaxConnectionsPerDatabase);
+                    ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(this.ShardingContext, group.First().QueryModel.Table.DataSource, count);
                     queryContext.AddManagedResource(dbContextPool);
 
                     //因为是根据主键查询了，所以返回的数据肯定是一条，因此直接把数据加载进内存即可

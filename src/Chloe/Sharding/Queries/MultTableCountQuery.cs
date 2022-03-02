@@ -18,14 +18,12 @@ namespace Chloe.Sharding.Queries
     internal class MultTableCountQuery<TEntity> : FeatureEnumerable<MultTableCountQueryResult>
     {
         ShardingQueryPlan _queryPlan;
-        IShardingContext _shardingContext;
-        List<RouteTable> _tables;
+        List<IPhysicTable> _tables;
 
         public MultTableCountQuery(ShardingQueryPlan queryPlan)
         {
             this._queryPlan = queryPlan;
-            this._shardingContext = queryPlan.ShardingContext;
-            this._tables = queryPlan.RouteTables;
+            this._tables = queryPlan.Tables;
         }
 
         public override IFeatureEnumerator<MultTableCountQueryResult> GetFeatureEnumerator(CancellationToken cancellationToken = default)
@@ -80,10 +78,9 @@ namespace Chloe.Sharding.Queries
             {
                 var tables = this._enumerable._tables;
                 var queryPlan = this._enumerable._queryPlan;
-                int maxConnectionsPerDatabase = this._enumerable._shardingContext.MaxConnectionsPerDatabase;
 
                 List<TableCountQueryPlan<TEntity>> countQueryPlans = new List<TableCountQueryPlan<TEntity>>(tables.Count);
-                foreach (RouteTable table in tables)
+                foreach (IPhysicTable table in tables)
                 {
                     TableCountQueryPlan<TEntity> countQuery = new TableCountQueryPlan<TEntity>();
 
@@ -103,7 +100,7 @@ namespace Chloe.Sharding.Queries
                 {
                     int count = group.Count();
 
-                    ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(group.First().QueryModel.Table.DataSource.DbContextFactory, count, maxConnectionsPerDatabase);
+                    ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(this._enumerable._queryPlan.ShardingContext, group.First().QueryModel.Table.DataSource, count);
                     queryContext.AddManagedResource(dbContextPool);
 
                     foreach (TableCountQueryPlan<TEntity> countQuery in group)
@@ -131,7 +128,7 @@ namespace Chloe.Sharding.Queries
                     return false;
                 }
 
-                RouteTable table = this._enumerable._tables[this._currentIdx++];
+                IPhysicTable table = this._enumerable._tables[this._currentIdx++];
                 this._current = new MultTableCountQueryResult() { Table = table, Count = this._innerEnumerator.GetCurrent() };
                 return true;
             }

@@ -79,23 +79,9 @@ namespace Chloe.Sharding
             return orderedQuery;
         }
 
-        public static List<IDbContext> CreateDbContexts(IRouteDbContextFactory routeDbContextFactory, int count, int maxConnectionsPerDatabase)
+        public static ShareDbContextPool CreateDbContextPool(IShardingContext shardingContext, IPhysicDataSource dataSource, int count)
         {
-            int connectionsCount = Math.Min(count, maxConnectionsPerDatabase);
-
-            List<IDbContext> dbContexts = new List<IDbContext>(connectionsCount);
-
-            for (int i = 0; i < connectionsCount; i++)
-            {
-                var dbContext = routeDbContextFactory.CreateDbContext();
-                dbContexts.Add(dbContext);
-            }
-
-            return dbContexts;
-        }
-        public static ShareDbContextPool CreateDbContextPool(IRouteDbContextFactory routeDbContextFactory, int count, int maxConnectionsPerDatabase)
-        {
-            List<IDbContext> dbContexts = ShardingHelpers.CreateDbContexts(routeDbContextFactory, count, maxConnectionsPerDatabase);
+            List<IDbContext> dbContexts = shardingContext.CreateDbContexts(dataSource, count);
             ShareDbContextPool dbContextPool = new ShareDbContextPool(dbContexts);
 
             return dbContextPool;
@@ -175,7 +161,7 @@ namespace Chloe.Sharding
             return queryPlans;
         }
 
-        public static DataQueryModel MakeDataQueryModel(RouteTable table, ShardingQueryModel queryModel)
+        public static DataQueryModel MakeDataQueryModel(IPhysicTable table, ShardingQueryModel queryModel)
         {
             int? takeCount = null;
 
@@ -187,7 +173,7 @@ namespace Chloe.Sharding
             DataQueryModel dataQueryModel = MakeDataQueryModel(table, queryModel, null, takeCount);
             return dataQueryModel;
         }
-        public static DataQueryModel MakeDataQueryModel(RouteTable table, ShardingQueryModel queryModel, int? skip, int? take)
+        public static DataQueryModel MakeDataQueryModel(IPhysicTable table, ShardingQueryModel queryModel, int? skip, int? take)
         {
             DataQueryModel dataQueryModel = new DataQueryModel();
             dataQueryModel.Table = table;

@@ -6,7 +6,7 @@ namespace Chloe.Sharding
 {
     public class ShardingOptions
     {
-        public int MaxConnectionsPerDatabase { get; set; } = 12;
+        public int MaxConnectionsPerDataSource { get; set; } = 12;
         public int MaxInItems { get; set; } = 1000;
     }
 
