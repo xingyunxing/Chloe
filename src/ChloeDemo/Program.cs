@@ -2,15 +2,43 @@
 using Chloe.Infrastructure;
 using Chloe.Infrastructure.Interception;
 using Chloe.PostgreSQL;
+using Chloe.Sharding;
+using ChloeDemo.Sharding;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace ChloeDemo
 {
+
+
+    public class AA //: IEqualityComparer<AA>][
+    {
+        //public bool Equals([AllowNull] AA x, [AllowNull] AA y)
+        //{
+        //    return true;
+        //}
+
+        //public int GetHashCode([DisallowNull] AA obj)
+        //{
+        //    return 0;
+        //}
+
+        public override int GetHashCode()
+        {
+            return 1;
+        }
+
+        //public override bool Equals(object obj)
+        //{
+        //    return true;
+        //}
+    }
+
     public class Program
     {
         /* documentation：https://github.com/shuxinqin/Chloe/wiki */
@@ -34,6 +62,16 @@ namespace ChloeDemo
             ConfigureMappingType();
             ConfigureMethodHandler();
 
+            List<RouteTable> list1 = new List<RouteTable>() { };
+            list1.Add(new RouteTable() { Name = "order01", DataSource = new RouteDataSource() { Name = "order" } });
+            list1.Add(new RouteTable() { Name = "order02", DataSource = new RouteDataSource() { Name = "order" } });
+
+            List<RouteTable> list2 = new List<RouteTable>() { };
+            list2.Add(new RouteTable() { Name = "order02", DataSource = new RouteDataSource() { Name = "order" } });
+            list2.Add(new RouteTable() { Name = "order03", DataSource = new RouteDataSource() { Name = "order" } });
+
+            var aaa = list1.Union(list2, RouteTableEqualityComparer.Instance).ToList();
+            var aaa1 = list1.Intersect(list2, RouteTableEqualityComparer.Instance).ToList();
 
             /* fluent mapping */
             DbConfiguration.UseTypeBuilders(typeof(PersonMap));
@@ -42,12 +80,15 @@ namespace ChloeDemo
             DbConfiguration.UseTypeBuilders(typeof(ProvinceMap));
             DbConfiguration.UseTypeBuilders(typeof(TestEntityMap));
 
+            ShardingTest shardingTest = new ShardingTest();
+            shardingTest.Run().GetAwaiter().GetResult();
+
             RunDemo<SQLiteDemo>();
-            RunDemo<MsSqlDemo>();
-            RunDemo<MsSqlOdbcDemo>();
-            RunDemo<MySqlDemo>();
-            RunDemo<PostgreSQLDemo>();
-            RunDemo<OracleDemo>();
+            //RunDemo<MsSqlDemo>();
+            //RunDemo<MsSqlOdbcDemo>();
+            //RunDemo<MySqlDemo>();
+            //RunDemo<PostgreSQLDemo>();
+            //RunDemo<OracleDemo>();
         }
 
         static void RunDemo<TDemo>() where TDemo : DemoBase, new()

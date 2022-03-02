@@ -5,6 +5,17 @@ namespace Chloe
 {
     public static class DbSessionExtension
     {
+        public static void BeginTransaction(this IDbSession dbSession, IsolationLevel? il)
+        {
+            if (il == null)
+            {
+                dbSession.BeginTransaction();
+                return;
+            }
+
+            dbSession.BeginTransaction(il.Value);
+        }
+
         public static Task<IDataReader> ExecuteReader(this IDbSession dbSession, string cmdText, DbParam[] parameters, bool @async)
         {
             if (@async)

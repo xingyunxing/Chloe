@@ -7,7 +7,7 @@
         IPhysicDataSource DataSource { get; }
     }
 
-    public class PhysicTable : IPhysicTable
+    class PhysicTable : IPhysicTable
     {
         public PhysicTable(RouteTable routeTable)
         {

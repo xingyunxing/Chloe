@@ -12,6 +12,7 @@ namespace Chloe.Sharding
 
     public class ShardingDbContext : IDbContextInternal, IDbContext
     {
+        bool _disposed = false;
         Dictionary<Type, List<LambdaExpression>> _queryFilters = new Dictionary<Type, List<LambdaExpression>>();
 
         public ShardingDbContext() : this(new ShardingOptions())
@@ -22,13 +23,30 @@ namespace Chloe.Sharding
         public ShardingDbContext(ShardingOptions options)
         {
             this.Options = options;
+            this.DbSessionProvider = new ShardingDbSessionProvider(this);
+            this.Session = new ShardingDbSession(this);
         }
+
+        internal ShardingDbSessionProvider DbSessionProvider { get; private set; }
 
         public ShardingOptions Options { get; set; }
 
-        public IDbSession Session => throw new NotImplementedException();
+        public IDbSession Session { get; private set; }
 
         Dictionary<Type, List<LambdaExpression>> IDbContextInternal.QueryFilters => this._queryFilters;
+
+        public void Dispose()
+        {
+            if (this._disposed)
+                return;
+
+            this.Dispose(true);
+            this._disposed = true;
+        }
+        protected virtual void Dispose(bool disposing)
+        {
+            this.DbSessionProvider.Dispose();
+        }
 
         public ITransientTransaction BeginTransaction()
         {
@@ -96,11 +114,6 @@ namespace Chloe.Sharding
         }
 
         public Task<int> DeleteByKeyAsync<TEntity>(object key, string table)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Dispose()
         {
             throw new NotImplementedException();
         }

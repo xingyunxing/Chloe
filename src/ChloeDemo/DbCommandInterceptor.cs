@@ -39,8 +39,8 @@ namespace ChloeDemo
         {
             //DateTime startTime = (DateTime)(interceptionContext.DataBag["startTime"]);
             //Console.WriteLine(DateTime.Now.Subtract(startTime).TotalMilliseconds);
-            if (interceptionContext.Exception == null)
-                Console.WriteLine(interceptionContext.Result.FieldCount);
+            //if (interceptionContext.Exception == null)
+            //    Console.WriteLine(interceptionContext.Result.FieldCount);
         }
 
         public void NonQueryExecuting(IDbCommand command, DbCommandInterceptionContext<int> interceptionContext)

@@ -28,7 +28,6 @@ namespace Chloe.Sharding
         public ShardingDbContext DbContext { get; set; }
         public IShardingRoute Route { get; private set; }
 
-        public int MaxConnectionsPerDataSource { get { return this.DbContext.Options.MaxConnectionsPerDataSource; } }
         public int MaxInItems { get { return this.DbContext.Options.MaxInItems; } }
 
         public IShardingConfig ShardingConfig { get; private set; }
@@ -45,29 +44,71 @@ namespace Chloe.Sharding
 
         public List<IDbContext> CreateDbContexts(IPhysicDataSource dataSource, int count)
         {
+            if (this.DbContext.DbSessionProvider.IsInTransaction)
+            {
+                return this.CreateTransactionDbContexts(dataSource);
+            }
+
+            return this.CreateNonTransactionDbContexts(dataSource, count);
+        }
+        List<IDbContext> CreateTransactionDbContexts(IPhysicDataSource dataSource)
+        {
             var routeDbContextFactory = (dataSource as PhysicDataSource).DataSource.DbContextFactory;
-            int connectionCount = Math.Min(count, this.MaxConnectionsPerDataSource);
+
+            DataSourceDbContextPair pair = this.DbContext.DbSessionProvider.HoldDbContexts.FirstOrDefault(a => a.DataSource.Name == dataSource.Name);
+            if (pair == null)
+            {
+                IDbContext dbContext = routeDbContextFactory.CreateDbContext();
+                this.AppendFutures(dbContext);
+
+                dbContext.Session.BeginTransaction(this.DbContext.DbSessionProvider.IL);
+
+                this.DbContext.DbSessionProvider.HoldDbContexts.Add(new DataSourceDbContextPair(dataSource, dbContext));
+            }
+
+            return new List<IDbContext>(1) { pair.DbContext };
+        }
+        List<IDbContext> CreateNonTransactionDbContexts(IPhysicDataSource dataSource, int count)
+        {
+            var routeDbContextFactory = (dataSource as PhysicDataSource).DataSource.DbContextFactory;
+
+            int connectionCount = Math.Min(count, this.DbContext.Options.MaxConnectionsPerDataSource);
 
             List<IDbContext> dbContexts = new List<IDbContext>(connectionCount);
 
             for (int i = 0; i < connectionCount; i++)
             {
-                var dbContext = routeDbContextFactory.CreateDbContext();
-
-                foreach (var kv in (this.DbContext as IDbContextInternal).QueryFilters)
-                {
-                    foreach (var filter in kv.Value)
-                    {
-                        dbContext.HasQueryFilter(kv.Key, filter);
-                    }
-                }
+                IDbContext dbContext = routeDbContextFactory.CreateDbContext();
+                this.AppendFutures(dbContext);
 
                 dbContexts.Add(dbContext);
             }
 
             return dbContexts;
+        }
 
-            throw new NotImplementedException();
+        void AppendFutures(IDbContext dbContext)
+        {
+            dbContext.Session.CommandTimeout = this.DbContext.Session.CommandTimeout;
+            this.AppendQueryFilters(dbContext);
+            this.AppendSessionInterceptors(dbContext);
+        }
+        void AppendQueryFilters(IDbContext dbContext)
+        {
+            foreach (var kv in (this.DbContext as IDbContextInternal).QueryFilters)
+            {
+                foreach (var filter in kv.Value)
+                {
+                    dbContext.HasQueryFilter(kv.Key, filter);
+                }
+            }
+        }
+        void AppendSessionInterceptors(IDbContext dbContext)
+        {
+            foreach (var interceptor in this.DbContext.DbSessionProvider.SessionInterceptors)
+            {
+                dbContext.Session.AddInterceptor(interceptor);
+            }
         }
     }
 
@@ -93,21 +134,5 @@ namespace Chloe.Sharding
         {
             return shardingContext.Route.SortTables(shardingContext.DbContext, tables, orderings);
         }
-    }
-
-    public enum ShardingOperator
-    {
-        Equal,
-        NotEqual,
-        GreaterThan,
-        GreaterThanOrEqual,
-        LessThan,
-        LessThanOrEqual,
-    }
-
-    public class SortResult
-    {
-        public bool IsOrdered { get; set; }
-        public List<RouteTable> Tables { get; set; }
     }
 }

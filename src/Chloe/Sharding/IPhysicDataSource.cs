@@ -5,7 +5,7 @@
         string Name { get; }
     }
 
-    public class PhysicDataSource : IPhysicDataSource
+    class PhysicDataSource : IPhysicDataSource
     {
         public PhysicDataSource(RouteDataSource dataSource)
         {
