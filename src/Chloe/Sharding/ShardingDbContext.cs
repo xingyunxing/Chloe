@@ -1,16 +1,11 @@
-﻿using System.Data;
+﻿using Chloe.Exceptions;
+using System.Data;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace Chloe.Sharding
 {
-    public class ShardingOptions
-    {
-        public int MaxConnectionsPerDataSource { get; set; } = 12;
-        public int MaxInItems { get; set; } = 1000;
-    }
-
-    public class ShardingDbContext : IDbContextInternal, IDbContext
+    public partial class ShardingDbContext : IDbContextInternal, IDbContext
     {
         bool _disposed = false;
         Dictionary<Type, List<LambdaExpression>> _queryFilters = new Dictionary<Type, List<LambdaExpression>>();
@@ -336,11 +331,6 @@ namespace Chloe.Sharding
             throw new NotImplementedException();
         }
 
-        public void TrackEntity(object entity)
-        {
-            throw new NotImplementedException();
-        }
-
         public int Update<TEntity>(TEntity entity)
         {
             throw new NotImplementedException();
@@ -399,6 +389,26 @@ namespace Chloe.Sharding
         public Task UseTransaction(Func<Task> func, IsolationLevel il)
         {
             throw new NotImplementedException();
+        }
+
+        public void TrackEntity(object entity)
+        {
+            PublicHelper.CheckNull(entity);
+
+            IShardingContext shardingContext = this.CreateShardingContext(entity.GetType());
+
+            var shardingPropertyDescriptor = shardingContext.TypeDescriptor.GetPrimitivePropertyDescriptor(shardingContext.ShardingConfig.ShardingKey);
+
+            var shardingKeyValue = shardingPropertyDescriptor.GetValue(entity);
+            RouteTable routeTable = shardingContext.GetTable(shardingKeyValue);
+
+            if (routeTable == null)
+            {
+                throw new ChloeException($"Corresponding table not found for entity '{entity.GetType().FullName}' with sharding key '{shardingKeyValue}'.");
+            }
+
+            IDbContext persistedDbContext = this.GetPersistedDbContextProvider(routeTable);
+            persistedDbContext.TrackEntity(entity);
         }
     }
 }

@@ -1,9 +1,6 @@
 ﻿using Chloe.Exceptions;
 using Chloe.Infrastructure.Interception;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Chloe.Sharding
@@ -31,7 +28,7 @@ namespace Chloe.Sharding
         }
 
         public IsolationLevel? IL { get; private set; }
-        public List<DataSourceDbContextPair> HoldDbContexts { get; set; } = new List<DataSourceDbContextPair>();
+        public List<DataSourceDbContextPair> PersistedDbContexts { get; set; } = new List<DataSourceDbContextPair>();
 
         List<IDbCommandInterceptor> _sessionInterceptors;
         public List<IDbCommandInterceptor> SessionInterceptors
@@ -75,6 +72,8 @@ namespace Chloe.Sharding
                 {
                 }
             }
+
+            this.PersistedDbContexts.Clear();
         }
 
         public void AddInterceptor(IDbCommandInterceptor interceptor)
@@ -114,12 +113,16 @@ namespace Chloe.Sharding
                 throw new ChloeException("Current session does not open a transaction.");
             }
 
-            foreach (var pair in this.HoldDbContexts.ToArray())
+            foreach (var pair in this.PersistedDbContexts)
             {
                 var dbContext = pair.DbContext;
+
+                if (!dbContext.Session.IsInTransaction)
+                {
+                    continue;
+                }
+
                 dbContext.Session.CommitTransaction();
-                dbContext.Dispose();
-                this.HoldDbContexts.Remove(pair);
             }
 
             this.IsInTransaction = false;
@@ -137,9 +140,14 @@ namespace Chloe.Sharding
         {
             List<Exception> exceptions = null;
 
-            foreach (var pair in this.HoldDbContexts.ToArray())
+            foreach (var pair in this.PersistedDbContexts)
             {
                 var dbContext = pair.DbContext;
+                if (!dbContext.Session.IsInTransaction)
+                {
+                    continue;
+                }
+
                 try
                 {
                     dbContext.Session.RollbackTransaction();
@@ -152,11 +160,6 @@ namespace Chloe.Sharding
                     }
 
                     exceptions.Add(ex);
-                }
-                finally
-                {
-                    dbContext.Dispose();
-                    this.HoldDbContexts.Remove(pair);
                 }
             }
 

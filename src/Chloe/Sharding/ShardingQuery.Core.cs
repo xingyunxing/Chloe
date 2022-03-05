@@ -1,6 +1,4 @@
-﻿using Chloe.Descriptors;
-using Chloe.Infrastructure;
-using Chloe.Sharding.Queries;
+﻿using Chloe.Sharding.Queries;
 using System.Threading.Tasks;
 
 namespace Chloe.Sharding
@@ -63,9 +61,7 @@ namespace Chloe.Sharding
             ShardingQueryPlan queryPlan = new ShardingQueryPlan();
             queryPlan.QueryModel = ShardingQueryModelPeeker.Peek(query.InnerQuery.QueryExpression);
 
-            TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(T));
-            IShardingConfig shardingConfig = ShardingConfigContainer.Get(typeof(T));
-            IShardingContext shardingContext = new ShardingContext((ShardingDbContext)query.InnerQuery.DbContext, shardingConfig, typeDescriptor);
+            IShardingContext shardingContext = (query.InnerQuery.DbContext as ShardingDbContext).CreateShardingContext(typeof(T));
 
             queryPlan.ShardingContext = shardingContext;
 
@@ -88,6 +84,8 @@ namespace Chloe.Sharding
 
             queryPlan.IsOrderedTables = sortResult.IsOrdered;
             queryPlan.Tables.AddRange(sortResult.Tables.Select(a => new PhysicTable(a)));
+
+            queryPlan.IsTrackingQuery = query.InnerQuery._trackEntity;
 
             return queryPlan;
         }

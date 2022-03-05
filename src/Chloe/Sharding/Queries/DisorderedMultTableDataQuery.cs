@@ -11,14 +11,10 @@ namespace Chloe.Sharding.Queries
     internal class DisorderedMultTableDataQuery<T> : FeatureEnumerable<T>
     {
         ShardingQueryPlan _queryPlan;
-        IShardingContext _shardingContext;
-        List<IPhysicTable> _tables;
 
         public DisorderedMultTableDataQuery(ShardingQueryPlan queryPlan)
         {
             this._queryPlan = queryPlan;
-            this._shardingContext = queryPlan.ShardingContext;
-            this._tables = queryPlan.Tables;
         }
 
         public override IFeatureEnumerator<T> GetFeatureEnumerator(CancellationToken cancellationToken = default)
@@ -26,21 +22,17 @@ namespace Chloe.Sharding.Queries
             return new Enumerator(this, cancellationToken);
         }
 
-        class Enumerator : FeatureEnumerator<T>
+        class Enumerator : QueryFeatureEnumerator<T>
         {
             DisorderedMultTableDataQuery<T> _enumerable;
             CancellationToken _cancellationToken;
 
-            public Enumerator(DisorderedMultTableDataQuery<T> enumerable, CancellationToken cancellationToken = default)
+            public Enumerator(DisorderedMultTableDataQuery<T> enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryPlan)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;
             }
 
-            ShardingQueryPlan QueryPlan { get { return this._enumerable._queryPlan; } }
-            IShardingContext ShardingContext { get { return this._enumerable._queryPlan.ShardingContext; } }
-            ShardingQueryModel QueryModel { get { return this._enumerable._queryPlan.QueryModel; } }
-            List<IPhysicTable> Tables { get { return this._enumerable._queryPlan.Tables; } }
             TypeDescriptor EntityTypeDescriptor { get { return this._enumerable._queryPlan.ShardingContext.TypeDescriptor; } }
 
             protected override async Task<IFeatureEnumerator<T>> CreateEnumerator(bool @async)

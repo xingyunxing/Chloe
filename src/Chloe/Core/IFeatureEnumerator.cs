@@ -77,6 +77,7 @@ namespace Chloe
             }
 
             this._current = this._innerEnumerator.GetCurrent();
+
             return true;
         }
     }

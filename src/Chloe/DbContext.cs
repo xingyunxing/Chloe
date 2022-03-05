@@ -25,14 +25,14 @@ namespace Chloe
         DbSession _session;
         Dictionary<Type, List<LambdaExpression>> _queryFilters = new Dictionary<Type, List<LambdaExpression>>();
 
-        Dictionary<Type, TrackEntityCollection> _trackingEntityContainer;
-        Dictionary<Type, TrackEntityCollection> TrackingEntityContainer
+        TrackingEntityContainer _trackingEntityContainer;
+        TrackingEntityContainer TrackingEntityContainer
         {
             get
             {
                 if (this._trackingEntityContainer == null)
                 {
-                    this._trackingEntityContainer = new Dictionary<Type, TrackEntityCollection>();
+                    this._trackingEntityContainer = new TrackingEntityContainer();
                 }
 
                 return this._trackingEntityContainer;
@@ -870,27 +870,7 @@ namespace Chloe
 
         public virtual void TrackEntity(object entity)
         {
-            PublicHelper.CheckNull(entity);
-            Type entityType = entity.GetType();
-
-            if (ReflectionExtension.IsAnonymousType(entityType))
-                return;
-
-            Dictionary<Type, TrackEntityCollection> entityContainer = this.TrackingEntityContainer;
-
-            TrackEntityCollection collection;
-            if (!entityContainer.TryGetValue(entityType, out collection))
-            {
-                TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(entityType);
-
-                if (!typeDescriptor.HasPrimaryKey())
-                    return;
-
-                collection = new TrackEntityCollection(typeDescriptor);
-                entityContainer.Add(entityType, collection);
-            }
-
-            collection.TryAddEntity(entity);
+            this.TrackingEntityContainer.Add(entity);
         }
         protected virtual string GetSelectLastInsertIdClause()
         {
@@ -898,20 +878,7 @@ namespace Chloe
         }
         protected virtual IEntityState TryGetTrackedEntityState(object entity)
         {
-            PublicHelper.CheckNull(entity);
-            Type entityType = entity.GetType();
-            Dictionary<Type, TrackEntityCollection> entityContainer = this._trackingEntityContainer;
-
-            if (entityContainer == null)
-                return null;
-
-            TrackEntityCollection collection;
-            if (!entityContainer.TryGetValue(entityType, out collection))
-            {
-                return null;
-            }
-
-            IEntityState ret = collection.TryGetEntityState(entity);
+            IEntityState ret = this.TrackingEntityContainer.GetEntityState(entity);
             return ret;
         }
 
@@ -935,37 +902,6 @@ namespace Chloe
             if (this._disposed)
             {
                 throw new ObjectDisposedException(this.GetType().FullName);
-            }
-        }
-
-        class TrackEntityCollection
-        {
-            public TrackEntityCollection(TypeDescriptor typeDescriptor)
-            {
-                this.TypeDescriptor = typeDescriptor;
-                this.Entities = new Dictionary<object, IEntityState>(1);
-            }
-            public TypeDescriptor TypeDescriptor { get; private set; }
-            public Dictionary<object, IEntityState> Entities { get; private set; }
-            public bool TryAddEntity(object entity)
-            {
-                if (this.Entities.ContainsKey(entity))
-                {
-                    return false;
-                }
-
-                IEntityState entityState = new EntityState(this.TypeDescriptor, entity);
-                this.Entities.Add(entity, entityState);
-
-                return true;
-            }
-            public IEntityState TryGetEntityState(object entity)
-            {
-                IEntityState ret;
-                if (!this.Entities.TryGetValue(entity, out ret))
-                    ret = null;
-
-                return ret;
             }
         }
     }

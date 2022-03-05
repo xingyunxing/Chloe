@@ -6,6 +6,8 @@ namespace Chloe.Sharding
     {
         public ShardingQueryModel QueryModel { get; set; }
 
+        public bool IsTrackingQuery { get; set; }
+
         public List<IPhysicTable> Tables { get; set; } = new List<IPhysicTable>();
         public bool IsOrderedTables { get; set; }
 

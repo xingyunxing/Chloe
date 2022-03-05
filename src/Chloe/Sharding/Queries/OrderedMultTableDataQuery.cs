@@ -23,19 +23,16 @@ namespace Chloe.Sharding.Queries
             return new Enumerator(this, cancellationToken);
         }
 
-        class Enumerator : FeatureEnumerator<T>, IFeatureEnumerator<T>
+        class Enumerator : QueryFeatureEnumerator<T>, IFeatureEnumerator<T>
         {
             OrderedMultTableDataQuery<T> _enumerable;
             CancellationToken _cancellationToken;
 
-            public Enumerator(OrderedMultTableDataQuery<T> enumerable, CancellationToken cancellationToken = default)
+            public Enumerator(OrderedMultTableDataQuery<T> enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryPlan)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;
             }
-
-            ShardingQueryPlan QueryPlan { get { return this._enumerable._queryPlan; } }
-            IShardingContext ShardingContext { get { return this._enumerable._queryPlan.ShardingContext; } }
 
             protected override async Task<IFeatureEnumerator<T>> CreateEnumerator(bool @async)
             {
