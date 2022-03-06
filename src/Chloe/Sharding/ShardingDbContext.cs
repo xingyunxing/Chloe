@@ -205,10 +205,11 @@ namespace Chloe.Sharding
         {
             PublicHelper.CheckNull(entity);
 
-            IDbContext dbContext = this.GetPersistedDbContextProvider(entity);
+            RouteTable routeTable = this.GetRouteTable(entity, true);
+            IDbContext dbContext = this.GetPersistedDbContextProvider(routeTable);
             if (@async)
             {
-                return await dbContext.InsertAsync(entity);
+                return await dbContext.InsertAsync(entity, routeTable.Name);
             }
 
             return dbContext.Insert(entity);
@@ -383,10 +384,11 @@ namespace Chloe.Sharding
         {
             PublicHelper.CheckNull(entity);
 
-            IDbContext dbContext = this.GetPersistedDbContextProvider(entity);
+            RouteTable routeTable = this.GetRouteTable(entity, true);
+            IDbContext dbContext = this.GetPersistedDbContextProvider(routeTable);
             if (@async)
             {
-                return await dbContext.UpdateAsync(entity);
+                return await dbContext.UpdateAsync(entity, routeTable.Name);
             }
 
             return dbContext.Update(entity);
@@ -461,10 +463,11 @@ namespace Chloe.Sharding
         {
             PublicHelper.CheckNull(entity);
 
-            IDbContext dbContext = this.GetPersistedDbContextProvider(entity);
+            RouteTable routeTable = this.GetRouteTable(entity, true);
+            IDbContext dbContext = this.GetPersistedDbContextProvider(routeTable);
             if (@async)
             {
-                return await dbContext.DeleteAsync(entity);
+                return await dbContext.DeleteAsync(entity, routeTable.Name);
             }
 
             return dbContext.Delete(entity);

@@ -1,4 +1,5 @@
 ﻿using Chloe.Descriptors;
+using Chloe.Exceptions;
 using System.Reflection;
 
 namespace Chloe.Sharding
@@ -57,13 +58,18 @@ namespace Chloe.Sharding
 
     static class ShardingContextExtension
     {
-        public static RouteTable GetEntityTable(this IShardingContext shardingContext, object entity)
+        public static RouteTable GetEntityTable(this IShardingContext shardingContext, object entity, bool throwExceptionIfNotFound = false)
         {
             var shardingPropertyDescriptor = shardingContext.TypeDescriptor.GetPrimitivePropertyDescriptor(shardingContext.ShardingConfig.ShardingKey);
 
             var shardingKeyValue = shardingPropertyDescriptor.GetValue(entity);
 
             RouteTable routeTable = shardingContext.GetTable(shardingKeyValue);
+
+            if (routeTable == null && throwExceptionIfNotFound)
+            {
+                throw new ChloeException($"Corresponding table not found for entity '{entity.GetType().FullName}' with sharding key '{shardingKeyValue}'.");
+            }
 
             return routeTable;
         }
