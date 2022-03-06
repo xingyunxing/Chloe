@@ -33,6 +33,10 @@
 		<DefineConstants>netfx;net46</DefineConstants>
 	</PropertyGroup>
 
+	<ItemGroup Condition="'$(TargetFramework)' == 'net46'">
+		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
+	</ItemGroup>
+
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
 		<PackageReference Include="System.Reflection.Emit" Version="4.7.0" />
 		<PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />

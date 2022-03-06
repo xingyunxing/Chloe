@@ -46,6 +46,14 @@ namespace Chloe.Sharding
             return Expression.Lambda(conditionBody, parameterExpression);
         }
 
+        public static IEnumerable<(IPhysicDataSource DataSource, List<IPhysicTable> Tables)> GroupTables(IEnumerable<IPhysicTable> tables)
+        {
+            //TODO 对表排序
+            //var tables = routeTables.Select(a => (IPhysicTable)new PhysicTable(a));
+            var groupedTables = tables.GroupBy(a => a.DataSource.Name).Select(a => (a.First().DataSource, a.ToList()));
+            return groupedTables;
+
+        }
         public static IOrderedQuery<T> InnerOrderBy<T>(this IQuery<T> q, Ordering ordering)
         {
             LambdaExpression keySelector = ordering.KeySelector;

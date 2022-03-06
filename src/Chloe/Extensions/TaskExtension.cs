@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace Chloe.Threading.Tasks
+﻿namespace Chloe.Threading.Tasks
 {
     public static class TaskExtension
     {

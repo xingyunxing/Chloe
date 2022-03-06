@@ -95,6 +95,17 @@ namespace Chloe.Entity
             return this;
         }
 
+        public IPrimitivePropertyBuilder<TProperty, TEntity> IsUniqueIndex(bool isUniqueIndex = true)
+        {
+            this.AsNonGenericBuilder().IsUniqueIndex(isUniqueIndex);
+            return this;
+        }
+        IPrimitivePropertyBuilder IPrimitivePropertyBuilder.IsUniqueIndex(bool isUniqueIndex)
+        {
+            this.Property.IsUniqueIndex = isUniqueIndex;
+            return this;
+        }
+
         public IPrimitivePropertyBuilder<TProperty, TEntity> HasDbType(DbType dbType)
         {
             this.AsNonGenericBuilder().HasDbType(dbType);

@@ -5,7 +5,6 @@ using Chloe.Query.QueryExpressions;
 using Chloe.Reflection;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace Chloe.Query
 {

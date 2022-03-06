@@ -16,6 +16,7 @@ namespace Chloe.Descriptors
         public bool IsAutoIncrement { get { return this.Definition.IsAutoIncrement; } }
         public bool IsNullable { get { return this.Definition.IsNullable; } }
         public bool IsRowVersion { get { return this.Definition.IsRowVersion; } }
+        public bool IsUniqueIndex { get { return this.Definition.IsUniqueIndex; } }
 
         /// <summary>
         /// 更新忽略

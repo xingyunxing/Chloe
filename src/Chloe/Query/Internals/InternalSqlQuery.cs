@@ -10,7 +10,6 @@ using System.Collections;
 using System.Data;
 using System.Reflection;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Chloe.Query.Internals
 {

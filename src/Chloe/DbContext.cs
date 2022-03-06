@@ -7,14 +7,11 @@ using Chloe.Exceptions;
 using Chloe.Infrastructure;
 using Chloe.Query;
 using Chloe.Query.Internals;
-using Chloe.Reflection;
 using Chloe.Threading.Tasks;
 using Chloe.Utility;
-using System.Collections;
 using System.Data;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace Chloe
 {
@@ -135,18 +132,9 @@ namespace Chloe
         {
             return this.QueryByKey<TEntity>(key, table, @lock, tracking, true);
         }
-        protected virtual async Task<TEntity> QueryByKey<TEntity>(object key, string table, LockType @lock, bool tracking, bool @async)
+        protected virtual Task<TEntity> QueryByKey<TEntity>(object key, string table, LockType @lock, bool tracking, bool @async)
         {
-            Expression<Func<TEntity, bool>> condition = PrimaryKeyHelper.BuildCondition<TEntity>(key);
-            var q = this.Query<TEntity>(table, @lock).Where(condition);
-
-            if (tracking)
-                q = q.AsTracking();
-
-            if (@async)
-                return await q.FirstOrDefaultAsync();
-
-            return q.FirstOrDefault();
+            return DbContextHelper.QueryByKey<TEntity>(this, key, table, @lock, tracking, @async);
         }
 
         public virtual IJoinQuery<T1, T2> JoinQuery<T1, T2>(Expression<Func<T1, T2, object[]>> joinInfo)
@@ -236,124 +224,11 @@ namespace Chloe
 
         public TEntity Save<TEntity>(TEntity entity)
         {
-            this.Save(entity, false).GetResult();
-            return entity;
+            return DbContextHelper.Save<TEntity>(this, entity, false).GetResult();
         }
-        public async Task<TEntity> SaveAsync<TEntity>(TEntity entity)
+        public Task<TEntity> SaveAsync<TEntity>(TEntity entity)
         {
-            await this.Save(entity, true);
-            return entity;
-        }
-        async Task Save<TEntity>(TEntity entity, bool @async)
-        {
-            if (this.Session.IsInTransaction)
-            {
-                await this.Save(entity, null, @async);
-                return;
-            }
-
-            using (var tran = this.BeginTransaction())
-            {
-                await this.Save(entity, null, @async);
-                tran.Commit();
-            }
-        }
-        async Task Save<TEntity>(TEntity entity, TypeDescriptor declaringTypeDescriptor, bool @async)
-        {
-            await this.Insert(entity, null, @async);
-
-            TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(TEntity));
-
-            for (int i = 0; i < typeDescriptor.ComplexPropertyDescriptors.Count; i++)
-            {
-                //entity.TOther
-                ComplexPropertyDescriptor navPropertyDescriptor = typeDescriptor.ComplexPropertyDescriptors[i];
-
-                if (declaringTypeDescriptor != null && navPropertyDescriptor.PropertyType == declaringTypeDescriptor.Definition.Type)
-                {
-                    continue;
-                }
-
-                await this.SaveOneToOne(navPropertyDescriptor, entity, typeDescriptor, @async);
-            }
-
-            for (int i = 0; i < typeDescriptor.CollectionPropertyDescriptors.Count; i++)
-            {
-                //entity.List
-                CollectionPropertyDescriptor collectionPropertyDescriptor = typeDescriptor.CollectionPropertyDescriptors[i];
-                await this.SaveCollection(collectionPropertyDescriptor, entity, typeDescriptor, @async);
-            }
-        }
-        async Task SaveOneToOne(ComplexPropertyDescriptor navPropertyDescriptor, object owner, TypeDescriptor ownerTypeDescriptor, bool @async)
-        {
-            /*
-             * 1:1
-             * T    <1:1>    TOther
-             * T.TOther <--> TOther.T
-             * T.Id <--> TOther.Id
-             */
-
-            //owner is T
-            //navPropertyDescriptor is T.TOther
-            //TypeDescriptor of T.TOther
-            TypeDescriptor navTypeDescriptor = EntityTypeContainer.GetDescriptor(navPropertyDescriptor.PropertyType);
-            //TOther.T
-            ComplexPropertyDescriptor TOtherDotT = navTypeDescriptor.ComplexPropertyDescriptors.Where(a => a.PropertyType == ownerTypeDescriptor.Definition.Type).FirstOrDefault();
-
-            bool isOneToOne = TOtherDotT != null;
-            if (!isOneToOne)
-                return;
-
-            //instance of T.TOther
-            object navValue = navPropertyDescriptor.GetValue(owner);
-            if (navValue == null)
-                return;
-
-            //T.Id
-            PrimitivePropertyDescriptor foreignKeyProperty = navPropertyDescriptor.ForeignKeyProperty;
-            if (foreignKeyProperty.IsAutoIncrement || foreignKeyProperty.HasSequence())
-            {
-                //value of T.Id
-                object foreignKeyValue = foreignKeyProperty.GetValue(owner);
-
-                //T.TOther.Id = T.Id
-                TOtherDotT.ForeignKeyProperty.SetValue(navValue, foreignKeyValue);
-            }
-
-            MethodInfo saveMethod = GetSaveMethod(navPropertyDescriptor.PropertyType);
-            //DbContext.Save(navValue, ownerTypeDescriptor, @async);
-            Task task = (Task)saveMethod.FastInvoke(this, navValue, ownerTypeDescriptor, @async);
-            await task;
-        }
-        async Task SaveCollection(CollectionPropertyDescriptor collectionPropertyDescriptor, object owner, TypeDescriptor ownerTypeDescriptor, bool @async)
-        {
-            PrimitivePropertyDescriptor ownerKeyPropertyDescriptor = ownerTypeDescriptor.PrimaryKeys.FirstOrDefault();
-            if (ownerKeyPropertyDescriptor == null)
-                return;
-
-            //T.Elements
-            IList elementList = collectionPropertyDescriptor.GetValue(owner) as IList;
-            if (elementList == null || elementList.Count == 0)
-                return;
-
-            TypeDescriptor elementTypeDescriptor = EntityTypeContainer.GetDescriptor(collectionPropertyDescriptor.ElementType);
-            //Element.T
-            ComplexPropertyDescriptor elementDotT = elementTypeDescriptor.ComplexPropertyDescriptors.Where(a => a.PropertyType == ownerTypeDescriptor.Definition.Type).FirstOrDefault();
-
-            object ownerKeyValue = ownerKeyPropertyDescriptor.GetValue(owner);
-            MethodInfo saveMethod = GetSaveMethod(collectionPropertyDescriptor.ElementType);
-            for (int i = 0; i < elementList.Count; i++)
-            {
-                object element = elementList[i];
-                if (element == null)
-                    continue;
-
-                //element.ForeignKey = T.Id
-                elementDotT.ForeignKeyProperty.SetValue(element, ownerKeyValue);
-                //DbContext.Save(element, ownerTypeDescriptor, @async);
-                Task task = (Task)saveMethod.FastInvoke(this, element, ownerTypeDescriptor, @async);
-                await task;
-            }
+            return DbContextHelper.Save<TEntity>(this, entity, true);
         }
 
         public virtual TEntity Insert<TEntity>(TEntity entity)
@@ -438,6 +313,7 @@ namespace Chloe
             autoIncrementPropertyDescriptor.SetValue(entity, retIdentity);
             return entity;
         }
+
         public virtual object Insert<TEntity>(Expression<Func<TEntity>> content)
         {
             return this.Insert(content, null);

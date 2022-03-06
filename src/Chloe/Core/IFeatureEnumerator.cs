@@ -1,7 +1,6 @@
 ﻿using Chloe.Reflection;
 using Chloe.Threading.Tasks;
 using System.Collections;
-using System.Threading.Tasks;
 
 namespace Chloe
 {

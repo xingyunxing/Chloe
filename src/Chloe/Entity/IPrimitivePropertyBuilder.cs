@@ -12,6 +12,7 @@ namespace Chloe.Entity
         IPrimitivePropertyBuilder IsAutoIncrement(bool autoIncrement = true);
         IPrimitivePropertyBuilder IsNullable(bool isNullable = true);
         IPrimitivePropertyBuilder IsRowVersion(bool isRowVersion = true);
+        IPrimitivePropertyBuilder IsUniqueIndex(bool isUniqueIndex = true);
         IPrimitivePropertyBuilder HasDbType(DbType dbType);
         IPrimitivePropertyBuilder HasSize(int? size);
         IPrimitivePropertyBuilder HasScale(byte? scale);
@@ -28,6 +29,7 @@ namespace Chloe.Entity
         new IPrimitivePropertyBuilder<TProperty, TEntity> IsAutoIncrement(bool autoIncrement = true);
         new IPrimitivePropertyBuilder<TProperty, TEntity> IsNullable(bool isNullable = true);
         new IPrimitivePropertyBuilder<TProperty, TEntity> IsRowVersion(bool isRowVersion = true);
+        new IPrimitivePropertyBuilder<TProperty, TEntity> IsUniqueIndex(bool isUniqueIndex = true);
         new IPrimitivePropertyBuilder<TProperty, TEntity> HasDbType(DbType dbType);
         new IPrimitivePropertyBuilder<TProperty, TEntity> HasSize(int? size);
         new IPrimitivePropertyBuilder<TProperty, TEntity> HasScale(byte? scale);

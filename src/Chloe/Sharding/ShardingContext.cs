@@ -12,6 +12,7 @@ namespace Chloe.Sharding
         int MaxInItems { get; }
         bool IsPrimaryKey(MemberInfo member);
         bool IsShardingMember(MemberInfo member);
+        bool IsUniqueIndex(MemberInfo member);
         List<IDbContext> CreateDbContextProviders(IPhysicDataSource dataSource, int count);
     }
 
@@ -41,6 +42,11 @@ namespace Chloe.Sharding
         public bool IsPrimaryKey(MemberInfo member)
         {
             return this.TypeDescriptor.IsPrimaryKey(member);
+        }
+
+        public bool IsUniqueIndex(MemberInfo member)
+        {
+            return this.TypeDescriptor.IsUniqueIndex(member);
         }
 
         public List<IDbContext> CreateDbContextProviders(IPhysicDataSource dataSource, int count)

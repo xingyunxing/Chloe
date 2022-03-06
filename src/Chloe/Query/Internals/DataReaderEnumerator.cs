@@ -1,7 +1,6 @@
 ﻿using Chloe.Threading.Tasks;
 using System.Collections;
 using System.Data;
-using System.Threading.Tasks;
 
 namespace Chloe.Query.Internals
 {

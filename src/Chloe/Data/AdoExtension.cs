@@ -1,6 +1,5 @@
 ﻿using Chloe.Data;
 using System.Data.Common;
-using System.Threading.Tasks;
 
 namespace System.Data
 {

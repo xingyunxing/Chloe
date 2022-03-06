@@ -3,6 +3,7 @@ global using System.Text;
 global using System.Linq;
 global using System.IO;
 global using System.Collections.Generic;
+global using System.Threading.Tasks;
 
 #if netfx
 global using BoolResultTask = System.Threading.Tasks.Task<bool>;

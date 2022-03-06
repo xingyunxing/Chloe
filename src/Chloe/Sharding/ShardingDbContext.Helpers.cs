@@ -1,5 +1,7 @@
 ﻿using Chloe.Descriptors;
+using Chloe.Exceptions;
 using Chloe.Infrastructure;
+using System.Linq.Expressions;
 
 namespace Chloe.Sharding
 {
@@ -22,14 +24,24 @@ namespace Chloe.Sharding
             return shardingContext;
         }
 
-        internal List<IDbContext> CreateDbContextProviders(IPhysicDataSource dataSource, int count)
+        internal IDbContext GetPersistedDbContextProvider(object entity)
         {
-            if (this.DbSessionProvider.IsInTransaction)
+            PublicHelper.CheckNull(entity);
+
+            IShardingContext shardingContext = this.CreateShardingContext(entity.GetType());
+
+            var shardingPropertyDescriptor = shardingContext.TypeDescriptor.GetPrimitivePropertyDescriptor(shardingContext.ShardingConfig.ShardingKey);
+
+            var shardingKeyValue = shardingPropertyDescriptor.GetValue(entity);
+            RouteTable routeTable = shardingContext.GetTable(shardingKeyValue);
+
+            if (routeTable == null)
             {
-                return new List<IDbContext>(1) { this.GetPersistedDbContextProvider(dataSource) };
+                throw new ChloeException($"Corresponding table not found for entity '{entity.GetType().FullName}' with sharding key '{shardingKeyValue}'.");
             }
 
-            return this.CreateTransientDbContextProviders(dataSource, count);
+            IDbContext persistedDbContext = this.GetPersistedDbContextProvider(routeTable);
+            return persistedDbContext;
         }
         internal IDbContext GetPersistedDbContextProvider(RouteTable routeTable)
         {
@@ -55,7 +67,17 @@ namespace Chloe.Sharding
                 pair.DbContext.Session.BeginTransaction(this.DbSessionProvider.IL);
             }
 
-            return new PersistedDbContext(pair.DbContext);
+            return new PersistedDbContextProvider(pair.DbContext);
+        }
+
+        internal List<IDbContext> CreateDbContextProviders(IPhysicDataSource dataSource, int count)
+        {
+            if (this.DbSessionProvider.IsInTransaction)
+            {
+                return new List<IDbContext>(1) { this.GetPersistedDbContextProvider(dataSource) };
+            }
+
+            return this.CreateTransientDbContextProviders(dataSource, count);
         }
         internal List<IDbContext> CreateTransientDbContextProviders(IPhysicDataSource dataSource, int count)
         {
@@ -75,7 +97,6 @@ namespace Chloe.Sharding
 
             return dbContexts;
         }
-
         void AppendFeatures(IDbContext dbContext)
         {
             dbContext.Session.CommandTimeout = this.Session.CommandTimeout;
@@ -100,9 +121,82 @@ namespace Chloe.Sharding
             }
         }
 
-        class PersistedDbContext : DbContextDecorator, IDbContext
+
+        async Task<int> ExecuteUpdate<TEntity>(IEnumerable<(IPhysicDataSource DataSource, List<IPhysicTable> Tables)> groups, Expression<Func<TEntity, bool>> condition, Expression<Func<TEntity, TEntity>> content, int rowsAffectedLimit, bool @async)
         {
-            public PersistedDbContext(IDbContext dbContext) : base(dbContext)
+            int totalRowsAffected = 0;
+
+            foreach (var group in groups)
+            {
+                var dataSource = group.DataSource;
+                var tables = group.Tables;
+
+                var dbContext = this.GetPersistedDbContextProvider(dataSource);
+
+                foreach (var table in tables)
+                {
+                    int rowsAffected = 0;
+                    if (@async)
+                    {
+                        rowsAffected = await dbContext.UpdateAsync<TEntity>(condition, content, table.Name);
+                    }
+                    else
+                    {
+                        rowsAffected = dbContext.Update<TEntity>(condition, content, table.Name);
+                    }
+
+                    totalRowsAffected += rowsAffected;
+
+                    if (totalRowsAffected >= rowsAffectedLimit)
+                    {
+                        goto End;
+                    }
+                }
+            }
+
+        End:
+            return totalRowsAffected;
+        }
+        async Task<int> ExecuteDelete<TEntity>(IEnumerable<(IPhysicDataSource DataSource, List<IPhysicTable> Tables)> groups, Expression<Func<TEntity, bool>> condition, int rowsAffectedLimit, bool @async)
+        {
+            int totalRowsAffected = 0;
+
+            foreach (var group in groups)
+            {
+                var dataSource = group.DataSource;
+                var tables = group.Tables;
+
+                var dbContext = this.GetPersistedDbContextProvider(dataSource);
+
+                foreach (var table in tables)
+                {
+                    int rowsAffected = 0;
+                    if (@async)
+                    {
+                        rowsAffected = await dbContext.DeleteAsync<TEntity>(condition, table.Name);
+                    }
+                    else
+                    {
+                        rowsAffected = dbContext.Delete<TEntity>(condition, table.Name);
+                    }
+
+                    totalRowsAffected += rowsAffected;
+
+                    if (totalRowsAffected >= rowsAffectedLimit)
+                    {
+                        goto End;
+                    }
+                }
+            }
+
+        End:
+            return totalRowsAffected;
+        }
+
+
+        class PersistedDbContextProvider : DbContextDecorator, IDbContext
+        {
+            public PersistedDbContextProvider(IDbContext dbContext) : base(dbContext)
             {
             }
 

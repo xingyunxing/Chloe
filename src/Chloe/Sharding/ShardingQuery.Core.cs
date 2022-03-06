@@ -1,5 +1,4 @@
 ﻿using Chloe.Sharding.Queries;
-using System.Threading.Tasks;
 
 namespace Chloe.Sharding
 {
@@ -9,8 +8,8 @@ namespace Chloe.Sharding
         {
             ShardingQueryPlan queryPlan = this.MakeQueryPlan(this);
 
-            //针对主键查询
-            bool isUniqueDataQuery = UniqueDataQueryAuthenticator.IsUniqueDataQuery(queryPlan.Condition, queryPlan.ShardingContext.TypeDescriptor.PrimaryKeys.First().Property);
+            //主键或唯一索引查询
+            bool isUniqueDataQuery = UniqueDataQueryAuthenticator.IsUniqueDataQuery(queryPlan.ShardingContext, queryPlan.Condition);
 
             if (isUniqueDataQuery)
             {

@@ -28,6 +28,7 @@ namespace Chloe.Descriptors
             this._propertyDescriptorMap = PublicHelper.Clone(allPropertyDescriptors.ToDictionary(a => (MemberInfo)a.Definition.Property, a => a));
 
             this.PrimaryKeys = this.PrimitivePropertyDescriptors.Where(a => a.Definition.IsPrimaryKey).ToList().AsReadOnly();
+            this.UniqueIndexs = this.PrimitivePropertyDescriptors.Where(a => a.Definition.IsUniqueIndex).ToList().AsReadOnly();
             this.AutoIncrement = this.PrimitivePropertyDescriptors.Where(a => a.Definition.IsAutoIncrement).FirstOrDefault();
             this.RowVersion = this.PrimitivePropertyDescriptors.Where(a => a.Definition.IsRowVersion).FirstOrDefault();
 
@@ -42,6 +43,7 @@ namespace Chloe.Descriptors
         public ReadOnlyCollection<PropertyDescriptor> NavigationPropertyDescriptors { get; private set; }
 
         public ReadOnlyCollection<PrimitivePropertyDescriptor> PrimaryKeys { get; private set; }
+        public ReadOnlyCollection<PrimitivePropertyDescriptor> UniqueIndexs { get; private set; }
 
         /* It will return null if an entity has no auto increment member. */
         public PrimitivePropertyDescriptor AutoIncrement { get; private set; }
@@ -78,6 +80,12 @@ namespace Chloe.Descriptors
             member = member.AsReflectedMemberOf(this.Definition.Type);
             return this.PrimaryKeys.Any(a => a.Definition.Property == member);
         }
+        public bool IsUniqueIndex(MemberInfo member)
+        {
+            member = member.AsReflectedMemberOf(this.Definition.Type);
+            return this.UniqueIndexs.Any(a => a.Definition.Property == member);
+        }
+
         public PrimitivePropertyDescriptor FindPrimitivePropertyDescriptor(MemberInfo member)
         {
             member = member.AsReflectedMemberOf(this.Definition.Type);

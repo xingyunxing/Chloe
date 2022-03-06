@@ -3,7 +3,6 @@ using Chloe.Infrastructure;
 using Chloe.Infrastructure.Interception;
 using Chloe.Threading.Tasks;
 using System.Data;
-using System.Threading.Tasks;
 
 namespace Chloe.Data
 {

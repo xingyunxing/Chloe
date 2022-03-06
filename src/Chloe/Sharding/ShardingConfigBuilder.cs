@@ -128,6 +128,11 @@ namespace Chloe.Sharding
 
     internal class ShardingConfig : IShardingConfig
     {
+        public ShardingConfig()
+        {
+
+        }
+
         public Type EntityType { get; set; }
         public MemberInfo ShardingKey { get; set; }
         public IShardingRouteFactory RouteFactory { get; set; }

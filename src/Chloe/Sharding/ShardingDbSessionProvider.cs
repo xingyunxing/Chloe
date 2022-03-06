@@ -1,7 +1,6 @@
 ﻿using Chloe.Exceptions;
 using Chloe.Infrastructure.Interception;
 using System.Data;
-using System.Threading.Tasks;
 
 namespace Chloe.Sharding
 {
@@ -100,6 +99,26 @@ namespace Chloe.Sharding
             if (this.IsInTransaction)
             {
                 throw new ChloeException("The current session has opened a transaction.");
+            }
+
+            try
+            {
+                foreach (var persistedDbContext in this.PersistedDbContexts)
+                {
+                    persistedDbContext.DbContext.Session.BeginTransaction(il);
+                }
+            }
+            catch
+            {
+                try
+                {
+                    this.RollbackTransactionImpl();
+                }
+                catch
+                {
+                }
+
+                throw;
             }
 
             this.IL = il;

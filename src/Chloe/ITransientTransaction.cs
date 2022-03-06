@@ -16,12 +16,13 @@ namespace Chloe
     {
         bool _disposed = false;
         bool _completed = false;
-        public TransientTransaction(IDbContext dbContext)
+
+        public TransientTransaction(IDbContext dbContext) : this(dbContext, null)
         {
-            this.DbContext = dbContext;
-            this.DbContext.Session.BeginTransaction();
+
         }
-        public TransientTransaction(IDbContext dbContext, IsolationLevel il)
+
+        public TransientTransaction(IDbContext dbContext, IsolationLevel? il)
         {
             this.DbContext = dbContext;
             this.DbContext.Session.BeginTransaction(il);

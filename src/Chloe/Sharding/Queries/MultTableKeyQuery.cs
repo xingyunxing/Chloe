@@ -2,7 +2,6 @@
 using Chloe.Reflection;
 using System.Linq.Expressions;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Chloe.Sharding.Queries
 {

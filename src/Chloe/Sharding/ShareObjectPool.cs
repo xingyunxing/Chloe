@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace Chloe.Sharding
+﻿namespace Chloe.Sharding
 {
     static class ShareObjectPoolExtension
     {

@@ -1,7 +1,6 @@
 ﻿using Chloe.Query;
 using Chloe.Threading.Tasks;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 
 namespace Chloe.Sharding
 {

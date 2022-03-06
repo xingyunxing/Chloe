@@ -1,25 +1,24 @@
 ﻿using Chloe.Core.Visitors;
 using Chloe.Extensions;
 using System.Linq.Expressions;
-using System.Reflection;
 
 namespace Chloe.Sharding
 {
     internal class UniqueDataQueryAuthenticator : ExpressionVisitor<bool>
     {
-        MemberInfo _primaryKey;
+        IShardingContext _shardingContext;
 
-        public UniqueDataQueryAuthenticator(MemberInfo primaryKey)
+        public UniqueDataQueryAuthenticator(IShardingContext shardingContext)
         {
-            this._primaryKey = primaryKey;
+            this._shardingContext = shardingContext;
         }
 
-        public static bool IsUniqueDataQuery(Expression exp, MemberInfo primaryKey)
+        public static bool IsUniqueDataQuery(IShardingContext shardingContext, Expression exp)
         {
             if (exp == null)
                 return false;
 
-            UniqueDataQueryAuthenticator authenticator = new UniqueDataQueryAuthenticator(primaryKey);
+            UniqueDataQueryAuthenticator authenticator = new UniqueDataQueryAuthenticator(shardingContext);
             return authenticator.Visit(exp);
         }
 
@@ -35,20 +34,28 @@ namespace Chloe.Sharding
 
         protected override bool VisitBinary_Equal(BinaryExpression exp)
         {
-            bool isPrimaryKeyMemberAccess = this.IsPrimaryKeyMemberAccess(exp.Left);
+            bool isUniqueDataMemberAccess = this.IsUniqueDataMemberAccess(exp.Left);
             Expression otherSideExp = exp.Right;
 
-            if (!isPrimaryKeyMemberAccess)
+            if (!isUniqueDataMemberAccess)
             {
-                isPrimaryKeyMemberAccess = this.IsPrimaryKeyMemberAccess(exp.Right);
+                isUniqueDataMemberAccess = this.IsUniqueDataMemberAccess(exp.Right);
                 otherSideExp = exp.Left;
             }
 
-            if (isPrimaryKeyMemberAccess)
+            if (isUniqueDataMemberAccess)
             {
                 //TODO: 考虑 DateTime.Now 等可翻译情况
                 bool isEvaluable = otherSideExp.IsEvaluable();
-                return isEvaluable;
+
+                if (!isEvaluable)
+                {
+                    return false;
+                }
+
+                var value = otherSideExp.Evaluate();
+
+                return value != null;
             }
 
             return false;
@@ -64,7 +71,7 @@ namespace Chloe.Sharding
             return base.VisitMethodCall(exp);
         }
 
-        bool IsPrimaryKeyMemberAccess(Expression exp)
+        bool IsUniqueDataMemberAccess(Expression exp)
         {
             exp = exp.StripConvert();
             if (exp.NodeType != ExpressionType.MemberAccess)
@@ -75,9 +82,9 @@ namespace Chloe.Sharding
             var memberExp = exp as MemberExpression;
             if (memberExp.Expression.NodeType == ExpressionType.Parameter)
             {
-                // a.Id
+                // a.Id, a.MobileNumber
                 var member = memberExp.Member;
-                return this._primaryKey == member;
+                return this._shardingContext.IsPrimaryKey(member) || this._shardingContext.IsUniqueIndex(member);
             }
 
             return false;

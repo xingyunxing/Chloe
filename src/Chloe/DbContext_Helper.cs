@@ -6,23 +6,11 @@ using Chloe.Infrastructure;
 using Chloe.InternalExtensions;
 using System.Data;
 using System.Linq.Expressions;
-using System.Reflection;
-using System.Threading.Tasks;
 
 namespace Chloe
 {
     public abstract partial class DbContext : IDbContext, IDisposable
     {
-        static MethodInfo _saveMethod;
-        static DbContext()
-        {
-            DbContext dbContext = null;
-            Expression<Func<Task>> e = () => dbContext.Save<string>(string.Empty, null, false);
-            MethodInfo method = (e.Body as MethodCallExpression).Method;
-            _saveMethod = method.GetGenericMethodDefinition();
-        }
-
-
         protected DbCommandInfo Translate(DbExpression e)
         {
             IDbExpressionTranslator translator = this.DatabaseProvider.CreateDbExpressionTranslator();
@@ -123,11 +111,6 @@ namespace Chloe
             }
 
             return ret;
-        }
-        static MethodInfo GetSaveMethod(Type entityType)
-        {
-            MethodInfo method = _saveMethod.MakeGenericMethod(entityType);
-            return method;
         }
     }
 }
