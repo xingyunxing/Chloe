@@ -1,15 +1,17 @@
-﻿using Chloe.Exceptions;
+﻿using Chloe.Core.Visitors;
+using Chloe.Exceptions;
+using Chloe.Extensions;
 using Chloe.Threading.Tasks;
 using Chloe.Utility;
 using System.Data;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Chloe.Sharding
 {
     /*
      * TODO:
-     * # lambda Insert
-     * # 实现 InsertRange
+     * # InsertRange 对库排序，然后在对表排序
      * # 嵌套 TrackEntity
      * # lambda update 和 lambda delete 时对表排序
      * # 
@@ -228,9 +230,42 @@ namespace Chloe.Sharding
         {
             return this.Insert(content, table, true);
         }
-        Task<object> Insert<TEntity>(Expression<Func<TEntity>> content, string table, bool @async)
+        async Task<object> Insert<TEntity>(Expression<Func<TEntity>> content, string table, bool @async)
         {
-            throw new NotImplementedException();
+            PublicHelper.CheckNull(content, nameof(content));
+
+            IShardingContext shardingContext = this.CreateShardingContext(typeof(TEntity));
+
+            Dictionary<MemberInfo, Expression> insertColumns = InitMemberExtractor.Extract(content);
+
+            var shardingKeyExp = insertColumns.FindValue(shardingContext.ShardingConfig.ShardingKey);
+            if (shardingKeyExp == null)
+            {
+                throw new ArgumentException($"Sharding key not found from content.");
+            }
+
+            if (shardingKeyExp.IsEvaluable())
+            {
+                throw new ArgumentException($"Unable to get sharding key value from expression '{shardingKeyExp.ToString()}'.");
+            }
+
+            var shardingKeyValue = shardingKeyExp.Evaluate();
+
+            RouteTable routeTable = shardingContext.GetTable(shardingKeyValue);
+
+            if (routeTable == null)
+            {
+                throw new ChloeException($"Corresponding table not found for sharding key '{shardingKeyValue}'.");
+            }
+
+            IDbContext persistedDbContext = this.GetPersistedDbContextProvider(routeTable);
+
+            if (@async)
+            {
+                return await persistedDbContext.InsertAsync<TEntity>(content, table);
+            }
+
+            return persistedDbContext.Insert<TEntity>(content, table);
         }
 
         public void InsertRange<TEntity>(List<TEntity> entities)
@@ -249,9 +284,73 @@ namespace Chloe.Sharding
         {
             return this.InsertRange(entities, table, true);
         }
-        protected virtual Task InsertRange<TEntity>(List<TEntity> entities, string table, bool @async)
+        protected virtual async Task InsertRange<TEntity>(List<TEntity> entities, string table, bool @async)
         {
-            throw new NotImplementedException();
+            PublicHelper.CheckNull(entities, nameof(entities));
+
+            List<(TEntity Entity, IPhysicTable Table)> entityMap = this.MakeEntityMap(entities);
+
+            if (this.Session.IsInTransaction)
+            {
+                await this.InsertRange(entityMap, @async);
+            }
+            else
+            {
+                using (var tran = this.BeginTransaction())
+                {
+                    await this.InsertRange(entityMap, @async);
+                    tran.Commit();
+                }
+            }
+        }
+        List<(TEntity Entity, IPhysicTable Table)> MakeEntityMap<TEntity>(List<TEntity> entities)
+        {
+            IShardingContext shardingContext = this.CreateShardingContext(typeof(TEntity));
+
+            List<(TEntity Entity, IPhysicTable Table)> entityMap = new List<(TEntity Entity, IPhysicTable Table)>(entities.Count);
+
+            foreach (var entity in entities)
+            {
+                var shardingPropertyDescriptor = shardingContext.TypeDescriptor.GetPrimitivePropertyDescriptor(shardingContext.ShardingConfig.ShardingKey);
+                var shardingKeyValue = shardingPropertyDescriptor.GetValue(entity);
+                RouteTable routeTable = shardingContext.GetTable(shardingKeyValue);
+
+                if (routeTable == null)
+                {
+                    throw new ChloeException($"Corresponding table not found for entity '{entity.GetType().FullName}' with sharding key '{shardingKeyValue}'.");
+                }
+
+                entityMap.Add((entity, new PhysicTable(routeTable)));
+            }
+
+            return entityMap;
+        }
+        async Task InsertRange<TEntity>(List<(TEntity Entity, IPhysicTable Table)> entityMap, bool @async)
+        {
+            //TODO 对库排序，然后在对表排序
+            var groupedEntities = entityMap.GroupBy(a => a.Table.DataSource.Name);
+
+            foreach (var group in groupedEntities)
+            {
+                var dataSource = group.First().Table.DataSource;
+
+                var dbContext = this.GetPersistedDbContextProvider(dataSource);
+
+                var tableGroups = group.GroupBy(a => a.Table.Name);
+                foreach (var tableGroup in tableGroups)
+                {
+                    var tableEntities = tableGroup.Select(a => a.Entity).ToList();
+
+                    if (@async)
+                    {
+                        await dbContext.InsertRangeAsync(tableEntities);
+                    }
+                    else
+                    {
+                        dbContext.InsertRange(tableEntities);
+                    }
+                }
+            }
         }
 
         public TEntity Save<TEntity>(TEntity entity)
