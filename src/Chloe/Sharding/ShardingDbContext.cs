@@ -1,5 +1,4 @@
 ﻿using Chloe.Core.Visitors;
-using Chloe.Exceptions;
 using Chloe.Extensions;
 using Chloe.Threading.Tasks;
 using Chloe.Utility;
@@ -252,13 +251,7 @@ namespace Chloe.Sharding
 
             var shardingKeyValue = shardingKeyExp.Evaluate();
 
-            RouteTable routeTable = shardingContext.GetTable(shardingKeyValue);
-
-            if (routeTable == null)
-            {
-                throw new ChloeException($"Corresponding table not found for sharding key '{shardingKeyValue}'.");
-            }
-
+            RouteTable routeTable = shardingContext.GetTable(shardingKeyValue, true);
             IDbContext persistedDbContext = this.GetPersistedDbContextProvider(routeTable);
 
             if (@async)
@@ -314,13 +307,7 @@ namespace Chloe.Sharding
             {
                 var shardingPropertyDescriptor = shardingContext.TypeDescriptor.GetPrimitivePropertyDescriptor(shardingContext.ShardingConfig.ShardingKey);
                 var shardingKeyValue = shardingPropertyDescriptor.GetValue(entity);
-                RouteTable routeTable = shardingContext.GetTable(shardingKeyValue);
-
-                if (routeTable == null)
-                {
-                    throw new ChloeException($"Corresponding table not found for entity '{entity.GetType().FullName}' with sharding key '{shardingKeyValue}'.");
-                }
-
+                RouteTable routeTable = shardingContext.GetTable(shardingKeyValue, true);
                 entityMap.Add((entity, new PhysicTable(routeTable)));
             }
 
@@ -417,7 +404,7 @@ namespace Chloe.Sharding
 
             IShardingContext shardingContext = this.CreateShardingContext(typeof(TEntity));
 
-            List<RouteTable> routeTables = ShardingTablePeeker.Peek(condition, shardingContext);
+            List<RouteTable> routeTables = ShardingTablePeeker.Peek(condition, shardingContext).ToList();
             var groupedTables = ShardingHelpers.GroupTables(routeTables.Select(a => (IPhysicTable)new PhysicTable(a)));
 
             bool isUniqueDataQuery = UniqueDataQueryAuthenticator.IsUniqueDataQuery(shardingContext, condition);
@@ -494,7 +481,7 @@ namespace Chloe.Sharding
             PublicHelper.CheckNull(condition, nameof(condition));
 
             IShardingContext shardingContext = this.CreateShardingContext(typeof(TEntity));
-            List<RouteTable> routeTables = ShardingTablePeeker.Peek(condition, shardingContext);
+            List<RouteTable> routeTables = ShardingTablePeeker.Peek(condition, shardingContext).ToList();
             var groupedTables = ShardingHelpers.GroupTables(routeTables.Select(a => (IPhysicTable)new PhysicTable(a)));
 
             bool isUniqueDataQuery = UniqueDataQueryAuthenticator.IsUniqueDataQuery(shardingContext, condition);
@@ -624,13 +611,7 @@ namespace Chloe.Sharding
             var shardingPropertyDescriptor = shardingContext.TypeDescriptor.GetPrimitivePropertyDescriptor(shardingContext.ShardingConfig.ShardingKey);
 
             var shardingKeyValue = shardingPropertyDescriptor.GetValue(entity);
-            RouteTable routeTable = shardingContext.GetTable(shardingKeyValue);
-
-            if (routeTable == null)
-            {
-                throw new ChloeException($"Corresponding table not found for entity '{entity.GetType().FullName}' with sharding key '{shardingKeyValue}'.");
-            }
-
+            RouteTable routeTable = shardingContext.GetTable(shardingKeyValue, true);
             IDbContext persistedDbContext = this.GetPersistedDbContextProvider(routeTable);
 
             //TODO 考虑嵌套

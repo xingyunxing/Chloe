@@ -12,7 +12,7 @@ namespace Chloe.Sharding
         RouteTable GetRouteTable<TEntity>(TEntity entity, bool throwExceptionIfNotFound = false)
         {
             IShardingContext shardingContext = this.CreateShardingContext(entity.GetType());
-            RouteTable routeTable = shardingContext.GetEntityTable(entity, true);
+            RouteTable routeTable = shardingContext.GetEntityTable(entity, throwExceptionIfNotFound);
             return routeTable;
         }
 

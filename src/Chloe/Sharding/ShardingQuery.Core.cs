@@ -66,7 +66,7 @@ namespace Chloe.Sharding
 
             var condition = ShardingHelpers.ConditionCombine(queryPlan.QueryModel);
             queryPlan.Condition = condition;
-            List<RouteTable> routeTables = ShardingTablePeeker.Peek(condition, shardingContext);
+            List<RouteTable> routeTables = ShardingTablePeeker.Peek(condition, shardingContext).ToList();
 
             List<Ordering> orderings = queryPlan.QueryModel.Orderings;
 

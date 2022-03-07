@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace Chloe.Sharding
 {
-    internal class ShardingTablePeeker : ExpressionVisitor<List<RouteTable>>
+    internal class ShardingTablePeeker : ExpressionVisitor<IEnumerable<RouteTable>>
     {
         public ShardingTablePeeker(IShardingContext shardingContext)
         {
@@ -14,7 +14,7 @@ namespace Chloe.Sharding
 
         IShardingContext ShardingContext { get; set; }
 
-        public static List<RouteTable> Peek(Expression exp, IShardingContext shardingContext)
+        public static IEnumerable<RouteTable> Peek(Expression exp, IShardingContext shardingContext)
         {
             if (exp == null)
                 return shardingContext.GetTables();
@@ -23,20 +23,22 @@ namespace Chloe.Sharding
             return peeker.Visit(exp);
         }
 
-        protected override List<RouteTable> VisitExpression(Expression exp)
+        protected override IEnumerable<RouteTable> VisitExpression(Expression exp)
         {
             return this.ShardingContext.GetTables();
         }
 
-        protected override List<RouteTable> VisitLambda(LambdaExpression exp)
+        protected override IEnumerable<RouteTable> VisitLambda(LambdaExpression exp)
         {
             return this.Visit(exp.Body);
         }
 
-        List<RouteTable> VisitComparison(BinaryExpression exp, ShardingOperator shardingOperator, ShardingOperator inversiveShardingOperator)
+        IEnumerable<RouteTable> VisitComparison(BinaryExpression exp, ShardingOperator shardingOperator, ShardingOperator inversiveShardingOperator)
         {
             MemberInfo member = null;
-            if (this.IsShardingMemberAccess(exp.Left, out member))
+            IShardingStrategy shardingStrategy = this.GetShardingStrategy(exp, out member);
+
+            if (shardingStrategy != null)
             {
                 //TODO: 考虑是否可以翻译成sql的情况
                 // a.CreateTime == ???
@@ -44,49 +46,26 @@ namespace Chloe.Sharding
                 {
                     // a.CreateTime == dt
                     object value = exp.Right.Evaluate();
-                    return this.ShardingContext.GetTables(value, shardingOperator);
+                    return shardingStrategy.GetTables(value, shardingOperator);
                 }
             }
 
-            if (this.IsShardingMemberAccess(exp.Right, out member))
+            shardingStrategy = this.GetShardingStrategy(exp.Right, out member);
+            if (shardingStrategy != null)
             {
                 // ??? == a.CreateTime
                 if (exp.Left.IsEvaluable())
                 {
                     // dt == a.CreateTime
                     object value = exp.Left.Evaluate();
-                    return this.ShardingContext.GetTables(value, inversiveShardingOperator);
-                }
-            }
-
-            //主键处理
-            if (shardingOperator == ShardingOperator.Equal)
-            {
-                bool isPrimaryKeyMemberAccess = this.IsPrimaryKeyMemberAccess(exp.Left);
-                Expression otherSideExp = exp.Right;
-
-                if (!isPrimaryKeyMemberAccess)
-                {
-                    isPrimaryKeyMemberAccess = this.IsPrimaryKeyMemberAccess(exp.Right);
-                    otherSideExp = exp.Left;
-                }
-
-                if (isPrimaryKeyMemberAccess)
-                {
-                    //TODO: 考虑 DateTime.Now 等可翻译情况
-                    bool isEvaluable = otherSideExp.IsEvaluable();
-                    if (isEvaluable)
-                    {
-                        var value = otherSideExp.Evaluate();
-                        return this.ShardingContext.GetTablesByKey(value);
-                    }
+                    return shardingStrategy.GetTables(value, inversiveShardingOperator);
                 }
             }
 
             return base.VisitBinary(exp);
         }
 
-        protected override List<RouteTable> VisitBinary(BinaryExpression exp)
+        protected override IEnumerable<RouteTable> VisitBinary(BinaryExpression exp)
         {
             //TODO 考虑 Equal 方法
             switch (exp.NodeType)
@@ -108,23 +87,23 @@ namespace Chloe.Sharding
             }
         }
 
-        protected override List<RouteTable> VisitBinary_AndAlso(BinaryExpression exp)
+        protected override IEnumerable<RouteTable> VisitBinary_AndAlso(BinaryExpression exp)
         {
             return this.Visit(exp.Left).Intersect(this.Visit(exp.Right), RouteTableEqualityComparer.Instance).ToList();
         }
-        protected override List<RouteTable> VisitBinary_OrElse(BinaryExpression exp)
+        protected override IEnumerable<RouteTable> VisitBinary_OrElse(BinaryExpression exp)
         {
             return this.Visit(exp.Left).Union(this.Visit(exp.Right), RouteTableEqualityComparer.Instance).ToList();
         }
 
-        bool IsShardingMemberAccess(Expression exp, out MemberInfo member)
+        IShardingStrategy GetShardingStrategy(Expression exp, out MemberInfo member)
         {
             member = null;
 
             exp = exp.StripConvert();
             if (exp.NodeType != ExpressionType.MemberAccess)
             {
-                return false;
+                return null;
             }
 
             var memberExp = exp as MemberExpression;
@@ -132,28 +111,10 @@ namespace Chloe.Sharding
             {
                 // a.CreateTime
                 member = memberExp.Member;
-                return this.ShardingContext.IsShardingMember(memberExp.Member);
+                return this.ShardingContext.Route.GetShardingStrategy(member);
             }
 
-            return false;
-        }
-        bool IsPrimaryKeyMemberAccess(Expression exp)
-        {
-            exp = exp.StripConvert();
-            if (exp.NodeType != ExpressionType.MemberAccess)
-            {
-                return false;
-            }
-
-            var memberExp = exp as MemberExpression;
-            if (memberExp.Expression.NodeType == ExpressionType.Parameter)
-            {
-                // a.Id
-                var member = memberExp.Member;
-                return this.ShardingContext.IsPrimaryKey(member);
-            }
-
-            return false;
+            return null;
         }
     }
 

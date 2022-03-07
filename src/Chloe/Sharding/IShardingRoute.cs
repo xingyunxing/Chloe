@@ -1,15 +1,16 @@
-﻿namespace Chloe.Sharding
+﻿using System.Reflection;
+
+namespace Chloe.Sharding
 {
     public interface IShardingRoute
     {
-        List<RouteTable> GetTables(ShardingDbContext shardingDbContext);
-        List<RouteTable> GetTables(ShardingDbContext shardingDbContext, object shardingValue, ShardingOperator shardingOperator);
-        RouteTable GetTable(ShardingDbContext shardingDbContext, object shardingValue);
-        List<RouteTable> GetTablesByKey(ShardingDbContext shardingDbContext, object keyValue);
-        SortResult SortTables(ShardingDbContext shardingDbContext, List<RouteTable> tables, List<Ordering> orderings);
+        IEnumerable<RouteTable> GetTables();
+        IShardingStrategy GetShardingStrategy(MemberInfo member);
+
+        SortResult SortTables(List<RouteTable> tables, List<Ordering> orderings);
     }
 
-    public enum ShardingOperator
+    internal enum ShardingOperator
     {
         Equal,
         NotEqual,

@@ -24,7 +24,7 @@ namespace Chloe.Sharding
             this.DbContext = dbContext;
             this.TypeDescriptor = typeDescriptor;
             this.ShardingConfig = shardingConfig;
-            this.Route = shardingConfig.RouteFactory.CreateRoute();
+            this.Route = shardingConfig.RouteFactory.CreateRoute(dbContext);
         }
 
         public TypeDescriptor TypeDescriptor { get; set; }
@@ -64,34 +64,50 @@ namespace Chloe.Sharding
 
             var shardingKeyValue = shardingPropertyDescriptor.GetValue(entity);
 
-            RouteTable routeTable = shardingContext.GetTable(shardingKeyValue);
+            RouteTable routeTable = shardingContext.GetTable(shardingKeyValue, throwExceptionIfNotFound);
+            return routeTable;
+        }
+        public static IEnumerable<RouteTable> GetTables(this IShardingContext shardingContext)
+        {
+            return shardingContext.Route.GetTables();
+        }
+
+        public static RouteTable GetTable(this IShardingContext shardingContext, object shardingValue, bool throwExceptionIfNotFound = false)
+        {
+            IShardingStrategy shardingStrategy = shardingContext.Route.GetShardingStrategy(shardingContext.ShardingConfig.ShardingKey);
+
+            RouteTable routeTable = null;
+
+            if (shardingStrategy == null)
+            {
+                routeTable = null;
+            }
+            else
+            {
+                routeTable = shardingStrategy.ForEqual(shardingValue).FirstOrDefault();
+            }
 
             if (routeTable == null && throwExceptionIfNotFound)
             {
-                throw new ChloeException($"Corresponding table not found for entity '{entity.GetType().FullName}' with sharding key '{shardingKeyValue}'.");
+                throw new ChloeException($"Corresponding table not found for sharding key '{shardingValue}'.");
             }
 
             return routeTable;
         }
-        public static List<RouteTable> GetTables(this IShardingContext shardingContext)
+        public static IEnumerable<RouteTable> GetTablesByKey(this IShardingContext shardingContext, object keyValue)
         {
-            return shardingContext.Route.GetTables(shardingContext.DbContext);
-        }
-        public static List<RouteTable> GetTables(this IShardingContext shardingContext, object shardingValue, ShardingOperator shardingOperator)
-        {
-            return shardingContext.Route.GetTables(shardingContext.DbContext, shardingValue, shardingOperator);
-        }
-        public static RouteTable GetTable(this IShardingContext shardingContext, object shardingValue)
-        {
-            return shardingContext.Route.GetTable(shardingContext.DbContext, shardingValue);
-        }
-        public static List<RouteTable> GetTablesByKey(this IShardingContext shardingContext, object keyValue)
-        {
-            return shardingContext.Route.GetTablesByKey(shardingContext.DbContext, keyValue);
+            IShardingStrategy shardingStrategy = shardingContext.Route.GetShardingStrategy(shardingContext.TypeDescriptor.PrimaryKeys.First().Definition.Property);
+
+            if (shardingStrategy == null)
+            {
+                return shardingContext.Route.GetTables();
+            }
+
+            return shardingStrategy.ForEqual(keyValue);
         }
         public static SortResult SortTables(this IShardingContext shardingContext, List<RouteTable> tables, List<Ordering> orderings)
         {
-            return shardingContext.Route.SortTables(shardingContext.DbContext, tables, orderings);
+            return shardingContext.Route.SortTables(tables, orderings);
         }
     }
 }
