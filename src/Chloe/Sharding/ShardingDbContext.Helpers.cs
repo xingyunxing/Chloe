@@ -77,20 +77,20 @@ namespace Chloe.Sharding
             return new PersistedDbContextProvider(pair.DbContext);
         }
 
-        internal List<IDbContext> CreateDbContextProviders(IPhysicDataSource dataSource, int count)
+        internal List<IDbContext> CreateDbContextProviders(IPhysicDataSource dataSource, int desiredCount)
         {
             if (this.DbSessionProvider.IsInTransaction)
             {
                 return new List<IDbContext>(1) { this.GetPersistedDbContextProvider(dataSource) };
             }
 
-            return this.CreateTransientDbContextProviders(dataSource, count);
+            return this.CreateTransientDbContextProviders(dataSource, desiredCount);
         }
-        internal List<IDbContext> CreateTransientDbContextProviders(IPhysicDataSource dataSource, int count)
+        internal List<IDbContext> CreateTransientDbContextProviders(IPhysicDataSource dataSource, int desiredCount)
         {
             var routeDbContextFactory = (dataSource as PhysicDataSource).DataSource.DbContextFactory;
 
-            int connectionCount = Math.Min(count, this.Options.MaxConnectionsPerDataSource);
+            int connectionCount = Math.Min(desiredCount, this.Options.MaxConnectionsPerDataSource);
 
             List<IDbContext> dbContexts = new List<IDbContext>(connectionCount);
 

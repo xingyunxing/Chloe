@@ -14,7 +14,7 @@ namespace Chloe.Sharding
         bool IsPrimaryKey(MemberInfo member);
         bool IsShardingMember(MemberInfo member);
         bool IsUniqueIndex(MemberInfo member);
-        List<IDbContext> CreateDbContextProviders(IPhysicDataSource dataSource, int count);
+        List<IDbContext> CreateDbContextProviders(IPhysicDataSource dataSource, int desiredCount);
     }
 
     class ShardingContext : IShardingContext
@@ -50,9 +50,9 @@ namespace Chloe.Sharding
             return this.TypeDescriptor.IsUniqueIndex(member);
         }
 
-        public List<IDbContext> CreateDbContextProviders(IPhysicDataSource dataSource, int count)
+        public List<IDbContext> CreateDbContextProviders(IPhysicDataSource dataSource, int desiredCount)
         {
-            return this.DbContext.CreateDbContextProviders(dataSource, count);
+            return this.DbContext.CreateDbContextProviders(dataSource, desiredCount);
         }
     }
 

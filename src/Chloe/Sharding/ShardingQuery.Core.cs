@@ -8,13 +8,16 @@ namespace Chloe.Sharding
         {
             ShardingQueryPlan queryPlan = this.MakeQueryPlan(this);
 
-            //主键或唯一索引查询
-            bool isUniqueDataQuery = UniqueDataQueryAuthenticator.IsUniqueDataQuery(queryPlan.ShardingContext, queryPlan.Condition);
-
-            if (isUniqueDataQuery)
+            if (queryPlan.Tables.Count > 1)
             {
-                UniqueDataQuery<T> query = new UniqueDataQuery<T>(queryPlan);
-                return query;
+                //主键或唯一索引查询
+                bool isUniqueDataQuery = UniqueDataQueryAuthenticator.IsUniqueDataQuery(queryPlan.ShardingContext, queryPlan.Condition);
+
+                if (isUniqueDataQuery)
+                {
+                    UniqueDataQuery<T> query = new UniqueDataQuery<T>(queryPlan);
+                    return query;
+                }
             }
 
             if (((queryPlan.QueryModel.Skip ?? 0) == 0) && queryPlan.IsOrderedTables)
@@ -66,7 +69,7 @@ namespace Chloe.Sharding
 
             var condition = ShardingHelpers.ConditionCombine(queryPlan.QueryModel);
             queryPlan.Condition = condition;
-            List<RouteTable> routeTables = ShardingTablePeeker.Peek(condition, shardingContext).ToList();
+            List<RouteTable> routeTables = ShardingTableDiscoverer.GetRouteTables(condition, shardingContext).ToList();
 
             List<Ordering> orderings = queryPlan.QueryModel.Orderings;
 

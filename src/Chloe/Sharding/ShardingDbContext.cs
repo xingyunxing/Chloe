@@ -404,11 +404,18 @@ namespace Chloe.Sharding
 
             IShardingContext shardingContext = this.CreateShardingContext(typeof(TEntity));
 
-            List<RouteTable> routeTables = ShardingTablePeeker.Peek(condition, shardingContext).ToList();
+            List<RouteTable> routeTables = ShardingTableDiscoverer.GetRouteTables(condition, shardingContext).ToList();
             var groupedTables = ShardingHelpers.GroupTables(routeTables.Select(a => (IPhysicTable)new PhysicTable(a)));
 
-            bool isUniqueDataQuery = UniqueDataQueryAuthenticator.IsUniqueDataQuery(shardingContext, condition);
-            int rowsAffectedLimit = isUniqueDataQuery ? 1 : int.MaxValue;
+            int rowsAffectedLimit = int.MaxValue;
+            if (routeTables.Count > 1)
+            {
+                bool isUniqueDataQuery = UniqueDataQueryAuthenticator.IsUniqueDataQuery(shardingContext, condition);
+                if (isUniqueDataQuery)
+                {
+                    rowsAffectedLimit = 1;
+                }
+            }
 
             int rowsAffected = 0;
 
@@ -481,11 +488,18 @@ namespace Chloe.Sharding
             PublicHelper.CheckNull(condition, nameof(condition));
 
             IShardingContext shardingContext = this.CreateShardingContext(typeof(TEntity));
-            List<RouteTable> routeTables = ShardingTablePeeker.Peek(condition, shardingContext).ToList();
+            List<RouteTable> routeTables = ShardingTableDiscoverer.GetRouteTables(condition, shardingContext).ToList();
             var groupedTables = ShardingHelpers.GroupTables(routeTables.Select(a => (IPhysicTable)new PhysicTable(a)));
 
-            bool isUniqueDataQuery = UniqueDataQueryAuthenticator.IsUniqueDataQuery(shardingContext, condition);
-            int rowsAffectedLimit = isUniqueDataQuery ? 1 : int.MaxValue;
+            int rowsAffectedLimit = int.MaxValue;
+            if (routeTables.Count > 1)
+            {
+                bool isUniqueDataQuery = UniqueDataQueryAuthenticator.IsUniqueDataQuery(shardingContext, condition);
+                if (isUniqueDataQuery)
+                {
+                    rowsAffectedLimit = 1;
+                }
+            }
 
             int rowsAffected = 0;
 

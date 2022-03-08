@@ -5,21 +5,21 @@ using System.Reflection;
 
 namespace Chloe.Sharding
 {
-    internal class ShardingTablePeeker : ExpressionVisitor<IEnumerable<RouteTable>>
+    internal class ShardingTableDiscoverer : ExpressionVisitor<IEnumerable<RouteTable>>
     {
-        public ShardingTablePeeker(IShardingContext shardingContext)
+        public ShardingTableDiscoverer(IShardingContext shardingContext)
         {
             this.ShardingContext = shardingContext;
         }
 
         IShardingContext ShardingContext { get; set; }
 
-        public static IEnumerable<RouteTable> Peek(Expression exp, IShardingContext shardingContext)
+        public static IEnumerable<RouteTable> GetRouteTables(Expression exp, IShardingContext shardingContext)
         {
             if (exp == null)
                 return shardingContext.GetTables();
 
-            ShardingTablePeeker peeker = new ShardingTablePeeker(shardingContext);
+            ShardingTableDiscoverer peeker = new ShardingTableDiscoverer(shardingContext);
             return peeker.Visit(exp);
         }
 
@@ -46,6 +46,12 @@ namespace Chloe.Sharding
                 {
                     // a.CreateTime == dt
                     object value = exp.Right.Evaluate();
+
+                    if (value == null)
+                    {
+                        return base.VisitBinary(exp);
+                    }
+
                     return shardingStrategy.GetTables(value, shardingOperator);
                 }
             }
@@ -58,6 +64,11 @@ namespace Chloe.Sharding
                 {
                     // dt == a.CreateTime
                     object value = exp.Left.Evaluate();
+                    if (value == null)
+                    {
+                        return base.VisitBinary(exp);
+                    }
+
                     return shardingStrategy.GetTables(value, inversiveShardingOperator);
                 }
             }
