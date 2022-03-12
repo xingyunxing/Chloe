@@ -4,28 +4,12 @@ using Chloe.Sharding;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace ChloeDemo.Sharding
 {
-    public class OrderRouteDbContextFactory : IRouteDbContextFactory
-    {
-        int _year;
-        public OrderRouteDbContextFactory(int year)
-        {
-            this._year = year;
-        }
-
-        public IDbContext CreateDbContext()
-        {
-            string connString = $"Server=localhost;Port=3306;Database=order{this._year};Uid=root;Password=sasa;Charset=utf8; Pooling=True; Max Pool Size=200;Allow User Variables=True;SslMode=none;";
-
-            MySqlContext dbContext = new MySqlContext(new MySqlConnectionFactory(connString));
-            return dbContext;
-        }
-    }
-
     public class OrderRouteTable : RouteTable
     {
         public OrderRouteTable(int month)
@@ -50,11 +34,21 @@ namespace ChloeDemo.Sharding
 
     public class OrderShardingRoute : IShardingRoute
     {
-        public OrderShardingRoute()
+        Dictionary<string, IRoutingStrategy> _routingStrategies = new Dictionary<string, IRoutingStrategy>();
+
+        public OrderShardingRoute(List<int> years)
         {
+            //多字段路由
+            this._routingStrategies.Add(nameof(Order.CreateTime), new OrderCreateTimeRoutingStrategy(this));
+            this._routingStrategies.Add(nameof(Order.CreateDate), new OrderCreateDateRoutingStrategy(this));
+            this._routingStrategies.Add(nameof(Order.CreateYear), new OrderCreateYearRoutingStrategy(this));
+            this._routingStrategies.Add(nameof(Order.CreateMonth), new OrderCreateMonthRoutingStrategy(this));
+
+            this.AllTables = years.SelectMany(a => GetTablesByYear(a)).Reverse().ToList();
+
             //this.AllTables = GetRouteTablesByYear(2020).ToList();
             //this.AllTables = GetRouteTablesByYear(2020).Concat(GetRouteTablesByYear(2021)).Take(23).Reverse().ToList();
-            this.AllTables = GetTablesByYear(2020).Concat(GetTablesByYear(2021)).Reverse().ToList();
+            //this.AllTables = GetTablesByYear(2020).Concat(GetTablesByYear(2021)).Reverse().ToList();
             //this.AllTables = this.AllTables.Take(2).ToList();
         }
         List<RouteTable> AllTables { get; set; }
@@ -85,51 +79,18 @@ namespace ChloeDemo.Sharding
             }
         }
 
-        public RouteTable GetTable(ShardingDbContext shardingDbContext, object shardingValue)
-        {
-            DateTime createTime = (DateTime)shardingValue;
-
-            return this.AllTables.Where(a => (a.DataSource as OrderRouteDataSource).Year == createTime.Year && (a as OrderRouteTable).Month == createTime.Month).FirstOrDefault();
-        }
-
-        public List<RouteTable> GetTablesByKey(ShardingDbContext shardingDbContext, object keyValue)
+        public IEnumerable<RouteTable> GetTables()
         {
             return this.AllTables;
         }
 
-        public List<RouteTable> GetTables(ShardingDbContext shardingDbContext)
+        public IRoutingStrategy GetStrategy(MemberInfo member)
         {
-            return this.AllTables.ToList();
+            this._routingStrategies.TryGetValue(member.Name, out var routingStrategy);
+            return routingStrategy;
         }
 
-        public List<RouteTable> GetTables(ShardingDbContext shardingDbContext, object shardingValue, ShardingOperator shardingOperator)
-        {
-            DateTime createTime = (DateTime)shardingValue;
-
-            if (shardingOperator == ShardingOperator.Equal)
-            {
-                return this.AllTables.Where(a => (a.DataSource as OrderRouteDataSource).Year == createTime.Year && (a as OrderRouteTable).Month == createTime.Month).ToList();
-            }
-
-            if (shardingOperator == ShardingOperator.NotEqual)
-            {
-                return this.AllTables.ToList();
-            }
-
-            if (shardingOperator == ShardingOperator.GreaterThan || shardingOperator == ShardingOperator.GreaterThanOrEqual)
-            {
-                return this.AllTables.Where(a => (a.DataSource as OrderRouteDataSource).Year > createTime.Year || ((a.DataSource as OrderRouteDataSource).Year == createTime.Year && (a as OrderRouteTable).Month >= createTime.Month)).ToList();
-            }
-
-            if (shardingOperator == ShardingOperator.LessThan || shardingOperator == ShardingOperator.LessThanOrEqual)
-            {
-                return this.AllTables.Where(a => (a.DataSource as OrderRouteDataSource).Year < createTime.Year || ((a.DataSource as OrderRouteDataSource).Year == createTime.Year && (a as OrderRouteTable).Month <= createTime.Month)).ToList();
-            }
-
-            throw new NotImplementedException();
-        }
-
-        public SortResult SortTables(ShardingDbContext shardingDbContext, List<RouteTable> tables, List<Ordering> orderings)
+        public SortResult SortTables(List<RouteTable> tables, List<Ordering> orderings)
         {
             var firstOrdering = orderings.FirstOrDefault();
 
@@ -144,6 +105,166 @@ namespace ChloeDemo.Sharding
             }
 
             return new SortResult() { IsOrdered = true, Tables = tables.OrderByDescending(a => (a.DataSource as OrderRouteDataSource).Year).ThenByDescending(a => (a as OrderRouteTable).Month).ToList() };
+        }
+    }
+
+    public class OrderCreateTimeRoutingStrategy : RoutingStrategy<DateTime>
+    {
+        public OrderCreateTimeRoutingStrategy(OrderShardingRoute route) : base(route)
+        {
+
+        }
+
+        public override IEnumerable<RouteTable> ForEqual(DateTime createTime)
+        {
+            return this.Route.GetTables().Where(a => (a.DataSource as OrderRouteDataSource).Year == createTime.Year && (a as OrderRouteTable).Month == createTime.Month);
+        }
+
+        public override IEnumerable<RouteTable> ForNotEqual(DateTime createTime)
+        {
+            return base.ForNotEqual(createTime);
+        }
+
+        public override IEnumerable<RouteTable> ForGreaterThan(DateTime createTime)
+        {
+            return this.Route.GetTables().Where(a => (a.DataSource as OrderRouteDataSource).Year > createTime.Year || ((a.DataSource as OrderRouteDataSource).Year == createTime.Year && (a as OrderRouteTable).Month >= createTime.Month));
+        }
+
+        public override IEnumerable<RouteTable> ForGreaterThanOrEqual(DateTime createTime)
+        {
+            return this.ForGreaterThan(createTime);
+        }
+
+        public override IEnumerable<RouteTable> ForLessThan(DateTime createTime)
+        {
+            return this.Route.GetTables().Where(a => (a.DataSource as OrderRouteDataSource).Year < createTime.Year || ((a.DataSource as OrderRouteDataSource).Year == createTime.Year && (a as OrderRouteTable).Month <= createTime.Month));
+        }
+
+        public override IEnumerable<RouteTable> ForLessThanOrEqual(DateTime createTime)
+        {
+            return this.ForLessThan(createTime);
+        }
+    }
+    public class OrderCreateDateRoutingStrategy : RoutingStrategy<int>
+    {
+        public OrderCreateDateRoutingStrategy(OrderShardingRoute route) : base(route)
+        {
+
+        }
+
+        int ParseCreateMonth(int createDate)
+        {
+            int month = int.Parse(createDate.ToString().Substring(4, 2));
+            return month;
+        }
+        int GetCreateYear(int createDate)
+        {
+            int year = int.Parse(createDate.ToString().Substring(0, 4));
+            return year;
+        }
+
+        public override IEnumerable<RouteTable> ForEqual(int createDate)
+        {
+            return this.Route.GetTables().Where(a => (a.DataSource as OrderRouteDataSource).Year == this.GetCreateYear(createDate) && (a as OrderRouteTable).Month == this.ParseCreateMonth(createDate));
+        }
+
+        public override IEnumerable<RouteTable> ForNotEqual(int createDate)
+        {
+            return base.ForNotEqual(createDate);
+        }
+
+        public override IEnumerable<RouteTable> ForGreaterThan(int createDate)
+        {
+            return this.Route.GetTables().Where(a => (a.DataSource as OrderRouteDataSource).Year >= this.GetCreateYear(createDate) && (a as OrderRouteTable).Month >= this.ParseCreateMonth(createDate));
+        }
+
+        public override IEnumerable<RouteTable> ForGreaterThanOrEqual(int createDate)
+        {
+            return this.Route.GetTables().Where(a => (a.DataSource as OrderRouteDataSource).Year >= this.GetCreateYear(createDate) && (a as OrderRouteTable).Month >= this.ParseCreateMonth(createDate));
+        }
+
+        public override IEnumerable<RouteTable> ForLessThan(int createDate)
+        {
+            return this.Route.GetTables().Where(a => (a.DataSource as OrderRouteDataSource).Year <= this.GetCreateYear(createDate) && (a as OrderRouteTable).Month <= this.ParseCreateMonth(createDate));
+        }
+
+        public override IEnumerable<RouteTable> ForLessThanOrEqual(int createDate)
+        {
+            return this.Route.GetTables().Where(a => (a.DataSource as OrderRouteDataSource).Year <= this.GetCreateYear(createDate) && (a as OrderRouteTable).Month <= this.ParseCreateMonth(createDate));
+        }
+    }
+    public class OrderCreateYearRoutingStrategy : RoutingStrategy<int>
+    {
+        public OrderCreateYearRoutingStrategy(OrderShardingRoute route) : base(route)
+        {
+
+        }
+
+        public override IEnumerable<RouteTable> ForEqual(int createYear)
+        {
+            return this.Route.GetTables().Where(a => (a.DataSource as OrderRouteDataSource).Year == createYear);
+        }
+
+        public override IEnumerable<RouteTable> ForNotEqual(int createYear)
+        {
+            return this.Route.GetTables().Where(a => (a.DataSource as OrderRouteDataSource).Year != createYear);
+        }
+
+        public override IEnumerable<RouteTable> ForGreaterThan(int createYear)
+        {
+            return this.Route.GetTables().Where(a => (a.DataSource as OrderRouteDataSource).Year > createYear);
+        }
+
+        public override IEnumerable<RouteTable> ForGreaterThanOrEqual(int createYear)
+        {
+            return this.Route.GetTables().Where(a => (a.DataSource as OrderRouteDataSource).Year >= createYear);
+        }
+
+        public override IEnumerable<RouteTable> ForLessThan(int createYear)
+        {
+            return this.Route.GetTables().Where(a => (a.DataSource as OrderRouteDataSource).Year < createYear);
+        }
+
+        public override IEnumerable<RouteTable> ForLessThanOrEqual(int createYear)
+        {
+            return this.Route.GetTables().Where(a => (a.DataSource as OrderRouteDataSource).Year <= createYear);
+        }
+    }
+    public class OrderCreateMonthRoutingStrategy : RoutingStrategy<int>
+    {
+        public OrderCreateMonthRoutingStrategy(OrderShardingRoute route) : base(route)
+        {
+
+        }
+
+        public override IEnumerable<RouteTable> ForEqual(int createMonth)
+        {
+            return this.Route.GetTables().Where(a => (a as OrderRouteTable).Month == createMonth);
+        }
+
+        public override IEnumerable<RouteTable> ForNotEqual(int createMonth)
+        {
+            return this.Route.GetTables().Where(a => (a as OrderRouteTable).Month != createMonth);
+        }
+
+        public override IEnumerable<RouteTable> ForGreaterThan(int createMonth)
+        {
+            return this.Route.GetTables().Where(a => (a as OrderRouteTable).Month > createMonth);
+        }
+
+        public override IEnumerable<RouteTable> ForGreaterThanOrEqual(int createMonth)
+        {
+            return this.Route.GetTables().Where(a => (a as OrderRouteTable).Month >= createMonth);
+        }
+
+        public override IEnumerable<RouteTable> ForLessThan(int createMonth)
+        {
+            return this.Route.GetTables().Where(a => (a as OrderRouteTable).Month < createMonth);
+        }
+
+        public override IEnumerable<RouteTable> ForLessThanOrEqual(int createMonth)
+        {
+            return this.Route.GetTables().Where(a => (a as OrderRouteTable).Month <= createMonth);
         }
     }
 }

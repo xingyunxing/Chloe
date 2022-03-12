@@ -1,5 +1,4 @@
-﻿using Chloe;
-using Chloe.MySql;
+﻿using Chloe.MySql;
 using Chloe.Sharding;
 using System;
 using System.Collections.Generic;
@@ -17,280 +16,27 @@ namespace ChloeDemo.Sharding
             //await InitData();
             //Console.ReadKey();
 
+            ShardingQueryTest queryTest = new ShardingQueryTest();
+            await queryTest.Run();
+
+
             ShardingConfigBuilder<Order> shardingConfigBuilder = new ShardingConfigBuilder<Order>();
             shardingConfigBuilder.HasShardingKey(a => a.CreateTime);
-            shardingConfigBuilder.HasRoute(new OrderShardingRoute());
+            shardingConfigBuilder.HasRoute(new OrderShardingRoute(new List<int>() { 2020, 2021 }));
 
             ShardingConfigContainer.Add(shardingConfigBuilder.Build());
 
             await this.Test1();
             await this.Test2();
-            await this.Test3();
-            await this.Test4();
-            await this.Test5();
-            await this.Test6();
 
-            Console.WriteLine("test over...");
-
-            //DateTime dt = new DateTime(2020, 12, 31);
-
-            //ShardingDbContext dbContext = new ShardingDbContext();
-            //var q = dbContext.Query<Order>();
-            ////q = q.Where(a => a.CreateTime >= dt);
-            ////q = q.OrderByDesc(a => a.CreateTime);
-            //q = q.OrderBy(a => a.CreateTime);
-            //var result = q.Paging(4, 20);
-
-            //var dataList = result.DataList;
-
-            //Debug.Assert(dataList.First().CreateTime == DateTime.Parse("2020-1-30 10:00"));
-
-            //Console.WriteLine($"Totals: {result.Count} result.Count: {result.DataList.Count}");
-
+            Console.WriteLine("over...");
             Console.ReadKey();
-        }
-
-        static void PrintSplitLine()
-        {
-            Console.WriteLine("--------------------------------------------------------------------------------------");
-        }
-        static void PrintResult(PagingResult<Order> result)
-        {
-            var dataList = result.DataList;
-
-            Console.WriteLine($"Totals: {result.Count} Takens: {result.DataList.Count}");
-
-            Console.WriteLine(dataList[0].CreateTime.ToString("yyyy-MM-dd HH:mm"));
-            Console.WriteLine(dataList[1].CreateTime.ToString("yyyy-MM-dd HH:mm"));
-            Console.WriteLine(dataList[dataList.Count - 2].CreateTime.ToString("yyyy-MM-dd HH:mm"));
-            Console.WriteLine(dataList[dataList.Count - 1].CreateTime.ToString("yyyy-MM-dd HH:mm"));
-        }
-
-        async Task Test1()
-        {
-            /*
-             * 根据分片字段升序
-             */
-            ShardingDbContext dbContext = new ShardingDbContext();
-            var q = dbContext.Query<Order>();
-            q = q.OrderBy(a => a.CreateTime);
-
-            var result = await q.PagingAsync(1, 20);
-            PrintResult(result);
-
-            var dataList = result.DataList;
-
-            Debug.Assert(result.Count == 1462);
-            Debug.Assert(result.DataList.Count == 20);
-
-            Debug.Assert(dataList[0].CreateTime == DateTime.Parse("2020-01-01 10:00"));
-            Debug.Assert(dataList[1].CreateTime == DateTime.Parse("2020-01-01 12:00"));
-
-            Debug.Assert(dataList[dataList.Count - 2].CreateTime == DateTime.Parse("2020-01-10 10:00"));
-            Debug.Assert(dataList.Last().CreateTime == DateTime.Parse("2020-01-10 12:00"));
-
-            PrintSplitLine();
-
-            /*
-             * 取第二页
-             */
-            result = await q.PagingAsync(2, 20);
-            PrintResult(result);
-
-            dataList = result.DataList;
-
-            Debug.Assert(result.Count == 1462);
-            Debug.Assert(result.DataList.Count == 20);
-
-            Debug.Assert(dataList[0].CreateTime == DateTime.Parse("2020-01-11 10:00"));
-            Debug.Assert(dataList[1].CreateTime == DateTime.Parse("2020-01-11 12:00"));
-
-            Debug.Assert(dataList[dataList.Count - 2].CreateTime == DateTime.Parse("2020-01-20 10:00"));
-            Debug.Assert(dataList.Last().CreateTime == DateTime.Parse("2020-01-20 12:00"));
-
-            PrintSplitLine();
-        }
-        async Task Test2()
-        {
-            /*
-             * 根据分片字段降序
-             */
-            ShardingDbContext dbContext = new ShardingDbContext();
-            var q = dbContext.Query<Order>();
-            q = q.OrderByDesc(a => a.CreateTime);
-
-            var result = await q.PagingAsync(1, 20);
-            PrintResult(result);
-
-            var dataList = result.DataList;
-
-            Debug.Assert(result.Count == 1462);
-            Debug.Assert(result.DataList.Count == 20);
-
-            Debug.Assert(dataList[0].CreateTime == DateTime.Parse("2021-12-31 12:00"));
-            Debug.Assert(dataList[1].CreateTime == DateTime.Parse("2021-12-31 10:00"));
-
-            Debug.Assert(dataList[dataList.Count - 2].CreateTime == DateTime.Parse("2021-12-22 12:00"));
-            Debug.Assert(dataList.Last().CreateTime == DateTime.Parse("2021-12-22 10:00"));
-
-            PrintSplitLine();
-
-            /*
-             * 取第二页
-             */
-            result = await q.PagingAsync(2, 20);
-            dataList = result.DataList;
-            PrintResult(result);
-
-            Debug.Assert(result.Count == 1462);
-            Debug.Assert(result.DataList.Count == 20);
-
-            Debug.Assert(dataList[0].CreateTime == DateTime.Parse("2021-12-21 12:00"));
-            Debug.Assert(dataList[1].CreateTime == DateTime.Parse("2021-12-21 10:00"));
-
-            Debug.Assert(dataList[dataList.Count - 2].CreateTime == DateTime.Parse("2021-12-12 12:00"));
-            Debug.Assert(dataList.Last().CreateTime == DateTime.Parse("2021-12-12 10:00"));
-
-            PrintSplitLine();
-        }
-        async Task Test3()
-        {
-            /*
-             * 根据分片字段降序，单库内跨表
-             */
-            ShardingDbContext dbContext = new ShardingDbContext();
-            var q = dbContext.Query<Order>();
-
-            DateTime dt = new DateTime(2021, 12, 2);
-            q = q.Where(a => a.CreateTime < dt);
-
-            q = q.OrderByDesc(a => a.CreateTime);
-
-            var result = await q.PagingAsync(1, 20);
-            var dataList = result.DataList;
-            PrintResult(result);
-
-            Debug.Assert(result.Count == 1402);
-            Debug.Assert(result.DataList.Count == 20);
-
-            Debug.Assert(dataList[0].CreateTime == DateTime.Parse("2021-12-01 12:00"));
-            Debug.Assert(dataList[1].CreateTime == DateTime.Parse("2021-12-01 10:00"));
-
-            Debug.Assert(dataList[dataList.Count - 2].CreateTime == DateTime.Parse("2021-11-22 12:00"));
-            Debug.Assert(dataList.Last().CreateTime == DateTime.Parse("2021-11-22 10:00"));
-
-            PrintSplitLine();
-        }
-        async Task Test4()
-        {
-            /*
-             * 根据分片字段排序，并跨库测试
-             */
-
-            ShardingDbContext dbContext = new ShardingDbContext();
-            var q = dbContext.Query<Order>();
-
-            DateTime dt = new DateTime(2020, 12, 31);
-            q = q.Where(a => a.CreateTime >= dt);
-
-            q = q.OrderBy(a => a.CreateTime);
-
-            var result = await q.PagingAsync(1, 20);
-            var dataList = result.DataList;
-            PrintResult(result);
-
-            Debug.Assert(result.Count == 732);
-            Debug.Assert(result.DataList.Count == 20);
-
-            Debug.Assert(dataList[0].CreateTime == DateTime.Parse("2020-12-31 10:00"));
-            Debug.Assert(dataList[1].CreateTime == DateTime.Parse("2020-12-31 12:00"));
-
-            Debug.Assert(dataList[dataList.Count - 2].CreateTime == DateTime.Parse("2021-01-09 10:00"));
-            Debug.Assert(dataList.Last().CreateTime == DateTime.Parse("2021-01-09 12:00"));
-
-            PrintSplitLine();
-        }
-        async Task Test5()
-        {
-            /*
-             * 根据非分片字段排序
-             */
-
-            PagingResult<Order> result;
-            List<Order> dataList;
-
-            ShardingDbContext dbContext = new ShardingDbContext();
-            var q = dbContext.Query<Order>();
-
-            q = q.OrderBy(a => a.Amount).ThenBy(a => a.Id);
-
-            result = await q.PagingAsync(1, 20);
-            dataList = result.DataList;
-            PrintResult(result);
-
-            Debug.Assert(result.Count == 1462);
-            Debug.Assert(result.DataList.Count == 20);
-
-            Debug.Assert(dataList[0].CreateTime == DateTime.Parse("2020-01-01 10:00"));
-            Debug.Assert(dataList[1].CreateTime == DateTime.Parse("2020-01-02 10:00"));
-
-            Debug.Assert(dataList[dataList.Count - 2].CreateTime == DateTime.Parse("2020-01-19 10:00"));
-            Debug.Assert(dataList.Last().CreateTime == DateTime.Parse("2020-01-20 10:00"));
-
-            PrintSplitLine();
-
-            /*
-             * 取第二页
-             */
-            result = await q.PagingAsync(2, 20);
-            PrintResult(result);
-
-            dataList = result.DataList;
-
-            Debug.Assert(result.Count == 1462);
-            Debug.Assert(result.DataList.Count == 20);
-
-            Debug.Assert(dataList[0].CreateTime == DateTime.Parse("2020-01-21 10:00"));
-            Debug.Assert(dataList[1].CreateTime == DateTime.Parse("2020-01-22 10:00"));
-
-            Debug.Assert(dataList[dataList.Count - 2].CreateTime == DateTime.Parse("2020-02-08 10:00"));
-            Debug.Assert(dataList.Last().CreateTime == DateTime.Parse("2020-02-09 10:00"));
-
-            PrintSplitLine();
-        }
-        async Task Test6()
-        {
-            /*
-             * 根据主键查询
-             */
-
-            ShardingDbContext dbContext = new ShardingDbContext(new ShardingOptions() { MaxConnectionsPerDataSource = 6 });
-            var q = dbContext.Query<Order>();
-
-            string id = "2021-12-01 10:00";
-
-            Order entity = null;
-
-            entity = await q.Where(a => a.Id == id).FirstOrDefaultAsync();
-
-            Debug.Assert(entity.Id == id);
-
-            PrintSplitLine();
-
-            /*
-             * 主键 + 分片字段查询，会精确路由到所在的表
-             */
-
-            DateTime createTime = DateTime.Parse(id);
-            entity = await q.Where(a => a.Id == id && a.CreateTime == createTime).FirstOrDefaultAsync();
-
-            Debug.Assert(entity.Id == id);
-
-            PrintSplitLine();
         }
 
         public static async Task InitData()
         {
+            await InitData(2018);
+            await InitData(2019);
             await InitData(2020);
             await InitData(2021);
             Console.WriteLine("InitData over");
@@ -333,14 +79,12 @@ namespace ChloeDemo.Sharding
                     Order order1 = new Order();
                     order1.UserId = "chloe";
                     order1.Amount = 10;
-                    order1.CreateTime = date.AddHours(10);
-                    order1.Id = order1.CreateTime.ToString("yyyy-MM-dd HH:mm");
+                    order1.SetCreateTime(date.AddHours(10));
 
                     Order order2 = new Order();
-                    order1.UserId = "shuxin";
+                    order2.UserId = "shuxin";
                     order2.Amount = 20;
-                    order2.CreateTime = date.AddHours(12);
-                    order2.Id = order2.CreateTime.ToString("yyyy-MM-dd HH:mm");
+                    order2.SetCreateTime(date.AddHours(12));
 
                     dbContext.Insert(order1, table);
                     dbContext.Insert(order2, table);
@@ -348,6 +92,88 @@ namespace ChloeDemo.Sharding
                     day++;
                 }
             }
+        }
+
+
+        async Task Test1()
+        {
+            /*
+             * 增删查改
+             */
+            ShardingDbContext dbContext = new ShardingDbContext();
+
+            int rowsAffected = 0;
+            DateTime createTime = new DateTime(2021, 1, 1, 1, 1, 1);
+
+            Order order = new Order();
+            order.UserId = "chloe";
+            order.Amount = 10;
+            order.SetCreateTime(createTime);
+
+            rowsAffected = await dbContext.DeleteAsync(order);
+            Console.WriteLine($"deleted: {rowsAffected}");
+
+            await dbContext.InsertAsync(order);
+
+            var q = dbContext.Query<Order>();
+            q = q.Where(a => a.Id == order.Id);
+
+            Order entity = await q.FirstOrDefaultAsync();
+            Debug.Assert(entity.Id == order.Id);
+
+            entity.Amount = 100;
+            rowsAffected = await dbContext.UpdateAsync(entity);
+
+            Debug.Assert(rowsAffected == 1);
+
+            entity = await q.FirstOrDefaultAsync();
+            Debug.Assert(entity.Amount == 100);
+
+            rowsAffected = await dbContext.DeleteAsync(order);
+            Debug.Assert(rowsAffected == 1);
+
+            entity = await q.FirstOrDefaultAsync();
+            Debug.Assert(entity == null);
+
+            Helpers.PrintSplitLine();
+        }
+
+        async Task Test2()
+        {
+            /*
+             * 按条件删除和更新
+             */
+            ShardingDbContext dbContext = new ShardingDbContext();
+
+            int rowsAffected = 0;
+
+            List<Order> orders = await dbContext.Query<Order>().Where(a => a.CreateYear == 2021).ToListAsync();
+
+            rowsAffected = await dbContext.DeleteAsync<Order>(a => a.CreateYear == 2021);
+
+            Debug.Assert(rowsAffected == orders.Count);
+
+            await InitData(2021);
+
+            string newUserId = "chloe2021";
+            rowsAffected = await dbContext.UpdateAsync<Order>(a => a.CreateYear == 2021, a => new Order()
+            {
+                UserId = newUserId,
+            });
+
+            Debug.Assert(rowsAffected == 730);
+
+            orders = await dbContext.Query<Order>().Where(a => a.CreateYear == 2021).ToListAsync();
+            Debug.Assert(orders.All(a => a.UserId == newUserId));
+
+            rowsAffected = await dbContext.UpdateAsync<Order>(a => a.CreateYear == 2021 && a.CreateMonth == 12, a => new Order()
+            {
+                UserId = "chloe2021",
+            });
+
+            Debug.Assert(rowsAffected == 62);
+
+            Helpers.PrintSplitLine();
         }
     }
 }
