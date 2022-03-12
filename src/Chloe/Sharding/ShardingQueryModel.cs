@@ -29,5 +29,14 @@ namespace Chloe.Sharding
 
             return orders;
         }
+
+        public bool HasSkip()
+        {
+            return this.Skip.HasValue && this.Skip.Value > 0;
+        }
+        public bool HasTake()
+        {
+            return this.Take.HasValue && this.Take.Value > 0;
+        }
     }
 }

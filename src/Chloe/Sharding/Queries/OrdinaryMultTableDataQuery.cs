@@ -4,14 +4,14 @@ using System.Threading;
 namespace Chloe.Sharding.Queries
 {
     /// <summary>
-    /// 无序的表数据查询
+    /// 普通方式查询
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal class DisorderedMultTableDataQuery<T> : FeatureEnumerable<T>
+    internal class OrdinaryMultTableDataQuery<T> : FeatureEnumerable<T>
     {
         ShardingQueryPlan _queryPlan;
 
-        public DisorderedMultTableDataQuery(ShardingQueryPlan queryPlan)
+        public OrdinaryMultTableDataQuery(ShardingQueryPlan queryPlan)
         {
             this._queryPlan = queryPlan;
         }
@@ -23,26 +23,22 @@ namespace Chloe.Sharding.Queries
 
         class Enumerator : QueryFeatureEnumerator<T>
         {
-            DisorderedMultTableDataQuery<T> _enumerable;
+            OrdinaryMultTableDataQuery<T> _enumerable;
             CancellationToken _cancellationToken;
 
-            public Enumerator(DisorderedMultTableDataQuery<T> enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryPlan)
+            public Enumerator(OrdinaryMultTableDataQuery<T> enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryPlan)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;
             }
 
-            TypeDescriptor EntityTypeDescriptor { get { return this._enumerable._queryPlan.ShardingContext.TypeDescriptor; } }
-
             protected override async Task<IFeatureEnumerator<T>> CreateEnumerator(bool @async)
             {
-                List<MultTableKeyQueryResult> keyResult = await this.GetKeys();
-
                 ParallelQueryContext queryContext = new ParallelQueryContext();
 
                 try
                 {
-                    List<TableDataQueryPlan<T>> dataQueryPlans = this.MakeQueryPlans(queryContext, keyResult);
+                    List<TableDataQueryPlan<T>> dataQueryPlans = this.MakeQueryPlans(queryContext);
                     IFeatureEnumerator<T> enumerator = this.CreateQueryEntityEnumerator(queryContext, dataQueryPlans);
                     return enumerator;
                 }
@@ -51,13 +47,6 @@ namespace Chloe.Sharding.Queries
                     queryContext.Dispose();
                     throw;
                 }
-            }
-
-            async Task<List<MultTableKeyQueryResult>> GetKeys()
-            {
-                MultTableKeyQuery<T> keyQuery = new MultTableKeyQuery<T>(this.QueryPlan);
-                List<MultTableKeyQueryResult> keyResult = await keyQuery.ToListAsync(this._cancellationToken);
-                return keyResult;
             }
 
             IFeatureEnumerator<T> CreateQueryEntityEnumerator(ParallelQueryContext queryContext, List<TableDataQueryPlan<T>> dataQueryPlans)
@@ -71,11 +60,19 @@ namespace Chloe.Sharding.Queries
                 return enumerator;
             }
 
-            List<TableDataQueryPlan<T>> MakeQueryPlans(ParallelQueryContext queryContext, List<MultTableKeyQueryResult> keyResult)
+            List<TableDataQueryPlan<T>> MakeQueryPlans(ParallelQueryContext queryContext)
             {
-                //构建 in (id1,id2...) 查询
+                List<TableDataQueryPlan<T>> dataQueryPlans = new List<TableDataQueryPlan<T>>(this.QueryPlan.Tables.Count);
 
-                List<TableDataQueryPlan<T>> dataQueryPlans = ShardingHelpers.MakeEntityQueryPlans<T>(this.QueryModel, keyResult, this.EntityTypeDescriptor, this.ShardingContext.MaxInItems);
+                foreach (IPhysicTable table in this.QueryPlan.Tables)
+                {
+                    DataQueryModel dataQueryModel = ShardingHelpers.MakeDataQueryModel(table, this.QueryModel);
+
+                    TableDataQueryPlan<T> dataQueryPlan = new TableDataQueryPlan<T>();
+                    dataQueryPlan.QueryModel = dataQueryModel;
+
+                    dataQueryPlans.Add(dataQueryPlan);
+                }
 
                 foreach (var group in dataQueryPlans.GroupBy(a => a.QueryModel.Table.DataSource.Name))
                 {

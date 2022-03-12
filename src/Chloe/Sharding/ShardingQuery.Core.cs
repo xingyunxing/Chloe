@@ -20,16 +20,22 @@ namespace Chloe.Sharding
                 }
             }
 
-            if (((queryPlan.QueryModel.Skip ?? 0) == 0) && queryPlan.IsOrderedTables)
-            {
-                //走串行？
-            }
-
-            if (queryPlan.IsOrderedTables && queryPlan.QueryModel.Skip.HasValue)
+            if (queryPlan.IsOrderedTables && queryPlan.QueryModel.HasSkip())
             {
                 //走分页逻辑，对程序性能有可能好点？
                 var pagingResult = await this.ExecutePaging(queryPlan);
                 return pagingResult.Result;
+            }
+
+            if (queryPlan.IsOrderedTables && !queryPlan.QueryModel.HasSkip())
+            {
+                //走串行？
+            }
+
+            if (!queryPlan.QueryModel.HasSkip())
+            {
+                //未指定 skip
+                return new OrdinaryMultTableDataQuery<T>(queryPlan);
             }
 
             DisorderedMultTableDataQuery<T> dataQuery = new DisorderedMultTableDataQuery<T>(queryPlan);
