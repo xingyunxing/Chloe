@@ -74,17 +74,17 @@ namespace Chloe.Sharding
 
         public static RouteTable GetTable(this IShardingContext shardingContext, object shardingValue, bool throwExceptionIfNotFound = false)
         {
-            IShardingStrategy shardingStrategy = shardingContext.Route.GetShardingStrategy(shardingContext.ShardingConfig.ShardingKey);
+            IRoutingStrategy routingStrategy = shardingContext.Route.GetStrategy(shardingContext.ShardingConfig.ShardingKey);
 
             RouteTable routeTable = null;
 
-            if (shardingStrategy == null)
+            if (routingStrategy == null)
             {
                 routeTable = null;
             }
             else
             {
-                routeTable = shardingStrategy.ForEqual(shardingValue).FirstOrDefault();
+                routeTable = routingStrategy.ForEqual(shardingValue).FirstOrDefault();
             }
 
             if (routeTable == null && throwExceptionIfNotFound)
@@ -96,14 +96,14 @@ namespace Chloe.Sharding
         }
         public static IEnumerable<RouteTable> GetTablesByKey(this IShardingContext shardingContext, object keyValue)
         {
-            IShardingStrategy shardingStrategy = shardingContext.Route.GetShardingStrategy(shardingContext.TypeDescriptor.PrimaryKeys.First().Definition.Property);
+            IRoutingStrategy routingStrategy = shardingContext.Route.GetStrategy(shardingContext.TypeDescriptor.PrimaryKeys.First().Definition.Property);
 
-            if (shardingStrategy == null)
+            if (routingStrategy == null)
             {
                 return shardingContext.Route.GetTables();
             }
 
-            return shardingStrategy.ForEqual(keyValue);
+            return routingStrategy.ForEqual(keyValue);
         }
         public static SortResult SortTables(this IShardingContext shardingContext, List<RouteTable> tables, List<Ordering> orderings)
         {

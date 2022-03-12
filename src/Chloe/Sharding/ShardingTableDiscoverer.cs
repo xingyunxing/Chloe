@@ -1,5 +1,6 @@
 ﻿using Chloe.Core.Visitors;
 using Chloe.Extensions;
+using System.Collections;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -36,9 +37,9 @@ namespace Chloe.Sharding
         IEnumerable<RouteTable> VisitComparison(BinaryExpression exp, ShardingOperator shardingOperator, ShardingOperator inversiveShardingOperator)
         {
             MemberInfo member = null;
-            IShardingStrategy shardingStrategy = this.GetShardingStrategy(exp.Left, out member);
+            IRoutingStrategy routingStrategy = this.GetRoutingStrategy(exp.Left, out member);
 
-            if (shardingStrategy != null)
+            if (routingStrategy != null)
             {
                 //TODO: 考虑是否可以翻译成sql的情况
                 // a.CreateTime == ???
@@ -52,12 +53,12 @@ namespace Chloe.Sharding
                         return base.VisitBinary(exp);
                     }
 
-                    return shardingStrategy.GetTables(value, shardingOperator);
+                    return routingStrategy.GetTables(value, shardingOperator);
                 }
             }
 
-            shardingStrategy = this.GetShardingStrategy(exp.Right, out member);
-            if (shardingStrategy != null)
+            routingStrategy = this.GetRoutingStrategy(exp.Right, out member);
+            if (routingStrategy != null)
             {
                 // ??? == a.CreateTime
                 if (exp.Left.IsEvaluable())
@@ -69,7 +70,7 @@ namespace Chloe.Sharding
                         return base.VisitBinary(exp);
                     }
 
-                    return shardingStrategy.GetTables(value, inversiveShardingOperator);
+                    return routingStrategy.GetTables(value, inversiveShardingOperator);
                 }
             }
 
@@ -100,14 +101,89 @@ namespace Chloe.Sharding
 
         protected override IEnumerable<RouteTable> VisitBinary_AndAlso(BinaryExpression exp)
         {
-            return this.Visit(exp.Left).Intersect(this.Visit(exp.Right), RouteTableEqualityComparer.Instance).ToList();
+            return this.Intersect(this.Visit(exp.Left), this.Visit(exp.Right));
         }
         protected override IEnumerable<RouteTable> VisitBinary_OrElse(BinaryExpression exp)
         {
-            return this.Visit(exp.Left).Union(this.Visit(exp.Right), RouteTableEqualityComparer.Instance).ToList();
+            return this.Union(this.Visit(exp.Left), this.Visit(exp.Right));
         }
 
-        IShardingStrategy GetShardingStrategy(Expression exp, out MemberInfo member)
+        protected override IEnumerable<RouteTable> VisitMethodCall(MethodCallExpression exp)
+        {
+            // List.Contains(a.CreateTime)
+            if (PublicHelper.Is_List_Contains_MethodCall(exp))
+            {
+                return this.Handle_List_Contains_MethodCall(exp);
+            }
+
+            // Enumerable.Contains(list, a.CreateTime)
+            if (PublicHelper.Is_Enumerable_Contains_MethodCall(exp))
+            {
+                return this.Handle_Enumerable_Contains_MethodCall(exp);
+            }
+
+            // Sql.Equals(a.CreateTime, dt)
+            if (PublicHelper.Is_Sql_Equals_MethodCall(exp))
+            {
+                return this.Handle_Sql_Equals_MethodCall(exp);
+            }
+
+            // Sql.NotEquals(a.CreateTime, dt)
+            if (PublicHelper.Is_Sql_NotEquals_MethodCall(exp))
+            {
+                return this.Handle_Sql_NotEquals_MethodCall(exp);
+            }
+
+            // Sql.Compare(a.CreateTime, compareType, dt)
+            if (PublicHelper.Is_Sql_Compare_MethodCall(exp))
+            {
+                return this.Handle_Sql_Compare_MethodCall(exp);
+            }
+
+            // a.CreateTime.Equals(dt)
+            if (PublicHelper.Is_Instance_Equals_MethodCall(exp))
+            {
+                return this.Handle_Instance_Equals_MethodCall(exp);
+            }
+
+            // public static bool In<T>(this T obj, IEnumerable<T> source)
+            if (PublicHelper.Is_In_Extension_MethodCall(exp))
+            {
+                return this.Handle_In_Extension_MethodCall(exp);
+            }
+
+            return base.VisitMethodCall(exp);
+        }
+
+        IEnumerable<RouteTable> GetRouteTables(IEnumerable list, IRoutingStrategy routingStrategy)
+        {
+            IEnumerable<RouteTable> ret = null;
+            foreach (var item in list)
+            {
+                IEnumerable<RouteTable> routeTables = null;
+                if (item == null)
+                {
+                    routeTables = this.ShardingContext.Route.GetTables();
+                }
+                else
+                {
+                    routeTables = routingStrategy.GetTables(item, ShardingOperator.Equal);
+                }
+
+                if (ret == null)
+                {
+                    ret = routeTables;
+                    continue;
+                }
+
+                ret = Union(ret, routeTables);
+            }
+
+            return ret;
+        }
+
+
+        IRoutingStrategy GetRoutingStrategy(Expression exp, out MemberInfo member)
         {
             member = null;
 
@@ -122,31 +198,116 @@ namespace Chloe.Sharding
             {
                 // a.CreateTime
                 member = memberExp.Member;
-                return this.ShardingContext.Route.GetShardingStrategy(member);
+                return this.ShardingContext.Route.GetStrategy(member);
             }
 
             return null;
         }
-    }
 
-    public class RouteTableEqualityComparer : IEqualityComparer<RouteTable>
-    {
-        public static readonly RouteTableEqualityComparer Instance = new RouteTableEqualityComparer();
-
-        RouteTableEqualityComparer()
+        IEnumerable<RouteTable> Intersect(IEnumerable<RouteTable> source1, IEnumerable<RouteTable> source2)
         {
-
+            return source1.Intersect(source2, RouteTableEqualityComparer.Instance);
+        }
+        IEnumerable<RouteTable> Union(IEnumerable<RouteTable> source1, IEnumerable<RouteTable> source2)
+        {
+            return source1.Union(source2, RouteTableEqualityComparer.Instance);
         }
 
-        public bool Equals(RouteTable x, RouteTable y)
+        IEnumerable<RouteTable> Handle_List_Contains_MethodCall(MethodCallExpression exp)
         {
-            return x.Name == y.Name && x.Schema == y.Schema && x.DataSource.Name == y.DataSource.Name;
-        }
+            MemberInfo member = null;
+            IRoutingStrategy routingStrategy = this.GetRoutingStrategy(exp.Arguments[0], out member);
+            if (routingStrategy == null)
+            {
+                return base.VisitMethodCall(exp);
+            }
 
-        public int GetHashCode(RouteTable obj)
+            if (!exp.Object.IsEvaluable())
+            {
+                return base.VisitMethodCall(exp);
+            }
+
+            IList list = (IList)exp.Object.Evaluate();
+            IEnumerable<RouteTable> routeTables = this.GetRouteTables(list, routingStrategy);
+            return routeTables;
+        }
+        IEnumerable<RouteTable> Handle_Enumerable_Contains_MethodCall(MethodCallExpression exp)
         {
-            return $"{obj.Name}_{obj.Schema}_{obj.DataSource.Name}".GetHashCode();
-            //return obj.GetHashCode();
+            MemberInfo member = null;
+            IRoutingStrategy routingStrategy = this.GetRoutingStrategy(exp.Arguments[1], out member);
+            if (routingStrategy == null)
+            {
+                return base.VisitMethodCall(exp);
+            }
+
+            if (!exp.Arguments[0].IsEvaluable())
+            {
+                return base.VisitMethodCall(exp);
+            }
+
+            IEnumerable list = (IEnumerable)exp.Arguments[0].Evaluate();
+            IEnumerable<RouteTable> routeTables = this.GetRouteTables(list, routingStrategy);
+            return routeTables;
+        }
+        IEnumerable<RouteTable> Handle_Sql_Equals_MethodCall(MethodCallExpression exp)
+        {
+            var equalExp = Expression.MakeBinary(ExpressionType.Equal, exp.Arguments[0], exp.Arguments[1]);
+            return this.VisitBinary(equalExp);
+        }
+        IEnumerable<RouteTable> Handle_Sql_NotEquals_MethodCall(MethodCallExpression exp)
+        {
+            var notEqualExp = Expression.MakeBinary(ExpressionType.NotEqual, exp.Arguments[0], exp.Arguments[1]);
+            return this.VisitBinary(notEqualExp);
+        }
+        IEnumerable<RouteTable> Handle_Sql_Compare_MethodCall(MethodCallExpression exp)
+        {
+            CompareType compareType = (CompareType)exp.Arguments[1].Evaluate();
+
+            ExpressionType expressionType;
+
+            switch (compareType)
+            {
+                case CompareType.eq:
+                    expressionType = ExpressionType.Equal;
+                    break;
+                case CompareType.neq:
+                    expressionType = ExpressionType.NotEqual;
+                    break;
+                case CompareType.gt:
+                    expressionType = ExpressionType.GreaterThan;
+                    break;
+                case CompareType.gte:
+                    expressionType = ExpressionType.GreaterThanOrEqual;
+                    break;
+                case CompareType.lt:
+                    expressionType = ExpressionType.LessThan;
+                    break;
+                case CompareType.lte:
+                    expressionType = ExpressionType.LessThanOrEqual;
+                    break;
+                default:
+                    throw new NotSupportedException(compareType.ToString());
+            }
+
+            var newExp = Expression.MakeBinary(expressionType, exp.Arguments[0], exp.Arguments[2]);
+            return this.VisitBinary(newExp);
+        }
+        IEnumerable<RouteTable> Handle_Instance_Equals_MethodCall(MethodCallExpression exp)
+        {
+            var equalExp = Expression.MakeBinary(ExpressionType.Equal, exp.Object, Expression.Convert(exp.Arguments[0], exp.Object.Type));
+            return this.VisitBinary(equalExp);
+        }
+        IEnumerable<RouteTable> Handle_In_Extension_MethodCall(MethodCallExpression exp)
+        {
+            MethodInfo method = exp.Method;
+
+            Type[] genericArguments = method.GetGenericArguments();
+            Type genericType = genericArguments[0];
+
+            MethodInfo method_Contains = PublicConstants.MethodInfo_Enumerable_Contains.MakeGenericMethod(genericType);
+            List<Expression> arguments = new List<Expression>(2) { exp.Arguments[1], exp.Arguments[0] };
+            MethodCallExpression newExp = Expression.Call(null, method_Contains, arguments);
+            return this.VisitMethodCall(newExp);
         }
     }
 }

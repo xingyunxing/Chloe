@@ -5,7 +5,7 @@ namespace Chloe.Sharding
     public interface IShardingRoute
     {
         IEnumerable<RouteTable> GetTables();
-        IShardingStrategy GetShardingStrategy(MemberInfo member);
+        IRoutingStrategy GetStrategy(MemberInfo member);
 
         SortResult SortTables(List<RouteTable> tables, List<Ordering> orderings);
     }

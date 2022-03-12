@@ -282,12 +282,12 @@ namespace Chloe.Sharding
 
         public long LongCount()
         {
-            throw new NotImplementedException();
+            return this.LongCountAsync().GetResult();
         }
 
-        public Task<long> LongCountAsync()
+        public async Task<long> LongCountAsync()
         {
-            throw new NotImplementedException();
+            return await this.QueryCount();
         }
 
         public TResult Max<TResult>(Expression<Func<T, TResult>> selector)

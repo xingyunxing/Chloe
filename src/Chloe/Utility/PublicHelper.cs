@@ -5,6 +5,8 @@ using Chloe.Infrastructure;
 using Chloe.InternalExtensions;
 using Chloe.Reflection;
 using Chloe.Utility;
+using System.Collections;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Chloe
@@ -175,6 +177,117 @@ namespace Chloe
         public static DbTable CreateDbTable(TypeDescriptor typeDescriptor, string table)
         {
             return typeDescriptor.GenDbTable(table);
+        }
+
+        public static bool Is_Contains_MethodCall(MethodCallExpression exp)
+        {
+            MethodInfo method = exp.Method;
+
+            if (exp.Method == PublicConstants.MethodInfo_String_Contains)
+            {
+                return true;
+            }
+
+            Type declaringType = method.DeclaringType;
+            if (typeof(IList).IsAssignableFrom(declaringType) || (declaringType.IsGenericType && typeof(ICollection<>).MakeGenericType(declaringType.GetGenericArguments()).IsAssignableFrom(declaringType)))
+            {
+                return true;
+            }
+            if (method.IsStatic && declaringType == typeof(Enumerable) && exp.Arguments.Count == 2)
+            {
+                return true;
+            }
+
+            return false;
+        }
+        public static bool Is_List_Contains_MethodCall(MethodCallExpression exp)
+        {
+            MethodInfo method = exp.Method;
+
+            Type declaringType = method.DeclaringType;
+            if (typeof(IList).IsAssignableFrom(declaringType) || (declaringType.IsGenericType && typeof(ICollection<>).MakeGenericType(declaringType.GetGenericArguments()).IsAssignableFrom(declaringType)))
+            {
+                return true;
+            }
+
+            return false;
+        }
+        public static bool Is_Enumerable_Contains_MethodCall(MethodCallExpression exp)
+        {
+            MethodInfo method = exp.Method;
+
+            Type declaringType = method.DeclaringType;
+            if (method.IsStatic && declaringType == typeof(Enumerable) && exp.Arguments.Count == 2)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool Is_Sql_Equals_MethodCall(MethodCallExpression exp)
+        {
+            MethodInfo method = exp.Method;
+
+            if (method.DeclaringType == PublicConstants.TypeOfSql)
+            {
+                return true;
+            }
+
+            return false;
+        }
+        public static bool Is_Sql_NotEquals_MethodCall(MethodCallExpression exp)
+        {
+            MethodInfo method = exp.Method;
+
+            if (method.DeclaringType == PublicConstants.TypeOfSql)
+            {
+                return true;
+            }
+
+            return false;
+        }
+        public static bool Is_Sql_Compare_MethodCall(MethodCallExpression exp)
+        {
+            MethodInfo method = exp.Method;
+
+            if (method.DeclaringType == PublicConstants.TypeOfSql)
+            {
+                return true;
+            }
+
+            return false;
+        }
+        public static bool Is_Instance_Equals_MethodCall(MethodCallExpression exp)
+        {
+            MethodInfo method = exp.Method;
+
+            if (method.ReturnType != PublicConstants.TypeOfBoolean || method.IsStatic || method.GetParameters().Length != 1)
+                return false;
+
+            return true;
+        }
+
+        public static bool Is_In_Extension_MethodCall(MethodCallExpression exp)
+        {
+            MethodInfo method = exp.Method;
+            /* public static bool In<T>(this T obj, IEnumerable<T> source) */
+            if (method.IsGenericMethod && method.ReturnType == PublicConstants.TypeOfBoolean)
+            {
+                Type[] genericArguments = method.GetGenericArguments();
+                ParameterInfo[] parameters = method.GetParameters();
+                Type genericType = genericArguments[0];
+                if (genericArguments.Length == 1 && parameters.Length == 2 && parameters[0].ParameterType == genericType)
+                {
+                    Type secondParameterType = parameters[1].ParameterType;
+                    if (typeof(IEnumerable<>).MakeGenericType(genericType).IsAssignableFrom(secondParameterType))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }

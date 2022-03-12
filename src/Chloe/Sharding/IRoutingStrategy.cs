@@ -1,6 +1,6 @@
 ﻿namespace Chloe.Sharding
 {
-    public interface IShardingStrategy
+    public interface IRoutingStrategy
     {
         IEnumerable<RouteTable> ForEqual(object value);
         IEnumerable<RouteTable> ForNotEqual(object value);
@@ -10,9 +10,9 @@
         IEnumerable<RouteTable> ForLessThanOrEqual(object value);
     }
 
-    public class ShardingStrategy : IShardingStrategy
+    public class RoutingStrategy : IRoutingStrategy
     {
-        public ShardingStrategy(IShardingRoute route)
+        public RoutingStrategy(IShardingRoute route)
         {
             this.Route = route;
         }
@@ -49,9 +49,9 @@
             return this.Route.GetTables();
         }
     }
-    public class ShardingStrategy<TProperty> : IShardingStrategy
+    public class RoutingStrategy<TProperty> : IRoutingStrategy
     {
-        public ShardingStrategy(IShardingRoute route)
+        public RoutingStrategy(IShardingRoute route)
         {
             this.Route = route;
         }
@@ -88,32 +88,32 @@
             return this.Route.GetTables();
         }
 
-        IEnumerable<RouteTable> IShardingStrategy.ForEqual(object value)
+        IEnumerable<RouteTable> IRoutingStrategy.ForEqual(object value)
         {
             return this.ForEqual((TProperty)value);
         }
 
-        IEnumerable<RouteTable> IShardingStrategy.ForNotEqual(object value)
+        IEnumerable<RouteTable> IRoutingStrategy.ForNotEqual(object value)
         {
             return this.ForNotEqual((TProperty)value);
         }
 
-        IEnumerable<RouteTable> IShardingStrategy.ForGreaterThan(object value)
+        IEnumerable<RouteTable> IRoutingStrategy.ForGreaterThan(object value)
         {
             return this.ForGreaterThan((TProperty)value);
         }
 
-        IEnumerable<RouteTable> IShardingStrategy.ForGreaterThanOrEqual(object value)
+        IEnumerable<RouteTable> IRoutingStrategy.ForGreaterThanOrEqual(object value)
         {
             return this.ForGreaterThanOrEqual((TProperty)value);
         }
 
-        IEnumerable<RouteTable> IShardingStrategy.ForLessThan(object value)
+        IEnumerable<RouteTable> IRoutingStrategy.ForLessThan(object value)
         {
             return this.ForLessThan((TProperty)value);
         }
 
-        IEnumerable<RouteTable> IShardingStrategy.ForLessThanOrEqual(object value)
+        IEnumerable<RouteTable> IRoutingStrategy.ForLessThanOrEqual(object value)
         {
             return this.ForLessThanOrEqual((TProperty)value);
         }
@@ -121,7 +121,7 @@
 
     static class ShardingStrategyExtension
     {
-        public static IEnumerable<RouteTable> GetTables(this IShardingStrategy shardingStrategy, object value, ShardingOperator shardingOperator)
+        public static IEnumerable<RouteTable> GetTables(this IRoutingStrategy shardingStrategy, object value, ShardingOperator shardingOperator)
         {
             switch (shardingOperator)
             {

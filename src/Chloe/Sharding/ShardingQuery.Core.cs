@@ -57,6 +57,15 @@ namespace Chloe.Sharding
             DisorderedMultTableDataQuery<T> disorderedMultTableDataQuery = new DisorderedMultTableDataQuery<T>(queryPlan);
             return new PagingExecuteResult<T>(totals, disorderedMultTableDataQuery);
         }
+        async Task<long> QueryCount()
+        {
+            ShardingQueryPlan queryPlan = this.MakeQueryPlan(this);
+            MultTableCountQuery<T> countQuery = new MultTableCountQuery<T>(queryPlan);
+
+            List<MultTableCountQueryResult> routeTableCounts = await countQuery.ToListAsync();
+            long totals = routeTableCounts.Select(a => a.Count).Sum();
+            return totals;
+        }
 
         ShardingQueryPlan MakeQueryPlan(ShardingQuery<T> query)
         {
