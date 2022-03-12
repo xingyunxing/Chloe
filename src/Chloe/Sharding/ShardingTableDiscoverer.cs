@@ -36,7 +36,7 @@ namespace Chloe.Sharding
         IEnumerable<RouteTable> VisitComparison(BinaryExpression exp, ShardingOperator shardingOperator, ShardingOperator inversiveShardingOperator)
         {
             MemberInfo member = null;
-            IShardingStrategy shardingStrategy = this.GetShardingStrategy(exp, out member);
+            IShardingStrategy shardingStrategy = this.GetShardingStrategy(exp.Left, out member);
 
             if (shardingStrategy != null)
             {

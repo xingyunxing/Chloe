@@ -69,9 +69,12 @@ namespace Chloe.Sharding
                 this.DbSessionProvider.PersistedDbContexts.Add(pair);
             }
 
-            if (pair.DbContext.Session.IsInTransaction)
+            if (this.DbSessionProvider.IsInTransaction)
             {
-                pair.DbContext.Session.BeginTransaction(this.DbSessionProvider.IL);
+                if (!pair.DbContext.Session.IsInTransaction)
+                {
+                    pair.DbContext.Session.BeginTransaction(this.DbSessionProvider.IL);
+                }
             }
 
             return new PersistedDbContextProvider(pair.DbContext);
