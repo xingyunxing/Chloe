@@ -4,7 +4,7 @@ using System.Threading;
 
 namespace Chloe.Sharding.Queries
 {
-    class TableCountQueryPlan<T>
+    class CountQueryPlan<T>
     {
         public DataQueryModel QueryModel { get; set; }
         public SingleTableCountQuery<T> Query { get; set; }
@@ -14,39 +14,39 @@ namespace Chloe.Sharding.Queries
     /// 求各分表的数据量
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
-    internal class MultTableCountQuery<TEntity> : FeatureEnumerable<MultTableCountQueryResult>
+    internal class CountQuery<TEntity> : FeatureEnumerable<CountQueryResult>
     {
         ShardingQueryPlan _queryPlan;
         List<IPhysicTable> _tables;
 
-        public MultTableCountQuery(ShardingQueryPlan queryPlan)
+        public CountQuery(ShardingQueryPlan queryPlan)
         {
             this._queryPlan = queryPlan;
             this._tables = queryPlan.Tables;
         }
 
-        public override IFeatureEnumerator<MultTableCountQueryResult> GetFeatureEnumerator(CancellationToken cancellationToken = default)
+        public override IFeatureEnumerator<CountQueryResult> GetFeatureEnumerator(CancellationToken cancellationToken = default)
         {
             return new Enumerator(this, cancellationToken);
         }
 
-        class Enumerator : IFeatureEnumerator<MultTableCountQueryResult>
+        class Enumerator : IFeatureEnumerator<CountQueryResult>
         {
-            MultTableCountQuery<TEntity> _enumerable;
+            CountQuery<TEntity> _enumerable;
             CancellationToken _cancellationToken;
 
             IFeatureEnumerator<long> _innerEnumerator;
 
             int _currentIdx = 0;
-            MultTableCountQueryResult _current;
+            CountQueryResult _current;
 
-            public Enumerator(MultTableCountQuery<TEntity> enumerable, CancellationToken cancellationToken = default)
+            public Enumerator(CountQuery<TEntity> enumerable, CancellationToken cancellationToken = default)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;
             }
 
-            public MultTableCountQueryResult Current => this._current;
+            public CountQueryResult Current => this._current;
 
             object IEnumerator.Current => this._current;
 
@@ -78,19 +78,19 @@ namespace Chloe.Sharding.Queries
                 var tables = this._enumerable._tables;
                 var queryPlan = this._enumerable._queryPlan;
 
-                List<TableCountQueryPlan<TEntity>> countQueryPlans = new List<TableCountQueryPlan<TEntity>>(tables.Count);
+                List<CountQueryPlan<TEntity>> countQueryPlans = new List<CountQueryPlan<TEntity>>(tables.Count);
                 foreach (IPhysicTable table in tables)
                 {
-                    TableCountQueryPlan<TEntity> countQuery = new TableCountQueryPlan<TEntity>();
+                    CountQueryPlan<TEntity> countQueryPlan = new CountQueryPlan<TEntity>();
 
                     DataQueryModel dataQueryModel = new DataQueryModel();
                     dataQueryModel.Table = table;
                     dataQueryModel.IgnoreAllFilters = queryPlan.QueryModel.IgnoreAllFilters;
                     dataQueryModel.Conditions.AddRange(queryPlan.QueryModel.Conditions);
 
-                    countQuery.QueryModel = dataQueryModel;
+                    countQueryPlan.QueryModel = dataQueryModel;
 
-                    countQueryPlans.Add(countQuery);
+                    countQueryPlans.Add(countQueryPlan);
                 }
 
                 ParallelQueryContext queryContext = new ParallelQueryContext();
@@ -102,10 +102,10 @@ namespace Chloe.Sharding.Queries
                     ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(this._enumerable._queryPlan.ShardingContext, group.First().QueryModel.Table.DataSource, count);
                     queryContext.AddManagedResource(dbContextPool);
 
-                    foreach (TableCountQueryPlan<TEntity> countQuery in group)
+                    foreach (CountQueryPlan<TEntity> countQueryPlan in group)
                     {
-                        SingleTableCountQuery<TEntity> query = new SingleTableCountQuery<TEntity>(dbContextPool, countQuery.QueryModel);
-                        countQuery.Query = query;
+                        SingleTableCountQuery<TEntity> query = new SingleTableCountQuery<TEntity>(dbContextPool, countQueryPlan.QueryModel);
+                        countQueryPlan.Query = query;
                     }
                 }
 
@@ -128,7 +128,7 @@ namespace Chloe.Sharding.Queries
                 }
 
                 IPhysicTable table = this._enumerable._tables[this._currentIdx++];
-                this._current = new MultTableCountQueryResult() { Table = table, Count = this._innerEnumerator.GetCurrent() };
+                this._current = new CountQueryResult() { Table = table, Count = this._innerEnumerator.GetCurrent() };
                 return true;
             }
 

@@ -30,22 +30,22 @@ namespace Chloe.Sharding
 
         public bool Any()
         {
-            throw new NotImplementedException();
+            return this.AnyAsync().GetResult();
         }
 
         public bool Any(Expression<Func<T, bool>> predicate)
         {
-            throw new NotImplementedException();
+            return this.AnyAsync(predicate).GetResult();
         }
 
         public Task<bool> AnyAsync()
         {
-            throw new NotImplementedException();
+            return this.QueryAny();
         }
 
         public Task<bool> AnyAsync(Expression<Func<T, bool>> predicate)
         {
-            throw new NotImplementedException();
+            return this.Where(predicate).AnyAsync();
         }
 
         public IEnumerable<T> AsEnumerable()
@@ -154,16 +154,6 @@ namespace Chloe.Sharding
         }
 
         public Task<float?> AverageAsync(Expression<Func<T, float?>> selector)
-        {
-            throw new NotImplementedException();
-        }
-
-        public int Count()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<int> CountAsync()
         {
             throw new NotImplementedException();
         }
@@ -278,6 +268,16 @@ namespace Chloe.Sharding
         public IJoinQuery<T, TOther> LeftJoin<TOther>(IQuery<TOther> q, Expression<Func<T, TOther, bool>> on)
         {
             throw new NotImplementedException();
+        }
+
+        public int Count()
+        {
+            return (int)this.LongCount();
+        }
+
+        public async Task<int> CountAsync()
+        {
+            return (int)await this.LongCountAsync();
         }
 
         public long LongCount()

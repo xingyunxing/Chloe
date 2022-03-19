@@ -35,11 +35,11 @@ namespace Chloe.Sharding
             if (!queryPlan.QueryModel.HasSkip())
             {
                 //未指定 skip
-                return new OrdinaryMultTableDataQuery<T>(queryPlan);
+                return new NonPagingQuery<T>(queryPlan);
             }
 
-            DisorderedMultTableDataQuery<T> dataQuery = new DisorderedMultTableDataQuery<T>(queryPlan);
-            return dataQuery;
+            OrdinaryQuery<T> ordinaryQuery = new OrdinaryQuery<T>(queryPlan);
+            return ordinaryQuery;
         }
 
         async Task<PagingExecuteResult<T>> ExecutePaging(int pageNumber, int pageSize)
@@ -49,28 +49,37 @@ namespace Chloe.Sharding
         }
         async Task<PagingExecuteResult<T>> ExecutePaging(ShardingQueryPlan queryPlan)
         {
-            MultTableCountQuery<T> countQuery = new MultTableCountQuery<T>(queryPlan);
+            CountQuery<T> countQuery = new CountQuery<T>(queryPlan);
 
-            List<MultTableCountQueryResult> routeTableCounts = await countQuery.ToListAsync();
+            List<CountQueryResult> routeTableCounts = await countQuery.ToListAsync();
             long totals = routeTableCounts.Select(a => a.Count).Sum();
 
             if (queryPlan.IsOrderedTables)
             {
-                OrderedMultTableDataQuery<T> orderlyMultTableDataQuery = new OrderedMultTableDataQuery<T>(queryPlan, routeTableCounts);
-                return new PagingExecuteResult<T>(totals, orderlyMultTableDataQuery);
+                OrderedTableQuery<T> orderedTableQuery = new OrderedTableQuery<T>(queryPlan, routeTableCounts);
+                return new PagingExecuteResult<T>(totals, orderedTableQuery);
             }
 
-            DisorderedMultTableDataQuery<T> disorderedMultTableDataQuery = new DisorderedMultTableDataQuery<T>(queryPlan);
-            return new PagingExecuteResult<T>(totals, disorderedMultTableDataQuery);
+            OrdinaryQuery<T> ordinaryQuery = new OrdinaryQuery<T>(queryPlan);
+            return new PagingExecuteResult<T>(totals, ordinaryQuery);
         }
         async Task<long> QueryCount()
         {
             ShardingQueryPlan queryPlan = this.MakeQueryPlan(this);
-            MultTableCountQuery<T> countQuery = new MultTableCountQuery<T>(queryPlan);
+            CountQuery<T> countQuery = new CountQuery<T>(queryPlan);
 
-            List<MultTableCountQueryResult> routeTableCounts = await countQuery.ToListAsync();
-            long totals = routeTableCounts.Select(a => a.Count).Sum();
+            List<CountQueryResult> counts = await countQuery.ToListAsync();
+            long totals = counts.Select(a => a.Count).Sum();
             return totals;
+        }
+        async Task<bool> QueryAny()
+        {
+            ShardingQueryPlan queryPlan = this.MakeQueryPlan(this);
+            AnyQuery<T> anyQuery = new AnyQuery<T>(queryPlan);
+
+            List<QueryResult<bool>> results = await anyQuery.ToListAsync();
+            bool hasData = results.Any(a => a.Result == true);
+            return hasData;
         }
 
         ShardingQueryPlan MakeQueryPlan(ShardingQuery<T> query)

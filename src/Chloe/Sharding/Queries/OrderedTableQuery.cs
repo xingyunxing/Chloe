@@ -6,12 +6,12 @@ namespace Chloe.Sharding.Queries
     /// 有序的表数据查询
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal class OrderedMultTableDataQuery<T> : FeatureEnumerable<T>
+    internal class OrderedTableQuery<T> : FeatureEnumerable<T>
     {
         ShardingQueryPlan _queryPlan;
-        List<MultTableCountQueryResult> _countQueryResults;
+        List<CountQueryResult> _countQueryResults;
 
-        public OrderedMultTableDataQuery(ShardingQueryPlan queryPlan, List<MultTableCountQueryResult> countQueryResults)
+        public OrderedTableQuery(ShardingQueryPlan queryPlan, List<CountQueryResult> countQueryResults)
         {
             this._queryPlan = queryPlan;
             this._countQueryResults = countQueryResults;
@@ -24,10 +24,10 @@ namespace Chloe.Sharding.Queries
 
         class Enumerator : QueryFeatureEnumerator<T>, IFeatureEnumerator<T>
         {
-            OrderedMultTableDataQuery<T> _enumerable;
+            OrderedTableQuery<T> _enumerable;
             CancellationToken _cancellationToken;
 
-            public Enumerator(OrderedMultTableDataQuery<T> enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryPlan)
+            public Enumerator(OrderedTableQuery<T> enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryPlan)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;
@@ -54,7 +54,7 @@ namespace Chloe.Sharding.Queries
 
             List<TableDataQueryPlan<T>> MakeQueryPlans(ParallelQueryContext queryContext)
             {
-                List<MultTableCountQueryResult> countQueryResults = this._enumerable._countQueryResults;
+                List<CountQueryResult> countQueryResults = this._enumerable._countQueryResults;
 
                 List<TableDataQueryPlan<T>> dataQueryPlans = new List<TableDataQueryPlan<T>>();
 

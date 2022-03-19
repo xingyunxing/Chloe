@@ -81,47 +81,37 @@ namespace Chloe.Sharding.Queries
                 return this.MoveNext(true);
             }
 
+            async Task<List<T>> Query(IDbContext dbContext, bool @async)
+            {
+                var q = this.MakeQuery(dbContext);
+                var dataList = @async ? await q.ToListAsync() : q.ToList();
+                return dataList;
+            }
             async ValueTask LazyInit(bool @async)
             {
                 if (this._enumerator == null)
                 {
+                    if (!this._enumerable.LazyQuery)
+                    {
+                        var dataList = await ShardingHelpers.ExecuteQuery<List<T>>(this.Query, this._enumerable.QueryContext, this._enumerable.DbContextPool, @async);
+
+                        if (dataList == null)
+                        {
+                            dataList = new List<T>();
+                        }
+
+                        this._enumerator = new FeatureEnumeratorAdapter<T>(dataList.GetEnumerator());
+                        return;
+                    }
+
                     IPoolItem<IDbContext> poolItem = await this._enumerable.DbContextPool.GetOne(@async);
 
                     this._poolItem = poolItem;
-                    try
-                    {
-                        var q = this.MakeQuery(poolItem.Resource);
 
-                        bool canceled = this._enumerable.QueryContext.BeforeExecuteCommand();
-                        if (canceled)
-                        {
-                            this._enumerator = new NullFeatureEnumerator<T>();
-                            poolItem.Dispose();
-                            return;
-                        }
-
-                        if (this._enumerable.LazyQuery)
-                        {
-                            var en = q.AsEnumerable();
-                            this._enumerable.QueryContext.AfterExecuteCommand(en);
-                            this._enumerator = new FeatureEnumeratorAdapter<T>(en.GetEnumerator());
-                        }
-                        else
-                        {
-
-                            var dataList = @async ? await q.ToListAsync() : q.ToList();
-                            this._enumerable.QueryContext.AfterExecuteCommand(dataList);
-                            this._enumerator = new FeatureEnumeratorAdapter<T>(dataList.GetEnumerator());
-                        }
-                    }
-                    finally
-                    {
-                        if (!this._enumerable.LazyQuery)
-                        {
-                            poolItem.Dispose();
-                            this._poolItem = null;
-                        }
-                    }
+                    var q = this.MakeQuery(poolItem.Resource);
+                    var en = q.AsEnumerable();
+                    this._enumerable.QueryContext.AfterExecuteCommand(en);
+                    this._enumerator = new FeatureEnumeratorAdapter<T>(en.GetEnumerator());
                 }
             }
             async BoolResultTask MoveNext(bool @async)

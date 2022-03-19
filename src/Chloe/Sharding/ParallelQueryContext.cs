@@ -4,7 +4,6 @@ namespace Chloe.Sharding
 {
     internal interface IParallelQueryContext : IDisposable
     {
-        //IShareDbContextPool DbContextPool { get; }
         bool BeforeExecuteCommand();
         void AfterExecuteCommand(object result);
     }
@@ -59,6 +58,26 @@ namespace Chloe.Sharding
             if (result is IList list)
             {
                 System.Threading.Interlocked.Add(ref this._countHasQuery, list.Count);
+            }
+        }
+    }
+
+    internal class AnyQueryParallelQueryContext : ParallelQueryContext
+    {
+        bool _hasData;
+
+        public override bool BeforeExecuteCommand()
+        {
+            bool canCancel = this._hasData;
+            return canCancel;
+        }
+
+        public override void AfterExecuteCommand(object result)
+        {
+            bool hasData = (bool)result;
+            if (hasData)
+            {
+                this._hasData = hasData;
             }
         }
     }

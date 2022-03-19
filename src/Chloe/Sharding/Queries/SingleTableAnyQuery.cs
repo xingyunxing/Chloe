@@ -6,38 +6,40 @@ using System.Threading;
 namespace Chloe.Sharding.Queries
 {
     /// <summary>
-    /// 获取单个表的数据量
+    /// 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    class SingleTableCountQuery<T> : FeatureEnumerable<long>
+    class SingleTableAnyQuery<T> : FeatureEnumerable<bool>
     {
+        IParallelQueryContext _queryContext;
         IShareDbContextPool _dbContextPool;
         DataQueryModel _queryModel;
 
-        public SingleTableCountQuery(IShareDbContextPool dbContextPool, DataQueryModel queryModel)
+        public SingleTableAnyQuery(IParallelQueryContext queryContext, IShareDbContextPool dbContextPool, DataQueryModel queryModel)
         {
+            this._queryContext = queryContext;
             this._dbContextPool = dbContextPool;
             this._queryModel = queryModel;
         }
 
-        public override IFeatureEnumerator<long> GetFeatureEnumerator(CancellationToken cancellationToken = default)
+        public override IFeatureEnumerator<bool> GetFeatureEnumerator(CancellationToken cancellationToken = default)
         {
             return new Enumerator(this, cancellationToken);
         }
 
-        class Enumerator : IFeatureEnumerator<long>
+        class Enumerator : IFeatureEnumerator<bool>
         {
-            SingleTableCountQuery<T> _enumerable;
+            SingleTableAnyQuery<T> _enumerable;
             CancellationToken _cancellationToken;
-            long Result = -1;
+            bool? Result = null;
 
-            public Enumerator(SingleTableCountQuery<T> enumerable, CancellationToken cancellationToken = default)
+            public Enumerator(SingleTableAnyQuery<T> enumerable, CancellationToken cancellationToken = default)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;
             }
 
-            public long Current => this.Result;
+            public bool Current => this.Result.Value;
 
             object IEnumerator.Current => this.Result;
 
@@ -61,17 +63,8 @@ namespace Chloe.Sharding.Queries
                 return this.MoveNext(true);
             }
 
-            async BoolResultTask MoveNext(bool @async)
+            async Task<bool> Query(IDbContext dbContext, bool @async)
             {
-                if (this.Result != -1)
-                {
-                    this.Result = default;
-                    return false;
-                }
-
-                using var poolResource = await this._enumerable._dbContextPool.GetOne(@async);
-
-                var dbContext = poolResource.Resource;
                 var q = dbContext.Query<T>(this._enumerable._queryModel.Table.Name);
 
                 foreach (var condition in this._enumerable._queryModel.Conditions)
@@ -84,8 +77,21 @@ namespace Chloe.Sharding.Queries
                     q = q.IgnoreAllFilters();
                 }
 
-                long count = @async ? await q.LongCountAsync() : q.LongCount();
-                this.Result = count;
+                bool hasData = @async ? await q.AnyAsync() : q.Any();
+                return hasData;
+            }
+
+            async BoolResultTask MoveNext(bool @async)
+            {
+                if (this.Result != null)
+                {
+                    this.Result = default;
+                    return false;
+                }
+
+                var hasData = await ShardingHelpers.ExecuteQuery<bool>(this.Query, this._enumerable._queryContext, this._enumerable._dbContextPool, @async);
+
+                this.Result = hasData;
 
                 return true;
             }

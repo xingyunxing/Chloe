@@ -1,4 +1,4 @@
-﻿namespace Chloe.Sharding.Queries
+﻿namespace Chloe.Sharding
 {
     internal class QueryFeatureEnumerator<T> : FeatureEnumerator<T>
     {

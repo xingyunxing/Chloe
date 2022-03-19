@@ -4,14 +4,14 @@ using System.Threading;
 namespace Chloe.Sharding.Queries
 {
     /// <summary>
-    /// 无序的表数据查询
+    /// 普通查询
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal class DisorderedMultTableDataQuery<T> : FeatureEnumerable<T>
+    internal class OrdinaryQuery<T> : FeatureEnumerable<T>
     {
         ShardingQueryPlan _queryPlan;
 
-        public DisorderedMultTableDataQuery(ShardingQueryPlan queryPlan)
+        public OrdinaryQuery(ShardingQueryPlan queryPlan)
         {
             this._queryPlan = queryPlan;
         }
@@ -23,10 +23,10 @@ namespace Chloe.Sharding.Queries
 
         class Enumerator : QueryFeatureEnumerator<T>
         {
-            DisorderedMultTableDataQuery<T> _enumerable;
+            OrdinaryQuery<T> _enumerable;
             CancellationToken _cancellationToken;
 
-            public Enumerator(DisorderedMultTableDataQuery<T> enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryPlan)
+            public Enumerator(OrdinaryQuery<T> enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryPlan)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;
@@ -36,7 +36,7 @@ namespace Chloe.Sharding.Queries
 
             protected override async Task<IFeatureEnumerator<T>> CreateEnumerator(bool @async)
             {
-                List<MultTableKeyQueryResult> keyResult = await this.GetKeys();
+                List<KeyQueryResult> keyResult = await this.GetKeys();
 
                 ParallelQueryContext queryContext = new ParallelQueryContext();
 
@@ -53,10 +53,10 @@ namespace Chloe.Sharding.Queries
                 }
             }
 
-            async Task<List<MultTableKeyQueryResult>> GetKeys()
+            async Task<List<KeyQueryResult>> GetKeys()
             {
-                MultTableKeyQuery<T> keyQuery = new MultTableKeyQuery<T>(this.QueryPlan);
-                List<MultTableKeyQueryResult> keyResult = await keyQuery.ToListAsync(this._cancellationToken);
+                KeyPagingQuery<T> keyQuery = new KeyPagingQuery<T>(this.QueryPlan);
+                List<KeyQueryResult> keyResult = await keyQuery.ToListAsync(this._cancellationToken);
                 return keyResult;
             }
 
@@ -71,7 +71,7 @@ namespace Chloe.Sharding.Queries
                 return enumerator;
             }
 
-            List<TableDataQueryPlan<T>> MakeQueryPlans(ParallelQueryContext queryContext, List<MultTableKeyQueryResult> keyResult)
+            List<TableDataQueryPlan<T>> MakeQueryPlans(ParallelQueryContext queryContext, List<KeyQueryResult> keyResult)
             {
                 //构建 in (id1,id2...) 查询
 

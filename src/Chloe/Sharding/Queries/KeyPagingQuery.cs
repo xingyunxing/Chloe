@@ -19,26 +19,26 @@ namespace Chloe.Sharding.Queries
     /// 表主键查询
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
-    internal class MultTableKeyQuery<TEntity> : FeatureEnumerable<MultTableKeyQueryResult>
+    internal class KeyPagingQuery<TEntity> : FeatureEnumerable<KeyQueryResult>
     {
         ShardingQueryPlan _queryPlan;
 
-        public MultTableKeyQuery(ShardingQueryPlan queryPlan)
+        public KeyPagingQuery(ShardingQueryPlan queryPlan)
         {
             this._queryPlan = queryPlan;
         }
 
-        public override IFeatureEnumerator<MultTableKeyQueryResult> GetFeatureEnumerator(CancellationToken cancellationToken = default)
+        public override IFeatureEnumerator<KeyQueryResult> GetFeatureEnumerator(CancellationToken cancellationToken = default)
         {
             return new Enumerator(this, cancellationToken);
         }
 
-        class Enumerator : FeatureEnumerator<MultTableKeyQueryResult>
+        class Enumerator : FeatureEnumerator<KeyQueryResult>
         {
-            MultTableKeyQuery<TEntity> _enumerable;
+            KeyPagingQuery<TEntity> _enumerable;
             CancellationToken _cancellationToken;
 
-            public Enumerator(MultTableKeyQuery<TEntity> enumerable, CancellationToken cancellationToken = default)
+            public Enumerator(KeyPagingQuery<TEntity> enumerable, CancellationToken cancellationToken = default)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;
@@ -50,7 +50,7 @@ namespace Chloe.Sharding.Queries
             List<IPhysicTable> Tables { get { return this._enumerable._queryPlan.Tables; } }
             TypeDescriptor EntityTypeDescriptor { get { return this._enumerable._queryPlan.ShardingContext.TypeDescriptor; } }
 
-            protected override async Task<IFeatureEnumerator<MultTableKeyQueryResult>> CreateEnumerator(bool @async)
+            protected override async Task<IFeatureEnumerator<KeyQueryResult>> CreateEnumerator(bool @async)
             {
                 ParallelQueryContext queryContext = new ParallelQueryContext();
 
@@ -62,9 +62,9 @@ namespace Chloe.Sharding.Queries
 
                     await this.ExecuteQuery(queryContext, dataQueryPlans, dynamicType, orders);
 
-                    var tableKeyResult = dataQueryPlans.Select(a => new MultTableKeyQueryResult() { Table = a.QueryModel.Table, Keys = a.Keys });
+                    var tableKeyResult = dataQueryPlans.Select(a => new KeyQueryResult() { Table = a.QueryModel.Table, Keys = a.Keys });
 
-                    return new FeatureEnumeratorAdapter<MultTableKeyQueryResult>(tableKeyResult.GetEnumerator());
+                    return new FeatureEnumeratorAdapter<KeyQueryResult>(tableKeyResult.GetEnumerator());
                 }
                 catch
                 {

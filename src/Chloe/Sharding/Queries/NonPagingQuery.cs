@@ -4,14 +4,14 @@ using System.Threading;
 namespace Chloe.Sharding.Queries
 {
     /// <summary>
-    /// 普通方式查询
+    /// 非分页查询
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal class OrdinaryMultTableDataQuery<T> : FeatureEnumerable<T>
+    internal class NonPagingQuery<T> : FeatureEnumerable<T>
     {
         ShardingQueryPlan _queryPlan;
 
-        public OrdinaryMultTableDataQuery(ShardingQueryPlan queryPlan)
+        public NonPagingQuery(ShardingQueryPlan queryPlan)
         {
             this._queryPlan = queryPlan;
         }
@@ -23,10 +23,10 @@ namespace Chloe.Sharding.Queries
 
         class Enumerator : QueryFeatureEnumerator<T>
         {
-            OrdinaryMultTableDataQuery<T> _enumerable;
+            NonPagingQuery<T> _enumerable;
             CancellationToken _cancellationToken;
 
-            public Enumerator(OrdinaryMultTableDataQuery<T> enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryPlan)
+            public Enumerator(NonPagingQuery<T> enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryPlan)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;

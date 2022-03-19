@@ -126,7 +126,7 @@ namespace Chloe.Sharding
             return selector;
         }
 
-        public static List<TableDataQueryPlan<TEntity>> MakeEntityQueryPlans<TEntity>(ShardingQueryModel queryModel, List<MultTableKeyQueryResult> keyResults, TypeDescriptor typeDescriptor, int maxInItems)
+        public static List<TableDataQueryPlan<TEntity>> MakeEntityQueryPlans<TEntity>(ShardingQueryModel queryModel, List<KeyQueryResult> keyResults, TypeDescriptor typeDescriptor, int maxInItems)
         {
             List<TableDataQueryPlan<TEntity>> queryPlans = new List<TableDataQueryPlan<TEntity>>();
 
@@ -192,6 +192,38 @@ namespace Chloe.Sharding
             dataQueryModel.Take = take;
 
             return dataQueryModel;
+        }
+
+        /// <summary>
+        /// 此方法可能返回 default
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="executor"></param>
+        /// <param name="queryContext"></param>
+        /// <param name="dbContextPool"></param>
+        /// <param name="async"></param>
+        /// <returns></returns>
+        public static async Task<T> ExecuteQuery<T>(Func<IDbContext, bool, Task<T>> executor, IParallelQueryContext queryContext, IShareDbContextPool dbContextPool, bool @async)
+        {
+            IPoolItem<IDbContext> poolItem = await dbContextPool.GetOne(@async);
+
+            try
+            {
+                bool canceled = queryContext.BeforeExecuteCommand();
+                if (canceled)
+                {
+                    poolItem.Dispose();
+                    return default;
+                }
+
+                var data = await executor(poolItem.Resource, @async);
+                queryContext.AfterExecuteCommand(data);
+                return data;
+            }
+            finally
+            {
+                poolItem.Dispose();
+            }
         }
 
         static List<List<object>> Slice(List<object> list, int batchSize)
