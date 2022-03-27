@@ -9,9 +9,9 @@ namespace Chloe.Sharding.Queries
     internal class OrderedTableQuery<T> : FeatureEnumerable<T>
     {
         ShardingQueryPlan _queryPlan;
-        List<CountQueryResult> _countQueryResults;
+        List<QueryResult<long>> _countQueryResults;
 
-        public OrderedTableQuery(ShardingQueryPlan queryPlan, List<CountQueryResult> countQueryResults)
+        public OrderedTableQuery(ShardingQueryPlan queryPlan, List<QueryResult<long>> countQueryResults)
         {
             this._queryPlan = queryPlan;
             this._countQueryResults = countQueryResults;
@@ -54,7 +54,7 @@ namespace Chloe.Sharding.Queries
 
             List<TableDataQueryPlan<T>> MakeQueryPlans(ParallelQueryContext queryContext)
             {
-                List<CountQueryResult> countQueryResults = this._enumerable._countQueryResults;
+                List<QueryResult<long>> countQueryResults = this._enumerable._countQueryResults;
 
                 List<TableDataQueryPlan<T>> dataQueryPlans = new List<TableDataQueryPlan<T>>();
 
@@ -63,7 +63,7 @@ namespace Chloe.Sharding.Queries
                 for (int i = 0; i < countQueryResults.Count; i++)
                 {
                     var countQueryResult = countQueryResults[i];
-                    long canTake = countQueryResult.Count - nextTableSkip;
+                    long canTake = countQueryResult.Result - nextTableSkip;
                     if (canTake > 0)
                     {
                         int skipCount = (int)nextTableSkip;
@@ -80,7 +80,7 @@ namespace Chloe.Sharding.Queries
                     }
                     else
                     {
-                        nextTableSkip = nextTableSkip - countQueryResult.Count;
+                        nextTableSkip = nextTableSkip - countQueryResult.Result;
                     }
 
                     if (nextTableTake <= 0)

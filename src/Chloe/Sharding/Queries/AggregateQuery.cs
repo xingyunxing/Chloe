@@ -4,49 +4,47 @@ using System.Threading;
 
 namespace Chloe.Sharding.Queries
 {
-    class CountQueryPlan<T>
+    class AggregateQueryPlan<T, TResult>
     {
         public DataQueryModel QueryModel { get; set; }
-        public SingleTableCountQuery<T> Query { get; set; }
+        public SingleTableAggregateQuery<T, TResult> Query { get; set; }
     }
 
-    /// <summary>
-    /// 求各分表的数据量
-    /// </summary>
-    /// <typeparam name="TEntity"></typeparam>
-    internal class CountQuery<TEntity> : FeatureEnumerable<CountQueryResult>
+    internal class AggregateQuery<TEntity, TResult> : FeatureEnumerable<QueryResult<TResult>>
     {
         ShardingQueryPlan _queryPlan;
         List<IPhysicTable> _tables;
+        Func<IQuery<TEntity>, bool, Task<TResult>> _executor;
 
-        public CountQuery(ShardingQueryPlan queryPlan)
+        public AggregateQuery(ShardingQueryPlan queryPlan, Func<IQuery<TEntity>, bool, Task<TResult>> executor)
         {
             this._queryPlan = queryPlan;
             this._tables = queryPlan.Tables;
+            this._executor = executor;
         }
 
-        public override IFeatureEnumerator<CountQueryResult> GetFeatureEnumerator(CancellationToken cancellationToken = default)
+        public override IFeatureEnumerator<QueryResult<TResult>> GetFeatureEnumerator(CancellationToken cancellationToken = default)
         {
             return new Enumerator(this, cancellationToken);
         }
 
-        class Enumerator : IFeatureEnumerator<CountQueryResult>
+        class Enumerator : IFeatureEnumerator<QueryResult<TResult>>
         {
-            CountQuery<TEntity> _enumerable;
+            AggregateQuery<TEntity, TResult> _enumerable;
             CancellationToken _cancellationToken;
 
-            IFeatureEnumerator<long> _innerEnumerator;
+            IFeatureEnumerator<TResult> _innerEnumerator;
 
             int _currentIdx = 0;
-            CountQueryResult _current;
+            QueryResult<TResult> _current;
 
-            public Enumerator(CountQuery<TEntity> enumerable, CancellationToken cancellationToken = default)
+            public Enumerator(AggregateQuery<TEntity, TResult> enumerable, CancellationToken cancellationToken = default)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;
             }
 
-            public CountQueryResult Current => this._current;
+            public QueryResult<TResult> Current => this._current;
 
             object IEnumerator.Current => this._current;
 
@@ -78,39 +76,39 @@ namespace Chloe.Sharding.Queries
                 var tables = this._enumerable._tables;
                 var queryPlan = this._enumerable._queryPlan;
 
-                List<CountQueryPlan<TEntity>> countQueryPlans = new List<CountQueryPlan<TEntity>>(tables.Count);
+                List<AggregateQueryPlan<TEntity, TResult>> aggQueryPlans = new List<AggregateQueryPlan<TEntity, TResult>>(tables.Count);
                 foreach (IPhysicTable table in tables)
                 {
-                    CountQueryPlan<TEntity> countQueryPlan = new CountQueryPlan<TEntity>();
+                    AggregateQueryPlan<TEntity, TResult> aggQueryPlan = new AggregateQueryPlan<TEntity, TResult>();
 
                     DataQueryModel dataQueryModel = new DataQueryModel();
                     dataQueryModel.Table = table;
                     dataQueryModel.IgnoreAllFilters = queryPlan.QueryModel.IgnoreAllFilters;
                     dataQueryModel.Conditions.AddRange(queryPlan.QueryModel.Conditions);
 
-                    countQueryPlan.QueryModel = dataQueryModel;
+                    aggQueryPlan.QueryModel = dataQueryModel;
 
-                    countQueryPlans.Add(countQueryPlan);
+                    aggQueryPlans.Add(aggQueryPlan);
                 }
 
                 ParallelQueryContext queryContext = new ParallelQueryContext();
 
-                foreach (var group in countQueryPlans.GroupBy(a => a.QueryModel.Table.DataSource.Name))
+                foreach (var group in aggQueryPlans.GroupBy(a => a.QueryModel.Table.DataSource.Name))
                 {
                     int count = group.Count();
 
                     ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(this._enumerable._queryPlan.ShardingContext, group.First().QueryModel.Table.DataSource, count);
                     queryContext.AddManagedResource(dbContextPool);
 
-                    foreach (CountQueryPlan<TEntity> countQueryPlan in group)
+                    foreach (AggregateQueryPlan<TEntity, TResult> aggQueryPlan in group)
                     {
-                        SingleTableCountQuery<TEntity> query = new SingleTableCountQuery<TEntity>(dbContextPool, countQueryPlan.QueryModel);
-                        countQueryPlan.Query = query;
+                        SingleTableAggregateQuery<TEntity, TResult> query = new SingleTableAggregateQuery<TEntity, TResult>(dbContextPool, aggQueryPlan.QueryModel, this._enumerable._executor);
+                        aggQueryPlan.Query = query;
                     }
                 }
 
-                ParallelConcatEnumerable<long> countQueryEnumerable = new ParallelConcatEnumerable<long>(queryContext, countQueryPlans.Select(a => a.Query));
-                this._innerEnumerator = countQueryEnumerable.GetFeatureEnumerator(this._cancellationToken);
+                ParallelConcatEnumerable<TResult> aggQueryEnumerable = new ParallelConcatEnumerable<TResult>(queryContext, aggQueryPlans.Select(a => a.Query));
+                this._innerEnumerator = aggQueryEnumerable.GetFeatureEnumerator(this._cancellationToken);
             }
             async BoolResultTask MoveNext(bool @async)
             {
@@ -128,7 +126,7 @@ namespace Chloe.Sharding.Queries
                 }
 
                 IPhysicTable table = this._enumerable._tables[this._currentIdx++];
-                this._current = new CountQueryResult() { Table = table, Count = this._innerEnumerator.GetCurrent() };
+                this._current = new QueryResult<TResult>() { Table = table, Result = this._innerEnumerator.GetCurrent() };
                 return true;
             }
 

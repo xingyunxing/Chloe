@@ -1,4 +1,5 @@
 ﻿using Chloe.Query;
+using Chloe.Sharding.Queries;
 using Chloe.Threading.Tasks;
 using System.Linq.Expressions;
 
@@ -342,102 +343,172 @@ namespace Chloe.Sharding
 
         public int Sum(Expression<Func<T, int>> selector)
         {
-            throw new NotImplementedException();
+            return this.SumAsync(selector).GetResult();
         }
 
-        public int? Sum(Expression<Func<T, int?>> selector)
+        public int Sum(Expression<Func<T, int?>> selector)
         {
-            throw new NotImplementedException();
+            return this.SumAsync(selector).GetResult();
         }
 
         public long Sum(Expression<Func<T, long>> selector)
         {
-            throw new NotImplementedException();
+            return this.SumAsync(selector).GetResult();
         }
 
-        public long? Sum(Expression<Func<T, long?>> selector)
+        public long Sum(Expression<Func<T, long?>> selector)
         {
-            throw new NotImplementedException();
+            return this.SumAsync(selector).GetResult();
         }
 
         public decimal Sum(Expression<Func<T, decimal>> selector)
         {
-            throw new NotImplementedException();
+            return this.SumAsync(selector).GetResult();
         }
 
-        public decimal? Sum(Expression<Func<T, decimal?>> selector)
+        public decimal Sum(Expression<Func<T, decimal?>> selector)
         {
-            throw new NotImplementedException();
+            return this.SumAsync(selector).GetResult();
         }
 
         public double Sum(Expression<Func<T, double>> selector)
         {
-            throw new NotImplementedException();
+            return this.SumAsync(selector).GetResult();
         }
 
-        public double? Sum(Expression<Func<T, double?>> selector)
+        public double Sum(Expression<Func<T, double?>> selector)
         {
-            throw new NotImplementedException();
+            return this.SumAsync(selector).GetResult();
         }
 
         public float Sum(Expression<Func<T, float>> selector)
         {
-            throw new NotImplementedException();
+            return this.SumAsync(selector).GetResult();
         }
 
-        public float? Sum(Expression<Func<T, float?>> selector)
+        public float Sum(Expression<Func<T, float?>> selector)
         {
-            throw new NotImplementedException();
+            return this.SumAsync(selector).GetResult();
         }
 
-        public Task<int> SumAsync(Expression<Func<T, int>> selector)
+        public async Task<int> SumAsync(Expression<Func<T, int>> selector)
         {
-            throw new NotImplementedException();
+            Func<IQuery<T>, bool, Task<int>> executor = async (query, @async) =>
+            {
+                int result = @async ? await query.SumAsync(selector) : query.Sum(selector);
+                return result;
+            };
+
+            AggregateQuery<T, int> aggQuery = new AggregateQuery<T, int>(this.MakeQueryPlan(this), executor);
+            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).SumAsync();
         }
 
-        public Task<int?> SumAsync(Expression<Func<T, int?>> selector)
+        public async Task<int> SumAsync(Expression<Func<T, int?>> selector)
         {
-            throw new NotImplementedException();
+            Func<IQuery<T>, bool, Task<int>> executor = async (query, @async) =>
+            {
+                int result = @async ? await query.SumAsync(selector) : query.Sum(selector);
+                return result;
+            };
+
+            AggregateQuery<T, int> aggQuery = new AggregateQuery<T, int>(this.MakeQueryPlan(this), executor);
+            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).SumAsync();
         }
 
-        public Task<long> SumAsync(Expression<Func<T, long>> selector)
+        public async Task<long> SumAsync(Expression<Func<T, long>> selector)
         {
-            throw new NotImplementedException();
+            Func<IQuery<T>, bool, Task<long>> executor = async (query, @async) =>
+            {
+                long result = @async ? await query.SumAsync(selector) : query.Sum(selector);
+                return result;
+            };
+
+            AggregateQuery<T, long> aggQuery = new AggregateQuery<T, long>(this.MakeQueryPlan(this), executor);
+            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).SumAsync();
         }
 
-        public Task<long?> SumAsync(Expression<Func<T, long?>> selector)
+        public async Task<long> SumAsync(Expression<Func<T, long?>> selector)
         {
-            throw new NotImplementedException();
+            Func<IQuery<T>, bool, Task<long>> executor = async (query, @async) =>
+            {
+                long result = @async ? await query.SumAsync(selector) : query.Sum(selector);
+                return result;
+            };
+
+            AggregateQuery<T, long> aggQuery = new AggregateQuery<T, long>(this.MakeQueryPlan(this), executor);
+            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).SumAsync();
         }
 
-        public Task<decimal> SumAsync(Expression<Func<T, decimal>> selector)
+        public async Task<decimal> SumAsync(Expression<Func<T, decimal>> selector)
         {
-            throw new NotImplementedException();
+            Func<IQuery<T>, bool, Task<decimal>> executor = async (query, @async) =>
+            {
+                decimal result = @async ? await query.SumAsync(selector) : query.Sum(selector);
+                return result;
+            };
+
+            AggregateQuery<T, decimal> aggQuery = new AggregateQuery<T, decimal>(this.MakeQueryPlan(this), executor);
+            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).SumAsync();
         }
 
-        public Task<decimal?> SumAsync(Expression<Func<T, decimal?>> selector)
+        public async Task<decimal> SumAsync(Expression<Func<T, decimal?>> selector)
         {
-            throw new NotImplementedException();
+            Func<IQuery<T>, bool, Task<decimal>> executor = async (query, @async) =>
+            {
+                decimal result = @async ? await query.SumAsync(selector) : query.Sum(selector);
+                return result;
+            };
+
+            AggregateQuery<T, decimal> aggQuery = new AggregateQuery<T, decimal>(this.MakeQueryPlan(this), executor);
+            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).SumAsync();
         }
 
-        public Task<double> SumAsync(Expression<Func<T, double>> selector)
+        public async Task<double> SumAsync(Expression<Func<T, double>> selector)
         {
-            throw new NotImplementedException();
+            Func<IQuery<T>, bool, Task<double>> executor = async (query, @async) =>
+            {
+                double result = @async ? await query.SumAsync(selector) : query.Sum(selector);
+                return result;
+            };
+
+            AggregateQuery<T, double> aggQuery = new AggregateQuery<T, double>(this.MakeQueryPlan(this), executor);
+            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).SumAsync();
         }
 
-        public Task<double?> SumAsync(Expression<Func<T, double?>> selector)
+        public async Task<double> SumAsync(Expression<Func<T, double?>> selector)
         {
-            throw new NotImplementedException();
+            Func<IQuery<T>, bool, Task<double>> executor = async (query, @async) =>
+            {
+                double result = @async ? await query.SumAsync(selector) : query.Sum(selector);
+                return result;
+            };
+
+            AggregateQuery<T, double> aggQuery = new AggregateQuery<T, double>(this.MakeQueryPlan(this), executor);
+            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).SumAsync();
         }
 
-        public Task<float> SumAsync(Expression<Func<T, float>> selector)
+        public async Task<float> SumAsync(Expression<Func<T, float>> selector)
         {
-            throw new NotImplementedException();
+            Func<IQuery<T>, bool, Task<float>> executor = async (query, @async) =>
+            {
+                float result = @async ? await query.SumAsync(selector) : query.Sum(selector);
+                return result;
+            };
+
+            AggregateQuery<T, float> aggQuery = new AggregateQuery<T, float>(this.MakeQueryPlan(this), executor);
+            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).SumAsync();
         }
 
-        public Task<float?> SumAsync(Expression<Func<T, float?>> selector)
+        public async Task<float> SumAsync(Expression<Func<T, float?>> selector)
         {
-            throw new NotImplementedException();
+            Func<IQuery<T>, bool, Task<float>> executor = async (query, @async) =>
+            {
+                float result = @async ? await query.SumAsync(selector) : query.Sum(selector);
+                return result;
+            };
+
+            AggregateQuery<T, float> aggQuery = new AggregateQuery<T, float>(this.MakeQueryPlan(this), executor);
+            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).SumAsync();
         }
 
         public IQuery<T> Take(int count)

@@ -345,44 +345,49 @@ namespace Chloe.Query
 
         public int Sum(Expression<Func<T, int>> selector)
         {
-            return this.ExecuteAggregateQuery<int>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, int>>))), selector);
+            return this.ExecuteSum<int>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, int>>))), selector);
         }
-        public int? Sum(Expression<Func<T, int?>> selector)
+        public int Sum(Expression<Func<T, int?>> selector)
         {
-            return this.ExecuteAggregateQuery<int?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, int?>>))), selector);
+            return this.ExecuteSum<int>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, int?>>))), selector);
         }
         public long Sum(Expression<Func<T, long>> selector)
         {
-            return this.ExecuteAggregateQuery<long>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, long>>))), selector);
+            return this.ExecuteSum<long>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, long>>))), selector);
         }
-        public long? Sum(Expression<Func<T, long?>> selector)
+        public long Sum(Expression<Func<T, long?>> selector)
         {
-            return this.ExecuteAggregateQuery<long?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, long?>>))), selector);
+            return this.ExecuteSum<long>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, long?>>))), selector);
         }
         public decimal Sum(Expression<Func<T, decimal>> selector)
         {
-            return this.ExecuteAggregateQuery<decimal>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, decimal>>))), selector);
+            return this.ExecuteSum<decimal>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, decimal>>))), selector);
         }
-        public decimal? Sum(Expression<Func<T, decimal?>> selector)
+        public decimal Sum(Expression<Func<T, decimal?>> selector)
         {
-            return this.ExecuteAggregateQuery<decimal?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, decimal?>>))), selector);
+            return this.ExecuteSum<decimal>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, decimal?>>))), selector);
         }
         public double Sum(Expression<Func<T, double>> selector)
         {
-            return this.ExecuteAggregateQuery<double>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, double>>))), selector);
+            return this.ExecuteSum<double>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, double>>))), selector);
         }
-        public double? Sum(Expression<Func<T, double?>> selector)
+        public double Sum(Expression<Func<T, double?>> selector)
         {
-            return this.ExecuteAggregateQuery<double?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, double?>>))), selector);
+            return this.ExecuteSum<double>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, double?>>))), selector);
         }
         public float Sum(Expression<Func<T, float>> selector)
         {
-            return this.ExecuteAggregateQuery<float>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, float>>))), selector);
+            return this.ExecuteSum<float>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, float>>))), selector);
         }
-        public float? Sum(Expression<Func<T, float?>> selector)
+        public float Sum(Expression<Func<T, float?>> selector)
         {
-            return this.ExecuteAggregateQuery<float?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, float?>>))), selector);
+            return this.ExecuteSum<float>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, float?>>))), selector);
         }
+        TResult ExecuteSum<TResult>(MethodInfo method, Expression argument, bool checkArgument = true) where TResult : struct
+        {
+            return this.ExecuteAggregateQuery<TResult?>(method, argument) ?? default(TResult);
+        }
+
 
         public double? Average(Expression<Func<T, int>> selector)
         {

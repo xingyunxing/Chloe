@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Chloe.Query
 {
@@ -60,43 +61,47 @@ namespace Chloe.Query
 
         public async Task<int> SumAsync(Expression<Func<T, int>> selector)
         {
-            return await this.ExecuteAggregateQueryAsync<int>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, int>>))), selector);
+            return await this.ExecuteSumAsync<int>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, int>>))), selector);
         }
-        public async Task<int?> SumAsync(Expression<Func<T, int?>> selector)
+        public async Task<int> SumAsync(Expression<Func<T, int?>> selector)
         {
-            return await this.ExecuteAggregateQueryAsync<int?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, int?>>))), selector);
+            return await this.ExecuteSumAsync<int>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, int?>>))), selector);
         }
         public async Task<long> SumAsync(Expression<Func<T, long>> selector)
         {
-            return await this.ExecuteAggregateQueryAsync<long>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, long>>))), selector);
+            return await this.ExecuteSumAsync<long>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, long>>))), selector);
         }
-        public async Task<long?> SumAsync(Expression<Func<T, long?>> selector)
+        public async Task<long> SumAsync(Expression<Func<T, long?>> selector)
         {
-            return await this.ExecuteAggregateQueryAsync<long?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, long?>>))), selector);
+            return await this.ExecuteSumAsync<long>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, long?>>))), selector);
         }
         public async Task<decimal> SumAsync(Expression<Func<T, decimal>> selector)
         {
-            return await this.ExecuteAggregateQueryAsync<decimal>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, decimal>>))), selector);
+            return await this.ExecuteSumAsync<decimal>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, decimal>>))), selector);
         }
-        public async Task<decimal?> SumAsync(Expression<Func<T, decimal?>> selector)
+        public async Task<decimal> SumAsync(Expression<Func<T, decimal?>> selector)
         {
-            return await this.ExecuteAggregateQueryAsync<decimal?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, decimal?>>))), selector);
+            return await this.ExecuteSumAsync<decimal>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, decimal?>>))), selector);
         }
         public async Task<double> SumAsync(Expression<Func<T, double>> selector)
         {
-            return await this.ExecuteAggregateQueryAsync<double>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, double>>))), selector);
+            return await this.ExecuteSumAsync<double>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, double>>))), selector);
         }
-        public async Task<double?> SumAsync(Expression<Func<T, double?>> selector)
+        public async Task<double> SumAsync(Expression<Func<T, double?>> selector)
         {
-            return await this.ExecuteAggregateQueryAsync<double?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, double?>>))), selector);
+            return await this.ExecuteSumAsync<double>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, double?>>))), selector);
         }
         public async Task<float> SumAsync(Expression<Func<T, float>> selector)
         {
-            return await this.ExecuteAggregateQueryAsync<float>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, float>>))), selector);
+            return await this.ExecuteSumAsync<float>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, float>>))), selector);
         }
-        public async Task<float?> SumAsync(Expression<Func<T, float?>> selector)
+        public async Task<float> SumAsync(Expression<Func<T, float?>> selector)
         {
-            return await this.ExecuteAggregateQueryAsync<float?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, float?>>))), selector);
+            return await this.ExecuteSumAsync<float>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, float?>>))), selector);
+        }
+        async Task<TResult> ExecuteSumAsync<TResult>(MethodInfo method, Expression argument, bool checkArgument = true) where TResult : struct
+        {
+            return await this.ExecuteAggregateQueryAsync<TResult?>(method, argument) ?? default(TResult);
         }
 
         public async Task<double?> AverageAsync(Expression<Func<T, int>> selector)

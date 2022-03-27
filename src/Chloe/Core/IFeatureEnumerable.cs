@@ -39,6 +39,15 @@ namespace Chloe
 
     static class FeatureEnumerableExtension
     {
+        public static IAsyncEnumerable<T> AsAsyncEnumerable<T>(this IFeatureEnumerable<T> source)
+        {
+            return source;
+        }
+        public static IEnumerable<T> AsEnumerable<T>(this IFeatureEnumerable<T> source)
+        {
+            return source;
+        }
+
         public static async ValueTask ForEachAsync<T>(this IFeatureEnumerable<T> source, Action<T, int> action, CancellationToken cancellationToken = default(CancellationToken))
         {
             await source.ForEachAsync(async (item, idx) =>
@@ -61,9 +70,9 @@ namespace Chloe
             }
         }
 
-        public static IFeatureEnumerable<TResult> Select<T, TResult>(this IFeatureEnumerable<T> source, Func<T, TResult> selector)
-        {
-            throw new NotImplementedException();
-        }
+        //public static IFeatureEnumerable<TResult> Select<T, TResult>(this IFeatureEnumerable<T> source, Func<T, TResult> selector)
+        //{
+        //    throw new NotImplementedException();
+        //}
     }
 }

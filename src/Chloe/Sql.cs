@@ -79,41 +79,41 @@
         {
             return p;
         }
-        public static int? Sum(int? p)
+        public static int Sum(int? p)
         {
-            return p;
+            return p ?? 0;
         }
         public static long Sum(long p)
         {
             return p;
         }
-        public static long? Sum(long? p)
+        public static long Sum(long? p)
         {
-            return p;
+            return p ?? 0;
         }
         public static decimal Sum(decimal p)
         {
             return p;
         }
-        public static decimal? Sum(decimal? p)
+        public static decimal Sum(decimal? p)
         {
-            return p;
+            return p ?? 0;
         }
         public static double Sum(double p)
         {
             return p;
         }
-        public static double? Sum(double? p)
+        public static double Sum(double? p)
         {
-            return p;
+            return p ?? 0;
         }
         public static float Sum(float p)
         {
             return p;
         }
-        public static float? Sum(float? p)
+        public static float Sum(float? p)
         {
-            return p;
+            return p ?? 0;
         }
 
         public static double? Average(int p)

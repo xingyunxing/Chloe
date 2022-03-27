@@ -5,39 +5,38 @@ using System.Threading;
 
 namespace Chloe.Sharding.Queries
 {
-    /// <summary>
-    /// 获取单个表的数据量
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    class SingleTableCountQuery<T> : FeatureEnumerable<long>
+    class SingleTableAggregateQuery<T, TResult> : FeatureEnumerable<TResult>
     {
         IShareDbContextPool _dbContextPool;
         DataQueryModel _queryModel;
+        Func<IQuery<T>, bool, Task<TResult>> _executor;
 
-        public SingleTableCountQuery(IShareDbContextPool dbContextPool, DataQueryModel queryModel)
+        public SingleTableAggregateQuery(IShareDbContextPool dbContextPool, DataQueryModel queryModel, Func<IQuery<T>, bool, Task<TResult>> executor)
         {
             this._dbContextPool = dbContextPool;
             this._queryModel = queryModel;
+            this._executor = executor;
         }
 
-        public override IFeatureEnumerator<long> GetFeatureEnumerator(CancellationToken cancellationToken = default)
+        public override IFeatureEnumerator<TResult> GetFeatureEnumerator(CancellationToken cancellationToken = default)
         {
             return new Enumerator(this, cancellationToken);
         }
 
-        class Enumerator : IFeatureEnumerator<long>
+        class Enumerator : IFeatureEnumerator<TResult>
         {
-            SingleTableCountQuery<T> _enumerable;
+            SingleTableAggregateQuery<T, TResult> _enumerable;
             CancellationToken _cancellationToken;
-            long Result = -1;
+            bool _hasCompleted;
+            TResult Result = default;
 
-            public Enumerator(SingleTableCountQuery<T> enumerable, CancellationToken cancellationToken = default)
+            public Enumerator(SingleTableAggregateQuery<T, TResult> enumerable, CancellationToken cancellationToken = default)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;
             }
 
-            public long Current => this.Result;
+            public TResult Current => this.Result;
 
             object IEnumerator.Current => this.Result;
 
@@ -63,7 +62,7 @@ namespace Chloe.Sharding.Queries
 
             async BoolResultTask MoveNext(bool @async)
             {
-                if (this.Result != -1)
+                if (this._hasCompleted)
                 {
                     this.Result = default;
                     return false;
@@ -84,8 +83,8 @@ namespace Chloe.Sharding.Queries
                     q = q.IgnoreAllFilters();
                 }
 
-                long count = @async ? await q.LongCountAsync() : q.LongCount();
-                this.Result = count;
+                this.Result = await this._enumerable._executor(q, @async);
+                this._hasCompleted = true;
 
                 return true;
             }

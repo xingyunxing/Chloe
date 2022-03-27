@@ -28,9 +28,19 @@ namespace ChloeDemo.Sharding
             await this.Test6();
             await this.Test7();
             await this.Test8();
+            await this.AnyQueryTest();
+            await this.CountQueryTest();
+            await this.SumQueryTest();
 
             Console.WriteLine("query test over...");
             Console.ReadKey();
+        }
+
+        ShardingDbContext CreateDbContext()
+        {
+            ShardingDbContext dbContext = new ShardingDbContext(new ShardingOptions() { MaxConnectionsPerDataSource = 12 });
+
+            return dbContext;
         }
 
         async Task Test1()
@@ -38,7 +48,7 @@ namespace ChloeDemo.Sharding
             /*
              * 根据分片字段升序
              */
-            ShardingDbContext dbContext = new ShardingDbContext();
+            ShardingDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
             q = q.OrderBy(a => a.CreateTime);
 
@@ -82,7 +92,7 @@ namespace ChloeDemo.Sharding
             /*
              * 根据分片字段降序
              */
-            ShardingDbContext dbContext = new ShardingDbContext();
+            ShardingDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
             q = q.OrderByDesc(a => a.CreateTime);
 
@@ -125,7 +135,7 @@ namespace ChloeDemo.Sharding
             /*
              * 根据分片字段降序，单库内跨表
              */
-            ShardingDbContext dbContext = new ShardingDbContext();
+            ShardingDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             DateTime dt = new DateTime(2019, 12, 2);
@@ -154,7 +164,7 @@ namespace ChloeDemo.Sharding
              * 根据分片字段排序，并跨库测试
              */
 
-            ShardingDbContext dbContext = new ShardingDbContext();
+            ShardingDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             DateTime dt = new DateTime(2018, 12, 31);
@@ -186,7 +196,7 @@ namespace ChloeDemo.Sharding
             PagingResult<Order> result;
             List<Order> dataList;
 
-            ShardingDbContext dbContext = new ShardingDbContext();
+            ShardingDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             q = q.OrderBy(a => a.Amount).ThenBy(a => a.Id);
@@ -231,7 +241,7 @@ namespace ChloeDemo.Sharding
              * 根据主键查询
              */
 
-            ShardingDbContext dbContext = new ShardingDbContext(new ShardingOptions() { MaxConnectionsPerDataSource = 6 });
+            ShardingDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             string id = "2019-12-01 10:00";
@@ -261,7 +271,7 @@ namespace ChloeDemo.Sharding
              * 根据非分片字段路由
              */
 
-            ShardingDbContext dbContext = new ShardingDbContext();
+            ShardingDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             //根据 CreateYear 查询
@@ -289,7 +299,7 @@ namespace ChloeDemo.Sharding
 
             List<Order> orders = new List<Order>();
 
-            ShardingDbContext dbContext = new ShardingDbContext();
+            ShardingDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             List<int> createDates = new List<int>() { 20180101, 20190201 };
@@ -306,6 +316,60 @@ namespace ChloeDemo.Sharding
 
             orders = await q.Where(a => a.CreateDate.Equals(20180101)).ToListAsync();
             Debug.Assert(orders.Count == 2);
+
+            Helpers.PrintSplitLine();
+        }
+
+        async Task AnyQueryTest()
+        {
+            List<Order> orders = new List<Order>();
+
+            ShardingDbContext dbContext = this.CreateDbContext();
+            var q = dbContext.Query<Order>();
+
+            bool hasData = false;
+
+            hasData = await q.Where(a => a.CreateDate == 20180101).AnyAsync();
+
+            Debug.Assert(hasData == true);
+
+            hasData = await q.Where(a => a.UserId == "chloe").AnyAsync();
+
+            Debug.Assert(hasData == true);
+
+            hasData = await q.Where(a => a.UserId == "none").AnyAsync();
+
+            Debug.Assert(hasData == false);
+
+            Helpers.PrintSplitLine();
+        }
+        async Task CountQueryTest()
+        {
+            ShardingDbContext dbContext = this.CreateDbContext();
+            var q = dbContext.Query<Order>();
+
+            long count = await q.LongCountAsync();
+
+            Debug.Assert(count == 1460);
+
+            Helpers.PrintSplitLine();
+        }
+        async Task SumQueryTest()
+        {
+            ShardingDbContext dbContext = this.CreateDbContext();
+            var q = dbContext.Query<Order>();
+
+            decimal sum = 0;
+
+            sum = await q.SumAsync(a => a.Amount);
+
+            int count = await q.CountAsync();
+
+            //每天有 2 条数据，一条 Amount=10，一条 Amount=20
+            int s = (count / 2) * (10 + 20);
+
+            Debug.Assert(sum == s);
+
 
             Helpers.PrintSplitLine();
         }

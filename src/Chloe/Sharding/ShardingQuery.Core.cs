@@ -49,10 +49,10 @@ namespace Chloe.Sharding
         }
         async Task<PagingExecuteResult<T>> ExecutePaging(ShardingQueryPlan queryPlan)
         {
-            CountQuery<T> countQuery = new CountQuery<T>(queryPlan);
+            AggregateQuery<T, long> countQuery = this.GetCountQuery(queryPlan);
 
-            List<CountQueryResult> routeTableCounts = await countQuery.ToListAsync();
-            long totals = routeTableCounts.Select(a => a.Count).Sum();
+            List<QueryResult<long>> routeTableCounts = await countQuery.ToListAsync();
+            long totals = routeTableCounts.Select(a => a.Result).Sum();
 
             if (queryPlan.IsOrderedTables)
             {
@@ -65,13 +65,21 @@ namespace Chloe.Sharding
         }
         async Task<long> QueryCount()
         {
-            ShardingQueryPlan queryPlan = this.MakeQueryPlan(this);
-            CountQuery<T> countQuery = new CountQuery<T>(queryPlan);
-
-            List<CountQueryResult> counts = await countQuery.ToListAsync();
-            long totals = counts.Select(a => a.Count).Sum();
-            return totals;
+            AggregateQuery<T, long> countQuery = this.GetCountQuery();
+            return await countQuery.AsAsyncEnumerable().Select(a => a.Result).SumAsync();
         }
+        AggregateQuery<T, long> GetCountQuery(ShardingQueryPlan queryPlan = null)
+        {
+            Func<IQuery<T>, bool, Task<long>> executor = async (query, @async) =>
+            {
+                long result = @async ? await query.LongCountAsync() : query.LongCount();
+                return result;
+            };
+
+            AggregateQuery<T, long> aggQuery = new AggregateQuery<T, long>(queryPlan ?? this.MakeQueryPlan(this), executor);
+            return aggQuery;
+        }
+
         async Task<bool> QueryAny()
         {
             ShardingQueryPlan queryPlan = this.MakeQueryPlan(this);
@@ -81,6 +89,7 @@ namespace Chloe.Sharding
             bool hasData = results.Any(a => a.Result == true);
             return hasData;
         }
+
 
         ShardingQueryPlan MakeQueryPlan(ShardingQuery<T> query)
         {

@@ -144,6 +144,11 @@ namespace System.Collections.Generic
             }
         }
 
+        public static IAsyncEnumerable<TResult> Select<T, TResult>(this IAsyncEnumerable<T> source, Func<T, TResult> selector)
+        {
+            return new SelectEnumerable<T, TResult>(source, selector);
+        }
+
         public static IAsyncEnumerable<T> Skip<T>(this IAsyncEnumerable<T> source, int count)
         {
             return new SkipEnumerable<T>(source, count);
@@ -153,6 +158,94 @@ namespace System.Collections.Generic
             return new TakeEnumerable<T>(source, count);
         }
 
+        public static async Task<int> SumAsync(this IAsyncEnumerable<int> source, CancellationToken cancellationToken = default)
+        {
+            var list = await source.ToListAsync(cancellationToken);
+            return list.Sum();
+        }
+        public static async Task<long> SumAsync(this IAsyncEnumerable<long> source, CancellationToken cancellationToken = default)
+        {
+            var list = await source.ToListAsync(cancellationToken);
+            return list.Sum();
+        }
+        public static async Task<decimal> SumAsync(this IAsyncEnumerable<decimal> source, CancellationToken cancellationToken = default)
+        {
+            var list = await source.ToListAsync(cancellationToken);
+            return list.Sum();
+        }
+        public static async Task<double> SumAsync(this IAsyncEnumerable<double> source, CancellationToken cancellationToken = default)
+        {
+            var list = await source.ToListAsync(cancellationToken);
+            return list.Sum();
+        }
+        public static async Task<float> SumAsync(this IAsyncEnumerable<float> source, CancellationToken cancellationToken = default)
+        {
+            var list = await source.ToListAsync(cancellationToken);
+            return list.Sum();
+        }
+
+        public class SelectEnumerable<T, TResult> : IAsyncEnumerable<TResult>
+        {
+            IAsyncEnumerable<T> _source;
+            Func<T, TResult> _selector;
+
+            public SelectEnumerable(IAsyncEnumerable<T> source, Func<T, TResult> selector)
+            {
+                this._source = source;
+                this._selector = selector;
+            }
+
+            public IAsyncEnumerator<TResult> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+            {
+                return new Enumerator(this, cancellationToken);
+            }
+
+            class Enumerator : IAsyncEnumerator<TResult>
+            {
+                SelectEnumerable<T, TResult> _enumerable;
+                CancellationToken _cancellationToken;
+
+                IAsyncEnumerator<T> _enumerator;
+
+                TResult _current;
+
+                public Enumerator(SelectEnumerable<T, TResult> enumerable, CancellationToken cancellationToken)
+                {
+                    this._enumerable = enumerable;
+                    this._cancellationToken = cancellationToken;
+                }
+
+                public TResult Current => this._current;
+
+                public async Task<bool> MoveNextAsync()
+                {
+                    if (this._enumerator == null)
+                    {
+                        this._enumerator = this._enumerable._source.GetAsyncEnumerator(this._cancellationToken);
+                    }
+
+                    bool hasNext = await this._enumerator.MoveNextAsync();
+                    if (hasNext)
+                    {
+                        this._current = this._enumerable._selector(this._enumerator.Current);
+                    }
+                    else
+                    {
+                        this._current = default;
+                    }
+
+                    return hasNext;
+                }
+
+                public async Task DisposeAsync()
+                {
+                    if (this._enumerator != null)
+                    {
+                        await this._enumerator.DisposeAsync();
+                    }
+                }
+            }
+        }
         public class SkipEnumerable<T> : IAsyncEnumerable<T>
         {
             IAsyncEnumerable<T> _source;

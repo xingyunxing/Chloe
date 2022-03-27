@@ -1,5 +1,4 @@
-﻿using Chloe.Descriptors;
-using System.Threading;
+﻿using System.Threading;
 
 namespace Chloe.Sharding.Queries
 {

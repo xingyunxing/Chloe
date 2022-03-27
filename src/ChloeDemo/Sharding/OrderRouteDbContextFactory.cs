@@ -17,7 +17,7 @@ namespace ChloeDemo.Sharding
 
         public IDbContext CreateDbContext()
         {
-            string connString = $"Server=localhost;Port=3306;Database=order{this._year};Uid=root;Password=sasa;Charset=utf8; Pooling=True; Max Pool Size=200;Allow User Variables=True;SslMode=none;";
+            string connString = $"Server=localhost;Port=3306;Database=order{this._year};Uid=root;Password=sasa;Charset=utf8; Pooling=True; Max Pool Size=200;Allow User Variables=True;SslMode=none;allowPublicKeyRetrieval=true";
 
             MySqlContext dbContext = new MySqlContext(new MySqlConnectionFactory(connString));
             return dbContext;
