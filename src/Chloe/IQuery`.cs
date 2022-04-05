@@ -84,35 +84,35 @@ namespace Chloe
         Task<TResult> MinAsync<TResult>(Expression<Func<T, TResult>> selector);
 
 
-        int Sum(Expression<Func<T, int>> selector);
-        Task<int> SumAsync(Expression<Func<T, int>> selector);
+        int? Sum(Expression<Func<T, int>> selector);
+        Task<int?> SumAsync(Expression<Func<T, int>> selector);
 
-        int Sum(Expression<Func<T, int?>> selector);
-        Task<int> SumAsync(Expression<Func<T, int?>> selector);
+        int? Sum(Expression<Func<T, int?>> selector);
+        Task<int?> SumAsync(Expression<Func<T, int?>> selector);
 
-        long Sum(Expression<Func<T, long>> selector);
-        Task<long> SumAsync(Expression<Func<T, long>> selector);
+        long? Sum(Expression<Func<T, long>> selector);
+        Task<long?> SumAsync(Expression<Func<T, long>> selector);
 
-        long Sum(Expression<Func<T, long?>> selector);
-        Task<long> SumAsync(Expression<Func<T, long?>> selector);
+        long? Sum(Expression<Func<T, long?>> selector);
+        Task<long?> SumAsync(Expression<Func<T, long?>> selector);
 
-        decimal Sum(Expression<Func<T, decimal>> selector);
-        Task<decimal> SumAsync(Expression<Func<T, decimal>> selector);
+        decimal? Sum(Expression<Func<T, decimal>> selector);
+        Task<decimal?> SumAsync(Expression<Func<T, decimal>> selector);
 
-        decimal Sum(Expression<Func<T, decimal?>> selector);
-        Task<decimal> SumAsync(Expression<Func<T, decimal?>> selector);
+        decimal? Sum(Expression<Func<T, decimal?>> selector);
+        Task<decimal?> SumAsync(Expression<Func<T, decimal?>> selector);
 
-        double Sum(Expression<Func<T, double>> selector);
-        Task<double> SumAsync(Expression<Func<T, double>> selector);
+        double? Sum(Expression<Func<T, double>> selector);
+        Task<double?> SumAsync(Expression<Func<T, double>> selector);
 
-        double Sum(Expression<Func<T, double?>> selector);
-        Task<double> SumAsync(Expression<Func<T, double?>> selector);
+        double? Sum(Expression<Func<T, double?>> selector);
+        Task<double?> SumAsync(Expression<Func<T, double?>> selector);
 
-        float Sum(Expression<Func<T, float>> selector);
-        Task<float> SumAsync(Expression<Func<T, float>> selector);
+        float? Sum(Expression<Func<T, float>> selector);
+        Task<float?> SumAsync(Expression<Func<T, float>> selector);
 
-        float Sum(Expression<Func<T, float?>> selector);
-        Task<float> SumAsync(Expression<Func<T, float?>> selector);
+        float? Sum(Expression<Func<T, float?>> selector);
+        Task<float?> SumAsync(Expression<Func<T, float?>> selector);
 
 
         double? Average(Expression<Func<T, int>> selector);
