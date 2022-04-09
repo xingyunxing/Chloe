@@ -160,57 +160,132 @@ namespace System.Collections.Generic
 
         public static async Task<int> SumAsync(this IAsyncEnumerable<int> source, CancellationToken cancellationToken = default)
         {
-            var list = await source.ToListAsync(cancellationToken);
-            return list.Sum();
+            int sum = 0;
+
+            await source.ForEach(a =>
+            {
+                sum = sum + a;
+            }, cancellationToken);
+
+            return sum;
         }
         public static async Task<int?> SumAsync(this IAsyncEnumerable<int?> source, CancellationToken cancellationToken = default)
         {
-            var list = await source.ToListAsync(cancellationToken);
-            return list.Sum();
+            int sum = 0;
+
+            await source.ForEach(a =>
+            {
+                if (a == null)
+                    return;
+
+                sum = sum + a.Value;
+            }, cancellationToken);
+
+            return sum;
         }
 
         public static async Task<long> SumAsync(this IAsyncEnumerable<long> source, CancellationToken cancellationToken = default)
         {
-            var list = await source.ToListAsync(cancellationToken);
-            return list.Sum();
+            long sum = 0;
+
+            await source.ForEach(a =>
+            {
+                sum = sum + a;
+            }, cancellationToken);
+
+            return sum;
         }
         public static async Task<long?> SumAsync(this IAsyncEnumerable<long?> source, CancellationToken cancellationToken = default)
         {
-            var list = await source.ToListAsync(cancellationToken);
-            return list.Sum();
+            long sum = 0;
+
+            await source.ForEach(a =>
+            {
+                if (a == null)
+                    return;
+
+                sum = sum + a.Value;
+            }, cancellationToken);
+
+            return sum;
         }
 
         public static async Task<decimal> SumAsync(this IAsyncEnumerable<decimal> source, CancellationToken cancellationToken = default)
         {
-            var list = await source.ToListAsync(cancellationToken);
-            return list.Sum();
+            decimal sum = 0;
+
+            await source.ForEach(a =>
+            {
+                sum = sum + a;
+            }, cancellationToken);
+
+            return sum;
         }
         public static async Task<decimal?> SumAsync(this IAsyncEnumerable<decimal?> source, CancellationToken cancellationToken = default)
         {
-            var list = await source.ToListAsync(cancellationToken);
-            return list.Sum();
+            decimal sum = 0;
+
+            await source.ForEach(a =>
+            {
+                if (a == null)
+                    return;
+
+                sum = sum + a.Value;
+            }, cancellationToken);
+
+            return sum;
         }
 
         public static async Task<double> SumAsync(this IAsyncEnumerable<double> source, CancellationToken cancellationToken = default)
         {
-            var list = await source.ToListAsync(cancellationToken);
-            return list.Sum();
+            double sum = 0;
+
+            await source.ForEach(a =>
+            {
+                sum = sum + a;
+            }, cancellationToken);
+
+            return sum;
         }
         public static async Task<double?> SumAsync(this IAsyncEnumerable<double?> source, CancellationToken cancellationToken = default)
         {
-            var list = await source.ToListAsync(cancellationToken);
-            return list.Sum();
+            double sum = 0;
+
+            await source.ForEach(a =>
+            {
+                if (a == null)
+                    return;
+
+                sum = sum + a.Value;
+            }, cancellationToken);
+
+            return sum;
         }
 
         public static async Task<float> SumAsync(this IAsyncEnumerable<float> source, CancellationToken cancellationToken = default)
         {
-            var list = await source.ToListAsync(cancellationToken);
-            return list.Sum();
+            float sum = 0;
+
+            await source.ForEach(a =>
+            {
+                sum = sum + a;
+            }, cancellationToken);
+
+            return sum;
         }
         public static async Task<float?> SumAsync(this IAsyncEnumerable<float?> source, CancellationToken cancellationToken = default)
         {
-            var list = await source.ToListAsync(cancellationToken);
-            return list.Sum();
+            float sum = 0;
+
+            await source.ForEach(a =>
+            {
+                if (a == null)
+                    return;
+
+                sum = sum + a.Value;
+            }, cancellationToken);
+
+            return sum;
         }
 
         public class SelectEnumerable<T, TResult> : IAsyncEnumerable<TResult>
