@@ -262,6 +262,8 @@ namespace Chloe
 
     class NullFeatureEnumerator<T> : IFeatureEnumerator<T>
     {
+        public static readonly NullFeatureEnumerator<T> Instance = new NullFeatureEnumerator<T>();
+
         public NullFeatureEnumerator()
         {
         }
@@ -288,6 +290,51 @@ namespace Chloe
         public async BoolResultTask MoveNextAsync()
         {
             return false;
+        }
+
+        public void Reset()
+        {
+
+        }
+    }
+    class ScalarFeatureEnumerator<T> : IFeatureEnumerator<T>
+    {
+        T _result;
+        bool _hasRead;
+
+        public ScalarFeatureEnumerator(T result)
+        {
+            this._result = result;
+        }
+
+        public T Current => this._result;
+
+        object IEnumerator.Current => this.Current;
+
+        public void Dispose()
+        {
+
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+
+        }
+
+        public bool MoveNext()
+        {
+            if (this._hasRead)
+            {
+                return false;
+            }
+
+            this._hasRead = true;
+            return true;
+        }
+
+        public async BoolResultTask MoveNextAsync()
+        {
+            return this.MoveNext();
         }
 
         public void Reset()
@@ -365,6 +412,9 @@ namespace Chloe
     {
         public static T GetCurrent<T>(this IFeatureEnumerator<T> enumerator)
         {
+            if (enumerator == null)
+                return default;
+
             return (enumerator as IEnumerator<T>).Current;
         }
 

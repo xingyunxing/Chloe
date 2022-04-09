@@ -4,6 +4,6 @@
     {
         public DataQueryModel QueryModel { get; set; }
 
-        public SingleTableDataQuery<T> Query { get; set; }
+        public SingleTableEntityQuery<T> Query { get; set; }
     }
 }

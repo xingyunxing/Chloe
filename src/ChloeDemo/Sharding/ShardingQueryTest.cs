@@ -359,7 +359,7 @@ namespace ChloeDemo.Sharding
             ShardingDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
-            decimal sum = 0;
+            decimal? sum = 0;
 
             sum = await q.SumAsync(a => a.Amount);
 

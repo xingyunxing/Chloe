@@ -88,7 +88,7 @@ namespace Chloe.Sharding.Queries
 
                     foreach (var dataQueryPlan in group)
                     {
-                        SingleTableDataQuery<T> query = new SingleTableDataQuery<T>(queryContext, dbContextPool, dataQueryPlan.QueryModel, lazyQuery);
+                        SingleTableEntityQuery<T> query = new SingleTableEntityQuery<T>(queryContext, dbContextPool, dataQueryPlan.QueryModel, lazyQuery);
                         dataQueryPlan.Query = query;
                     }
                 }

@@ -1,7 +1,4 @@
-﻿using Chloe.Threading.Tasks;
-using System.Collections;
-using System.Linq.Expressions;
-using System.Threading;
+﻿using System.Threading;
 
 namespace Chloe.Sharding.Queries
 {
@@ -27,78 +24,31 @@ namespace Chloe.Sharding.Queries
             return new Enumerator(this, cancellationToken);
         }
 
-        class Enumerator : IFeatureEnumerator<bool>
+        class Enumerator : TableQueryEnumerator<T, bool>
         {
             SingleTableAnyQuery<T> _enumerable;
-            CancellationToken _cancellationToken;
-            bool? Result = null;
 
-            public Enumerator(SingleTableAnyQuery<T> enumerable, CancellationToken cancellationToken = default)
+            public Enumerator(SingleTableAnyQuery<T> enumerable, CancellationToken cancellationToken = default) : base(enumerable._dbContextPool, enumerable._queryModel, cancellationToken)
             {
                 this._enumerable = enumerable;
-                this._cancellationToken = cancellationToken;
             }
 
-            public bool Current => this.Result.Value;
-
-            object IEnumerator.Current => this.Result;
-
-            public void Dispose()
+            protected override async Task<(IFeatureEnumerable<bool> Query, bool IsLazyQuery)> CreateQuery(IQuery<T> query, bool async)
             {
+                var queryContext = this._enumerable._queryContext;
 
-            }
-
-            public ValueTask DisposeAsync()
-            {
-                return default;
-            }
-
-            public bool MoveNext()
-            {
-                return this.MoveNext(false).GetResult();
-            }
-
-            public BoolResultTask MoveNextAsync()
-            {
-                return this.MoveNext(true);
-            }
-
-            async Task<bool> Query(IDbContext dbContext, bool @async)
-            {
-                var q = dbContext.Query<T>(this._enumerable._queryModel.Table.Name);
-
-                foreach (var condition in this._enumerable._queryModel.Conditions)
+                bool canceled = queryContext.BeforeExecuteCommand();
+                if (canceled)
                 {
-                    q = q.Where((Expression<Func<T, bool>>)condition);
+                    return (NullFeatureEnumerable<bool>.Instance, false);
                 }
 
-                if (this._enumerable._queryModel.IgnoreAllFilters)
-                {
-                    q = q.IgnoreAllFilters();
-                }
+                bool hasData = @async ? await query.AnyAsync() : query.Any();
 
-                bool hasData = @async ? await q.AnyAsync() : q.Any();
-                return hasData;
-            }
+                queryContext.AfterExecuteCommand(hasData);
 
-            async BoolResultTask MoveNext(bool @async)
-            {
-                if (this.Result != null)
-                {
-                    this.Result = default;
-                    return false;
-                }
-
-                var hasData = await ShardingHelpers.ExecuteQuery<bool>(this.Query, this._enumerable._queryContext, this._enumerable._dbContextPool, @async);
-
-                this.Result = hasData;
-
-                return true;
-            }
-
-            public void Reset()
-            {
-                throw new NotImplementedException();
+                var featureEnumerable = new ScalarFeatureEnumerable<bool>(hasData);
+                return (featureEnumerable, false);
             }
         }
     }

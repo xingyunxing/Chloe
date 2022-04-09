@@ -194,36 +194,32 @@ namespace Chloe.Sharding
             return dataQueryModel;
         }
 
-        /// <summary>
-        /// 此方法可能返回 default
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="executor"></param>
-        /// <param name="queryContext"></param>
-        /// <param name="dbContextPool"></param>
-        /// <param name="async"></param>
-        /// <returns></returns>
-        public static async Task<T> ExecuteQuery<T>(Func<IDbContext, bool, Task<T>> executor, IParallelQueryContext queryContext, IShareDbContextPool dbContextPool, bool @async)
+        public static IQuery<T> MakeQueryWithoutSkipAndTake<T>(IDbContext dbContext, DataQueryModel queryModel)
         {
-            IPoolItem<IDbContext> poolItem = await dbContextPool.GetOne(@async);
+            var q = dbContext.Query<T>(queryModel.Table.Name);
 
-            try
+            foreach (var condition in queryModel.Conditions)
             {
-                bool canceled = queryContext.BeforeExecuteCommand();
-                if (canceled)
-                {
-                    poolItem.Dispose();
-                    return default;
-                }
+                q = q.Where((Expression<Func<T, bool>>)condition);
+            }
 
-                var data = await executor(poolItem.Resource, @async);
-                queryContext.AfterExecuteCommand(data);
-                return data;
-            }
-            finally
+            if (queryModel.IgnoreAllFilters)
             {
-                poolItem.Dispose();
+                q = q.IgnoreAllFilters();
             }
+
+            IOrderedQuery<T> orderedQuery = null;
+            foreach (var ordering in queryModel.Orderings)
+            {
+                if (orderedQuery == null)
+                    orderedQuery = q.InnerOrderBy(ordering);
+                else
+                    orderedQuery = orderedQuery.InnerThenBy(ordering);
+
+                q = orderedQuery;
+            }
+
+            return q;
         }
 
         static List<List<object>> Slice(List<object> list, int batchSize)

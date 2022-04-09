@@ -37,6 +37,70 @@ namespace Chloe
         }
     }
 
+    class FeatureEnumerableAdapter<T> : FeatureEnumerable<T>
+    {
+        object _enumerable;
+
+        public FeatureEnumerableAdapter(object enumerable)
+        {
+            if (!(enumerable is IAsyncEnumerable<T>) && !(enumerable is IEnumerable<T>))
+            {
+                throw new ArgumentException();
+            }
+
+            this._enumerable = enumerable;
+        }
+
+        public override IFeatureEnumerator<T> GetFeatureEnumerator(CancellationToken cancellationToken = default)
+        {
+            if (this._enumerable is IFeatureEnumerable<T> featureEnumerable)
+            {
+                return featureEnumerable.GetFeatureEnumerator(cancellationToken);
+            }
+
+            if (this._enumerable is IAsyncEnumerable<T> asyncEnumerable)
+            {
+                return new FeatureEnumeratorAdapter<T>(asyncEnumerable.GetAsyncEnumerator(cancellationToken));
+            }
+
+            if (this._enumerable is IEnumerable<T> enumerable)
+            {
+                return new FeatureEnumeratorAdapter<T>(enumerable.GetEnumerator());
+            }
+
+            throw new NotImplementedException();
+        }
+    }
+
+    class NullFeatureEnumerable<T> : FeatureEnumerable<T>
+    {
+        public static readonly NullFeatureEnumerable<T> Instance = new NullFeatureEnumerable<T>();
+
+        public NullFeatureEnumerable()
+        {
+
+        }
+
+        public override IFeatureEnumerator<T> GetFeatureEnumerator(CancellationToken cancellationToken = default)
+        {
+            return NullFeatureEnumerator<T>.Instance;
+        }
+    }
+    class ScalarFeatureEnumerable<T> : FeatureEnumerable<T>
+    {
+        T _result;
+
+        public ScalarFeatureEnumerable(T result)
+        {
+            this._result = result;
+        }
+
+        public override IFeatureEnumerator<T> GetFeatureEnumerator(CancellationToken cancellationToken = default)
+        {
+            return new ScalarFeatureEnumerator<T>(this._result);
+        }
+    }
+
     static class FeatureEnumerableExtension
     {
         public static IAsyncEnumerable<T> AsAsyncEnumerable<T>(this IFeatureEnumerable<T> source)

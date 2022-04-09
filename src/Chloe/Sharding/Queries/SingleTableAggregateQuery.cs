@@ -1,7 +1,4 @@
-﻿using Chloe.Threading.Tasks;
-using System.Collections;
-using System.Linq.Expressions;
-using System.Threading;
+﻿using System.Threading;
 
 namespace Chloe.Sharding.Queries
 {
@@ -23,75 +20,22 @@ namespace Chloe.Sharding.Queries
             return new Enumerator(this, cancellationToken);
         }
 
-        class Enumerator : IFeatureEnumerator<TResult>
+        class Enumerator : TableQueryEnumerator<T, TResult>
         {
             SingleTableAggregateQuery<T, TResult> _enumerable;
-            CancellationToken _cancellationToken;
-            bool _hasCompleted;
-            TResult Result = default;
 
-            public Enumerator(SingleTableAggregateQuery<T, TResult> enumerable, CancellationToken cancellationToken = default)
+            public Enumerator(SingleTableAggregateQuery<T, TResult> enumerable, CancellationToken cancellationToken = default) : base(enumerable._dbContextPool, enumerable._queryModel, cancellationToken)
             {
                 this._enumerable = enumerable;
-                this._cancellationToken = cancellationToken;
             }
 
-            public TResult Current => this.Result;
-
-            object IEnumerator.Current => this.Result;
-
-            public void Dispose()
+            protected override async Task<(IFeatureEnumerable<TResult> Query, bool IsLazyQuery)> CreateQuery(IQuery<T> query, bool async)
             {
+                var result = await this._enumerable._executor(query, @async);
 
-            }
+                var featureEnumerable = new ScalarFeatureEnumerable<TResult>(result);
 
-            public ValueTask DisposeAsync()
-            {
-                return default;
-            }
-
-            public bool MoveNext()
-            {
-                return this.MoveNext(false).GetResult();
-            }
-
-            public BoolResultTask MoveNextAsync()
-            {
-                return this.MoveNext(true);
-            }
-
-            async BoolResultTask MoveNext(bool @async)
-            {
-                if (this._hasCompleted)
-                {
-                    this.Result = default;
-                    return false;
-                }
-
-                using var poolResource = await this._enumerable._dbContextPool.GetOne(@async);
-
-                var dbContext = poolResource.Resource;
-                var q = dbContext.Query<T>(this._enumerable._queryModel.Table.Name);
-
-                foreach (var condition in this._enumerable._queryModel.Conditions)
-                {
-                    q = q.Where((Expression<Func<T, bool>>)condition);
-                }
-
-                if (this._enumerable._queryModel.IgnoreAllFilters)
-                {
-                    q = q.IgnoreAllFilters();
-                }
-
-                this.Result = await this._enumerable._executor(q, @async);
-                this._hasCompleted = true;
-
-                return true;
-            }
-
-            public void Reset()
-            {
-                throw new NotImplementedException();
+                return (featureEnumerable, false);
             }
         }
     }
