@@ -60,7 +60,7 @@ namespace Chloe.Sharding
             {
                 await this.InitEnumerator(@async);
             }
-            Type t = typeof(TResult);
+
             return await this._enumerator.MoveNext(@async);
         }
 
