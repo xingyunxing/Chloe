@@ -182,9 +182,21 @@ namespace Chloe.SqlServer.Odbc
         {
             generator.SqlBuilder.Append("COUNT(1)");
         }
+        public static void Aggregate_Count(SqlGeneratorBase generator, DbExpression arg)
+        {
+            generator.SqlBuilder.Append("COUNT(");
+            arg.Accept(generator);
+            generator.SqlBuilder.Append(")");
+        }
         public static void Aggregate_LongCount(SqlGeneratorBase generator)
         {
             generator.SqlBuilder.Append("COUNT_BIG(1)");
+        }
+        public static void Aggregate_LongCount(SqlGeneratorBase generator, DbExpression arg)
+        {
+            generator.SqlBuilder.Append("COUNT_BIG(");
+            arg.Accept(generator);
+            generator.SqlBuilder.Append(")");
         }
         public static void Aggregate_Max(SqlGeneratorBase generator, DbExpression exp, Type retType)
         {

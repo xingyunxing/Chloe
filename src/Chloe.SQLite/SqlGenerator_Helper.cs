@@ -200,9 +200,19 @@ namespace Chloe.SQLite
         {
             generator.SqlBuilder.Append("COUNT(1)");
         }
+        public static void Aggregate_Count(SqlGeneratorBase generator, DbExpression arg)
+        {
+            generator.SqlBuilder.Append("COUNT(");
+            arg.Accept(generator);
+            generator.SqlBuilder.Append(")");
+        }
         public static void Aggregate_LongCount(SqlGeneratorBase generator)
         {
-            generator.SqlBuilder.Append("COUNT(1)");
+            Aggregate_Count(generator);
+        }
+        public static void Aggregate_LongCount(SqlGeneratorBase generator, DbExpression arg)
+        {
+            Aggregate_Count(generator, arg);
         }
         public static void Aggregate_Max(SqlGeneratorBase generator, DbExpression exp, Type retType)
         {

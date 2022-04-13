@@ -47,11 +47,20 @@
 
         public static int Count()
         {
-            return 0;
+            return default;
         }
         public static long LongCount()
         {
-            return 0;
+            return default;
+        }
+
+        public static int? Count<TField>(TField field)
+        {
+            return default;
+        }
+        public static long? LongCount<TField>(TField field)
+        {
+            return default;
         }
 
         /// <summary>

@@ -14,6 +14,13 @@ namespace Chloe.PostgreSQL.MethodHandlers
         }
         public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
+            //Sql.Count<TField>(TField field)
+            if (exp.Arguments.Count == 1)
+            {
+                SqlGenerator.Aggregate_Count(generator, exp.Arguments[0]);
+                return;
+            }
+
             SqlGenerator.Aggregate_Count(generator);
         }
     }

@@ -14,6 +14,13 @@ namespace Chloe.SQLite.MethodHandlers
         }
         public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
+            //Sql.LongCount<TField>(TField field)
+            if (exp.Arguments.Count == 1)
+            {
+                SqlGenerator.Aggregate_LongCount(generator, exp.Arguments[0]);
+                return;
+            }
+
             SqlGenerator.Aggregate_LongCount(generator);
         }
     }
