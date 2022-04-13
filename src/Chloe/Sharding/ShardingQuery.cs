@@ -61,102 +61,172 @@ namespace Chloe.Sharding
 
         public double? Average(Expression<Func<T, int>> selector)
         {
-            throw new NotImplementedException();
+            return this.AverageAsync(selector).GetResult();
         }
 
         public double? Average(Expression<Func<T, int?>> selector)
         {
-            throw new NotImplementedException();
+            return this.AverageAsync(selector).GetResult();
         }
 
         public double? Average(Expression<Func<T, long>> selector)
         {
-            throw new NotImplementedException();
+            return this.AverageAsync(selector).GetResult();
         }
 
         public double? Average(Expression<Func<T, long?>> selector)
         {
-            throw new NotImplementedException();
+            return this.AverageAsync(selector).GetResult();
         }
 
         public decimal? Average(Expression<Func<T, decimal>> selector)
         {
-            throw new NotImplementedException();
+            return this.AverageAsync(selector).GetResult();
         }
 
         public decimal? Average(Expression<Func<T, decimal?>> selector)
         {
-            throw new NotImplementedException();
+            return this.AverageAsync(selector).GetResult();
         }
 
         public double? Average(Expression<Func<T, double>> selector)
         {
-            throw new NotImplementedException();
+            return this.AverageAsync(selector).GetResult();
         }
 
         public double? Average(Expression<Func<T, double?>> selector)
         {
-            throw new NotImplementedException();
+            return this.AverageAsync(selector).GetResult();
         }
 
         public float? Average(Expression<Func<T, float>> selector)
         {
-            throw new NotImplementedException();
+            return this.AverageAsync(selector).GetResult();
         }
 
         public float? Average(Expression<Func<T, float?>> selector)
         {
-            throw new NotImplementedException();
+            return this.AverageAsync(selector).GetResult();
         }
 
-        public Task<double?> AverageAsync(Expression<Func<T, int>> selector)
+        public async Task<double?> AverageAsync(Expression<Func<T, int>> selector)
         {
-            throw new NotImplementedException();
+            Func<IQuery<T>, bool, Task<double?>> executor = async (query, @async) =>
+            {
+                double? result = @async ? await query.AverageAsync(selector) : query.Average(selector);
+                return result;
+            };
+
+            AggregateQuery<T, double?> aggQuery = new AggregateQuery<T, double?>(this.MakeQueryPlan(this), executor);
+            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).AverageAsync();
         }
 
-        public Task<double?> AverageAsync(Expression<Func<T, int?>> selector)
+        public async Task<double?> AverageAsync(Expression<Func<T, int?>> selector)
         {
-            throw new NotImplementedException();
+            Func<IQuery<T>, bool, Task<double?>> executor = async (query, @async) =>
+            {
+                double? result = @async ? await query.AverageAsync(selector) : query.Average(selector);
+                return result;
+            };
+
+            AggregateQuery<T, double?> aggQuery = new AggregateQuery<T, double?>(this.MakeQueryPlan(this), executor);
+            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).AverageAsync();
         }
 
-        public Task<double?> AverageAsync(Expression<Func<T, long>> selector)
+        public async Task<double?> AverageAsync(Expression<Func<T, long>> selector)
         {
-            throw new NotImplementedException();
+            Func<IQuery<T>, bool, Task<double?>> executor = async (query, @async) =>
+            {
+                double? result = @async ? await query.AverageAsync(selector) : query.Average(selector);
+                return result;
+            };
+
+            AggregateQuery<T, double?> aggQuery = new AggregateQuery<T, double?>(this.MakeQueryPlan(this), executor);
+            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).AverageAsync();
         }
 
-        public Task<double?> AverageAsync(Expression<Func<T, long?>> selector)
+        public async Task<double?> AverageAsync(Expression<Func<T, long?>> selector)
         {
-            throw new NotImplementedException();
+            Func<IQuery<T>, bool, Task<double?>> executor = async (query, @async) =>
+            {
+                double? result = @async ? await query.AverageAsync(selector) : query.Average(selector);
+                return result;
+            };
+
+            AggregateQuery<T, double?> aggQuery = new AggregateQuery<T, double?>(this.MakeQueryPlan(this), executor);
+            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).AverageAsync();
         }
 
-        public Task<decimal?> AverageAsync(Expression<Func<T, decimal>> selector)
+        public async Task<decimal?> AverageAsync(Expression<Func<T, decimal>> selector)
         {
-            throw new NotImplementedException();
+            Func<IQuery<T>, bool, Task<decimal?>> executor = async (query, @async) =>
+            {
+                decimal? result = @async ? await query.AverageAsync(selector) : query.Average(selector);
+                return result;
+            };
+
+            AggregateQuery<T, decimal?> aggQuery = new AggregateQuery<T, decimal?>(this.MakeQueryPlan(this), executor);
+            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).AverageAsync();
         }
 
-        public Task<decimal?> AverageAsync(Expression<Func<T, decimal?>> selector)
+        public async Task<decimal?> AverageAsync(Expression<Func<T, decimal?>> selector)
         {
-            throw new NotImplementedException();
+            Func<IQuery<T>, bool, Task<decimal?>> executor = async (query, @async) =>
+            {
+                decimal? result = @async ? await query.AverageAsync(selector) : query.Average(selector);
+                return result;
+            };
+
+            AggregateQuery<T, decimal?> aggQuery = new AggregateQuery<T, decimal?>(this.MakeQueryPlan(this), executor);
+            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).AverageAsync();
         }
 
-        public Task<double?> AverageAsync(Expression<Func<T, double>> selector)
+        public async Task<double?> AverageAsync(Expression<Func<T, double>> selector)
         {
-            throw new NotImplementedException();
+            Func<IQuery<T>, bool, Task<double?>> executor = async (query, @async) =>
+            {
+                double? result = @async ? await query.AverageAsync(selector) : query.Average(selector);
+                return result;
+            };
+
+            AggregateQuery<T, double?> aggQuery = new AggregateQuery<T, double?>(this.MakeQueryPlan(this), executor);
+            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).AverageAsync();
         }
 
-        public Task<double?> AverageAsync(Expression<Func<T, double?>> selector)
+        public async Task<double?> AverageAsync(Expression<Func<T, double?>> selector)
         {
-            throw new NotImplementedException();
+            Func<IQuery<T>, bool, Task<double?>> executor = async (query, @async) =>
+            {
+                double? result = @async ? await query.AverageAsync(selector) : query.Average(selector);
+                return result;
+            };
+
+            AggregateQuery<T, double?> aggQuery = new AggregateQuery<T, double?>(this.MakeQueryPlan(this), executor);
+            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).AverageAsync();
         }
 
-        public Task<float?> AverageAsync(Expression<Func<T, float>> selector)
+        public async Task<float?> AverageAsync(Expression<Func<T, float>> selector)
         {
-            throw new NotImplementedException();
+            Func<IQuery<T>, bool, Task<float?>> executor = async (query, @async) =>
+            {
+                float? result = @async ? await query.AverageAsync(selector) : query.Average(selector);
+                return result;
+            };
+
+            AggregateQuery<T, float?> aggQuery = new AggregateQuery<T, float?>(this.MakeQueryPlan(this), executor);
+            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).AverageAsync();
         }
 
-        public Task<float?> AverageAsync(Expression<Func<T, float?>> selector)
+        public async Task<float?> AverageAsync(Expression<Func<T, float?>> selector)
         {
-            throw new NotImplementedException();
+            Func<IQuery<T>, bool, Task<float?>> executor = async (query, @async) =>
+            {
+                float? result = @async ? await query.AverageAsync(selector) : query.Average(selector);
+                return result;
+            };
+
+            AggregateQuery<T, float?> aggQuery = new AggregateQuery<T, float?>(this.MakeQueryPlan(this), executor);
+            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).AverageAsync();
         }
 
         public IQuery<T> Distinct()

@@ -31,6 +31,9 @@ namespace ChloeDemo.Sharding
             await this.AnyQueryTest();
             await this.CountQueryTest();
             await this.SumQueryTest();
+            await this.SumNullQueryTest();
+            await this.AvgQueryTest();
+            await this.AvgNullQueryTest();
 
             Console.WriteLine("query test over...");
             Console.ReadKey();
@@ -369,6 +372,52 @@ namespace ChloeDemo.Sharding
             int s = (count / 2) * (10 + 20);
 
             Debug.Assert(sum == s);
+
+
+            Helpers.PrintSplitLine();
+        }
+        async Task SumNullQueryTest()
+        {
+            ShardingDbContext dbContext = this.CreateDbContext();
+            var q = dbContext.Query<Order>();
+
+            decimal? sum = 0;
+
+            sum = await q.Where(a => a.Id == null).SumAsync(a => a.Amount);
+
+            Debug.Assert(sum == null || sum == 0);
+
+
+            Helpers.PrintSplitLine();
+        }
+
+        async Task AvgQueryTest()
+        {
+            ShardingDbContext dbContext = this.CreateDbContext();
+            var q = dbContext.Query<Order>();
+
+            decimal? avg = 0;
+
+            avg = await q.AverageAsync(a => a.Amount);
+
+            //每天有 2 条数据，一条 Amount=10，一条 Amount=20
+            decimal s = (10 + 20) / (1 + 1);
+
+            Debug.Assert(avg == s);
+
+
+            Helpers.PrintSplitLine();
+        }
+        async Task AvgNullQueryTest()
+        {
+            ShardingDbContext dbContext = this.CreateDbContext();
+            var q = dbContext.Query<Order>();
+
+            decimal? avg = 0;
+
+            avg = await q.Where(a => a.Id == null).AverageAsync(a => a.Amount);
+
+            Debug.Assert(avg == null);
 
 
             Helpers.PrintSplitLine();

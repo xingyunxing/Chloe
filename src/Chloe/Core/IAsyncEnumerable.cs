@@ -288,6 +288,51 @@ namespace System.Collections.Generic
             return sum;
         }
 
+        public static async Task<double?> AverageAsync(this IAsyncEnumerable<int?> source, CancellationToken cancellationToken = default)
+        {
+            var avg = await source.Select(a => (decimal?)a).AverageAsync();
+            return avg == null ? null : Convert.ToDouble(avg.Value);
+        }
+
+        public static async Task<double?> AverageAsync(this IAsyncEnumerable<long?> source, CancellationToken cancellationToken = default)
+        {
+            var avg = await source.Select(a => (decimal?)a).AverageAsync();
+            return avg == null ? null : Convert.ToDouble(avg.Value);
+        }
+
+        public static async Task<double?> AverageAsync(this IAsyncEnumerable<double?> source, CancellationToken cancellationToken = default)
+        {
+            var avg = await source.Select(a => (decimal?)a).AverageAsync();
+            return avg == null ? null : Convert.ToDouble(avg.Value);
+        }
+
+        public static async Task<float?> AverageAsync(this IAsyncEnumerable<float?> source, CancellationToken cancellationToken = default)
+        {
+            var avg = await source.Select(a => (decimal?)a).AverageAsync();
+            return avg == null ? null : Convert.ToSingle(avg.Value);
+        }
+
+        public static async Task<decimal?> AverageAsync(this IAsyncEnumerable<decimal?> source, CancellationToken cancellationToken = default)
+        {
+            decimal? sum = null;
+            int? count = null;
+
+            await source.ForEach(a =>
+            {
+                if (a == null)
+                    return;
+
+                sum = sum + a.Value;
+                count++;
+            }, cancellationToken);
+
+            if (sum == null)
+                return null;
+
+            decimal avg = sum.Value / count.Value;
+            return avg;
+        }
+
         public class SelectEnumerable<T, TResult> : IAsyncEnumerable<TResult>
         {
             IAsyncEnumerable<T> _source;
