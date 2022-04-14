@@ -44,6 +44,8 @@ namespace System.Collections.Generic
 
 namespace System.Collections.Generic
 {
+    using System.Linq;
+
     internal interface IAsyncEnumerable<out T>
     {
         IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default);
@@ -68,6 +70,10 @@ namespace System.Collections.Generic
             }
 
             return list;
+        }
+        public static async Task<IEnumerable<T>> ToEnumerableAsync<T>(this IAsyncEnumerable<T> source, CancellationToken cancellationToken = default)
+        {
+            return await source.ToListAsync(cancellationToken);
         }
 
         public static async Task<T> FirstAsync<T>(this IAsyncEnumerable<T> source, CancellationToken cancellationToken = default)
@@ -290,46 +296,41 @@ namespace System.Collections.Generic
 
         public static async Task<double?> AverageAsync(this IAsyncEnumerable<int?> source, CancellationToken cancellationToken = default)
         {
-            var avg = await source.Select(a => (decimal?)a).AverageAsync();
-            return avg == null ? null : Convert.ToDouble(avg.Value);
+            var list = await source.ToEnumerableAsync(cancellationToken);
+            double? avg = list.Average();
+
+            return avg;
         }
 
         public static async Task<double?> AverageAsync(this IAsyncEnumerable<long?> source, CancellationToken cancellationToken = default)
         {
-            var avg = await source.Select(a => (decimal?)a).AverageAsync();
-            return avg == null ? null : Convert.ToDouble(avg.Value);
+            var list = await source.ToEnumerableAsync(cancellationToken);
+            double? avg = list.Average();
+
+            return avg;
         }
 
         public static async Task<double?> AverageAsync(this IAsyncEnumerable<double?> source, CancellationToken cancellationToken = default)
         {
-            var avg = await source.Select(a => (decimal?)a).AverageAsync();
-            return avg == null ? null : Convert.ToDouble(avg.Value);
+            var list = await source.ToEnumerableAsync(cancellationToken);
+            double? avg = list.Average();
+
+            return avg;
         }
 
         public static async Task<float?> AverageAsync(this IAsyncEnumerable<float?> source, CancellationToken cancellationToken = default)
         {
-            var avg = await source.Select(a => (decimal?)a).AverageAsync();
-            return avg == null ? null : Convert.ToSingle(avg.Value);
+            var list = await source.ToEnumerableAsync(cancellationToken);
+            float? avg = list.Average();
+
+            return avg;
         }
 
         public static async Task<decimal?> AverageAsync(this IAsyncEnumerable<decimal?> source, CancellationToken cancellationToken = default)
         {
-            decimal? sum = null;
-            int? count = null;
+            var list = await source.ToEnumerableAsync(cancellationToken);
+            decimal? avg = list.Average();
 
-            await source.ForEach(a =>
-            {
-                if (a == null)
-                    return;
-
-                sum = sum + a.Value;
-                count++;
-            }, cancellationToken);
-
-            if (sum == null)
-                return null;
-
-            decimal avg = sum.Value / count.Value;
             return avg;
         }
 
