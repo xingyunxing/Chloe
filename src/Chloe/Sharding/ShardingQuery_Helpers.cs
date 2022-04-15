@@ -43,9 +43,9 @@ namespace Chloe.Sharding
             return avg;
         }
 
-        static Expression<Func<T, AggregateModel>> MakeAggregateSelector<T>(LambdaExpression selector)
+        static Expression<Func<TSource, AggregateModel>> MakeAggregateSelector<TSource>(LambdaExpression selector)
         {
-            var parameterExp = Expression.Parameter(typeof(T));
+            var parameterExp = Expression.Parameter(typeof(TSource));
             var fieldAccessExp = Expression.Convert(ParameterExpressionReplacer.Replace(selector.Body, parameterExp), typeof(decimal?));
 
             var Sql_Sum_Call = Expression.Call(PublicConstants.MethodInfo_Sql_Sum_DecimalN, fieldAccessExp);
@@ -61,7 +61,7 @@ namespace Chloe.Sharding
             NewExpression newExp = Expression.New(typeof(AggregateModel));
             Expression lambdaBody = Expression.MemberInit(newExp, bindings);
 
-            var lambda = Expression.Lambda<Func<T, AggregateModel>>(lambdaBody, parameterExp);
+            var lambda = Expression.Lambda<Func<TSource, AggregateModel>>(lambdaBody, parameterExp);
 
             return lambda;
         }
