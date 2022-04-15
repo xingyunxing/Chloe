@@ -1,4 +1,6 @@
-﻿using Chloe.Query;
+﻿using Chloe.Core.Visitors;
+using Chloe.Query;
+using Chloe.Sharding.Models;
 using Chloe.Sharding.Queries;
 using Chloe.Threading.Tasks;
 using System.Linq.Expressions;
@@ -111,122 +113,62 @@ namespace Chloe.Sharding
 
         public async Task<double?> AverageAsync(Expression<Func<T, int>> selector)
         {
-            Func<IQuery<T>, bool, Task<double?>> executor = async (query, @async) =>
-            {
-                double? result = @async ? await query.AverageAsync(selector) : query.Average(selector);
-                return result;
-            };
-
-            AggregateQuery<T, double?> aggQuery = new AggregateQuery<T, double?>(this.MakeQueryPlan(this), executor);
-            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).AverageAsync();
+            var avg = await this.QueryAverageAsync(selector);
+            return (double?)avg;
         }
 
         public async Task<double?> AverageAsync(Expression<Func<T, int?>> selector)
         {
-            Func<IQuery<T>, bool, Task<double?>> executor = async (query, @async) =>
-            {
-                double? result = @async ? await query.AverageAsync(selector) : query.Average(selector);
-                return result;
-            };
-
-            AggregateQuery<T, double?> aggQuery = new AggregateQuery<T, double?>(this.MakeQueryPlan(this), executor);
-            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).AverageAsync();
+            var avg = await this.QueryAverageAsync(selector);
+            return (double?)avg;
         }
 
         public async Task<double?> AverageAsync(Expression<Func<T, long>> selector)
         {
-            Func<IQuery<T>, bool, Task<double?>> executor = async (query, @async) =>
-            {
-                double? result = @async ? await query.AverageAsync(selector) : query.Average(selector);
-                return result;
-            };
-
-            AggregateQuery<T, double?> aggQuery = new AggregateQuery<T, double?>(this.MakeQueryPlan(this), executor);
-            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).AverageAsync();
+            var avg = await this.QueryAverageAsync(selector);
+            return (double?)avg;
         }
 
         public async Task<double?> AverageAsync(Expression<Func<T, long?>> selector)
         {
-            Func<IQuery<T>, bool, Task<double?>> executor = async (query, @async) =>
-            {
-                double? result = @async ? await query.AverageAsync(selector) : query.Average(selector);
-                return result;
-            };
-
-            AggregateQuery<T, double?> aggQuery = new AggregateQuery<T, double?>(this.MakeQueryPlan(this), executor);
-            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).AverageAsync();
+            var avg = await this.QueryAverageAsync(selector);
+            return (double?)avg;
         }
 
         public async Task<decimal?> AverageAsync(Expression<Func<T, decimal>> selector)
         {
-            Func<IQuery<T>, bool, Task<decimal?>> executor = async (query, @async) =>
-            {
-                decimal? result = @async ? await query.AverageAsync(selector) : query.Average(selector);
-                return result;
-            };
-
-            AggregateQuery<T, decimal?> aggQuery = new AggregateQuery<T, decimal?>(this.MakeQueryPlan(this), executor);
-            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).AverageAsync();
+            var avg = await this.QueryAverageAsync(selector);
+            return avg;
         }
 
         public async Task<decimal?> AverageAsync(Expression<Func<T, decimal?>> selector)
         {
-            Func<IQuery<T>, bool, Task<decimal?>> executor = async (query, @async) =>
-            {
-                decimal? result = @async ? await query.AverageAsync(selector) : query.Average(selector);
-                return result;
-            };
-
-            AggregateQuery<T, decimal?> aggQuery = new AggregateQuery<T, decimal?>(this.MakeQueryPlan(this), executor);
-            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).AverageAsync();
+            var avg = await this.QueryAverageAsync(selector);
+            return avg;
         }
 
         public async Task<double?> AverageAsync(Expression<Func<T, double>> selector)
         {
-            Func<IQuery<T>, bool, Task<double?>> executor = async (query, @async) =>
-            {
-                double? result = @async ? await query.AverageAsync(selector) : query.Average(selector);
-                return result;
-            };
-
-            AggregateQuery<T, double?> aggQuery = new AggregateQuery<T, double?>(this.MakeQueryPlan(this), executor);
-            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).AverageAsync();
+            var avg = await this.QueryAverageAsync(selector);
+            return (double?)avg;
         }
 
         public async Task<double?> AverageAsync(Expression<Func<T, double?>> selector)
         {
-            Func<IQuery<T>, bool, Task<double?>> executor = async (query, @async) =>
-            {
-                double? result = @async ? await query.AverageAsync(selector) : query.Average(selector);
-                return result;
-            };
-
-            AggregateQuery<T, double?> aggQuery = new AggregateQuery<T, double?>(this.MakeQueryPlan(this), executor);
-            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).AverageAsync();
+            var avg = await this.QueryAverageAsync(selector);
+            return (double?)avg;
         }
 
         public async Task<float?> AverageAsync(Expression<Func<T, float>> selector)
         {
-            Func<IQuery<T>, bool, Task<float?>> executor = async (query, @async) =>
-            {
-                float? result = @async ? await query.AverageAsync(selector) : query.Average(selector);
-                return result;
-            };
-
-            AggregateQuery<T, float?> aggQuery = new AggregateQuery<T, float?>(this.MakeQueryPlan(this), executor);
-            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).AverageAsync();
+            var avg = await this.QueryAverageAsync(selector);
+            return (float?)avg;
         }
 
         public async Task<float?> AverageAsync(Expression<Func<T, float?>> selector)
         {
-            Func<IQuery<T>, bool, Task<float?>> executor = async (query, @async) =>
-            {
-                float? result = @async ? await query.AverageAsync(selector) : query.Average(selector);
-                return result;
-            };
-
-            AggregateQuery<T, float?> aggQuery = new AggregateQuery<T, float?>(this.MakeQueryPlan(this), executor);
-            return await aggQuery.AsAsyncEnumerable().Select(a => a.Result).AverageAsync();
+            var avg = await this.QueryAverageAsync(selector);
+            return (float?)avg;
         }
 
         public IQuery<T> Distinct()

@@ -11,6 +11,11 @@ namespace Chloe
             Expression<Func<bool>> e = () => Enumerable.Contains((IEnumerable<int>)null, 0);
             MethodInfo method_Enumerable_Contains = (e.Body as MethodCallExpression).Method.GetGenericMethodDefinition();
             MethodInfo_Enumerable_Contains = method_Enumerable_Contains;
+
+            MethodInfo_Sql_Sum_DecimalN = typeof(Sql).GetMethod(nameof(Sql.Sum), new Type[1] { typeof(decimal?) });
+
+            Expression<Func<long, long>> longCountExp = a => Sql.LongCount<long>(a);
+            MethodInfo_Sql_LongCount = (longCountExp.Body as MethodCallExpression).Method.GetGenericMethodDefinition();
         }
 
         public static readonly object[] EmptyArray = new object[0];
@@ -43,6 +48,9 @@ namespace Chloe
         public static readonly MethodInfo MethodInfo_Sql_Equals = typeof(Sql).GetMethods().Where(a => a.Name == "Equals" && a.IsStatic && a.IsGenericMethod).First();
         public static readonly MethodInfo MethodInfo_Sql_NotEquals = typeof(Sql).GetMethod("NotEquals");
         public static readonly MethodInfo MethodInfo_Sql_NextValueForSequence = typeof(Sql).GetMethod("NextValueForSequence");
+
+        public static MethodInfo MethodInfo_Sql_Sum_DecimalN;
+        public static MethodInfo MethodInfo_Sql_LongCount;
         #endregion
 
 

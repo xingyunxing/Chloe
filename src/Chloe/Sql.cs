@@ -54,11 +54,11 @@
             return default;
         }
 
-        public static int? Count<TField>(TField field)
+        public static int Count<TField>(TField field)
         {
             return default;
         }
-        public static long? LongCount<TField>(TField field)
+        public static long LongCount<TField>(TField field)
         {
             return default;
         }

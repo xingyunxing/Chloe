@@ -150,6 +150,11 @@ namespace System.Collections.Generic
             }
         }
 
+        public static IAsyncEnumerable<T> Where<T>(this IAsyncEnumerable<T> source, Func<T, bool> predicate)
+        {
+            return new WhereEnumerable<T>(source, predicate);
+        }
+
         public static IAsyncEnumerable<TResult> Select<T, TResult>(this IAsyncEnumerable<T> source, Func<T, TResult> selector)
         {
             return new SelectEnumerable<T, TResult>(source, selector);
@@ -334,6 +339,81 @@ namespace System.Collections.Generic
             return avg;
         }
 
+        public class WhereEnumerable<T> : IAsyncEnumerable<T>
+        {
+            IAsyncEnumerable<T> _source;
+            Func<T, bool> _predicate;
+
+            public WhereEnumerable(IAsyncEnumerable<T> source, Func<T, bool> predicate)
+            {
+                this._source = source;
+                this._predicate = predicate;
+            }
+
+            public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+            {
+                return new Enumerator(this, cancellationToken);
+            }
+
+            class Enumerator : IAsyncEnumerator<T>
+            {
+                WhereEnumerable<T> _enumerable;
+                CancellationToken _cancellationToken;
+
+                IAsyncEnumerator<T> _enumerator;
+
+                T _current;
+
+                public Enumerator(WhereEnumerable<T> enumerable, CancellationToken cancellationToken)
+                {
+                    this._enumerable = enumerable;
+                    this._cancellationToken = cancellationToken;
+                }
+
+                public T Current => this._current;
+
+                public async Task<bool> MoveNextAsync()
+                {
+                    if (this._enumerator == null)
+                    {
+                        this._enumerator = this._enumerable._source.GetAsyncEnumerator(this._cancellationToken);
+                    }
+
+                    bool hasNext;
+                    while (true)
+                    {
+                        hasNext = await this._enumerator.MoveNextAsync();
+                        if (hasNext)
+                        {
+                            bool match = this._enumerable._predicate(this._enumerator.Current);
+
+                            if (!match)
+                            {
+                                continue;
+                            }
+
+                            this._current = this._enumerator.Current;
+                            break;
+                        }
+                        else
+                        {
+                            this._current = default;
+                            break;
+                        }
+                    }
+
+                    return hasNext;
+                }
+
+                public async Task DisposeAsync()
+                {
+                    if (this._enumerator != null)
+                    {
+                        await this._enumerator.DisposeAsync();
+                    }
+                }
+            }
+        }
         public class SelectEnumerable<T, TResult> : IAsyncEnumerable<TResult>
         {
             IAsyncEnumerable<T> _source;
