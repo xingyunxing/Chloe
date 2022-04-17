@@ -33,6 +33,8 @@ namespace Chloe.Sharding
         public override QueryExpression Visit(SelectExpression exp)
         {
             throw new NotImplementedException();
+            //this._queryModel.Selector = exp.Selector;
+            //return exp;
         }
         public override QueryExpression Visit(TakeExpression exp)
         {
@@ -89,7 +91,9 @@ namespace Chloe.Sharding
         }
         public override QueryExpression Visit(GroupingQueryExpression exp)
         {
-            throw new NotImplementedException();
+            this._queryModel.GroupKeySelectors.AddRange(exp.GroupKeySelectors);
+            this._queryModel.Selector = exp.Selector;
+            return exp;
         }
         public override QueryExpression Visit(DistinctExpression exp)
         {

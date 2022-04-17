@@ -1,6 +1,7 @@
 ﻿using Chloe.Core.Visitors;
 using Chloe.Descriptors;
 using Chloe.Reflection;
+using Chloe.Sharding.Models;
 using Chloe.Sharding.Queries;
 using System.Collections;
 using System.Linq.Expressions;
@@ -220,6 +221,39 @@ namespace Chloe.Sharding
             }
 
             return q;
+        }
+
+        public static Expression<Func<TSource, AggregateModel>> MakeAggregateSelector<TSource>(LambdaExpression selector)
+        {
+            Expression lambdaBody = ConvertToNewAggregateModelExpression(selector.Body);
+
+            var parameterExp = Expression.Parameter(typeof(TSource));
+            lambdaBody = ParameterExpressionReplacer.Replace(lambdaBody, parameterExp);
+            var lambda = Expression.Lambda<Func<TSource, AggregateModel>>(lambdaBody, parameterExp);
+
+            return lambda;
+        }
+        public static MemberInitExpression ConvertToNewAggregateModelExpression(Expression avgSelectorExp)
+        {
+            var fieldAccessExp = Expression.Convert(avgSelectorExp, typeof(decimal?));
+
+            //Sql.Sum((decimal?)a.Amount)
+            var Sql_Sum_Call = Expression.Call(PublicConstants.MethodInfo_Sql_Sum_DecimalN, fieldAccessExp);
+            MemberAssignment sumBind = Expression.Bind(typeof(AggregateModel).GetProperty(nameof(AggregateModel.Sum)), Sql_Sum_Call);
+
+            //Sql.LongCount<decimal?>((decimal?)a.Amount)
+            var Sql_LongCount_Call = Expression.Call(PublicConstants.MethodInfo_Sql_LongCount.MakeGenericMethod(fieldAccessExp.Type), fieldAccessExp);
+            MemberAssignment countBind = Expression.Bind(typeof(AggregateModel).GetProperty(nameof(AggregateModel.Count)), Sql_LongCount_Call);
+
+            List<MemberBinding> bindings = new List<MemberBinding>(2);
+            bindings.Add(sumBind);
+            bindings.Add(countBind);
+
+            // new AggregateModel() { Sum = Sql.Sum((decimal?)a.Amount), Count = Sql.LongCount<decimal?>((decimal?)a.Amount) }
+            NewExpression newExp = Expression.New(typeof(AggregateModel));
+            MemberInitExpression memberInitExpression = Expression.MemberInit(newExp, bindings);
+
+            return memberInitExpression;
         }
 
         static List<List<object>> Slice(List<object> list, int batchSize)

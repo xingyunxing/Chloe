@@ -12,6 +12,8 @@ namespace Chloe.Sharding
 
         public List<LambdaExpression> Conditions { get; set; } = new List<LambdaExpression>();
         public List<Ordering> Orderings { get; set; } = new List<Ordering>();
+        public List<LambdaExpression> GroupKeySelectors { get; private set; } = new List<LambdaExpression>();
+        public LambdaExpression Selector { get; set; }
 
         public List<LambdaExpression> GlobalFilters { get; set; } = new List<LambdaExpression>();
         public List<LambdaExpression> ContextFilters { get; set; } = new List<LambdaExpression>();

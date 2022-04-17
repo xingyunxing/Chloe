@@ -8,6 +8,12 @@ namespace Chloe.Sharding
         {
             ShardingQueryPlan queryPlan = this.MakeQueryPlan(this);
 
+            if (queryPlan.QueryModel.GroupKeySelectors.Count > 0)
+            {
+                //分组查询
+
+            }
+
             if (queryPlan.Tables.Count > 1)
             {
                 //主键或唯一索引查询

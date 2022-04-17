@@ -550,7 +550,7 @@ namespace Chloe.Sharding
 
         public List<T> ToList()
         {
-            return this.Execute().GetResult().ToList();
+            return this.ToListAsync().GetResult();
         }
         public async Task<List<T>> ToListAsync()
         {

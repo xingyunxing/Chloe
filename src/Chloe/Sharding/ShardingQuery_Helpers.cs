@@ -13,7 +13,7 @@ namespace Chloe.Sharding
     {
         async Task<decimal?> QueryAverageAsync(LambdaExpression selector)
         {
-            var aggSelector = MakeAggregateSelector<T>(selector);
+            var aggSelector = ShardingHelpers.MakeAggregateSelector<T>(selector);
 
             Func<IQuery<T>, bool, Task<AggregateModel>> executor = async (query, @async) =>
             {
@@ -39,31 +39,8 @@ namespace Chloe.Sharding
             if (sum == null)
                 return null;
 
-            var avg = sum.Value / count;
+            decimal avg = sum.Value / count;
             return avg;
-        }
-
-        static Expression<Func<TSource, AggregateModel>> MakeAggregateSelector<TSource>(LambdaExpression selector)
-        {
-            var parameterExp = Expression.Parameter(typeof(TSource));
-            var fieldAccessExp = Expression.Convert(ParameterExpressionReplacer.Replace(selector.Body, parameterExp), typeof(decimal?));
-
-            var Sql_Sum_Call = Expression.Call(PublicConstants.MethodInfo_Sql_Sum_DecimalN, fieldAccessExp);
-            MemberAssignment sumBind = Expression.Bind(typeof(AggregateModel).GetProperty(nameof(AggregateModel.Sum)), Sql_Sum_Call);
-
-            var Sql_LongCount_Call = Expression.Call(PublicConstants.MethodInfo_Sql_LongCount.MakeGenericMethod(fieldAccessExp.Type), fieldAccessExp);
-            MemberAssignment countBind = Expression.Bind(typeof(AggregateModel).GetProperty(nameof(AggregateModel.Count)), Sql_LongCount_Call);
-
-            List<MemberBinding> bindings = new List<MemberBinding>(2);
-            bindings.Add(sumBind);
-            bindings.Add(countBind);
-
-            NewExpression newExp = Expression.New(typeof(AggregateModel));
-            Expression lambdaBody = Expression.MemberInit(newExp, bindings);
-
-            var lambda = Expression.Lambda<Func<TSource, AggregateModel>>(lambdaBody, parameterExp);
-
-            return lambda;
         }
     }
 }
