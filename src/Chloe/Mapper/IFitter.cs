@@ -2,12 +2,6 @@
 using System.Collections;
 using System.Data;
 
-#if netfx
-using VoidTask = System.Threading.Tasks.Task;
-#else
-using VoidTask = System.Threading.Tasks.ValueTask;
-#endif
-
 namespace Chloe.Mapper
 {
     /// <summary>
@@ -16,7 +10,7 @@ namespace Chloe.Mapper
     public interface IFitter
     {
         void Prepare(IDataReader reader);
-        VoidTask Fill(object obj, object owner, IDataReader reader, bool @async);
+        ValueTask Fill(object obj, object owner, IDataReader reader, bool @async);
     }
 
     public class ComplexObjectFitter : IFitter
@@ -37,7 +31,7 @@ namespace Chloe.Mapper
             }
         }
 
-        public async VoidTask Fill(object entity, object owner, IDataReader reader, bool @async)
+        public async ValueTask Fill(object entity, object owner, IDataReader reader, bool @async)
         {
             for (int i = 0; i < this._includings.Count; i++)
             {
@@ -75,7 +69,7 @@ namespace Chloe.Mapper
             this._elementFitter.Prepare(reader);
         }
 
-        public async VoidTask Fill(object collection, object owner, IDataReader reader, bool @async)
+        public async ValueTask Fill(object collection, object owner, IDataReader reader, bool @async)
         {
             if (this._collection != collection)
             {

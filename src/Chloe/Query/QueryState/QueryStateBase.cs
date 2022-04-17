@@ -84,9 +84,8 @@ namespace Chloe.Query.QueryState
         }
         public virtual IQueryState Accept(GroupingQueryExpression exp)
         {
-            foreach (LambdaExpression item in exp.GroupKeySelectors)
+            foreach (LambdaExpression keySelector in exp.GroupKeySelectors)
             {
-                var keySelector = (LambdaExpression)item;
                 ScopeParameterDictionary scopeParameters = this._queryModel.ScopeParameters.Clone(keySelector.Parameters[0], this._queryModel.ResultModel);
 
                 this._queryModel.GroupSegments.AddRange(GroupKeySelectorParser.Parse(keySelector, scopeParameters, this._queryModel.ScopeTables));
