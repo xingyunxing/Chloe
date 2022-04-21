@@ -18,16 +18,129 @@ namespace Chloe.Sharding
 
         public List<Expression> MemberExpressions { get; set; } = new List<Expression>();
         public List<Action<Func<object, object>, IEnumerable<object>, object>> MemberBinders { get; set; } = new List<Action<Func<object, object>, IEnumerable<object>, object>>();
-        public Func<IEnumerable<object>, object> Mapper { get; set; }
+    }
+
+    class GroupKeySelectorPeeker : ExpressionVisitor<LambdaExpression[]>
+    {
+        LambdaExpression _rawSelector;
+
+        public GroupKeySelectorPeeker(LambdaExpression rawSelector)
+        {
+            this._rawSelector = rawSelector;
+        }
+
+        public static LambdaExpression[] Peek(LambdaExpression keySelector)
+        {
+            var peeker = new GroupKeySelectorPeeker(keySelector);
+            return peeker.Visit(keySelector);
+        }
+        public static List<LambdaExpression> Peek(IEnumerable<LambdaExpression> keySelectors)
+        {
+            List<LambdaExpression> ret = new List<LambdaExpression>();
+            foreach (var keySelector in keySelectors)
+            {
+                ret.AddRange(Peek(keySelector));
+            }
+
+            return ret;
+        }
+
+        public override LambdaExpression[] Visit(Expression exp)
+        {
+            switch (exp.NodeType)
+            {
+                case ExpressionType.Lambda:
+                    return this.VisitLambda((LambdaExpression)exp);
+                case ExpressionType.New:
+                    return this.VisitNew((NewExpression)exp);
+                default:
+                    {
+                        var delType = typeof(Func<,>).MakeGenericType(this._rawSelector.Parameters[0].Type, exp.Type);
+                        LambdaExpression keySelector = Expression.Lambda(delType, exp, this._rawSelector.Parameters[0]);
+                        return new LambdaExpression[1] { keySelector };
+                    }
+            }
+        }
+
+        protected override LambdaExpression[] VisitLambda(LambdaExpression exp)
+        {
+            return this.Visit(exp.Body);
+        }
+        protected override LambdaExpression[] VisitNew(NewExpression exp)
+        {
+            LambdaExpression[] ret = new LambdaExpression[exp.Arguments.Count];
+            for (int i = 0; i < exp.Arguments.Count; i++)
+            {
+                var argExp = exp.Arguments[i];
+                var delType = typeof(Func<,>).MakeGenericType(this._rawSelector.Parameters[0].Type, argExp.Type);
+                LambdaExpression keySelector = Expression.Lambda(delType, argExp, this._rawSelector.Parameters[0]);
+                ret[i] = keySelector;
+            }
+
+            return ret;
+        }
+    }
+
+
+    public class GroupKeyEqualityComparer : IEqualityComparer<object>
+    {
+        public GroupKeyEqualityComparer(List<Func<object, object>> groupKeyValueGetters)
+        {
+            this.GroupKeyValueGetters = groupKeyValueGetters;
+        }
+
+        public List<Func<object, object>> GroupKeyValueGetters { get; set; }
+
+        public new bool Equals(object x, object y)
+        {
+            foreach (var valueGetter in this.GroupKeyValueGetters)
+            {
+                var keyValueX = valueGetter(x);
+                var keyValueY = valueGetter(y);
+
+                bool equal = PublicHelper.AreEqual(keyValueX, keyValueY);
+                if (!equal)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public int GetHashCode(object obj)
+        {
+            int hash;
+            unchecked
+            {
+                hash = (int)2166136261; // 不是素数
+                foreach (var valueGetter in this.GroupKeyValueGetters)
+                {
+                    var keyValue = valueGetter(obj);
+
+                    // 16777619是素数
+                    hash = (hash * 16777619) ^ keyValue.GetHashCode();
+                }
+            }
+
+            return hash;
+        }
     }
 
     class GroupSelectorResolver : ExpressionVisitor<GroupQueryMapper>
     {
+        public static readonly GroupSelectorResolver Instance = new GroupSelectorResolver();
+
         GroupSelectorResolver()
         {
 
         }
 
+
+        public static GroupQueryMapper Resolve(Expression exp)
+        {
+            return Instance.Visit(exp);
+        }
 
         public override GroupQueryMapper Visit(Expression exp)
         {
@@ -266,9 +379,9 @@ namespace Chloe.Sharding
             {
                 decimal? sum = null;
 
-                var aggModels = group.Select(a => valueGetter(a) as AggregateModel);
+                var sums = group.Select(a => (decimal?)valueGetter(a));
 
-                sum = aggModels.Select(a => a.Sum).Sum();
+                sum = sums.Sum();
 
                 if (sum == null)
                     return null;

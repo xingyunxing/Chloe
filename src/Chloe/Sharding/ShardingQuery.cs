@@ -230,7 +230,7 @@ namespace Chloe.Sharding
 
         public IGroupingQuery<T> GroupBy<K>(Expression<Func<T, K>> keySelector)
         {
-            throw new NotImplementedException();
+            return new ShardingGroupingQuery<T>(this.InnerQuery.GroupBy(keySelector));
         }
 
         public IQuery<T> IgnoreAllFilters()

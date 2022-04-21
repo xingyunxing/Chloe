@@ -2,7 +2,7 @@
 
 namespace Chloe.Sharding
 {
-    internal class DataQueryModel
+    class DataQueryModel
     {
         public IPhysicTable Table { get; set; }
 

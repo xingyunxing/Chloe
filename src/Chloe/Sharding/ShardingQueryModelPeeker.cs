@@ -22,6 +22,9 @@ namespace Chloe.Sharding
 
             this._queryModel.GlobalFilters.AddRange(typeDescriptor.Definition.Filters);
             this._queryModel.ContextFilters.AddRange(exp.ContextFilters);
+
+            this._queryModel.RootEntityType = exp.ElementType;
+
             return exp;
         }
         public override QueryExpression Visit(WhereExpression exp)
@@ -91,6 +94,7 @@ namespace Chloe.Sharding
         }
         public override QueryExpression Visit(GroupingQueryExpression exp)
         {
+            exp.PrevExpression.Accept(this);
             this._queryModel.GroupKeySelectors.AddRange(exp.GroupKeySelectors);
             this._queryModel.Selector = exp.Selector;
             return exp;

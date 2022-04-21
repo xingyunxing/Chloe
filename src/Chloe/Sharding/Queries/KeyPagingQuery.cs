@@ -11,7 +11,6 @@ namespace Chloe.Sharding.Queries
 
         public DynamicModelQuery<TEntity> Query { get; set; }
 
-        //public List<object> DataList { get; set; }
         public List<object> Keys { get; set; } = new List<object>();
     }
 
@@ -163,9 +162,6 @@ namespace Chloe.Sharding.Queries
 
                     var stub = dataQueryPlans[tableIndex];
                     stub.Keys.Add(key);
-                    //stub.DataList.Add(obj);
-
-                    //Console.WriteLine($"key: {key} index: {tableIndex} skips: {skips} {stub.QueryModel.Table.Name} {stub.QueryModel.Table.DataSource.Name}");
 
                 }, this._cancellationToken);
             }

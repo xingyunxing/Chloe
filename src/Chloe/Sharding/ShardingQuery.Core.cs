@@ -1,4 +1,5 @@
-﻿using Chloe.Sharding.Queries;
+﻿using Chloe.Reflection;
+using Chloe.Sharding.Queries;
 
 namespace Chloe.Sharding
 {
@@ -11,7 +12,10 @@ namespace Chloe.Sharding
             if (queryPlan.QueryModel.GroupKeySelectors.Count > 0)
             {
                 //分组查询
+                var groupAggQueryType = typeof(GroupAggregateQuery<,>).MakeGenericType(queryPlan.QueryModel.Selector.Parameters[0].Type, typeof(T));
+                var groupAggQuery = groupAggQueryType.GetConstructor(new Type[] { queryPlan.GetType() }).FastCreateInstance(queryPlan);
 
+                return (IFeatureEnumerable<T>)groupAggQuery;
             }
 
             if (queryPlan.Tables.Count > 1)
@@ -102,7 +106,7 @@ namespace Chloe.Sharding
             ShardingQueryPlan queryPlan = new ShardingQueryPlan();
             queryPlan.QueryModel = ShardingQueryModelPeeker.Peek(query.InnerQuery.QueryExpression);
 
-            IShardingContext shardingContext = (query.InnerQuery.DbContext as ShardingDbContext).CreateShardingContext(typeof(T));
+            IShardingContext shardingContext = (query.InnerQuery.DbContext as ShardingDbContext).CreateShardingContext(queryPlan.QueryModel.RootEntityType);
 
             queryPlan.ShardingContext = shardingContext;
 
