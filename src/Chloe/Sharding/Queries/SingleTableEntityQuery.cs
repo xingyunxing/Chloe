@@ -5,8 +5,7 @@ namespace Chloe.Sharding.Queries
     /// <summary>
     /// 单表数据查询
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    class SingleTableEntityQuery<T> : FeatureEnumerable<T>
+    class SingleTableEntityQuery : FeatureEnumerable<object>
     {
         IParallelQueryContext QueryContext;
         IShareDbContextPool DbContextPool;
@@ -21,28 +20,28 @@ namespace Chloe.Sharding.Queries
             this.LazyQuery = lazyQuery;
         }
 
-        public override IFeatureEnumerator<T> GetFeatureEnumerator(CancellationToken cancellationToken = default)
+        public override IFeatureEnumerator<object> GetFeatureEnumerator(CancellationToken cancellationToken = default)
         {
             return new Enumerator(this, cancellationToken);
         }
 
-        class Enumerator : TableQueryEnumerator<T, T>
+        class Enumerator : TableQueryEnumerator
         {
-            SingleTableEntityQuery<T> _enumerable;
+            SingleTableEntityQuery _enumerable;
 
-            public Enumerator(SingleTableEntityQuery<T> enumerable, CancellationToken cancellationToken) : base(enumerable.DbContextPool, enumerable.QueryModel, cancellationToken)
+            public Enumerator(SingleTableEntityQuery enumerable, CancellationToken cancellationToken) : base(enumerable.DbContextPool, enumerable.QueryModel, cancellationToken)
             {
                 this._enumerable = enumerable;
             }
 
-            protected override async Task<(IFeatureEnumerable<T> Query, bool IsLazyQuery)> CreateQuery(IQuery<T> query, bool @async)
+            protected override async Task<(IFeatureEnumerable<object> Query, bool IsLazyQuery)> CreateQuery(IQuery query, bool @async)
             {
                 var queryContext = this._enumerable.QueryContext;
 
                 bool canceled = queryContext.BeforeExecuteCommand();
                 if (canceled)
                 {
-                    return (NullFeatureEnumerable<T>.Instance, false);
+                    return (NullFeatureEnumerable<object>.Instance, false);
                 }
 
                 if (!this._enumerable.LazyQuery)
@@ -51,13 +50,13 @@ namespace Chloe.Sharding.Queries
 
                     queryContext.AfterExecuteCommand(dataList);
 
-                    return (new FeatureEnumerableAdapter<T>(dataList), false);
+                    return (new FeatureEnumerableAdapter<object>(dataList), false);
                 }
 
                 var lazyEnumerable = query.AsEnumerable();
                 queryContext.AfterExecuteCommand(lazyEnumerable);
 
-                return (new FeatureEnumerableAdapter<T>(lazyEnumerable), true);
+                return (new FeatureEnumerableAdapter<object>(lazyEnumerable), true);
             }
         }
     }

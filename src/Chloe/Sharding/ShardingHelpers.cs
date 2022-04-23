@@ -11,17 +11,6 @@ namespace Chloe.Sharding
 {
     internal static class ShardingHelpers
     {
-        public static LambdaExpression ConditionCombine(ShardingQueryModel queryModel)
-        {
-            IEnumerable<LambdaExpression> conditions = queryModel.Conditions;
-            if (!queryModel.IgnoreAllFilters)
-            {
-                conditions = conditions.Concat(queryModel.GlobalFilters).Concat(queryModel.ContextFilters);
-            }
-
-            var condition = ConditionCombine(conditions);
-            return condition;
-        }
         public static LambdaExpression ConditionCombine(IEnumerable<LambdaExpression> conditions)
         {
             ParameterExpression parameterExpression = null;
@@ -96,13 +85,13 @@ namespace Chloe.Sharding
             return dbContextPool;
         }
 
-        public static LambdaExpression MakeDynamicSelector<TEntity>(ShardingQueryPlan queryPlan, DynamicType dynamicType, TypeDescriptor entityTypeDescriptor, int tableIndex)
+        public static LambdaExpression MakeDynamicSelector(ShardingQueryPlan queryPlan, DynamicType dynamicType, TypeDescriptor entityTypeDescriptor, int tableIndex)
         {
             // a => new Dynamic() { P1 = a.Id, P2 = tableIndex, P3 = orderKeySelector1, P4 = orderKeySelector2... }
 
             var dynamicProperties = dynamicType.Properties;
 
-            ParameterExpression parameter = Expression.Parameter(typeof(TEntity), "a");
+            ParameterExpression parameter = Expression.Parameter(queryPlan.QueryModel.RootEntityType, "a");
 
             List<MemberBinding> bindings = new List<MemberBinding>();
             MemberAssignment keyBind = Expression.Bind(dynamicProperties[0].Property, Expression.MakeMemberAccess(parameter, entityTypeDescriptor.PrimaryKeys.First().Definition.Property));
@@ -122,19 +111,21 @@ namespace Chloe.Sharding
 
             NewExpression newExp = Expression.New(dynamicType.Type);
             Expression lambdaBody = Expression.MemberInit(newExp, bindings);
-            LambdaExpression selector = Expression.Lambda(typeof(Func<,>).MakeGenericType(typeof(TEntity), dynamicType.Type), lambdaBody, parameter);
+            LambdaExpression selector = Expression.Lambda(typeof(Func<,>).MakeGenericType(queryPlan.QueryModel.RootEntityType, dynamicType.Type), lambdaBody, parameter);
 
             return selector;
         }
 
-        public static List<TableDataQueryPlan<TEntity>> MakeEntityQueryPlans<TEntity>(ShardingQueryModel queryModel, List<KeyQueryResult> keyResults, TypeDescriptor typeDescriptor, int maxInItems)
+
+
+        public static List<TableDataQueryPlan> MakeEntityQueryPlans(ShardingQueryModel queryModel, List<KeyQueryResult> keyResults, TypeDescriptor typeDescriptor, int maxInItems)
         {
-            List<TableDataQueryPlan<TEntity>> queryPlans = new List<TableDataQueryPlan<TEntity>>();
+            List<TableDataQueryPlan> queryPlans = new List<TableDataQueryPlan>();
 
             var listConstructor = typeof(List<>).MakeGenericType(typeDescriptor.PrimaryKeys.First().PropertyType).GetConstructor(new Type[] { typeof(int) });
             InstanceCreator listCreator = InstanceCreatorContainer.Get(listConstructor);
 
-            ParameterExpression parameter = Expression.Parameter(typeof(TEntity), "a");
+            ParameterExpression parameter = Expression.Parameter(queryModel.RootEntityType, "a");
             Expression keyMemberAccess = Expression.MakeMemberAccess(parameter, typeDescriptor.PrimaryKeys.First().Definition.Property);
 
             foreach (var keyResult in keyResults.Where(a => a.Keys.Count > 0))
@@ -152,15 +143,15 @@ namespace Chloe.Sharding
                     Expression containsCall = Expression.Call(Expression.Constant(keyList), keyList.GetType().GetMethod(nameof(List<int>.Contains)), keyMemberAccess);
                     Expression conditionBody = containsCall;
 
-                    LambdaExpression condition = LambdaExpression.Lambda(typeof(Func<TEntity, bool>), conditionBody, parameter);
+                    LambdaExpression condition = LambdaExpression.Lambda(typeof(Func<,>).MakeGenericType(queryModel.RootEntityType, typeof(bool)), conditionBody, parameter);
 
-                    DataQueryModel dataQueryModel = new DataQueryModel();
+                    DataQueryModel dataQueryModel = new DataQueryModel(queryModel.RootEntityType);
                     dataQueryModel.Table = keyResult.Table;
                     dataQueryModel.IgnoreAllFilters = true;
                     dataQueryModel.Orderings.AddRange(queryModel.Orderings);
                     dataQueryModel.Conditions.Add(condition);
 
-                    TableDataQueryPlan<TEntity> queryPlan = new TableDataQueryPlan<TEntity>();
+                    TableDataQueryPlan queryPlan = new TableDataQueryPlan();
                     queryPlan.QueryModel = dataQueryModel;
 
                     queryPlans.Add(queryPlan);
@@ -184,7 +175,7 @@ namespace Chloe.Sharding
         }
         public static DataQueryModel MakeDataQueryModel(IPhysicTable table, ShardingQueryModel queryModel, int? skip, int? take)
         {
-            DataQueryModel dataQueryModel = new DataQueryModel();
+            DataQueryModel dataQueryModel = new DataQueryModel(queryModel.RootEntityType);
             dataQueryModel.Table = table;
             dataQueryModel.IgnoreAllFilters = queryModel.IgnoreAllFilters;
             dataQueryModel.Conditions.AddRange(queryModel.Conditions);
@@ -195,7 +186,14 @@ namespace Chloe.Sharding
             return dataQueryModel;
         }
 
-        public static IQuery<T> MakeQueryWithoutSkipAndTake<T>(IDbContext dbContext, DataQueryModel queryModel)
+        public static IQuery MakeQuery(IDbContext dbContext, DataQueryModel queryModel, bool withSkipAndTake)
+        {
+            Type entityType = queryModel.RootEntityType;
+            var method = typeof(ShardingHelpers).GetMethod(nameof(ShardingHelpers.MakeTypedQuery), new Type[] { typeof(IDbContext), typeof(DataQueryModel), typeof(bool) });
+            var query = (IQuery)method.MakeGenericMethod(entityType).Invoke(null, new object[3] { dbContext, queryModel, withSkipAndTake });
+            return query;
+        }
+        static IQuery<T> MakeTypedQuery<T>(IDbContext dbContext, DataQueryModel queryModel, bool withSkipAndTake)
         {
             var q = dbContext.Query<T>(queryModel.Table.Name);
 
@@ -218,6 +216,18 @@ namespace Chloe.Sharding
                     orderedQuery = orderedQuery.InnerThenBy(ordering);
 
                 q = orderedQuery;
+            }
+
+            if (withSkipAndTake)
+            {
+                if (queryModel.Skip != null)
+                {
+                    q = q.Skip(queryModel.Skip.Value);
+                }
+                if (queryModel.Take != null)
+                {
+                    q = q.Take(queryModel.Take.Value);
+                }
             }
 
             return q;

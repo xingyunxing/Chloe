@@ -23,12 +23,12 @@ namespace Chloe.Sharding
             if (queryPlan.Tables.Count > 1)
             {
                 //主键或唯一索引查询
-                bool isUniqueDataQuery = UniqueDataQueryAuthenticator.IsUniqueDataQuery(queryPlan.ShardingContext, queryPlan.Condition);
+                bool isUniqueDataQuery = UniqueDataQueryAuthenticator.IsUniqueDataQuery(queryPlan.ShardingContext, queryPlan.QueryModel.GetFinalConditions());
 
                 if (isUniqueDataQuery)
                 {
-                    UniqueDataQuery<T> query = new UniqueDataQuery<T>(queryPlan);
-                    return query;
+                    UniqueDataQuery query = new UniqueDataQuery(queryPlan);
+                    return (IFeatureEnumerable<T>)query;
                 }
             }
 
@@ -47,11 +47,11 @@ namespace Chloe.Sharding
             if (!queryPlan.QueryModel.HasSkip())
             {
                 //未指定 skip
-                return new NonPagingQuery<T>(queryPlan);
+                return (IFeatureEnumerable<T>)new NonPagingQuery(queryPlan);
             }
 
-            OrdinaryQuery<T> ordinaryQuery = new OrdinaryQuery<T>(queryPlan);
-            return ordinaryQuery;
+            OrdinaryQuery ordinaryQuery = new OrdinaryQuery(queryPlan);
+            return (IFeatureEnumerable<T>)ordinaryQuery;
         }
 
         async Task<PagingExecuteResult<T>> ExecutePaging(int pageNumber, int pageSize)
@@ -61,77 +61,81 @@ namespace Chloe.Sharding
         }
         async Task<PagingExecuteResult<T>> ExecutePaging(ShardingQueryPlan queryPlan)
         {
-            AggregateQuery<T, long> countQuery = this.GetCountQuery(queryPlan);
+            throw new NotImplementedException();
+            //AggregateQuery<T, long> countQuery = this.GetCountQuery(queryPlan);
 
-            List<QueryResult<long>> routeTableCounts = await countQuery.ToListAsync();
-            long totals = routeTableCounts.Select(a => a.Result).Sum();
+            //List<QueryResult<long>> routeTableCounts = await countQuery.ToListAsync();
+            //long totals = routeTableCounts.Select(a => a.Result).Sum();
 
-            if (queryPlan.IsOrderedTables)
-            {
-                OrderedTableQuery<T> orderedTableQuery = new OrderedTableQuery<T>(queryPlan, routeTableCounts);
-                return new PagingExecuteResult<T>(totals, orderedTableQuery);
-            }
+            //if (queryPlan.IsOrderedTables)
+            //{
+            //    OrderedTableQuery<T> orderedTableQuery = new OrderedTableQuery<T>(queryPlan, routeTableCounts);
+            //    return new PagingExecuteResult<T>(totals, orderedTableQuery);
+            //}
 
-            OrdinaryQuery<T> ordinaryQuery = new OrdinaryQuery<T>(queryPlan);
-            return new PagingExecuteResult<T>(totals, ordinaryQuery);
+            //OrdinaryQuery<T> ordinaryQuery = new OrdinaryQuery<T>(queryPlan);
+            //return new PagingExecuteResult<T>(totals, ordinaryQuery);
         }
         async Task<long> QueryCount()
         {
-            AggregateQuery<T, long> countQuery = this.GetCountQuery();
-            return await countQuery.AsAsyncEnumerable().Select(a => a.Result).SumAsync();
+            throw new NotImplementedException();
+            //AggregateQuery<T, long> countQuery = this.GetCountQuery();
+            //return await countQuery.AsAsyncEnumerable().Select(a => a.Result).SumAsync();
         }
-        AggregateQuery<T, long> GetCountQuery(ShardingQueryPlan queryPlan = null)
+        AggregateQuery GetCountQuery(ShardingQueryPlan queryPlan = null)
         {
-            Func<IQuery<T>, bool, Task<long>> executor = async (query, @async) =>
-            {
-                long result = @async ? await query.LongCountAsync() : query.LongCount();
-                return result;
-            };
+            throw new NotImplementedException();
+            //Func<IQuery<T>, bool, Task<long>> executor = async (query, @async) =>
+            //{
+            //    long result = @async ? await query.LongCountAsync() : query.LongCount();
+            //    return result;
+            //};
 
-            AggregateQuery<T, long> aggQuery = new AggregateQuery<T, long>(queryPlan ?? this.MakeQueryPlan(this), executor);
-            return aggQuery;
+            //AggregateQuery<T, long> aggQuery = new AggregateQuery<T, long>(queryPlan ?? this.MakeQueryPlan(this), executor);
+            //return aggQuery;
         }
 
         async Task<bool> QueryAny()
         {
             ShardingQueryPlan queryPlan = this.MakeQueryPlan(this);
-            AnyQuery<T> anyQuery = new AnyQuery<T>(queryPlan);
+            AnyQuery anyQuery = new AnyQuery(queryPlan);
 
-            List<QueryResult<bool>> results = await anyQuery.ToListAsync();
-            bool hasData = results.Any(a => a.Result == true);
+            List<QueryResult<object>> results = await anyQuery.ToListAsync();
+            bool hasData = results.Any(a => (bool)a.Result == true);
             return hasData;
         }
 
         async Task<decimal?> QueryAverageAsync(LambdaExpression selector)
         {
-            var aggSelector = ShardingHelpers.MakeAggregateSelector<T>(selector);
+            throw new NotImplementedException();
+            // var aggSelector = ShardingHelpers.MakeAggregateSelector<T>(selector);
 
-            Func<IQuery<T>, bool, Task<AggregateModel>> executor = async (query, @async) =>
-            {
-                var q = query.Select(aggSelector);
-                AggregateModel result = @async ? await q.FirstAsync() : q.First();
-                return result;
-            };
+            // Func<IQuery, bool, Task<object>> executor = async (query, @async) =>
+            //{
+            //    var q = query.Select(aggSelector);
+            //    AggregateModel result = @async ? await q.FirstAsync() : q.First();
+            //    return result;
+            //};
 
-            AggregateQuery<T, AggregateModel> aggQuery = new AggregateQuery<T, AggregateModel>(this.MakeQueryPlan(this), executor);
+            // AggregateQuery aggQuery = new AggregateQuery(this.MakeQueryPlan(this), executor);
 
-            decimal? sum = null;
-            long count = 0;
+            // decimal? sum = null;
+            // long count = 0;
 
-            await aggQuery.AsAsyncEnumerable().Select(a => a.Result).ForEach(a =>
-            {
-                if (a.Sum == null)
-                    return;
+            // await aggQuery.AsAsyncEnumerable().Select(a => a.Result).ForEach(a =>
+            // {
+            //     if (a.Sum == null)
+            //         return;
 
-                sum = (sum ?? 0) + a.Sum.Value;
-                count = count + a.Count;
-            });
+            //     sum = (sum ?? 0) + a.Sum.Value;
+            //     count = count + a.Count;
+            // });
 
-            if (sum == null)
-                return null;
+            // if (sum == null)
+            //     return null;
 
-            decimal avg = sum.Value / count;
-            return avg;
+            // decimal avg = sum.Value / count;
+            // return avg;
         }
 
         ShardingQueryPlan MakeQueryPlan(ShardingQuery<T> query)
@@ -148,9 +152,7 @@ namespace Chloe.Sharding
 
             queryPlan.ShardingContext = shardingContext;
 
-            var condition = ShardingHelpers.ConditionCombine(queryPlan.QueryModel);
-            queryPlan.Condition = condition;
-            List<RouteTable> routeTables = ShardingTableDiscoverer.GetRouteTables(condition, shardingContext).ToList();
+            List<RouteTable> routeTables = ShardingTableDiscoverer.GetRouteTables(queryPlan.QueryModel.GetFinalConditions(), shardingContext).ToList();
 
             List<Ordering> orderings = queryPlan.QueryModel.Orderings;
 

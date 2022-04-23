@@ -15,7 +15,7 @@
         {
             var hasNext = await base.MoveNext(@async);
 
-            if (this.QueryPlan.IsTrackingQuery)
+            if (this.QueryModel.IsTracking)
             {
                 if (hasNext)
                 {

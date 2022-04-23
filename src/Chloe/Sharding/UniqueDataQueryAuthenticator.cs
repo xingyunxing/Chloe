@@ -21,6 +21,21 @@ namespace Chloe.Sharding
             UniqueDataQueryAuthenticator authenticator = new UniqueDataQueryAuthenticator(shardingContext);
             return authenticator.Visit(exp);
         }
+        public static bool IsUniqueDataQuery(IShardingContext shardingContext, IEnumerable<Expression> exps)
+        {
+            UniqueDataQueryAuthenticator authenticator = new UniqueDataQueryAuthenticator(shardingContext);
+            foreach (Expression exp in exps)
+            {
+                bool isUniqueQuery = authenticator.Visit(exp);
+
+                if (isUniqueQuery)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         protected override bool VisitLambda(LambdaExpression exp)
         {

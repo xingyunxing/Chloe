@@ -15,13 +15,37 @@ namespace Chloe.Sharding
 
         IShardingContext ShardingContext { get; set; }
 
-        public static IEnumerable<RouteTable> GetRouteTables(Expression exp, IShardingContext shardingContext)
+        public static IEnumerable<RouteTable> GetRouteTables(Expression condition, IShardingContext shardingContext)
         {
-            if (exp == null)
+            if (condition == null)
                 return shardingContext.GetTables();
 
             ShardingTableDiscoverer peeker = new ShardingTableDiscoverer(shardingContext);
-            return peeker.Visit(exp);
+            return peeker.Visit(condition);
+        }
+        public static IEnumerable<RouteTable> GetRouteTables(IEnumerable<Expression> conditions, IShardingContext shardingContext)
+        {
+            ShardingTableDiscoverer peeker = new ShardingTableDiscoverer(shardingContext);
+
+            IEnumerable<RouteTable> retRouteTables = null;
+            foreach (var condition in conditions)
+            {
+                IEnumerable<RouteTable> routeTables = peeker.Visit(condition);
+                if (retRouteTables == null)
+                {
+                    retRouteTables = routeTables;
+                    continue;
+                }
+
+                retRouteTables = Intersect(retRouteTables, routeTables);
+            }
+
+            if (retRouteTables == null)
+            {
+                retRouteTables = shardingContext.GetTables();
+            }
+
+            return retRouteTables;
         }
 
         protected override IEnumerable<RouteTable> VisitExpression(Expression exp)
@@ -101,11 +125,11 @@ namespace Chloe.Sharding
 
         protected override IEnumerable<RouteTable> VisitBinary_AndAlso(BinaryExpression exp)
         {
-            return this.Intersect(this.Visit(exp.Left), this.Visit(exp.Right));
+            return Intersect(this.Visit(exp.Left), this.Visit(exp.Right));
         }
         protected override IEnumerable<RouteTable> VisitBinary_OrElse(BinaryExpression exp)
         {
-            return this.Union(this.Visit(exp.Left), this.Visit(exp.Right));
+            return Union(this.Visit(exp.Left), this.Visit(exp.Right));
         }
 
         protected override IEnumerable<RouteTable> VisitMethodCall(MethodCallExpression exp)
@@ -204,11 +228,11 @@ namespace Chloe.Sharding
             return null;
         }
 
-        IEnumerable<RouteTable> Intersect(IEnumerable<RouteTable> source1, IEnumerable<RouteTable> source2)
+        static IEnumerable<RouteTable> Intersect(IEnumerable<RouteTable> source1, IEnumerable<RouteTable> source2)
         {
             return source1.Intersect(source2, RouteTableEqualityComparer.Instance);
         }
-        IEnumerable<RouteTable> Union(IEnumerable<RouteTable> source1, IEnumerable<RouteTable> source2)
+        static IEnumerable<RouteTable> Union(IEnumerable<RouteTable> source1, IEnumerable<RouteTable> source2)
         {
             return source1.Union(source2, RouteTableEqualityComparer.Instance);
         }

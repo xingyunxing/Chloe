@@ -117,7 +117,7 @@ namespace Chloe.Sharding.Queries
                     {
                         var table = this.QueryPlan.Tables[i];
 
-                        GroupAggregateQueryModel groupAggregateQueryModel = new GroupAggregateQueryModel();
+                        GroupAggregateQueryModel groupAggregateQueryModel = new GroupAggregateQueryModel(this.QueryModel.RootEntityType);
                         groupAggregateQueryModel.Table = table;
                         groupAggregateQueryModel.Conditions = this.QueryModel.Conditions;
                         groupAggregateQueryModel.Selector = dynamicTypeSelector;
@@ -126,7 +126,7 @@ namespace Chloe.Sharding.Queries
                         queryModels.Add(groupAggregateQueryModel);
                     }
 
-                    List<SingleTableGroupAggregateQuery<T>> queries = new List<SingleTableGroupAggregateQuery<T>>(this.QueryPlan.Tables.Count);
+                    List<SingleTableGroupAggregateQuery> queries = new List<SingleTableGroupAggregateQuery>(this.QueryPlan.Tables.Count);
 
                     foreach (var group in queryModels.GroupBy(a => a.Table.DataSource.Name))
                     {
@@ -139,7 +139,7 @@ namespace Chloe.Sharding.Queries
 
                         foreach (var queryModel in group)
                         {
-                            SingleTableGroupAggregateQuery<T> singleTableGroupAggregateQuery = new Queries.SingleTableGroupAggregateQuery<T>(dbContextPool, queryModel, lazyQuery);
+                            SingleTableGroupAggregateQuery singleTableGroupAggregateQuery = new Queries.SingleTableGroupAggregateQuery(dbContextPool, queryModel, lazyQuery);
                             queries.Add(singleTableGroupAggregateQuery);
                         }
                     }

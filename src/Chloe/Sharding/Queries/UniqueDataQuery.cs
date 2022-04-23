@@ -2,11 +2,7 @@
 
 namespace Chloe.Sharding.Queries
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    internal class UniqueDataQuery<T> : FeatureEnumerable<T>
+    internal class UniqueDataQuery : FeatureEnumerable<object>
     {
         ShardingQueryPlan _queryPlan;
 
@@ -15,31 +11,31 @@ namespace Chloe.Sharding.Queries
             this._queryPlan = queryPlan;
         }
 
-        public override IFeatureEnumerator<T> GetFeatureEnumerator(CancellationToken cancellationToken = default)
+        public override IFeatureEnumerator<object> GetFeatureEnumerator(CancellationToken cancellationToken = default)
         {
             return new Enumerator(this, cancellationToken);
         }
 
-        class Enumerator : QueryFeatureEnumerator<T>
+        class Enumerator : QueryFeatureEnumerator<object>
         {
-            UniqueDataQuery<T> _enumerable;
+            UniqueDataQuery _enumerable;
             CancellationToken _cancellationToken;
 
-            public Enumerator(UniqueDataQuery<T> enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryPlan)
+            public Enumerator(UniqueDataQuery enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryPlan)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;
             }
 
-            protected override async Task<IFeatureEnumerator<T>> CreateEnumerator(bool @async)
+            protected override async Task<IFeatureEnumerator<object>> CreateEnumerator(bool @async)
             {
                 UniqueDataParallelQueryContext queryContext = new UniqueDataParallelQueryContext();
 
                 try
                 {
-                    List<TableDataQueryPlan<T>> dataQueryPlans = this.MakeQueryPlans(queryContext);
+                    List<TableDataQueryPlan> dataQueryPlans = this.MakeQueryPlans(queryContext);
                     List<OrderProperty> orders = this.QueryModel.MakeOrderProperties();
-                    ParallelMergeEnumerable<T> mergeResult = new ParallelMergeEnumerable<T>(queryContext, dataQueryPlans.Select(a => new OrderedFeatureEnumerable<T>(a.Query, orders)));
+                    ParallelMergeEnumerable<object> mergeResult = new ParallelMergeEnumerable<object>(queryContext, dataQueryPlans.Select(a => new OrderedFeatureEnumerable<object>(a.Query, orders)));
 
                     var enumerator = mergeResult.GetFeatureEnumerator(this._cancellationToken);
 
@@ -52,15 +48,15 @@ namespace Chloe.Sharding.Queries
                 }
             }
 
-            List<TableDataQueryPlan<T>> MakeQueryPlans(ParallelQueryContext queryContext)
+            List<TableDataQueryPlan> MakeQueryPlans(ParallelQueryContext queryContext)
             {
-                List<TableDataQueryPlan<T>> dataQueryPlans = new List<TableDataQueryPlan<T>>();
+                List<TableDataQueryPlan> dataQueryPlans = new List<TableDataQueryPlan>();
 
                 foreach (IPhysicTable table in this.QueryPlan.Tables)
                 {
                     DataQueryModel dataQueryModel = ShardingHelpers.MakeDataQueryModel(table, this.QueryModel);
 
-                    TableDataQueryPlan<T> queryPlan = new TableDataQueryPlan<T>();
+                    TableDataQueryPlan queryPlan = new TableDataQueryPlan();
                     queryPlan.QueryModel = dataQueryModel;
 
                     dataQueryPlans.Add(queryPlan);
@@ -78,7 +74,7 @@ namespace Chloe.Sharding.Queries
 
                     foreach (var dataQuery in group)
                     {
-                        SingleTableEntityQuery<T> query = new SingleTableEntityQuery<T>(queryContext, dbContextPool, dataQuery.QueryModel, lazyQuery);
+                        SingleTableEntityQuery query = new SingleTableEntityQuery(queryContext, dbContextPool, dataQuery.QueryModel, lazyQuery);
                         dataQuery.Query = query;
                     }
                 }

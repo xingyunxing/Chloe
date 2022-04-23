@@ -5,11 +5,11 @@ using System.Threading;
 
 namespace Chloe.Sharding.Queries
 {
-    class DynamicDataQueryPlan<TEntity>
+    class DynamicDataQueryPlan
     {
         public DataQueryModel QueryModel { get; set; }
 
-        public DynamicModelQuery<TEntity> Query { get; set; }
+        public DynamicModelQuery Query { get; set; }
 
         public List<object> Keys { get; set; } = new List<object>();
     }
@@ -17,8 +17,7 @@ namespace Chloe.Sharding.Queries
     /// <summary>
     /// 表主键查询
     /// </summary>
-    /// <typeparam name="TEntity"></typeparam>
-    internal class KeyPagingQuery<TEntity> : FeatureEnumerable<KeyQueryResult>
+    internal class KeyPagingQuery : FeatureEnumerable<KeyQueryResult>
     {
         ShardingQueryPlan _queryPlan;
 
@@ -34,10 +33,10 @@ namespace Chloe.Sharding.Queries
 
         class Enumerator : FeatureEnumerator<KeyQueryResult>
         {
-            KeyPagingQuery<TEntity> _enumerable;
+            KeyPagingQuery _enumerable;
             CancellationToken _cancellationToken;
 
-            public Enumerator(KeyPagingQuery<TEntity> enumerable, CancellationToken cancellationToken = default)
+            public Enumerator(KeyPagingQuery enumerable, CancellationToken cancellationToken = default)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;
@@ -56,7 +55,7 @@ namespace Chloe.Sharding.Queries
                 DynamicType dynamicType = this.GetDynamicType();
                 try
                 {
-                    List<DynamicDataQueryPlan<TEntity>> dataQueryPlans = this.MakeDynamicDataQueryPlans(queryContext, dynamicType);
+                    List<DynamicDataQueryPlan> dataQueryPlans = this.MakeDynamicDataQueryPlans(queryContext, dynamicType);
                     List<OrderProperty> orders = this.MakeOrderings(dynamicType);
 
                     await this.ExecuteQuery(queryContext, dataQueryPlans, dynamicType, orders);
@@ -85,17 +84,17 @@ namespace Chloe.Sharding.Queries
 
                 return dynamicType;
             }
-            List<DynamicDataQueryPlan<TEntity>> MakeDynamicDataQueryPlans(ParallelQueryContext queryContext, DynamicType dynamicType)
+            List<DynamicDataQueryPlan> MakeDynamicDataQueryPlans(ParallelQueryContext queryContext, DynamicType dynamicType)
             {
-                List<DynamicDataQueryPlan<TEntity>> dataQueryPlans = new List<DynamicDataQueryPlan<TEntity>>(this.Tables.Count);
+                List<DynamicDataQueryPlan> dataQueryPlans = new List<DynamicDataQueryPlan>(this.Tables.Count);
                 for (int i = 0; i < this.Tables.Count; i++)
                 {
                     var table = this.Tables[i];
-                    LambdaExpression selector = ShardingHelpers.MakeDynamicSelector<TEntity>(this.QueryPlan, dynamicType, this.EntityTypeDescriptor, i);
+                    LambdaExpression selector = ShardingHelpers.MakeDynamicSelector(this.QueryPlan, dynamicType, this.EntityTypeDescriptor, i);
                     DataQueryModel dataQueryModel = ShardingHelpers.MakeDataQueryModel(table, this.QueryPlan.QueryModel);
                     dataQueryModel.Selector = selector;
 
-                    DynamicDataQueryPlan<TEntity> dataQueryPlan = new DynamicDataQueryPlan<TEntity>();
+                    DynamicDataQueryPlan dataQueryPlan = new DynamicDataQueryPlan();
                     dataQueryPlan.QueryModel = dataQueryModel;
 
                     dataQueryPlans.Add(dataQueryPlan);
@@ -112,7 +111,7 @@ namespace Chloe.Sharding.Queries
 
                     foreach (var dataQuery in group)
                     {
-                        DynamicModelQuery<TEntity> query = new DynamicModelQuery<TEntity>(dbContextPool, dataQuery.QueryModel, lazyQuery);
+                        DynamicModelQuery query = new DynamicModelQuery(dbContextPool, dataQuery.QueryModel, lazyQuery);
                         dataQuery.Query = query;
                     }
                 }
@@ -137,7 +136,7 @@ namespace Chloe.Sharding.Queries
                 return orders;
             }
 
-            async Task ExecuteQuery(ParallelQueryContext queryContext, List<DynamicDataQueryPlan<TEntity>> dataQueryPlans, DynamicType dynamicType, List<OrderProperty> orders)
+            async Task ExecuteQuery(ParallelQueryContext queryContext, List<DynamicDataQueryPlan> dataQueryPlans, DynamicType dynamicType, List<OrderProperty> orders)
             {
                 ParallelMergeEnumerable<object> mergeEnumerable = new ParallelMergeEnumerable<object>(queryContext, dataQueryPlans.Select(a => new OrderedFeatureEnumerable<object>(a.Query, orders)));
 

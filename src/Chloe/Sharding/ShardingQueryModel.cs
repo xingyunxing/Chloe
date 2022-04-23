@@ -40,6 +40,17 @@ namespace Chloe.Sharding
             return orders;
         }
 
+        public IEnumerable<LambdaExpression> GetFinalConditions()
+        {
+            IEnumerable<LambdaExpression> conditions = this.Conditions;
+            if (!this.IgnoreAllFilters)
+            {
+                conditions = conditions.Concat(this.GlobalFilters).Concat(this.ContextFilters);
+            }
+
+            return conditions;
+        }
+
         public bool HasSkip()
         {
             return this.Skip.HasValue && this.Skip.Value > 0;

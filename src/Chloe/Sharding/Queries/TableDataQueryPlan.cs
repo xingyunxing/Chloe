@@ -1,9 +1,9 @@
 ﻿namespace Chloe.Sharding.Queries
 {
-    class TableDataQueryPlan<T>
+    class TableDataQueryPlan
     {
         public DataQueryModel QueryModel { get; set; }
 
-        public SingleTableEntityQuery<T> Query { get; set; }
+        public SingleTableEntityQuery Query { get; set; }
     }
 }

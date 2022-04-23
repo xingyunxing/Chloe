@@ -4,7 +4,7 @@ using System.Threading;
 
 namespace Chloe.Sharding.Queries
 {
-    class DynamicModelQuery<TEntity> : FeatureEnumerable<object>
+    class DynamicModelQuery : FeatureEnumerable<object>
     {
         IShareDbContextPool DbContextPool;
         DataQueryModel QueryModel;
@@ -22,18 +22,18 @@ namespace Chloe.Sharding.Queries
             return new Enumerator(this, cancellationToken);
         }
 
-        class Enumerator : QueryEnumerator<object>
+        class Enumerator : QueryEnumerator
         {
-            DynamicModelQuery<TEntity> _enumerable;
+            DynamicModelQuery _enumerable;
 
-            public Enumerator(DynamicModelQuery<TEntity> enumerable, CancellationToken cancellationToken) : base(enumerable.DbContextPool, cancellationToken)
+            public Enumerator(DynamicModelQuery enumerable, CancellationToken cancellationToken) : base(enumerable.DbContextPool, cancellationToken)
             {
                 this._enumerable = enumerable;
             }
 
             protected override async Task<(IFeatureEnumerable<object> Query, bool IsLazyQuery)> CreateQuery(IDbContext dbContext, bool @async)
             {
-                var query = ShardingHelpers.MakeQueryWithoutSkipAndTake<TEntity>(dbContext, this._enumerable.QueryModel);
+                var query = ShardingHelpers.MakeQuery(dbContext, this._enumerable.QueryModel, false);
 
                 var q = this.MakeDynamicQuery(query);
 
@@ -58,11 +58,11 @@ namespace Chloe.Sharding.Queries
                 return (new FeatureEnumerableAdapter<object>(lazyEnumerable), true);
             }
 
-            object MakeDynamicQuery(IQuery<TEntity> q)
+            object MakeDynamicQuery(IQuery q)
             {
                 var queryModel = this._enumerable.QueryModel;
 
-                var queryType = typeof(IQuery<TEntity>);
+                var queryType = q.GetType();
                 var selectMethod = queryType.GetMethod(nameof(IQuery<object>.Select)).MakeGenericMethod(queryModel.Selector.ReturnType);
                 var query = selectMethod.FastInvoke(q, queryModel.Selector);
                 if (queryModel.Skip != null)

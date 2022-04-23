@@ -7,13 +7,18 @@ namespace Chloe.Sharding.Queries
 {
     class GroupAggregateQueryModel
     {
+        public GroupAggregateQueryModel(Type rootEntityType)
+        {
+            this.RootEntityType = rootEntityType;
+        }
+        public Type RootEntityType { get; set; }
         public IPhysicTable Table { get; set; }
         public List<LambdaExpression> Conditions { get; set; } = new List<LambdaExpression>();
         public List<LambdaExpression> GroupKeySelectors { get; set; } = new List<LambdaExpression>();
         public LambdaExpression Selector { get; set; }
     }
 
-    internal class SingleTableGroupAggregateQuery<T> : FeatureEnumerable<object>
+    internal class SingleTableGroupAggregateQuery : FeatureEnumerable<object>
     {
         IShareDbContextPool DbContextPool;
         GroupAggregateQueryModel QueryModel;
@@ -31,12 +36,12 @@ namespace Chloe.Sharding.Queries
             return new Enumerator(this, cancellationToken);
         }
 
-        class Enumerator : QueryEnumerator<object>
+        class Enumerator : QueryEnumerator
         {
-            SingleTableGroupAggregateQuery<T> _enumerable;
+            SingleTableGroupAggregateQuery _enumerable;
             CancellationToken _cancellationToken;
 
-            public Enumerator(SingleTableGroupAggregateQuery<T> enumerable, CancellationToken cancellationToken = default) : base(enumerable.DbContextPool)
+            public Enumerator(SingleTableGroupAggregateQuery enumerable, CancellationToken cancellationToken = default) : base(enumerable.DbContextPool)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;
@@ -67,10 +72,16 @@ namespace Chloe.Sharding.Queries
                 return (new FeatureEnumerableAdapter<object>(lazyEnumerable), true);
             }
 
-            object MakeGroupAggregateQuery(IDbContext dbContext)
+            IQuery MakeGroupAggregateQuery(IDbContext dbContext)
             {
-                var queryModel = this._enumerable.QueryModel;
+                GroupAggregateQueryModel queryModel = this._enumerable.QueryModel;
+                var method = this.GetType().GetMethod(nameof(Enumerator.MakeTypedGroupAggregateQuery)).MakeGenericMethod(queryModel.RootEntityType);
+                var query = (IQuery)method.FastInvoke(null, dbContext, queryModel);
+                return query;
+            }
 
+            static IQuery MakeTypedGroupAggregateQuery<T>(IDbContext dbContext, GroupAggregateQueryModel queryModel)
+            {
                 var query = dbContext.Query<T>(queryModel.Table.Name);
 
                 foreach (var condition in queryModel.Conditions)
@@ -94,7 +105,7 @@ namespace Chloe.Sharding.Queries
 
                 var selectMethod = groupQuery.GetType().GetMethod(nameof(IGroupingQuery<object>.Select)).MakeGenericMethod(queryModel.Selector.Body.Type);
 
-                var q = selectMethod.FastInvoke(groupQuery, queryModel.Selector);
+                var q = (IQuery)selectMethod.FastInvoke(groupQuery, queryModel.Selector);
                 return q;
             }
         }

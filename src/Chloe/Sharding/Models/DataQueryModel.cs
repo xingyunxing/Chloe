@@ -4,6 +4,12 @@ namespace Chloe.Sharding
 {
     class DataQueryModel
     {
+        public DataQueryModel(Type rootEntityType)
+        {
+            this.RootEntityType = rootEntityType;
+        }
+
+        public Type RootEntityType { get; set; }
         public IPhysicTable Table { get; set; }
 
         public int? Skip { get; set; }

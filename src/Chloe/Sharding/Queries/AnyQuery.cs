@@ -4,17 +4,13 @@ using System.Threading;
 
 namespace Chloe.Sharding.Queries
 {
-    class AnyQueryPlan<T>
+    class AnyQueryPlan
     {
         public DataQueryModel QueryModel { get; set; }
-        public SingleTableAnyQuery<T> Query { get; set; }
+        public SingleTableAnyQuery Query { get; set; }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="TEntity"></typeparam>
-    internal class AnyQuery<TEntity> : FeatureEnumerable<QueryResult<bool>>
+    internal class AnyQuery : FeatureEnumerable<QueryResult<object>>
     {
         ShardingQueryPlan _queryPlan;
         List<IPhysicTable> _tables;
@@ -25,28 +21,28 @@ namespace Chloe.Sharding.Queries
             this._tables = queryPlan.Tables;
         }
 
-        public override IFeatureEnumerator<QueryResult<bool>> GetFeatureEnumerator(CancellationToken cancellationToken = default)
+        public override IFeatureEnumerator<QueryResult<object>> GetFeatureEnumerator(CancellationToken cancellationToken = default)
         {
             return new Enumerator(this, cancellationToken);
         }
 
-        class Enumerator : IFeatureEnumerator<QueryResult<bool>>
+        class Enumerator : IFeatureEnumerator<QueryResult<object>>
         {
-            AnyQuery<TEntity> _enumerable;
+            AnyQuery _enumerable;
             CancellationToken _cancellationToken;
 
-            IFeatureEnumerator<bool> _innerEnumerator;
+            IFeatureEnumerator<object> _innerEnumerator;
 
             int _currentIdx = 0;
-            QueryResult<bool> _current;
+            QueryResult<object> _current;
 
-            public Enumerator(AnyQuery<TEntity> enumerable, CancellationToken cancellationToken = default)
+            public Enumerator(AnyQuery enumerable, CancellationToken cancellationToken = default)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;
             }
 
-            public QueryResult<bool> Current => this._current;
+            public QueryResult<object> Current => this._current;
 
             object IEnumerator.Current => this._current;
 
@@ -78,19 +74,19 @@ namespace Chloe.Sharding.Queries
                 var tables = this._enumerable._tables;
                 var queryPlan = this._enumerable._queryPlan;
 
-                List<AnyQueryPlan<TEntity>> countQueryPlans = new List<AnyQueryPlan<TEntity>>(tables.Count);
+                List<AnyQueryPlan> countQueryPlans = new List<AnyQueryPlan>(tables.Count);
                 foreach (IPhysicTable table in tables)
                 {
-                    AnyQueryPlan<TEntity> countQueryPlan = new AnyQueryPlan<TEntity>();
+                    AnyQueryPlan anyQueryPlan = new AnyQueryPlan();
 
-                    DataQueryModel dataQueryModel = new DataQueryModel();
+                    DataQueryModel dataQueryModel = new DataQueryModel(queryPlan.QueryModel.RootEntityType);
                     dataQueryModel.Table = table;
                     dataQueryModel.IgnoreAllFilters = queryPlan.QueryModel.IgnoreAllFilters;
                     dataQueryModel.Conditions.AddRange(queryPlan.QueryModel.Conditions);
 
-                    countQueryPlan.QueryModel = dataQueryModel;
+                    anyQueryPlan.QueryModel = dataQueryModel;
 
-                    countQueryPlans.Add(countQueryPlan);
+                    countQueryPlans.Add(anyQueryPlan);
                 }
 
                 AnyQueryParallelQueryContext queryContext = new AnyQueryParallelQueryContext();
@@ -102,14 +98,14 @@ namespace Chloe.Sharding.Queries
                     ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(this._enumerable._queryPlan.ShardingContext, group.First().QueryModel.Table.DataSource, count);
                     queryContext.AddManagedResource(dbContextPool);
 
-                    foreach (AnyQueryPlan<TEntity> countQueryPlan in group)
+                    foreach (AnyQueryPlan anyQueryPlan in group)
                     {
-                        SingleTableAnyQuery<TEntity> query = new SingleTableAnyQuery<TEntity>(queryContext, dbContextPool, countQueryPlan.QueryModel);
-                        countQueryPlan.Query = query;
+                        SingleTableAnyQuery query = new SingleTableAnyQuery(queryContext, dbContextPool, anyQueryPlan.QueryModel);
+                        anyQueryPlan.Query = query;
                     }
                 }
 
-                ParallelConcatEnumerable<bool> queryEnumerable = new ParallelConcatEnumerable<bool>(queryContext, countQueryPlans.Select(a => a.Query));
+                ParallelConcatEnumerable<object> queryEnumerable = new ParallelConcatEnumerable<object>(queryContext, countQueryPlans.Select(a => a.Query));
                 this._innerEnumerator = queryEnumerable.GetFeatureEnumerator(this._cancellationToken);
             }
             async BoolResultTask MoveNext(bool @async)
@@ -128,7 +124,7 @@ namespace Chloe.Sharding.Queries
                 }
 
                 IPhysicTable table = this._enumerable._tables[this._currentIdx++];
-                this._current = new QueryResult<bool>() { Table = table, Result = this._innerEnumerator.GetCurrent() };
+                this._current = new QueryResult<object>() { Table = table, Result = this._innerEnumerator.GetCurrent() };
                 return true;
             }
 

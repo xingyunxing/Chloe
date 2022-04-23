@@ -6,7 +6,7 @@ namespace Chloe.Sharding.Queries
     /// 有序的表数据查询
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal class OrderedTableQuery<T> : FeatureEnumerable<T>
+    internal class OrderedTableQuery : FeatureEnumerable<object>
     {
         ShardingQueryPlan _queryPlan;
         List<QueryResult<long>> _countQueryResults;
@@ -17,31 +17,31 @@ namespace Chloe.Sharding.Queries
             this._countQueryResults = countQueryResults;
         }
 
-        public override IFeatureEnumerator<T> GetFeatureEnumerator(CancellationToken cancellationToken = default)
+        public override IFeatureEnumerator<object> GetFeatureEnumerator(CancellationToken cancellationToken = default)
         {
             return new Enumerator(this, cancellationToken);
         }
 
-        class Enumerator : QueryFeatureEnumerator<T>, IFeatureEnumerator<T>
+        class Enumerator : QueryFeatureEnumerator<object>
         {
-            OrderedTableQuery<T> _enumerable;
+            OrderedTableQuery _enumerable;
             CancellationToken _cancellationToken;
 
-            public Enumerator(OrderedTableQuery<T> enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryPlan)
+            public Enumerator(OrderedTableQuery enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryPlan)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;
             }
 
-            protected override async Task<IFeatureEnumerator<T>> CreateEnumerator(bool @async)
+            protected override async Task<IFeatureEnumerator<object>> CreateEnumerator(bool @async)
             {
                 ParallelQueryContext queryContext = new ParallelQueryContext();
 
                 try
                 {
-                    List<TableDataQueryPlan<T>> dataQueryPlans = this.MakeQueryPlans(queryContext);
+                    List<TableDataQueryPlan> dataQueryPlans = this.MakeQueryPlans(queryContext);
 
-                    ParallelConcatEnumerable<T> concatEnumerable = new ParallelConcatEnumerable<T>(queryContext, dataQueryPlans.Select(a => a.Query));
+                    ParallelConcatEnumerable<object> concatEnumerable = new ParallelConcatEnumerable<object>(queryContext, dataQueryPlans.Select(a => a.Query));
                     var enumerator = concatEnumerable.GetFeatureEnumerator(this._cancellationToken);
                     return enumerator;
                 }
@@ -52,11 +52,11 @@ namespace Chloe.Sharding.Queries
                 }
             }
 
-            List<TableDataQueryPlan<T>> MakeQueryPlans(ParallelQueryContext queryContext)
+            List<TableDataQueryPlan> MakeQueryPlans(ParallelQueryContext queryContext)
             {
                 List<QueryResult<long>> countQueryResults = this._enumerable._countQueryResults;
 
-                List<TableDataQueryPlan<T>> dataQueryPlans = new List<TableDataQueryPlan<T>>();
+                List<TableDataQueryPlan> dataQueryPlans = new List<TableDataQueryPlan>();
 
                 long nextTableSkip = this.QueryPlan.QueryModel.Skip ?? 0;
                 long nextTableTake = this.QueryPlan.QueryModel.Take ?? int.MaxValue;
@@ -70,7 +70,7 @@ namespace Chloe.Sharding.Queries
                         int takeCount = (int)(canTake >= nextTableTake ? nextTableTake : canTake);
                         DataQueryModel dataQueryModel = ShardingHelpers.MakeDataQueryModel(countQueryResult.Table, this.QueryPlan.QueryModel, skipCount, takeCount);
 
-                        TableDataQueryPlan<T> queryPlan = new TableDataQueryPlan<T>();
+                        TableDataQueryPlan queryPlan = new TableDataQueryPlan();
                         queryPlan.QueryModel = dataQueryModel;
 
                         nextTableSkip = 0;
@@ -100,7 +100,7 @@ namespace Chloe.Sharding.Queries
 
                     foreach (var dataQueryPlan in group)
                     {
-                        SingleTableEntityQuery<T> query = new SingleTableEntityQuery<T>(queryContext, dbContextPool, dataQueryPlan.QueryModel, lazyQuery);
+                        SingleTableEntityQuery query = new SingleTableEntityQuery(queryContext, dbContextPool, dataQueryPlan.QueryModel, lazyQuery);
                         dataQueryPlan.Query = query;
                     }
                 }

@@ -13,7 +13,7 @@ namespace Chloe.Query
         public List<JoinQueryInfo> JoinedQueries { get { return this._joinedQueries; } }
         public List<LambdaExpression> FilterPredicates { get { return this._filterPredicates; } }
 
-        public JoinQuery(Query<T1> q1, Query<T2> q2, JoinType joinType, Expression<Func<T1, T2, bool>> on)
+        public JoinQuery(QueryBase q1, Query<T2> q2, JoinType joinType, Expression<Func<T1, T2, bool>> on)
         {
             this._rootQuery = q1;
             this._joinedQueries = new List<JoinQueryInfo>(1) { new JoinQueryInfo(q2, joinType, on) };
