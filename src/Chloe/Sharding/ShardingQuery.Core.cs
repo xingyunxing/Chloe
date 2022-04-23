@@ -1,5 +1,7 @@
 ﻿using Chloe.Reflection;
+using Chloe.Sharding.Models;
 using Chloe.Sharding.Queries;
+using System.Linq.Expressions;
 
 namespace Chloe.Sharding
 {
@@ -100,13 +102,49 @@ namespace Chloe.Sharding
             return hasData;
         }
 
+        async Task<decimal?> QueryAverageAsync(LambdaExpression selector)
+        {
+            var aggSelector = ShardingHelpers.MakeAggregateSelector<T>(selector);
+
+            Func<IQuery<T>, bool, Task<AggregateModel>> executor = async (query, @async) =>
+            {
+                var q = query.Select(aggSelector);
+                AggregateModel result = @async ? await q.FirstAsync() : q.First();
+                return result;
+            };
+
+            AggregateQuery<T, AggregateModel> aggQuery = new AggregateQuery<T, AggregateModel>(this.MakeQueryPlan(this), executor);
+
+            decimal? sum = null;
+            long count = 0;
+
+            await aggQuery.AsAsyncEnumerable().Select(a => a.Result).ForEach(a =>
+            {
+                if (a.Sum == null)
+                    return;
+
+                sum = (sum ?? 0) + a.Sum.Value;
+                count = count + a.Count;
+            });
+
+            if (sum == null)
+                return null;
+
+            decimal avg = sum.Value / count;
+            return avg;
+        }
 
         ShardingQueryPlan MakeQueryPlan(ShardingQuery<T> query)
         {
             ShardingQueryPlan queryPlan = new ShardingQueryPlan();
             queryPlan.QueryModel = ShardingQueryModelPeeker.Peek(query.InnerQuery.QueryExpression);
 
-            IShardingContext shardingContext = (query.InnerQuery.DbContext as ShardingDbContext).CreateShardingContext(queryPlan.QueryModel.RootEntityType);
+            //TODO get dbContext
+
+            throw new NotImplementedException();
+            ShardingDbContext dbContext = null;
+
+            IShardingContext shardingContext = dbContext.CreateShardingContext(queryPlan.QueryModel.RootEntityType);
 
             queryPlan.ShardingContext = shardingContext;
 
@@ -129,8 +167,6 @@ namespace Chloe.Sharding
 
             queryPlan.IsOrderedTables = sortResult.IsOrdered;
             queryPlan.Tables.AddRange(sortResult.Tables.Select(a => new PhysicTable(a)));
-
-            queryPlan.IsTrackingQuery = query.InnerQuery._trackEntity;
 
             return queryPlan;
         }

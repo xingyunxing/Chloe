@@ -15,6 +15,7 @@ namespace Chloe.Sharding
         public int? Skip { get; set; }
         public int? Take { get; set; }
 
+        public bool IsTracking { get; set; }
         public bool IgnoreAllFilters { get; set; }
 
         public List<LambdaExpression> Conditions { get; set; } = new List<LambdaExpression>();

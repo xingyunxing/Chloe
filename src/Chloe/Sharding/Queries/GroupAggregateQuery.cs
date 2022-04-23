@@ -1,5 +1,4 @@
 ﻿using Chloe.Core.Visitors;
-using Chloe.Descriptors;
 using Chloe.Reflection;
 using System.Linq.Expressions;
 using System.Threading;

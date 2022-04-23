@@ -35,25 +35,25 @@ namespace Chloe.Sharding
         protected override bool VisitBinary_Equal(BinaryExpression exp)
         {
             bool isUniqueDataMemberAccess = this.IsUniqueDataMemberAccess(exp.Left);
-            Expression otherSideExp = exp.Right;
+            Expression anotherSideExp = exp.Right;
 
             if (!isUniqueDataMemberAccess)
             {
                 isUniqueDataMemberAccess = this.IsUniqueDataMemberAccess(exp.Right);
-                otherSideExp = exp.Left;
+                anotherSideExp = exp.Left;
             }
 
             if (isUniqueDataMemberAccess)
             {
                 //TODO: 考虑 DateTime.Now 等可翻译情况
-                bool isEvaluable = otherSideExp.IsEvaluable();
+                bool isEvaluable = anotherSideExp.IsEvaluable();
 
                 if (!isEvaluable)
                 {
                     return false;
                 }
 
-                var value = otherSideExp.Evaluate();
+                var value = anotherSideExp.Evaluate();
 
                 return value != null;
             }

@@ -1,6 +1,4 @@
-﻿using Chloe.Core.Visitors;
-using Chloe.Query;
-using Chloe.Sharding.Models;
+﻿using Chloe.Query;
 using Chloe.Sharding.Queries;
 using Chloe.Threading.Tasks;
 using System.Linq.Expressions;
@@ -235,7 +233,7 @@ namespace Chloe.Sharding
 
         public IQuery<T> IgnoreAllFilters()
         {
-            throw new NotImplementedException();
+            return new ShardingQuery<T>(this.InnerQuery.IgnoreAllFilters());
         }
 
         public IIncludableQuery<T, TProperty> Include<TProperty>(Expression<Func<T, TProperty>> p)
