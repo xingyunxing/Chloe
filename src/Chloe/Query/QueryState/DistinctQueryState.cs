@@ -5,8 +5,7 @@ namespace Chloe.Query.QueryState
 {
     class DistinctQueryState : SubQueryState
     {
-        public DistinctQueryState(QueryModel queryModel)
-            : base(queryModel)
+        public DistinctQueryState(QueryContext context, QueryModel queryModel) : base(context, queryModel)
         {
         }
 

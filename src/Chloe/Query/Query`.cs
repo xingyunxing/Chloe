@@ -12,44 +12,33 @@ namespace Chloe.Query
     {
         static readonly List<Expression> EmptyArgumentList = new List<Expression>(0);
 
-        IDbContextInternal _dbContext;
         QueryExpression _expression;
-
-        internal bool _trackEntity = false;
-        public IDbContextInternal DbContext { get { return this._dbContext; } }
 
         Type IQuery.ElementType { get { return typeof(T); } }
 
         static RootQueryExpression CreateRootQueryExpression(IDbContextInternal dbContext, string explicitTable, LockType @lock)
         {
             Type entityType = typeof(T);
-            RootQueryExpression ret = new RootQueryExpression(entityType, explicitTable, @lock);
+            RootQueryExpression ret = new RootQueryExpression(entityType, dbContext, explicitTable, @lock);
             List<LambdaExpression> filters = dbContext.QueryFilters.FindValue(entityType);
             if (filters != null)
                 ret.ContextFilters.AddRange(filters);
 
             return ret;
         }
-        public Query(IDbContextInternal dbContext, string explicitTable, LockType @lock)
-            : this(dbContext, CreateRootQueryExpression(dbContext, explicitTable, @lock), false)
+        public Query(IDbContextInternal dbContext, string explicitTable, LockType @lock) : this(CreateRootQueryExpression(dbContext, explicitTable, @lock))
         {
         }
-        public Query(IDbContextInternal dbContext, QueryExpression exp)
-            : this(dbContext, exp, false)
+        public Query(QueryExpression exp)
         {
-        }
-        public Query(IDbContextInternal dbContext, QueryExpression exp, bool trackEntity)
-        {
-            this._dbContext = dbContext;
             this._expression = exp;
-            this._trackEntity = trackEntity;
         }
 
         public IQuery<TResult> Select<TResult>(Expression<Func<T, TResult>> selector)
         {
             PublicHelper.CheckNull(selector);
             SelectExpression e = new SelectExpression(typeof(TResult), _expression, selector);
-            return new Query<TResult>(this._dbContext, e, this._trackEntity);
+            return new Query<TResult>(e);
         }
 
         public IQuery<T> IncludeAll()
@@ -166,40 +155,40 @@ namespace Chloe.Query
 
         public IIncludableQuery<T, TProperty> Include<TProperty>(Expression<Func<T, TProperty>> navigationPath)
         {
-            return new IncludableQuery<T, TProperty>(this._dbContext, this._trackEntity, this.QueryExpression, navigationPath);
+            return new IncludableQuery<T, TProperty>(this.QueryExpression, navigationPath);
         }
         public IIncludableQuery<T, TCollectionItem> IncludeMany<TCollectionItem>(Expression<Func<T, IEnumerable<TCollectionItem>>> navigationPath)
         {
-            return new IncludableQuery<T, TCollectionItem>(this._dbContext, this._trackEntity, this.QueryExpression, navigationPath);
+            return new IncludableQuery<T, TCollectionItem>(this.QueryExpression, navigationPath);
         }
 
         public IQuery<T> Where(Expression<Func<T, bool>> predicate)
         {
             PublicHelper.CheckNull(predicate);
             WhereExpression e = new WhereExpression(typeof(T), this._expression, predicate);
-            return new Query<T>(this._dbContext, e, this._trackEntity);
+            return new Query<T>(e);
         }
         public IOrderedQuery<T> OrderBy<K>(Expression<Func<T, K>> keySelector)
         {
             PublicHelper.CheckNull(keySelector);
             OrderExpression e = new OrderExpression(typeof(T), this._expression, QueryExpressionType.OrderBy, keySelector);
-            return new OrderedQuery<T>(this._dbContext, e, this._trackEntity);
+            return new OrderedQuery<T>(e);
         }
         public IOrderedQuery<T> OrderByDesc<K>(Expression<Func<T, K>> keySelector)
         {
             PublicHelper.CheckNull(keySelector);
             OrderExpression e = new OrderExpression(typeof(T), this._expression, QueryExpressionType.OrderByDesc, keySelector);
-            return new OrderedQuery<T>(this._dbContext, e, this._trackEntity);
+            return new OrderedQuery<T>(e);
         }
         public IQuery<T> Skip(int count)
         {
             SkipExpression e = new SkipExpression(typeof(T), this._expression, count);
-            return new Query<T>(this._dbContext, e, this._trackEntity);
+            return new Query<T>(e);
         }
         public IQuery<T> Take(int count)
         {
             TakeExpression e = new TakeExpression(typeof(T), this._expression, count);
-            return new Query<T>(this._dbContext, e, this._trackEntity);
+            return new Query<T>(e);
         }
         public IQuery<T> TakePage(int pageNumber, int pageSize)
         {
@@ -234,17 +223,18 @@ namespace Chloe.Query
         public IQuery<T> Distinct()
         {
             DistinctExpression e = new DistinctExpression(typeof(T), this._expression);
-            return new Query<T>(this._dbContext, e, this._trackEntity);
+            return new Query<T>(e);
         }
         public IQuery<T> IgnoreAllFilters()
         {
             IgnoreAllFiltersExpression e = new IgnoreAllFiltersExpression(typeof(T), this._expression);
-            return new Query<T>(this._dbContext, e, this._trackEntity);
+            return new Query<T>(e);
         }
 
         public IJoinQuery<T, TOther> Join<TOther>(JoinType joinType, Expression<Func<T, TOther, bool>> on)
         {
-            return this.Join<TOther>(this._dbContext.Query<TOther>(), joinType, on);
+            IDbContext dbContext = this.QueryExpression.GetRootDbContext();
+            return this.Join<TOther>(dbContext.Query<TOther>(), joinType, on);
         }
         public IJoinQuery<T, TOther> Join<TOther>(IQuery<TOther> q, JoinType joinType, Expression<Func<T, TOther, bool>> on)
         {
@@ -255,19 +245,23 @@ namespace Chloe.Query
 
         public IJoinQuery<T, TOther> InnerJoin<TOther>(Expression<Func<T, TOther, bool>> on)
         {
-            return this.InnerJoin<TOther>(this._dbContext.Query<TOther>(), on);
+            IDbContext dbContext = this.QueryExpression.GetRootDbContext();
+            return this.InnerJoin<TOther>(dbContext.Query<TOther>(), on);
         }
         public IJoinQuery<T, TOther> LeftJoin<TOther>(Expression<Func<T, TOther, bool>> on)
         {
-            return this.LeftJoin<TOther>(this._dbContext.Query<TOther>(), on);
+            IDbContext dbContext = this.QueryExpression.GetRootDbContext();
+            return this.LeftJoin<TOther>(dbContext.Query<TOther>(), on);
         }
         public IJoinQuery<T, TOther> RightJoin<TOther>(Expression<Func<T, TOther, bool>> on)
         {
-            return this.RightJoin<TOther>(this._dbContext.Query<TOther>(), on);
+            IDbContext dbContext = this.QueryExpression.GetRootDbContext();
+            return this.RightJoin<TOther>(dbContext.Query<TOther>(), on);
         }
         public IJoinQuery<T, TOther> FullJoin<TOther>(Expression<Func<T, TOther, bool>> on)
         {
-            return this.FullJoin<TOther>(this._dbContext.Query<TOther>(), on);
+            IDbContext dbContext = this.QueryExpression.GetRootDbContext();
+            return this.FullJoin<TOther>(dbContext.Query<TOther>(), on);
         }
 
         public IJoinQuery<T, TOther> InnerJoin<TOther>(IQuery<TOther> q, Expression<Func<T, TOther, bool>> on)
@@ -431,11 +425,11 @@ namespace Chloe.Query
         }
 
         public override QueryExpression QueryExpression { get { return this._expression; } }
-        public override bool TrackEntity { get { return this._trackEntity; } }
 
         public IQuery<T> AsTracking()
         {
-            return new Query<T>(this._dbContext, this.QueryExpression, true);
+            TrackingExpression e = new TrackingExpression(typeof(T), this.QueryExpression);
+            return new Query<T>(e);
         }
         public IEnumerable<T> AsEnumerable()
         {
@@ -481,7 +475,7 @@ namespace Chloe.Query
         public Query<TResult> CreateAggregateQuery<TResult>(MethodInfo method, List<Expression> arguments)
         {
             AggregateQueryExpression e = new AggregateQueryExpression(this._expression, method, arguments);
-            var q = new Query<TResult>(this._dbContext, e, false);
+            var q = new Query<TResult>(e);
             return q;
         }
         MethodInfo GetCalledMethod<TResult>(Expression<Func<TResult>> exp)

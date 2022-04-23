@@ -2,8 +2,7 @@
 {
     class AggregateQueryState : QueryStateBase, IQueryState
     {
-        public AggregateQueryState(QueryModel queryModel)
-            : base(queryModel)
+        public AggregateQueryState(QueryContext context, QueryModel queryModel) : base(context, queryModel)
         {
         }
     }

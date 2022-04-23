@@ -1,12 +1,10 @@
-﻿using Chloe.Query.Mapping;
-using Chloe.Query.QueryExpressions;
+﻿using Chloe.Query.QueryExpressions;
 
 namespace Chloe.Query.QueryState
 {
     internal abstract class SubQueryState : QueryStateBase
     {
-        protected SubQueryState(QueryModel queryModel)
-            : base(queryModel)
+        protected SubQueryState(QueryContext context, QueryModel queryModel) : base(context, queryModel)
         {
         }
 
@@ -23,13 +21,13 @@ namespace Chloe.Query.QueryState
         public override IQueryState Accept(SkipExpression exp)
         {
             GeneralQueryState subQueryState = this.AsSubQueryState();
-            SkipQueryState state = new SkipQueryState(subQueryState.QueryModel, exp.Count);
+            SkipQueryState state = new SkipQueryState(this.Context, subQueryState.QueryModel, exp.Count);
             return state;
         }
         public override IQueryState Accept(TakeExpression exp)
         {
             GeneralQueryState subQueryState = this.AsSubQueryState();
-            TakeQueryState state = new TakeQueryState(subQueryState.QueryModel, exp.Count);
+            TakeQueryState state = new TakeQueryState(this.Context, subQueryState.QueryModel, exp.Count);
             return state;
         }
         public override IQueryState Accept(AggregateQueryExpression exp)

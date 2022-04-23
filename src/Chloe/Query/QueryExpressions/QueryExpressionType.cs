@@ -18,5 +18,6 @@ namespace Chloe.Query.QueryExpressions
         GroupingQuery,
         Distinct,
         IgnoreAllFilters,
+        Tracking,
     }
 }

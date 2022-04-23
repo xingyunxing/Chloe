@@ -16,7 +16,7 @@ namespace Chloe.Query.QueryState
         {
         }
         public RootQueryState(RootQueryExpression rootQueryExp, ScopeParameterDictionary scopeParameters, StringSet scopeTables, Func<string, string> tableAliasGenerator)
-          : base(CreateQueryModel(rootQueryExp, scopeParameters, scopeTables, tableAliasGenerator))
+          : base(new QueryContext((DbContext)rootQueryExp.Provider), CreateQueryModel(rootQueryExp, scopeParameters, scopeTables, tableAliasGenerator))
         {
             this._rootQueryExp = rootQueryExp;
         }
@@ -24,6 +24,7 @@ namespace Chloe.Query.QueryState
         public override QueryModel ToFromQueryModel()
         {
             QueryModel newQueryModel = new QueryModel(this.QueryModel.ScopeParameters, this.QueryModel.ScopeTables, this.QueryModel.IgnoreFilters);
+            newQueryModel.IsTracking = this.QueryModel.IsTracking;
             newQueryModel.FromTable = this.QueryModel.FromTable;
             newQueryModel.ResultModel = this.QueryModel.ResultModel;
             newQueryModel.Condition = this.QueryModel.Condition;

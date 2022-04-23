@@ -5,8 +5,7 @@ namespace Chloe.Query.QueryExpressions
     class OrderExpression : QueryExpression
     {
         LambdaExpression _keySelector;
-        public OrderExpression(Type elementType, QueryExpression prevExpression, QueryExpressionType expressionType, LambdaExpression keySelector)
-            : base(expressionType, elementType, prevExpression)
+        public OrderExpression(Type elementType, QueryExpression prevExpression, QueryExpressionType expressionType, LambdaExpression keySelector) : base(expressionType, elementType, prevExpression)
         {
             this._keySelector = keySelector;
         }

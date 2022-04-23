@@ -8,13 +8,11 @@ namespace Chloe.Query
 {
     class IncludableQuery<TEntity, TNavigation> : Query<TEntity>, IIncludableQuery<TEntity, TNavigation>
     {
-        public IncludableQuery(IDbContextInternal dbContext, bool trackEntity, QueryExpression prevExpression, LambdaExpression navigationPath)
-            : base(dbContext, BuildIncludeExpression(dbContext, prevExpression, navigationPath), trackEntity)
+        public IncludableQuery(QueryExpression prevExpression, LambdaExpression navigationPath) : base(BuildIncludeExpression(prevExpression, navigationPath))
         {
 
         }
-        IncludableQuery(IDbContextInternal dbContext, bool trackEntity, QueryExpression exp)
-         : base(dbContext, exp, trackEntity)
+        IncludableQuery(QueryExpression exp) : base(exp)
         {
 
         }
@@ -39,7 +37,7 @@ namespace Chloe.Query
             members.Reverse();
             return members;
         }
-        static QueryExpression BuildIncludeExpression(IDbContextInternal dbContext, QueryExpression prevExpression, LambdaExpression navigationPath)
+        static QueryExpression BuildIncludeExpression(QueryExpression prevExpression, LambdaExpression navigationPath)
         {
             List<MemberExpression> memberExps = ExtractMemberAccessChain(navigationPath);
 
@@ -48,6 +46,8 @@ namespace Chloe.Query
             for (int i = 0; i < memberExps.Count; i++)
             {
                 PropertyInfo member = memberExps[i].Member as PropertyInfo;
+
+                IDbContextInternal dbContext = prevExpression.GetRootDbContext() as IDbContextInternal;
                 NavigationNode navigation = InitNavigationNode(member, dbContext);
 
                 if (startNavigation == null)
@@ -93,7 +93,9 @@ namespace Chloe.Query
             for (int i = 0; i < memberExps.Count; i++)
             {
                 PropertyInfo member = memberExps[i].Member as PropertyInfo;
-                NavigationNode navigation = InitNavigationNode(member, this.DbContext);
+
+                IDbContextInternal dbContext = this.QueryExpression.GetRootDbContext() as IDbContextInternal;
+                NavigationNode navigation = InitNavigationNode(member, dbContext);
 
                 lastNavigation.Next = navigation;
                 lastNavigation = navigation;
@@ -106,13 +108,13 @@ namespace Chloe.Query
         public IIncludableQuery<TEntity, TProperty> ThenInclude<TProperty>(Expression<Func<TNavigation, TProperty>> navigationPath)
         {
             IncludeExpression includeExpression = this.BuildThenIncludeExpression(navigationPath);
-            return new IncludableQuery<TEntity, TProperty>(this.DbContext, this.TrackEntity, includeExpression);
+            return new IncludableQuery<TEntity, TProperty>(includeExpression);
         }
 
         public IIncludableQuery<TEntity, TCollectionItem> ThenIncludeMany<TCollectionItem>(Expression<Func<TNavigation, IEnumerable<TCollectionItem>>> navigationPath)
         {
             IncludeExpression includeExpression = this.BuildThenIncludeExpression(navigationPath);
-            return new IncludableQuery<TEntity, TCollectionItem>(this.DbContext, this.TrackEntity, includeExpression);
+            return new IncludableQuery<TEntity, TCollectionItem>(includeExpression);
         }
 
         public IIncludableQuery<TEntity, TNavigation> AndWhere(Expression<Func<TNavigation, bool>> predicate)
@@ -124,7 +126,7 @@ namespace Chloe.Query
 
             IncludeExpression includeExpression = new IncludeExpression(typeof(TEntity), prevIncludeExpression.PrevExpression, startNavigation);
 
-            return new IncludableQuery<TEntity, TNavigation>(this.DbContext, this.TrackEntity, includeExpression);
+            return new IncludableQuery<TEntity, TNavigation>(includeExpression);
         }
     }
 }

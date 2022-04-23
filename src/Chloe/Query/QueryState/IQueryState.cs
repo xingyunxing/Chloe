@@ -1,5 +1,4 @@
-﻿using Chloe.Query.Mapping;
-using Chloe.Query.QueryExpressions;
+﻿using Chloe.Query.QueryExpressions;
 using Chloe.Utility;
 using System.Linq.Expressions;
 
@@ -22,5 +21,6 @@ namespace Chloe.Query.QueryState
         IQueryState Accept(DistinctExpression exp);
         IQueryState Accept(IncludeExpression exp);
         IQueryState Accept(IgnoreAllFiltersExpression exp);
+        IQueryState Accept(TrackingExpression exp);
     }
 }

@@ -58,7 +58,7 @@ namespace Chloe.Query
             e.GroupKeySelectors.AddRange(this._groupKeySelectors);
             e.HavingPredicates.AddRange(this._havingPredicates);
             e.Orderings.AddRange(this._orderings);
-            return new Query<TResult>(this._fromQuery.DbContext, e, this._fromQuery._trackEntity);
+            return new Query<TResult>(e);
         }
 
         protected IOrderedGroupingQuery<T> CreateOrderedGroupingQuery<K>(Expression<Func<T, K>> keySelector, DbExpressions.DbOrderType orderType, bool append)

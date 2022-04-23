@@ -6,7 +6,6 @@
         QueryExpressionType _nodeType;
         Type _elementType;
         protected QueryExpression(QueryExpressionType nodeType, Type elementType, QueryExpression prevExpression)
-            : base()
         {
             this._nodeType = nodeType;
             this._elementType = elementType;

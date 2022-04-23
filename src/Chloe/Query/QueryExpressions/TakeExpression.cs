@@ -3,8 +3,7 @@
     class TakeExpression : QueryExpression
     {
         int _count;
-        public TakeExpression(Type elementType, QueryExpression prevExpression, int count)
-            : base(QueryExpressionType.Take, elementType, prevExpression)
+        public TakeExpression(Type elementType, QueryExpression prevExpression, int count) : base(QueryExpressionType.Take, elementType, prevExpression)
         {
             this.CheckInputCount(count);
             this._count = count;

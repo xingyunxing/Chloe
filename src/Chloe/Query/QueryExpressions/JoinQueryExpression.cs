@@ -6,8 +6,7 @@ namespace Chloe.Query.QueryExpressions
     {
         List<JoinQueryInfo> _joinedQueries;
         LambdaExpression _selector;
-        public JoinQueryExpression(Type elementType, QueryExpression prevExpression, List<JoinQueryInfo> joinedQueries, LambdaExpression selector)
-            : base(QueryExpressionType.JoinQuery, elementType, prevExpression)
+        public JoinQueryExpression(Type elementType, QueryExpression prevExpression, List<JoinQueryInfo> joinedQueries, LambdaExpression selector) : base(QueryExpressionType.JoinQuery, elementType, prevExpression)
         {
             this._joinedQueries = new List<JoinQueryInfo>(joinedQueries.Count);
             this._joinedQueries.AddRange(joinedQueries);

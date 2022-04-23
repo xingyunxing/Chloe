@@ -9,8 +9,7 @@ namespace Chloe.Query.QueryExpressions
         List<LambdaExpression> _havingPredicates = new List<LambdaExpression>();
         List<GroupingQueryOrdering> _orderings = new List<GroupingQueryOrdering>();
         LambdaExpression _selector;
-        public GroupingQueryExpression(Type elementType, QueryExpression prevExpression, LambdaExpression selector)
-            : base(QueryExpressionType.GroupingQuery, elementType, prevExpression)
+        public GroupingQueryExpression(Type elementType, QueryExpression prevExpression, LambdaExpression selector) : base(QueryExpressionType.GroupingQuery, elementType, prevExpression)
         {
             this._selector = selector;
         }

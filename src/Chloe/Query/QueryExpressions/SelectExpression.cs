@@ -5,8 +5,7 @@ namespace Chloe.Query.QueryExpressions
     class SelectExpression : QueryExpression
     {
         LambdaExpression _selector;
-        public SelectExpression(Type elementType, QueryExpression prevExpression, LambdaExpression selector)
-            : base(QueryExpressionType.Select, elementType, prevExpression)
+        public SelectExpression(Type elementType, QueryExpression prevExpression, LambdaExpression selector) : base(QueryExpressionType.Select, elementType, prevExpression)
         {
             this._selector = selector;
         }

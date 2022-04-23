@@ -24,6 +24,8 @@ namespace Chloe.Query
             this.IgnoreFilters = ignoreFilters;
         }
 
+        public bool IsTracking { get; set; }
+
         public IObjectModel ResultModel { get; set; }
 
         /// <summary>
@@ -81,6 +83,7 @@ namespace Chloe.Query
             QueryModel newQueryModel = new QueryModel(this.ScopeParameters, this.ScopeTables, this.IgnoreFilters);
             newQueryModel.FromTable = this.FromTable;
 
+            newQueryModel.IsTracking = this.IsTracking;
             newQueryModel.ResultModel = this.ResultModel;
             newQueryModel.Orderings.AddRange(this.Orderings);
             newQueryModel.Condition = this.Condition;

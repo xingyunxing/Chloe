@@ -2,7 +2,6 @@
 using Chloe.DbExpressions;
 using Chloe.Extensions;
 using Chloe.Infrastructure;
-using Chloe.Query.Mapping;
 using Chloe.Query.QueryState;
 using Chloe.Utility;
 using System.Linq.Expressions;

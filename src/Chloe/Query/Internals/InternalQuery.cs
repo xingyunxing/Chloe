@@ -3,7 +3,6 @@ using Chloe.Data;
 using Chloe.Infrastructure;
 using Chloe.Mapper;
 using Chloe.Mapper.Activators;
-using Chloe.Query.Mapping;
 using Chloe.Query.QueryState;
 using Chloe.Query.Visitors;
 using Chloe.Reflection;
@@ -28,15 +27,15 @@ namespace Chloe.Query.Internals
             MappingData data = qs.GenerateMappingData();
 
             IObjectActivator objectActivator;
-            if (this._query._trackEntity)
-                objectActivator = data.ObjectActivatorCreator.CreateObjectActivator(this._query.DbContext);
+            if (data.IsTrackingQuery)
+                objectActivator = data.ObjectActivatorCreator.CreateObjectActivator(data.Context.DbContext);
             else
                 objectActivator = data.ObjectActivatorCreator.CreateObjectActivator();
 
-            IDbExpressionTranslator translator = (this._query.DbContext as DbContext).DatabaseProvider.CreateDbExpressionTranslator();
+            IDbExpressionTranslator translator = data.Context.DbContext.DatabaseProvider.CreateDbExpressionTranslator();
             DbCommandInfo dbCommandInfo = translator.Translate(data.SqlQuery);
 
-            DbCommandFactor commandFactor = new DbCommandFactor(objectActivator, dbCommandInfo.CommandText, dbCommandInfo.GetParameters());
+            DbCommandFactor commandFactor = new DbCommandFactor(data.Context.DbContext, objectActivator, dbCommandInfo.CommandText, dbCommandInfo.GetParameters());
             return commandFactor;
         }
 
@@ -113,7 +112,7 @@ namespace Chloe.Query.Internals
             DbCommandFactor commandFactor = this.GenerateCommandFactor();
             QueryEnumerator<T> enumerator = new QueryEnumerator<T>(async (@async) =>
             {
-                IDataReader dataReader = await this._query.DbContext.Session.ExecuteReader(commandFactor.CommandText, CommandType.Text, commandFactor.Parameters, @async);
+                IDataReader dataReader = await commandFactor.DbContext.Session.ExecuteReader(commandFactor.CommandText, CommandType.Text, commandFactor.Parameters, @async);
 
                 return DataReaderReady(dataReader, commandFactor.ObjectActivator);
             }, commandFactor.ObjectActivator, cancellationToken);

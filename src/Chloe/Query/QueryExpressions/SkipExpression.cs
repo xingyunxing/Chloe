@@ -3,8 +3,7 @@
     class SkipExpression : QueryExpression
     {
         int _count;
-        public SkipExpression(Type elementType, QueryExpression prevExpression, int count)
-            : base(QueryExpressionType.Skip, elementType, prevExpression)
+        public SkipExpression(Type elementType, QueryExpression prevExpression, int count) : base(QueryExpressionType.Skip, elementType, prevExpression)
         {
             this.CheckInputCount(count);
             this._count = count;

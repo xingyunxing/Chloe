@@ -7,8 +7,7 @@ namespace Chloe.Query.QueryState
     {
         int _skipCount;
         int _takeCount;
-        public LimitQueryState(QueryModel queryModel, int skipCount, int takeCount)
-            : base(queryModel)
+        public LimitQueryState(QueryContext context, QueryModel queryModel, int skipCount, int takeCount) : base(context, queryModel)
         {
             this.SkipCount = skipCount;
             this.TakeCount = takeCount;
@@ -56,7 +55,7 @@ namespace Chloe.Query.QueryState
         }
         public override IQueryState CreateQueryState(QueryModel result)
         {
-            return new LimitQueryState(result, this.SkipCount, this.TakeCount);
+            return new LimitQueryState(this.Context, result, this.SkipCount, this.TakeCount);
         }
 
         public override DbSqlQueryExpression CreateSqlQuery()

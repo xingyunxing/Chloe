@@ -1,5 +1,4 @@
 ﻿using Chloe.DbExpressions;
-using Chloe.Query.Mapping;
 using Chloe.Query.QueryExpressions;
 using Chloe.Query.Visitors;
 using Chloe.Utility;
@@ -7,14 +6,18 @@ using System.Linq.Expressions;
 
 namespace Chloe.Query.QueryState
 {
+
+
     abstract class QueryStateBase : IQueryState
     {
         QueryModel _queryModel;
-        protected QueryStateBase(QueryModel queryModel)
+        protected QueryStateBase(QueryContext context, QueryModel queryModel)
         {
+            this.Context = context;
             this._queryModel = queryModel;
         }
 
+        public QueryContext Context { get; set; }
         public QueryModel QueryModel { get { return this._queryModel; } }
 
         public virtual IQueryState Accept(WhereExpression exp)
@@ -50,12 +53,12 @@ namespace Chloe.Query.QueryState
         }
         public virtual IQueryState Accept(SkipExpression exp)
         {
-            SkipQueryState state = new SkipQueryState(this.QueryModel, exp.Count);
+            SkipQueryState state = new SkipQueryState(this.Context, this.QueryModel, exp.Count);
             return state;
         }
         public virtual IQueryState Accept(TakeExpression exp)
         {
-            TakeQueryState state = new TakeQueryState(this.QueryModel, exp.Count);
+            TakeQueryState state = new TakeQueryState(this.Context, this.QueryModel, exp.Count);
             return state;
         }
         public virtual IQueryState Accept(AggregateQueryExpression exp)
@@ -75,11 +78,12 @@ namespace Chloe.Query.QueryState
 
             QueryModel queryModel = new QueryModel(this._queryModel.ScopeParameters, this._queryModel.ScopeTables, this._queryModel.IgnoreFilters);
 
+            queryModel.IsTracking = this._queryModel.IsTracking;
             queryModel.ResultModel = resultModel;
             queryModel.FromTable = this._queryModel.FromTable;
             queryModel.AppendCondition(this._queryModel.Condition);
 
-            AggregateQueryState state = new AggregateQueryState(queryModel);
+            AggregateQueryState state = new AggregateQueryState(this.Context, queryModel);
             return state;
         }
         public virtual IQueryState Accept(GroupingQueryExpression exp)
@@ -118,11 +122,11 @@ namespace Chloe.Query.QueryState
             }
 
             QueryModel newQueryModel = this.CreateNewQueryModel(exp.Selector);
-            return new GroupingQueryState(newQueryModel);
+            return new GroupQueryState(this.Context, newQueryModel);
         }
         public virtual IQueryState Accept(DistinctExpression exp)
         {
-            DistinctQueryState state = new DistinctQueryState(this.QueryModel);
+            DistinctQueryState state = new DistinctQueryState(this.Context, this.QueryModel);
             return state;
         }
         public virtual IQueryState Accept(IncludeExpression exp)
@@ -132,6 +136,11 @@ namespace Chloe.Query.QueryState
         public virtual IQueryState Accept(IgnoreAllFiltersExpression exp)
         {
             throw new NotSupportedException("Cannot call 'IgnoreAllFilters' method now.");
+        }
+        public virtual IQueryState Accept(TrackingExpression exp)
+        {
+            this.QueryModel.IsTracking = true;
+            return this;
         }
 
         public virtual QueryModel CreateNewQueryModel(LambdaExpression selector)
@@ -150,7 +159,7 @@ namespace Chloe.Query.QueryState
         }
         public virtual IQueryState CreateQueryState(QueryModel result)
         {
-            return new GeneralQueryState(result);
+            return new GeneralQueryState(this.Context, result);
         }
 
         public virtual MappingData GenerateMappingData()
@@ -169,8 +178,10 @@ namespace Chloe.Query.QueryState
             var objectActivatorCreator = this._queryModel.ResultModel.GenarateObjectActivatorCreator(sqlQuery);
             objectActivatorCreator.IsRoot = true;
 
+            data.Context = this.Context;
             data.SqlQuery = sqlQuery;
             data.ObjectActivatorCreator = objectActivatorCreator;
+            data.IsTrackingQuery = this._queryModel.IsTracking;
 
             return data;
         }
@@ -181,6 +192,8 @@ namespace Chloe.Query.QueryState
             DbSubQueryExpression subQuery = new DbSubQueryExpression(sqlQuery);
 
             QueryModel newQueryModel = new QueryModel(this._queryModel.ScopeParameters, this._queryModel.ScopeTables, this._queryModel.IgnoreFilters);
+
+            newQueryModel.IsTracking = this._queryModel.IsTracking;
 
             DbTableSegment tableSeg = new DbTableSegment(subQuery, newQueryModel.GenerateUniqueTableAlias(), LockType.Unspecified);
             DbFromTableExpression fromTable = new DbFromTableExpression(tableSeg);
@@ -222,7 +235,7 @@ namespace Chloe.Query.QueryState
 
             newQueryModel.InheritOrderings = true;
 
-            GeneralQueryState queryState = new GeneralQueryState(newQueryModel);
+            GeneralQueryState queryState = new GeneralQueryState(this.Context, newQueryModel);
             return queryState;
         }
         public virtual DbSqlQueryExpression CreateSqlQuery()
@@ -256,6 +269,8 @@ namespace Chloe.Query.QueryState
         public virtual QueryModel ToFromQueryModel()
         {
             QueryModel newQueryModel = new QueryModel(this._queryModel.ScopeParameters, this._queryModel.ScopeTables, this._queryModel.IgnoreFilters);
+
+            newQueryModel.IsTracking = this._queryModel.IsTracking;
 
             string alias = newQueryModel.GenerateUniqueTableAlias(UtilConstants.DefaultTableAlias);
             DbSqlQueryExpression sqlQuery = this.CreateSqlQuery();

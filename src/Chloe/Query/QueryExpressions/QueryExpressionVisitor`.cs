@@ -52,5 +52,10 @@
         {
             throw new NotImplementedException();
         }
+
+        public virtual T Visit(TrackingExpression exp)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

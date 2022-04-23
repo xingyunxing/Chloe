@@ -5,20 +5,16 @@ namespace Chloe.Query
 {
     class JoinQuery<T1, T2> : IJoinQuery<T1, T2>
     {
-        IDbContextInternal _dbContext;
-
         QueryBase _rootQuery;
         List<JoinQueryInfo> _joinedQueries;
         List<LambdaExpression> _filterPredicates;
 
-        public IDbContextInternal DbContext { get { return this._dbContext; } }
         public QueryBase RootQuery { get { return this._rootQuery; } }
         public List<JoinQueryInfo> JoinedQueries { get { return this._joinedQueries; } }
         public List<LambdaExpression> FilterPredicates { get { return this._filterPredicates; } }
 
         public JoinQuery(Query<T1> q1, Query<T2> q2, JoinType joinType, Expression<Func<T1, T2, bool>> on)
         {
-            this._dbContext = q1.DbContext;
             this._rootQuery = q1;
             this._joinedQueries = new List<JoinQueryInfo>(1) { new JoinQueryInfo(q2, joinType, on) };
 
@@ -26,7 +22,6 @@ namespace Chloe.Query
         }
         public JoinQuery(JoinQuery<T1, T2> jq, LambdaExpression filterPredicate)
         {
-            this._dbContext = jq._dbContext;
             this._rootQuery = jq._rootQuery;
             this._joinedQueries = PublicHelper.Clone(jq._joinedQueries);
 
@@ -40,7 +35,8 @@ namespace Chloe.Query
 
         public IJoinQuery<T1, T2, T3> Join<T3>(JoinType joinType, Expression<Func<T1, T2, T3, bool>> on)
         {
-            return this.Join<T3>(this._dbContext.Query<T3>(), joinType, on);
+            IDbContext dbContext = this._rootQuery.QueryExpression.GetRootDbContext();
+            return this.Join<T3>(dbContext.Query<T3>(), joinType, on);
         }
         public IJoinQuery<T1, T2, T3> Join<T3>(IQuery<T3> q, JoinType joinType, Expression<Func<T1, T2, T3, bool>> on)
         {
@@ -49,19 +45,23 @@ namespace Chloe.Query
 
         public IJoinQuery<T1, T2, T3> InnerJoin<T3>(Expression<Func<T1, T2, T3, bool>> on)
         {
-            return this.InnerJoin<T3>(this._dbContext.Query<T3>(), on);
+            IDbContext dbContext = this._rootQuery.QueryExpression.GetRootDbContext();
+            return this.InnerJoin<T3>(dbContext.Query<T3>(), on);
         }
         public IJoinQuery<T1, T2, T3> LeftJoin<T3>(Expression<Func<T1, T2, T3, bool>> on)
         {
-            return this.LeftJoin<T3>(this._dbContext.Query<T3>(), on);
+            IDbContext dbContext = this._rootQuery.QueryExpression.GetRootDbContext();
+            return this.LeftJoin<T3>(dbContext.Query<T3>(), on);
         }
         public IJoinQuery<T1, T2, T3> RightJoin<T3>(Expression<Func<T1, T2, T3, bool>> on)
         {
-            return this.RightJoin<T3>(this._dbContext.Query<T3>(), on);
+            IDbContext dbContext = this._rootQuery.QueryExpression.GetRootDbContext();
+            return this.RightJoin<T3>(dbContext.Query<T3>(), on);
         }
         public IJoinQuery<T1, T2, T3> FullJoin<T3>(Expression<Func<T1, T2, T3, bool>> on)
         {
-            return this.FullJoin<T3>(this._dbContext.Query<T3>(), on);
+            IDbContext dbContext = this._rootQuery.QueryExpression.GetRootDbContext();
+            return this.FullJoin<T3>(dbContext.Query<T3>(), on);
         }
 
         public IJoinQuery<T1, T2, T3> InnerJoin<T3>(IQuery<T3> q, Expression<Func<T1, T2, T3, bool>> on)
@@ -85,7 +85,7 @@ namespace Chloe.Query
             if (this._filterPredicates.Count == 0)
             {
                 JoinQueryExpression e1 = new JoinQueryExpression(typeof(TResult), this._rootQuery.QueryExpression, this._joinedQueries, selector);
-                return new Query<TResult>(this.DbContext, e1, this._rootQuery.TrackEntity);
+                return new Query<TResult>(e1);
             }
 
             /*
@@ -101,7 +101,7 @@ namespace Chloe.Query
 
             Expression<Func<T1, T2, JoinResult<T1, T2>>> joinResultSelector = (t1, t2) => new JoinResult<T1, T2>() { Item1 = t1, Item2 = t2 };
             JoinQueryExpression e = new JoinQueryExpression(joinResultType, this._rootQuery.QueryExpression, this._joinedQueries, joinResultSelector);
-            IQuery<JoinResult<T1, T2>> q = new Query<JoinResult<T1, T2>>(this.DbContext, e, this._rootQuery.TrackEntity);
+            IQuery<JoinResult<T1, T2>> q = new Query<JoinResult<T1, T2>>(e);
 
 
             ParameterExpression parameter = Expression.Parameter(joinResultType, "a");
@@ -119,20 +119,16 @@ namespace Chloe.Query
 
     class JoinQuery<T1, T2, T3> : IJoinQuery<T1, T2, T3>
     {
-        IDbContextInternal _dbContext;
-
         QueryBase _rootQuery;
         List<JoinQueryInfo> _joinedQueries;
         List<LambdaExpression> _filterPredicates;
 
-        public IDbContextInternal DbContext { get { return this._dbContext; } }
         public QueryBase RootQuery { get { return this._rootQuery; } }
         public List<JoinQueryInfo> JoinedQueries { get { return this._joinedQueries; } }
         public List<LambdaExpression> FilterPredicates { get { return this._filterPredicates; } }
 
         public JoinQuery(JoinQuery<T1, T2> joinQuery, Query<T3> q, JoinType joinType, Expression<Func<T1, T2, T3, bool>> on)
         {
-            this._dbContext = joinQuery.DbContext;
             this._rootQuery = joinQuery.RootQuery;
             this._joinedQueries = PublicHelper.CloneAndAppendOne(joinQuery.JoinedQueries, new JoinQueryInfo(q, joinType, on));
 
@@ -140,7 +136,6 @@ namespace Chloe.Query
         }
         public JoinQuery(JoinQuery<T1, T2, T3> jq, LambdaExpression filterPredicate)
         {
-            this._dbContext = jq._dbContext;
             this._rootQuery = jq._rootQuery;
             this._joinedQueries = PublicHelper.Clone(jq._joinedQueries);
 
@@ -154,7 +149,8 @@ namespace Chloe.Query
 
         public IJoinQuery<T1, T2, T3, T4> Join<T4>(JoinType joinType, Expression<Func<T1, T2, T3, T4, bool>> on)
         {
-            return this.Join<T4>(this._dbContext.Query<T4>(), joinType, on);
+            IDbContext dbContext = this._rootQuery.QueryExpression.GetRootDbContext();
+            return this.Join<T4>(dbContext.Query<T4>(), joinType, on);
         }
         public IJoinQuery<T1, T2, T3, T4> Join<T4>(IQuery<T4> q, JoinType joinType, Expression<Func<T1, T2, T3, T4, bool>> on)
         {
@@ -163,19 +159,23 @@ namespace Chloe.Query
 
         public IJoinQuery<T1, T2, T3, T4> InnerJoin<T4>(Expression<Func<T1, T2, T3, T4, bool>> on)
         {
-            return this.InnerJoin<T4>(this._dbContext.Query<T4>(), on);
+            IDbContext dbContext = this._rootQuery.QueryExpression.GetRootDbContext();
+            return this.InnerJoin<T4>(dbContext.Query<T4>(), on);
         }
         public IJoinQuery<T1, T2, T3, T4> LeftJoin<T4>(Expression<Func<T1, T2, T3, T4, bool>> on)
         {
-            return this.LeftJoin<T4>(this._dbContext.Query<T4>(), on);
+            IDbContext dbContext = this._rootQuery.QueryExpression.GetRootDbContext();
+            return this.LeftJoin<T4>(dbContext.Query<T4>(), on);
         }
         public IJoinQuery<T1, T2, T3, T4> RightJoin<T4>(Expression<Func<T1, T2, T3, T4, bool>> on)
         {
-            return this.RightJoin<T4>(this._dbContext.Query<T4>(), on);
+            IDbContext dbContext = this._rootQuery.QueryExpression.GetRootDbContext();
+            return this.RightJoin<T4>(dbContext.Query<T4>(), on);
         }
         public IJoinQuery<T1, T2, T3, T4> FullJoin<T4>(Expression<Func<T1, T2, T3, T4, bool>> on)
         {
-            return this.FullJoin<T4>(this._dbContext.Query<T4>(), on);
+            IDbContext dbContext = this._rootQuery.QueryExpression.GetRootDbContext();
+            return this.FullJoin<T4>(dbContext.Query<T4>(), on);
         }
 
         public IJoinQuery<T1, T2, T3, T4> InnerJoin<T4>(IQuery<T4> q, Expression<Func<T1, T2, T3, T4, bool>> on)
@@ -200,14 +200,14 @@ namespace Chloe.Query
             if (this._filterPredicates.Count == 0)
             {
                 JoinQueryExpression e1 = new JoinQueryExpression(typeof(TResult), this._rootQuery.QueryExpression, this._joinedQueries, selector);
-                return new Query<TResult>(this.DbContext, e1, this._rootQuery.TrackEntity);
+                return new Query<TResult>(e1);
             }
 
             Type joinResultType = typeof(JoinResult<T1, T2, T3>);
 
             Expression<Func<T1, T2, T3, JoinResult<T1, T2, T3>>> joinResultSelector = (t1, t2, t3) => new JoinResult<T1, T2, T3>() { Item1 = t1, Item2 = t2, Item3 = t3 };
             JoinQueryExpression e = new JoinQueryExpression(joinResultType, this._rootQuery.QueryExpression, this._joinedQueries, joinResultSelector);
-            IQuery<JoinResult<T1, T2, T3>> q = new Query<JoinResult<T1, T2, T3>>(this.DbContext, e, this._rootQuery.TrackEntity);
+            IQuery<JoinResult<T1, T2, T3>> q = new Query<JoinResult<T1, T2, T3>>(e);
 
 
             ParameterExpression parameter = Expression.Parameter(joinResultType, "a");
@@ -225,20 +225,16 @@ namespace Chloe.Query
 
     class JoinQuery<T1, T2, T3, T4> : IJoinQuery<T1, T2, T3, T4>
     {
-        IDbContextInternal _dbContext;
-
         QueryBase _rootQuery;
         List<JoinQueryInfo> _joinedQueries;
         List<LambdaExpression> _filterPredicates;
 
-        public IDbContextInternal DbContext { get { return this._dbContext; } }
         public QueryBase RootQuery { get { return this._rootQuery; } }
         public List<JoinQueryInfo> JoinedQueries { get { return this._joinedQueries; } }
         public List<LambdaExpression> FilterPredicates { get { return this._filterPredicates; } }
 
         public JoinQuery(JoinQuery<T1, T2, T3> joinQuery, Query<T4> q, JoinType joinType, Expression<Func<T1, T2, T3, T4, bool>> on)
         {
-            this._dbContext = joinQuery.DbContext;
             this._rootQuery = joinQuery.RootQuery;
             this._joinedQueries = PublicHelper.CloneAndAppendOne(joinQuery.JoinedQueries, new JoinQueryInfo(q, joinType, on));
 
@@ -246,7 +242,6 @@ namespace Chloe.Query
         }
         public JoinQuery(JoinQuery<T1, T2, T3, T4> jq, LambdaExpression filterPredicate)
         {
-            this._dbContext = jq._dbContext;
             this._rootQuery = jq._rootQuery;
             this._joinedQueries = PublicHelper.Clone(jq._joinedQueries);
 
@@ -260,7 +255,8 @@ namespace Chloe.Query
 
         public IJoinQuery<T1, T2, T3, T4, T5> Join<T5>(JoinType joinType, Expression<Func<T1, T2, T3, T4, T5, bool>> on)
         {
-            return this.Join<T5>(this._dbContext.Query<T5>(), joinType, on);
+            IDbContext dbContext = this._rootQuery.QueryExpression.GetRootDbContext();
+            return this.Join<T5>(dbContext.Query<T5>(), joinType, on);
         }
         public IJoinQuery<T1, T2, T3, T4, T5> Join<T5>(IQuery<T5> q, JoinType joinType, Expression<Func<T1, T2, T3, T4, T5, bool>> on)
         {
@@ -269,19 +265,23 @@ namespace Chloe.Query
 
         public IJoinQuery<T1, T2, T3, T4, T5> InnerJoin<T5>(Expression<Func<T1, T2, T3, T4, T5, bool>> on)
         {
-            return this.InnerJoin<T5>(this._dbContext.Query<T5>(), on);
+            IDbContext dbContext = this._rootQuery.QueryExpression.GetRootDbContext();
+            return this.InnerJoin<T5>(dbContext.Query<T5>(), on);
         }
         public IJoinQuery<T1, T2, T3, T4, T5> LeftJoin<T5>(Expression<Func<T1, T2, T3, T4, T5, bool>> on)
         {
-            return this.LeftJoin<T5>(this._dbContext.Query<T5>(), on);
+            IDbContext dbContext = this._rootQuery.QueryExpression.GetRootDbContext();
+            return this.LeftJoin<T5>(dbContext.Query<T5>(), on);
         }
         public IJoinQuery<T1, T2, T3, T4, T5> RightJoin<T5>(Expression<Func<T1, T2, T3, T4, T5, bool>> on)
         {
-            return this.RightJoin<T5>(this._dbContext.Query<T5>(), on);
+            IDbContext dbContext = this._rootQuery.QueryExpression.GetRootDbContext();
+            return this.RightJoin<T5>(dbContext.Query<T5>(), on);
         }
         public IJoinQuery<T1, T2, T3, T4, T5> FullJoin<T5>(Expression<Func<T1, T2, T3, T4, T5, bool>> on)
         {
-            return this.FullJoin<T5>(this._dbContext.Query<T5>(), on);
+            IDbContext dbContext = this._rootQuery.QueryExpression.GetRootDbContext();
+            return this.FullJoin<T5>(dbContext.Query<T5>(), on);
         }
 
         public IJoinQuery<T1, T2, T3, T4, T5> InnerJoin<T5>(IQuery<T5> q, Expression<Func<T1, T2, T3, T4, T5, bool>> on)
@@ -306,14 +306,14 @@ namespace Chloe.Query
             if (this._filterPredicates.Count == 0)
             {
                 JoinQueryExpression e1 = new JoinQueryExpression(typeof(TResult), this._rootQuery.QueryExpression, this._joinedQueries, selector);
-                return new Query<TResult>(this.DbContext, e1, this._rootQuery.TrackEntity);
+                return new Query<TResult>(e1);
             }
 
             Type joinResultType = typeof(JoinResult<T1, T2, T3, T4>);
 
             Expression<Func<T1, T2, T3, T4, JoinResult<T1, T2, T3, T4>>> joinResultSelector = (t1, t2, t3, t4) => new JoinResult<T1, T2, T3, T4>() { Item1 = t1, Item2 = t2, Item3 = t3, Item4 = t4 };
             JoinQueryExpression e = new JoinQueryExpression(joinResultType, this._rootQuery.QueryExpression, this._joinedQueries, joinResultSelector);
-            IQuery<JoinResult<T1, T2, T3, T4>> q = new Query<JoinResult<T1, T2, T3, T4>>(this.DbContext, e, this._rootQuery.TrackEntity);
+            IQuery<JoinResult<T1, T2, T3, T4>> q = new Query<JoinResult<T1, T2, T3, T4>>(e);
 
 
             ParameterExpression parameter = Expression.Parameter(joinResultType, "a");
@@ -331,20 +331,16 @@ namespace Chloe.Query
 
     class JoinQuery<T1, T2, T3, T4, T5> : IJoinQuery<T1, T2, T3, T4, T5>
     {
-        IDbContextInternal _dbContext;
-
         QueryBase _rootQuery;
         List<JoinQueryInfo> _joinedQueries;
         List<LambdaExpression> _filterPredicates;
 
-        public IDbContextInternal DbContext { get { return this._dbContext; } }
         public QueryBase RootQuery { get { return this._rootQuery; } }
         public List<JoinQueryInfo> JoinedQueries { get { return this._joinedQueries; } }
         public List<LambdaExpression> FilterPredicates { get { return this._filterPredicates; } }
 
         public JoinQuery(JoinQuery<T1, T2, T3, T4> joinQuery, Query<T5> q, JoinType joinType, Expression<Func<T1, T2, T3, T4, T5, bool>> on)
         {
-            this._dbContext = joinQuery.DbContext;
             this._rootQuery = joinQuery.RootQuery;
             this._joinedQueries = PublicHelper.CloneAndAppendOne(joinQuery.JoinedQueries, new JoinQueryInfo(q, joinType, on));
 
@@ -352,7 +348,6 @@ namespace Chloe.Query
         }
         public JoinQuery(JoinQuery<T1, T2, T3, T4, T5> jq, LambdaExpression filterPredicate)
         {
-            this._dbContext = jq._dbContext;
             this._rootQuery = jq._rootQuery;
             this._joinedQueries = PublicHelper.Clone(jq._joinedQueries);
 
@@ -369,14 +364,14 @@ namespace Chloe.Query
             if (this._filterPredicates.Count == 0)
             {
                 JoinQueryExpression e1 = new JoinQueryExpression(typeof(TResult), this._rootQuery.QueryExpression, this._joinedQueries, selector);
-                return new Query<TResult>(this.DbContext, e1, this._rootQuery.TrackEntity);
+                return new Query<TResult>(e1);
             }
 
             Type joinResultType = typeof(JoinResult<T1, T2, T3, T4, T5>);
 
             Expression<Func<T1, T2, T3, T4, T5, JoinResult<T1, T2, T3, T4, T5>>> joinResultSelector = (t1, t2, t3, t4, t5) => new JoinResult<T1, T2, T3, T4, T5>() { Item1 = t1, Item2 = t2, Item3 = t3, Item4 = t4, Item5 = t5 };
             JoinQueryExpression e = new JoinQueryExpression(joinResultType, this._rootQuery.QueryExpression, this._joinedQueries, joinResultSelector);
-            IQuery<JoinResult<T1, T2, T3, T4, T5>> q = new Query<JoinResult<T1, T2, T3, T4, T5>>(this.DbContext, e, this._rootQuery.TrackEntity);
+            IQuery<JoinResult<T1, T2, T3, T4, T5>> q = new Query<JoinResult<T1, T2, T3, T4, T5>>(e);
 
 
             ParameterExpression parameter = Expression.Parameter(joinResultType, "a");

@@ -117,7 +117,7 @@ namespace Chloe.Query.Visitors
             IObjectModel model = SelectorResolver.Resolve(exp.Selector, scopeParameters1, queryModel.ScopeTables);
             queryModel.ResultModel = model;
 
-            GeneralQueryState queryState = new GeneralQueryState(queryModel);
+            GeneralQueryState queryState = new GeneralQueryState((qs as QueryStateBase).Context, queryModel);
             return queryState;
         }
         public override IQueryState Visit(GroupingQueryExpression exp)
@@ -139,6 +139,12 @@ namespace Chloe.Query.Visitors
             return state;
         }
         public override IQueryState Visit(IgnoreAllFiltersExpression exp)
+        {
+            IQueryState prevState = exp.PrevExpression.Accept(this);
+            IQueryState state = prevState.Accept(exp);
+            return state;
+        }
+        public override IQueryState Visit(TrackingExpression exp)
         {
             IQueryState prevState = exp.PrevExpression.Accept(this);
             IQueryState state = prevState.Accept(exp);

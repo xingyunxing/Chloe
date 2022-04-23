@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using Chloe.Query.QueryExpressions;
+using System.Linq.Expressions;
 
 namespace Chloe.Query
 {
@@ -35,6 +36,17 @@ namespace Chloe.Query
             }
 
             return expressionSubstitutes;
+        }
+
+        public static IDbContext GetRootDbContext(this QueryExpression queryExpression)
+        {
+            if (queryExpression.NodeType == QueryExpressionType.Root)
+            {
+                RootQueryExpression rootQueryExpression = queryExpression as RootQueryExpression;
+                return (IDbContext)rootQueryExpression.Provider;
+            }
+
+            return GetRootDbContext(queryExpression.PrevExpression);
         }
     }
 }

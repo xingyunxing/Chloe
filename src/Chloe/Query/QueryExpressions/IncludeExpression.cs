@@ -5,8 +5,7 @@ namespace Chloe.Query.QueryExpressions
 {
     class IncludeExpression : QueryExpression
     {
-        public IncludeExpression(Type elementType, QueryExpression prevExpression, NavigationNode navigationNode)
-           : base(QueryExpressionType.Include, elementType, prevExpression)
+        public IncludeExpression(Type elementType, QueryExpression prevExpression, NavigationNode navigationNode) : base(QueryExpressionType.Include, elementType, prevExpression)
         {
             this.NavigationNode = navigationNode;
         }
