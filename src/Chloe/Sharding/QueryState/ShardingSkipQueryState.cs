@@ -52,8 +52,9 @@ namespace Chloe.Sharding.QueryState
             return new ShardingLimitQueryState(this.Context, this.QueryModel, this.Count, exp.Count);
         }
 
-        protected override async Task<IFeatureEnumerable<object>> CreateQuery(ShardingQueryPlan queryPlan, CancellationToken cancellationToken)
+        public override IFeatureEnumerable<object> CreateQuery()
         {
+            ShardingQueryPlan queryPlan = this.CreateQueryPlan();
             if (queryPlan.IsOrderedTables && queryPlan.QueryModel.HasSkip())
             {
                 throw new NotSupportedException();

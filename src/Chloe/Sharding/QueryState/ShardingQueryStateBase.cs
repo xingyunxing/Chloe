@@ -81,47 +81,48 @@ namespace Chloe.Sharding.QueryState
             throw new NotSupportedException($"{nameof(IQuery<object>.Paging)}");
         }
 
-        public async Task<IFeatureEnumerable<object>> CreateQuery(CancellationToken cancellationToken)
+        public virtual IFeatureEnumerable<object> CreateQuery()
         {
-            ShardingQueryPlan queryPlan = this.CreateQueryPlan();
-            return await this.CreateQuery(queryPlan, cancellationToken);
+            throw new NotImplementedException();
+            //ShardingQueryPlan queryPlan = this.CreateQueryPlan();
+            //return await this.CreateQuery(queryPlan, cancellationToken);
         }
 
-        protected virtual async Task<IFeatureEnumerable<object>> CreateQuery(ShardingQueryPlan queryPlan, CancellationToken cancellationToken)
-        {
-            if (queryPlan.Tables.Count > 1)
-            {
-                //主键或唯一索引查询
-                bool isUniqueDataQuery = UniqueDataQueryAuthenticator.IsUniqueDataQuery(queryPlan.ShardingContext, queryPlan.QueryModel.GetFinalConditions());
+        //protected virtual async Task<IFeatureEnumerable<object>> CreateQuery(ShardingQueryPlan queryPlan, CancellationToken cancellationToken)
+        //{
+        //    if (queryPlan.Tables.Count > 1)
+        //    {
+        //        //主键或唯一索引查询
+        //        bool isUniqueDataQuery = UniqueDataQueryAuthenticator.IsUniqueDataQuery(queryPlan.ShardingContext, queryPlan.QueryModel.GetFinalConditions());
 
-                if (isUniqueDataQuery)
-                {
-                    UniqueDataQuery query = new UniqueDataQuery(queryPlan);
-                    return query;
-                }
-            }
+        //        if (isUniqueDataQuery)
+        //        {
+        //            UniqueDataQuery query = new UniqueDataQuery(queryPlan);
+        //            return query;
+        //        }
+        //    }
 
-            //if (queryPlan.IsOrderedTables && queryPlan.QueryModel.HasSkip())
-            //{
-            //    //走分页逻辑，对程序性能有可能好点？
-            //    var pagingResult = await this.ExecutePaging(queryPlan);
-            //    return pagingResult.Result;
-            //}
+        //    //if (queryPlan.IsOrderedTables && queryPlan.QueryModel.HasSkip())
+        //    //{
+        //    //    //走分页逻辑，对程序性能有可能好点？
+        //    //    var pagingResult = await this.ExecutePaging(queryPlan);
+        //    //    return pagingResult.Result;
+        //    //}
 
-            //if (queryPlan.IsOrderedTables && !queryPlan.QueryModel.HasSkip())
-            //{
-            //    //走串行？
-            //}
+        //    //if (queryPlan.IsOrderedTables && !queryPlan.QueryModel.HasSkip())
+        //    //{
+        //    //    //走串行？
+        //    //}
 
-            //if (!queryPlan.QueryModel.HasSkip())
-            //{
-            //    //未指定 skip
-            //    return new NonPagingQuery(queryPlan);
-            //}
+        //    //if (!queryPlan.QueryModel.HasSkip())
+        //    //{
+        //    //    //未指定 skip
+        //    //    return new NonPagingQuery(queryPlan);
+        //    //}
 
-            OrdinaryQuery ordinaryQuery = new OrdinaryQuery(queryPlan);
-            return ordinaryQuery;
-        }
+        //    OrdinaryQuery ordinaryQuery = new OrdinaryQuery(queryPlan);
+        //    return ordinaryQuery;
+        //}
 
         async Task<PagingExecuteResult<object>> ExecutePaging(ShardingQueryPlan queryPlan)
         {

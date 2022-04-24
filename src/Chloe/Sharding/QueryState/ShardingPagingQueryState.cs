@@ -14,21 +14,9 @@ namespace Chloe.Sharding.QueryState
             this.QueryModel.Take = takeCount;
         }
 
-        protected override async Task<IFeatureEnumerable<object>> CreateQuery(ShardingQueryPlan queryPlan, CancellationToken cancellationToken)
+        public override IFeatureEnumerable<object> CreateQuery()
         {
-            AggregateQuery countQuery = this.GetCountQuery(queryPlan);
-
-            List<QueryResult<long>> routeTableCounts = await countQuery.AsAsyncEnumerable().Select(a => new QueryResult<long>() { Table = a.Table, Result = (long)a.Result }).ToListAsync();
-            long totals = routeTableCounts.Select(a => a.Result).Sum();
-
-            if (queryPlan.IsOrderedTables)
-            {
-                OrderedTableQuery orderedTableQuery = new OrderedTableQuery(queryPlan, routeTableCounts);
-                return await this.MakeFeatureEnumerable(totals, orderedTableQuery, cancellationToken);
-            }
-
-            OrdinaryQuery ordinaryQuery = new OrdinaryQuery(queryPlan);
-            return await this.MakeFeatureEnumerable(totals, ordinaryQuery, cancellationToken);
+            return new QueryEnumerable(this);
         }
 
         async Task<IFeatureEnumerable<object>> MakeFeatureEnumerable(long totals, IFeatureEnumerable<object> dataQuery, CancellationToken cancellationToken)
@@ -42,7 +30,6 @@ namespace Chloe.Sharding.QueryState
             return (IFeatureEnumerable<object>)pagingResultEnumerable;
         }
 
-
         IFeatureEnumerable<PagingResult<TElement>> MakePagingResultEnumerable<TElement>(long totals, List<object> dataList)
         {
             PagingResult<TElement> pagingResult = new PagingResult<TElement>();
@@ -55,11 +42,8 @@ namespace Chloe.Sharding.QueryState
 
             return new ScalarFeatureEnumerable<PagingResult<TElement>>(pagingResult);
         }
-
-
         AggregateQuery GetCountQuery(ShardingQueryPlan queryPlan)
         {
-
             Func<IQuery, bool, Task<object>> executor = async (query, @async) =>
             {
                 long result = @async ? await query.LongCountAsync() : query.LongCount();
@@ -68,8 +52,54 @@ namespace Chloe.Sharding.QueryState
 
             AggregateQuery aggQuery = new AggregateQuery(queryPlan, executor);
             return aggQuery;
+        }
 
-            throw new NotImplementedException();
+        class QueryEnumerable : FeatureEnumerable<object>
+        {
+            ShardingPagingQueryState QueryState;
+
+            public QueryEnumerable(ShardingPagingQueryState queryState)
+            {
+                this.QueryState = queryState;
+            }
+
+            public override IFeatureEnumerator<object> GetFeatureEnumerator(CancellationToken cancellationToken = default)
+            {
+                return new Enumerator(this, cancellationToken);
+            }
+
+            class Enumerator : FeatureEnumerator<object>
+            {
+                QueryEnumerable _enumerable;
+                CancellationToken _cancellationToken;
+                public Enumerator(QueryEnumerable enumerable, CancellationToken cancellationToken)
+                {
+                    this._enumerable = enumerable;
+                    this._cancellationToken = cancellationToken;
+                }
+
+                protected override async Task<IFeatureEnumerator<object>> CreateEnumerator(bool @async)
+                {
+                    ShardingQueryPlan queryPlan = this._enumerable.QueryState.CreateQueryPlan();
+                    AggregateQuery countQuery = this._enumerable.QueryState.GetCountQuery(queryPlan);
+
+                    List<QueryResult<long>> routeTableCounts = await countQuery.AsAsyncEnumerable().Select(a => new QueryResult<long>() { Table = a.Table, Result = (long)a.Result }).ToListAsync();
+                    long totals = routeTableCounts.Select(a => a.Result).Sum();
+
+                    if (queryPlan.IsOrderedTables)
+                    {
+                        OrderedTableQuery orderedTableQuery = new OrderedTableQuery(queryPlan, routeTableCounts);
+                        var featureEnumerable = await this._enumerable.QueryState.MakeFeatureEnumerable(totals, orderedTableQuery, this._cancellationToken);
+                        return featureEnumerable.GetFeatureEnumerator(this._cancellationToken);
+                    }
+                    else
+                    {
+                        OrdinaryQuery ordinaryQuery = new OrdinaryQuery(queryPlan);
+                        var featureEnumerable = await this._enumerable.QueryState.MakeFeatureEnumerable(totals, ordinaryQuery, this._cancellationToken);
+                        return featureEnumerable.GetFeatureEnumerator(this._cancellationToken);
+                    }
+                }
+            }
         }
     }
 }
