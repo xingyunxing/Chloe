@@ -22,6 +22,7 @@ namespace Chloe.Sharding.QueryState
             {
                 this.CheckInputCount(value);
                 this._count = value;
+                this.QueryModel.Take = this._count;
             }
         }
         void CheckInputCount(int count)
@@ -35,7 +36,9 @@ namespace Chloe.Sharding.QueryState
         public override IQueryState Accept(TakeExpression exp)
         {
             if (exp.Count < this.Count)
+            {
                 this.Count = exp.Count;
+            }
 
             return this;
         }

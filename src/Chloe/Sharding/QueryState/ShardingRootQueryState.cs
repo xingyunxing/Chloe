@@ -86,5 +86,10 @@ namespace Chloe.Sharding.QueryState
 
             return new ShardingGroupQueryState(this.Context, this.QueryModel);
         }
+
+        public override IQueryState Accept(PagingExpression exp)
+        {
+            return new ShardingPagingQueryState(this.Context, this.QueryModel, exp.Skip, exp.Take);
+        }
     }
 }

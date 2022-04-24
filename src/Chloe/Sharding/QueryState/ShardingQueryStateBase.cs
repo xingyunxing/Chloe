@@ -4,6 +4,7 @@ using Chloe.Query.QueryState;
 using Chloe.Sharding.Queries;
 using Chloe.Utility;
 using System.Linq.Expressions;
+using System.Threading;
 
 namespace Chloe.Sharding.QueryState
 {
@@ -75,10 +76,19 @@ namespace Chloe.Sharding.QueryState
             return this;
         }
 
-        public async Task<IFeatureEnumerable<object>> CreateQuery()
+        public virtual IQueryState Accept(PagingExpression exp)
+        {
+            throw new NotSupportedException($"{nameof(IQuery<object>.Paging)}");
+        }
+
+        public async Task<IFeatureEnumerable<object>> CreateQuery(CancellationToken cancellationToken)
         {
             ShardingQueryPlan queryPlan = this.CreateQueryPlan();
+            return await this.CreateQuery(queryPlan, cancellationToken);
+        }
 
+        protected virtual async Task<IFeatureEnumerable<object>> CreateQuery(ShardingQueryPlan queryPlan, CancellationToken cancellationToken)
+        {
             if (queryPlan.Tables.Count > 1)
             {
                 //主键或唯一索引查询
@@ -91,27 +101,28 @@ namespace Chloe.Sharding.QueryState
                 }
             }
 
-            if (queryPlan.IsOrderedTables && queryPlan.QueryModel.HasSkip())
-            {
-                //走分页逻辑，对程序性能有可能好点？
-                var pagingResult = await this.ExecutePaging(queryPlan);
-                return pagingResult.Result;
-            }
+            //if (queryPlan.IsOrderedTables && queryPlan.QueryModel.HasSkip())
+            //{
+            //    //走分页逻辑，对程序性能有可能好点？
+            //    var pagingResult = await this.ExecutePaging(queryPlan);
+            //    return pagingResult.Result;
+            //}
 
-            if (queryPlan.IsOrderedTables && !queryPlan.QueryModel.HasSkip())
-            {
-                //走串行？
-            }
+            //if (queryPlan.IsOrderedTables && !queryPlan.QueryModel.HasSkip())
+            //{
+            //    //走串行？
+            //}
 
-            if (!queryPlan.QueryModel.HasSkip())
-            {
-                //未指定 skip
-                return new NonPagingQuery(queryPlan);
-            }
+            //if (!queryPlan.QueryModel.HasSkip())
+            //{
+            //    //未指定 skip
+            //    return new NonPagingQuery(queryPlan);
+            //}
 
             OrdinaryQuery ordinaryQuery = new OrdinaryQuery(queryPlan);
             return ordinaryQuery;
         }
+
         async Task<PagingExecuteResult<object>> ExecutePaging(ShardingQueryPlan queryPlan)
         {
             throw new NotImplementedException();

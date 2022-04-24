@@ -142,6 +142,10 @@ namespace Chloe.Query.QueryState
             this.QueryModel.IsTracking = true;
             return this;
         }
+        public virtual IQueryState Accept(PagingExpression exp)
+        {
+            throw new NotSupportedException();
+        }
 
         public virtual QueryModel CreateNewQueryModel(LambdaExpression selector)
         {

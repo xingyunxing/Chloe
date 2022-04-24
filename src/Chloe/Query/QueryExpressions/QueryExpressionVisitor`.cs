@@ -57,5 +57,9 @@
         {
             throw new NotImplementedException();
         }
+        public virtual T Visit(PagingExpression exp)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

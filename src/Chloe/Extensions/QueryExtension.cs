@@ -20,6 +20,15 @@ namespace Chloe
             throw new NotImplementedException();
         }
 
+        public static long LongCount(this IQuery query)
+        {
+            throw new NotImplementedException();
+        }
+        public static async Task<long> LongCountAsync(this IQuery query)
+        {
+            throw new NotImplementedException();
+        }
+
         public static bool Any(this IQuery query)
         {
             throw new NotImplementedException();

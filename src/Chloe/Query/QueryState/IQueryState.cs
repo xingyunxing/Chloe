@@ -22,5 +22,6 @@ namespace Chloe.Query.QueryState
         IQueryState Accept(IncludeExpression exp);
         IQueryState Accept(IgnoreAllFiltersExpression exp);
         IQueryState Accept(TrackingExpression exp);
+        IQueryState Accept(PagingExpression exp);
     }
 }

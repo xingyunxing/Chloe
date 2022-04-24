@@ -7,6 +7,7 @@ namespace Chloe.Query.QueryExpressions
         Where,
         Take,
         Skip,
+        Paging,
         OrderBy,
         OrderByDesc,
         ThenBy,

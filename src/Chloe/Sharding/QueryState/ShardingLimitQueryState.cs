@@ -24,6 +24,7 @@ namespace Chloe.Sharding.QueryState
             {
                 this.CheckInputCount(value, "skip");
                 this._skipCount = value;
+                this.QueryModel.Skip = this._skipCount;
             }
         }
         public int TakeCount
@@ -36,6 +37,7 @@ namespace Chloe.Sharding.QueryState
             {
                 this.CheckInputCount(value, "take");
                 this._takeCount = value;
+                this.QueryModel.Take = this._takeCount;
             }
         }
         void CheckInputCount(int count, string name)
