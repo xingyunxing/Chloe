@@ -51,6 +51,16 @@ namespace Chloe.Sharding
             return conditions;
         }
 
+        public Type GetElementType()
+        {
+            if (this.Selector == null)
+            {
+                return this.RootEntityType;
+            }
+
+            return this.Selector.Body.Type;
+        }
+
         public bool HasSkip()
         {
             return this.Skip.HasValue && this.Skip.Value > 0;

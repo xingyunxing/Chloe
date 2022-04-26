@@ -233,13 +233,17 @@ namespace Chloe.Sharding
             return q;
         }
 
-        public static Expression<Func<TSource, AggregateModel>> MakeAggregateSelector<TSource>(LambdaExpression selector)
+        public static LambdaExpression MakeAggregateSelector(LambdaExpression selector)
         {
+            var parameterType = selector.Parameters[0].Type;
             Expression lambdaBody = ConvertToNewAggregateModelExpression(selector.Body);
 
-            var parameterExp = Expression.Parameter(typeof(TSource));
+            var parameterExp = Expression.Parameter(parameterType);
             lambdaBody = ParameterExpressionReplacer.Replace(lambdaBody, parameterExp);
-            var lambda = Expression.Lambda<Func<TSource, AggregateModel>>(lambdaBody, parameterExp);
+
+            var delType = typeof(Func<,>).MakeGenericType(parameterType, typeof(AggregateModel));
+
+            var lambda = Expression.Lambda(delType, lambdaBody, parameterExp);
 
             return lambda;
         }

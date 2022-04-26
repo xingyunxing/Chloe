@@ -4,12 +4,15 @@ using Chloe.Query.QueryState;
 using Chloe.Sharding.Queries;
 using Chloe.Utility;
 using System.Linq.Expressions;
-using System.Threading;
 
 namespace Chloe.Sharding.QueryState
 {
     internal class ShardingQueryStateBase : IQueryState
     {
+        protected ShardingQueryStateBase(ShardingQueryStateBase prevQueryState) : this(prevQueryState.Context, prevQueryState.QueryModel)
+        {
+
+        }
         protected ShardingQueryStateBase(ShardingQueryContext context, ShardingQueryModel queryModel)
         {
             this.Context = context;
@@ -83,63 +86,37 @@ namespace Chloe.Sharding.QueryState
 
         public virtual IFeatureEnumerable<object> CreateQuery()
         {
-            throw new NotImplementedException();
-            //ShardingQueryPlan queryPlan = this.CreateQueryPlan();
-            //return await this.CreateQuery(queryPlan, cancellationToken);
+            ShardingQueryPlan queryPlan = this.CreateQueryPlan();
+
+            if (queryPlan.IsOrderedTables)
+            {
+                //走分页逻辑，对程序性能有可能好点？
+
+                var pagingQueryEnumerable = new PagingQueryEnumerable(this.CreateQueryPlan());
+                return new PagingResultDataListEnumerable(pagingQueryEnumerable);
+            }
+
+            OrdinaryQuery ordinaryQuery = new OrdinaryQuery(queryPlan);
+            return ordinaryQuery;
         }
 
-        //protected virtual async Task<IFeatureEnumerable<object>> CreateQuery(ShardingQueryPlan queryPlan, CancellationToken cancellationToken)
-        //{
-        //    if (queryPlan.Tables.Count > 1)
-        //    {
-        //        //主键或唯一索引查询
-        //        bool isUniqueDataQuery = UniqueDataQueryAuthenticator.IsUniqueDataQuery(queryPlan.ShardingContext, queryPlan.QueryModel.GetFinalConditions());
-
-        //        if (isUniqueDataQuery)
-        //        {
-        //            UniqueDataQuery query = new UniqueDataQuery(queryPlan);
-        //            return query;
-        //        }
-        //    }
-
-        //    //if (queryPlan.IsOrderedTables && queryPlan.QueryModel.HasSkip())
-        //    //{
-        //    //    //走分页逻辑，对程序性能有可能好点？
-        //    //    var pagingResult = await this.ExecutePaging(queryPlan);
-        //    //    return pagingResult.Result;
-        //    //}
-
-        //    //if (queryPlan.IsOrderedTables && !queryPlan.QueryModel.HasSkip())
-        //    //{
-        //    //    //走串行？
-        //    //}
-
-        //    //if (!queryPlan.QueryModel.HasSkip())
-        //    //{
-        //    //    //未指定 skip
-        //    //    return new NonPagingQuery(queryPlan);
-        //    //}
-
-        //    OrdinaryQuery ordinaryQuery = new OrdinaryQuery(queryPlan);
-        //    return ordinaryQuery;
-        //}
-
-        async Task<PagingExecuteResult<object>> ExecutePaging(ShardingQueryPlan queryPlan)
+        protected virtual IFeatureEnumerable<object> CreateNoPagingQuery()
         {
-            throw new NotImplementedException();
-            //AggregateQuery<T, long> countQuery = this.GetCountQuery(queryPlan);
+            ShardingQueryPlan queryPlan = this.CreateQueryPlan();
 
-            //List<QueryResult<long>> routeTableCounts = await countQuery.ToListAsync();
-            //long totals = routeTableCounts.Select(a => a.Result).Sum();
+            if (queryPlan.Tables.Count > 1)
+            {
+                //主键或唯一索引查询
+                bool isUniqueDataQuery = UniqueDataQueryAuthenticator.IsUniqueDataQuery(queryPlan.ShardingContext, queryPlan.QueryModel.GetFinalConditions());
 
-            //if (queryPlan.IsOrderedTables)
-            //{
-            //    OrderedTableQuery<T> orderedTableQuery = new OrderedTableQuery<T>(queryPlan, routeTableCounts);
-            //    return new PagingExecuteResult<T>(totals, orderedTableQuery);
-            //}
+                if (isUniqueDataQuery)
+                {
+                    UniqueDataQuery query = new UniqueDataQuery(queryPlan);
+                    return query;
+                }
+            }
 
-            //OrdinaryQuery<T> ordinaryQuery = new OrdinaryQuery<T>(queryPlan);
-            //return new PagingExecuteResult<T>(totals, ordinaryQuery);
+            return new NonPagingQuery(queryPlan);
         }
 
         public ShardingQueryPlan CreateQueryPlan()
@@ -183,9 +160,9 @@ namespace Chloe.Sharding.QueryState
             throw new NotSupportedException();
         }
 
-        public virtual IFeatureEnumerable<object> CreateFeatureQuery()
-        {
-            throw new NotImplementedException();
-        }
+        //public virtual IFeatureEnumerable<object> CreateFeatureQuery()
+        //{
+        //    throw new NotImplementedException();
+        //}
     }
 }

@@ -7,8 +7,7 @@ namespace Chloe.Sharding.QueryState
     {
         int _skipCount;
         int _takeCount;
-        public ShardingLimitQueryState(ShardingQueryContext context, ShardingQueryModel queryModel, int skipCount, int takeCount)
-            : base(context, queryModel)
+        public ShardingLimitQueryState(ShardingQueryStateBase prevQueryState, int skipCount, int takeCount) : base(prevQueryState)
         {
             this.SkipCount = skipCount;
             this.TakeCount = takeCount;

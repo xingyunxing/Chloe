@@ -134,9 +134,9 @@ namespace Chloe
             }
         }
 
-        //public static IFeatureEnumerable<TResult> Select<T, TResult>(this IFeatureEnumerable<T> source, Func<T, TResult> selector)
-        //{
-        //    throw new NotImplementedException();
-        //}
+        public static IFeatureEnumerable<TResult> Select<T, TResult>(this IFeatureEnumerable<T> source, Func<T, TResult> selector)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

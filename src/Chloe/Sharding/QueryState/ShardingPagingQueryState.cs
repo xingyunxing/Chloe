@@ -1,5 +1,4 @@
 ﻿using Chloe.Query.QueryExpressions;
-using Chloe.Query.QueryState;
 using Chloe.Sharding.Queries;
 using Chloe.Reflection;
 using System.Threading;
@@ -8,15 +7,16 @@ namespace Chloe.Sharding.QueryState
 {
     internal class ShardingPagingQueryState : ShardingQueryStateBase
     {
-        public ShardingPagingQueryState(ShardingQueryContext context, ShardingQueryModel queryModel, int skipCount, int takeCount) : base(context, queryModel)
+        public ShardingPagingQueryState(ShardingQueryStateBase prevQueryState, PagingExpression exp) : base(prevQueryState)
         {
-            this.QueryModel.Skip = skipCount;
-            this.QueryModel.Take = takeCount;
+            this.QueryModel.Skip = exp.Skip;
+            this.QueryModel.Take = exp.Take;
         }
 
         public override IFeatureEnumerable<object> CreateQuery()
         {
-            return new QueryEnumerable(this);
+            var pagingQueryEnumerable = new PagingQueryEnumerable(this.CreateQueryPlan());
+            return pagingQueryEnumerable.Select(a => a.MakeTypedPagingResultObject(this.QueryModel.GetElementType()));
         }
 
         async Task<IFeatureEnumerable<object>> MakeFeatureEnumerable(long totals, IFeatureEnumerable<object> dataQuery, CancellationToken cancellationToken)
@@ -101,5 +101,7 @@ namespace Chloe.Sharding.QueryState
                 }
             }
         }
+
+
     }
 }

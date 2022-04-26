@@ -1,7 +1,5 @@
 ﻿using Chloe.Query.QueryExpressions;
 using Chloe.Query.QueryState;
-using Chloe.Sharding.Queries;
-using System.Threading;
 
 namespace Chloe.Sharding.QueryState
 {
@@ -9,9 +7,9 @@ namespace Chloe.Sharding.QueryState
     {
         int _count;
 
-        public ShardingSkipQueryState(ShardingQueryContext context, ShardingQueryModel queryModel, int count) : base(context, queryModel)
+        public ShardingSkipQueryState(ShardingQueryStateBase prevQueryState, SkipExpression exp) : base(prevQueryState)
         {
-            this.Count = count;
+            this.Count = exp.Count;
         }
 
         public int Count
@@ -49,27 +47,7 @@ namespace Chloe.Sharding.QueryState
 
         public override IQueryState Accept(TakeExpression exp)
         {
-            return new ShardingLimitQueryState(this.Context, this.QueryModel, this.Count, exp.Count);
-        }
-
-        public override IFeatureEnumerable<object> CreateQuery()
-        {
-            ShardingQueryPlan queryPlan = this.CreateQueryPlan();
-            if (queryPlan.IsOrderedTables && queryPlan.QueryModel.HasSkip())
-            {
-                throw new NotSupportedException();
-                ////走分页逻辑，对程序性能有可能好点？
-                //var pagingResult = await this.ExecutePaging(queryPlan);
-                //return pagingResult.Result;
-            }
-
-            if (queryPlan.IsOrderedTables && !queryPlan.QueryModel.HasSkip())
-            {
-                //走串行？
-            }
-
-            OrdinaryQuery ordinaryQuery = new OrdinaryQuery(queryPlan);
-            return ordinaryQuery;
+            return new ShardingLimitQueryState(this, this.Count, exp.Count);
         }
     }
 }

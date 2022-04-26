@@ -5,7 +5,7 @@ using System.Threading;
 
 namespace Chloe.Sharding.Queries
 {
-    internal class GroupAggregateQuery<T, TResult> : FeatureEnumerable<TResult>
+    internal class GroupAggregateQuery : FeatureEnumerable<object>
     {
         ShardingQueryPlan _queryPlan;
 
@@ -14,23 +14,23 @@ namespace Chloe.Sharding.Queries
             this._queryPlan = queryPlan;
         }
 
-        public override IFeatureEnumerator<TResult> GetFeatureEnumerator(CancellationToken cancellationToken = default)
+        public override IFeatureEnumerator<object> GetFeatureEnumerator(CancellationToken cancellationToken = default)
         {
             return new Enumerator(this, cancellationToken);
         }
 
-        class Enumerator : QueryFeatureEnumerator<TResult>
+        class Enumerator : QueryFeatureEnumerator<object>
         {
-            GroupAggregateQuery<T, TResult> _enumerable;
+            GroupAggregateQuery _enumerable;
             CancellationToken _cancellationToken;
 
-            public Enumerator(GroupAggregateQuery<T, TResult> enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryPlan)
+            public Enumerator(GroupAggregateQuery enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryPlan)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;
             }
 
-            protected override async Task<IFeatureEnumerator<TResult>> CreateEnumerator(bool @async)
+            protected override async Task<IFeatureEnumerator<object>> CreateEnumerator(bool @async)
             {
                 ParallelQueryContext queryContext = new ParallelQueryContext();
 
@@ -63,7 +63,9 @@ namespace Chloe.Sharding.Queries
 
                     List<MemberBinding> bindings = new List<MemberBinding>(dynamicTypeProperties.Count);
 
-                    var parameterExpression = Expression.Parameter(typeof(T));
+                    var entityType = this.QueryModel.Selector.Parameters[0].Type;
+
+                    var parameterExpression = Expression.Parameter(entityType);
 
                     int idx = 0;
 
@@ -108,7 +110,7 @@ namespace Chloe.Sharding.Queries
                     NewExpression newExp = Expression.New(dynamicType.Type);
                     MemberInitExpression memberInitExpression = Expression.MemberInit(newExp, bindings);
 
-                    var delType = typeof(Func<,>).MakeGenericType(typeof(T), dynamicType.Type);
+                    var delType = typeof(Func<,>).MakeGenericType(entityType, dynamicType.Type);
                     var dynamicTypeSelector = Expression.Lambda(delType, memberInitExpression, parameterExpression);
 
                     List<GroupAggregateQueryModel> queryModels = new List<GroupAggregateQueryModel>(this.QueryPlan.Tables.Count);
@@ -176,8 +178,7 @@ namespace Chloe.Sharding.Queries
                         instances.Add(instance);
                     }
 
-                    var featureEnumerableAdapter = new FeatureEnumerableAdapter<TResult>(instances.Select(a => (TResult)a));
-
+                    var featureEnumerableAdapter = new FeatureEnumerableAdapter<object>(instances);
                     return featureEnumerableAdapter.GetFeatureEnumerator();
 
                     throw new NotImplementedException();

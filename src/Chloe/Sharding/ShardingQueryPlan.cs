@@ -1,6 +1,4 @@
-﻿using System.Linq.Expressions;
-
-namespace Chloe.Sharding
+﻿namespace Chloe.Sharding
 {
     internal class ShardingQueryPlan
     {

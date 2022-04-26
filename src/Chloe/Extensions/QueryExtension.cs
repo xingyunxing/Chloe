@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections;
+using System.Linq.Expressions;
 
 namespace Chloe
 {
@@ -20,6 +18,15 @@ namespace Chloe
             throw new NotImplementedException();
         }
 
+        public static int Count(this IQuery query)
+        {
+            throw new NotImplementedException();
+        }
+        public static async Task<int> CountAsync(this IQuery query)
+        {
+            throw new NotImplementedException();
+        }
+
         public static long LongCount(this IQuery query)
         {
             throw new NotImplementedException();
@@ -29,11 +36,34 @@ namespace Chloe
             throw new NotImplementedException();
         }
 
+        public static object Sum(this IQuery query, LambdaExpression selector)
+        {
+            throw new NotImplementedException();
+        }
+        public static Task<object> SumAsync(this IQuery query, LambdaExpression selector)
+        {
+            throw new NotImplementedException();
+        }
+
         public static bool Any(this IQuery query)
         {
             throw new NotImplementedException();
         }
         public static async Task<bool> AnyAsync(this IQuery query)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static object First(this IQuery query)
+        {
+            throw new NotImplementedException();
+        }
+        public static Task<object> FirstAsync(this IQuery query)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static IQuery Select(this IQuery query, LambdaExpression selector)
         {
             throw new NotImplementedException();
         }

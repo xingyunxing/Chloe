@@ -1,18 +1,49 @@
 ﻿using System.Collections;
+using System.Reflection;
+using Chloe.Reflection;
 
 namespace Chloe
 {
-    internal interface IPagingResult
+    internal class PagingResult
     {
-        long Count { get; set; }
-        IList DataList { get; set; }
+        static MethodInfo MakeTypePagingResultMethod;
+
+        static PagingResult()
+        {
+            MakeTypePagingResultMethod = typeof(PagingResult).GetMethod(nameof(PagingResult.MakeTypedPagingResult));
+        }
+
+        public long Count { get; set; }
+        public IList DataList { get; set; }
+
+        internal object MakeTypedPagingResultObject(Type elementType)
+        {
+            var ret = MakeTypePagingResultMethod.MakeGenericMethod(elementType).FastInvoke(this);
+            return ret;
+        }
+        internal PagingResult<T> MakeTypedPagingResult<T>()
+        {
+            PagingResult<T> pagingResult = new PagingResult<T>();
+            pagingResult.Count = Count;
+
+            if (this.DataList is List<T> dataList)
+            {
+                pagingResult.DataList = dataList;
+
+                return pagingResult;
+            }
+
+            foreach (var item in this.DataList)
+            {
+                pagingResult.DataList.Add((T)item);
+            }
+            return pagingResult;
+        }
     }
 
-    public class PagingResult<T> : IPagingResult
+    public class PagingResult<T>
     {
         public long Count { get; set; }
         public List<T> DataList { get; set; }
-        long IPagingResult.Count { get => this.Count; set => this.Count = value; }
-        IList IPagingResult.DataList { get => this.DataList; set => this.DataList = (List<T>)value; }
     }
 }

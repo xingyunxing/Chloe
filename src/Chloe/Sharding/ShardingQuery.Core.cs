@@ -14,7 +14,7 @@ namespace Chloe.Sharding
             if (queryPlan.QueryModel.GroupKeySelectors.Count > 0)
             {
                 //分组查询
-                var groupAggQueryType = typeof(GroupAggregateQuery<,>).MakeGenericType(queryPlan.QueryModel.Selector.Parameters[0].Type, typeof(T));
+                var groupAggQueryType = typeof(GroupAggregateQuery).MakeGenericType(queryPlan.QueryModel.Selector.Parameters[0].Type, typeof(T));
                 var groupAggQuery = groupAggQueryType.GetConstructor(new Type[] { queryPlan.GetType() }).FastCreateInstance(queryPlan);
 
                 return (IFeatureEnumerable<T>)groupAggQuery;
@@ -108,34 +108,34 @@ namespace Chloe.Sharding
         async Task<decimal?> QueryAverageAsync(LambdaExpression selector)
         {
             throw new NotImplementedException();
-            // var aggSelector = ShardingHelpers.MakeAggregateSelector<T>(selector);
+            var aggSelector = ShardingHelpers.MakeAggregateSelector(selector);
 
-            // Func<IQuery, bool, Task<object>> executor = async (query, @async) =>
-            //{
-            //    var q = query.Select(aggSelector);
-            //    AggregateModel result = @async ? await q.FirstAsync() : q.First();
-            //    return result;
-            //};
+            Func<IQuery, bool, Task<object>> executor = async (query, @async) =>
+            {
+                var q = query.Select(aggSelector);
+                var result = @async ? await q.FirstAsync() : q.First();
+                return result;
+            };
 
-            // AggregateQuery aggQuery = new AggregateQuery(this.MakeQueryPlan(this), executor);
+            AggregateQuery aggQuery = new AggregateQuery(this.MakeQueryPlan(this), executor);
 
-            // decimal? sum = null;
-            // long count = 0;
+            decimal? sum = null;
+            long count = 0;
 
-            // await aggQuery.AsAsyncEnumerable().Select(a => a.Result).ForEach(a =>
-            // {
-            //     if (a.Sum == null)
-            //         return;
+            await aggQuery.AsAsyncEnumerable().Select(a => (AggregateModel)a.Result).ForEach(a =>
+            {
+                if (a.Sum == null)
+                    return;
 
-            //     sum = (sum ?? 0) + a.Sum.Value;
-            //     count = count + a.Count;
-            // });
+                sum = (sum ?? 0) + a.Sum.Value;
+                count = count + a.Count;
+            });
 
-            // if (sum == null)
-            //     return null;
+            if (sum == null)
+                return null;
 
-            // decimal avg = sum.Value / count;
-            // return avg;
+            decimal avg = sum.Value / count;
+            return avg;
         }
 
         ShardingQueryPlan MakeQueryPlan(ShardingQuery<T> query)

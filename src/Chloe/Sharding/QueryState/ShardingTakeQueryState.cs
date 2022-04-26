@@ -7,9 +7,9 @@ namespace Chloe.Sharding.QueryState
     {
         int _count;
 
-        public ShardingTakeQueryState(ShardingQueryContext context, ShardingQueryModel queryModel, int count) : base(context, queryModel)
+        public ShardingTakeQueryState(ShardingQueryStateBase prevQueryState, TakeExpression exp) : base(prevQueryState)
         {
-            this.Count = count;
+            this.Count = exp.Count;
         }
 
         public int Count

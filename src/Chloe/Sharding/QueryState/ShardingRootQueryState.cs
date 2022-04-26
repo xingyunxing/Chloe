@@ -5,9 +5,22 @@ namespace Chloe.Sharding.QueryState
 {
     internal class ShardingRootQueryState : ShardingQueryStateBase
     {
-        public ShardingRootQueryState(ShardingQueryContext context) : base(context, new ShardingQueryModel())
+        public ShardingRootQueryState(RootQueryExpression exp) : base(CreateQueryContext(exp), CreateQueryModel(exp))
         {
 
+        }
+
+        static ShardingQueryContext CreateQueryContext(RootQueryExpression exp)
+        {
+            var dbContext = (ShardingDbContext)exp.Provider;
+            ShardingQueryContext queryContext = new ShardingQueryContext(dbContext);
+            return queryContext;
+        }
+        static ShardingQueryModel CreateQueryModel(RootQueryExpression exp)
+        {
+            ShardingQueryModel queryModel = new ShardingQueryModel();
+            queryModel.RootEntityType = exp.ElementType;
+            return queryModel;
         }
 
         public override IQueryState Accept(WhereExpression exp)
@@ -50,23 +63,22 @@ namespace Chloe.Sharding.QueryState
 
         public override IQueryState Accept(SelectExpression exp)
         {
-            this.QueryModel.Selector = exp.Selector;
-            return new ShardingGeneralQueryState(this.Context, this.QueryModel);
+            return new ShardingSelectQueryState(this, exp);
         }
 
         public override IQueryState Accept(SkipExpression exp)
         {
-            return new ShardingSkipQueryState(this.Context, this.QueryModel, exp.Count);
+            return new ShardingSkipQueryState(this, exp);
         }
 
         public override IQueryState Accept(TakeExpression exp)
         {
-            return new ShardingTakeQueryState(this.Context, this.QueryModel, exp.Count);
+            return new ShardingTakeQueryState(this, exp);
         }
 
         public override IQueryState Accept(AggregateQueryExpression exp)
         {
-            return new ShardingAggregateQueryState(this.Context, this.QueryModel);
+            return new ShardingAggregateQueryState(this, exp);
         }
 
         public override IQueryState Accept(GroupingQueryExpression exp)
@@ -84,12 +96,17 @@ namespace Chloe.Sharding.QueryState
             this.QueryModel.GroupKeySelectors.AddRange(exp.GroupKeySelectors);
             this.QueryModel.Selector = exp.Selector;
 
-            return new ShardingGroupQueryState(this.Context, this.QueryModel);
+            return new ShardingGroupQueryState(this);
         }
 
         public override IQueryState Accept(PagingExpression exp)
         {
-            return new ShardingPagingQueryState(this.Context, this.QueryModel, exp.Skip, exp.Take);
+            return new ShardingPagingQueryState(this, exp);
+        }
+
+        public override IFeatureEnumerable<object> CreateQuery()
+        {
+            return this.CreateNoPagingQuery();
         }
     }
 }
