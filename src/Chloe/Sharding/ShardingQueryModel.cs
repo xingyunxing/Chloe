@@ -26,19 +26,19 @@ namespace Chloe.Sharding
         public List<LambdaExpression> GlobalFilters { get; set; } = new List<LambdaExpression>();
         public List<LambdaExpression> ContextFilters { get; set; } = new List<LambdaExpression>();
 
-        public List<OrderProperty> MakeOrderProperties()
-        {
-            List<OrderProperty> orders = new List<OrderProperty>(this.Orderings.Count);
-            for (int i = 0; i < this.Orderings.Count; i++)
-            {
-                var ordering = this.Orderings[i];
-                var valueGetter = MemberGetterContainer.Get(ordering.Member);
-                var orderProperty = new OrderProperty() { Member = ordering.Member, Ascending = ordering.Ascending, ValueGetter = valueGetter };
-                orders.Add(orderProperty);
-            }
+        //public List<OrderProperty> MakeOrderProperties()
+        //{
+        //    List<OrderProperty> orders = new List<OrderProperty>(this.Orderings.Count);
+        //    for (int i = 0; i < this.Orderings.Count; i++)
+        //    {
+        //        var ordering = this.Orderings[i];
+        //        var valueGetter = MemberGetterContainer.Get(ordering.Member);
+        //        var orderProperty = new OrderProperty() { Member = ordering.Member, Ascending = ordering.Ascending, ValueGetter = valueGetter };
+        //        orders.Add(orderProperty);
+        //    }
 
-            return orders;
-        }
+        //    return orders;
+        //}
 
         public IEnumerable<LambdaExpression> GetFinalConditions()
         {

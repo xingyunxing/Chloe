@@ -77,7 +77,7 @@ namespace Chloe.Sharding.Queries
 
                 dynamicTypeProperties.Add(this.ShardingContext.TypeDescriptor.PrimaryKeys.First().PropertyType);
                 dynamicTypeProperties.Add(typeof(int));
-                dynamicTypeProperties.AddRange(this.QueryModel.Orderings.Select(a => a.Member.GetMemberType()));
+                dynamicTypeProperties.AddRange(this.QueryModel.Orderings.Select(a => a.KeySelector.Body.Type));
 
                 //new Dynamic() { Id,Ordinal,Order1,Order2... }
                 DynamicType dynamicType = DynamicTypeContainer.Get(dynamicTypeProperties);
@@ -129,7 +129,7 @@ namespace Chloe.Sharding.Queries
                 {
                     var ordering = queryModel.Orderings[i];
                     var mapDynamicProperty = dynamicType.Properties[i + 2];
-                    var orderProperty = new OrderProperty() { Member = mapDynamicProperty.Property, Ascending = ordering.Ascending, ValueGetter = mapDynamicProperty.Getter };
+                    var orderProperty = new OrderProperty() { Ascending = ordering.Ascending, ValueGetter = mapDynamicProperty.Getter };
                     orders.Add(orderProperty);
                 }
 

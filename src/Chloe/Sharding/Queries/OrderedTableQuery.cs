@@ -5,7 +5,6 @@ namespace Chloe.Sharding.Queries
     /// <summary>
     /// 有序的表数据查询
     /// </summary>
-    /// <typeparam name="T"></typeparam>
     internal class OrderedTableQuery : FeatureEnumerable<object>
     {
         ShardingQueryPlan _queryPlan;

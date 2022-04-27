@@ -39,14 +39,6 @@ namespace Chloe.Sharding.QueryState
             Ordering ordering = new Ordering();
             ordering.KeySelector = exp.KeySelector;
 
-            var memberExp = exp.KeySelector.Body as System.Linq.Expressions.MemberExpression;
-            if (memberExp == null || memberExp.Expression.NodeType != System.Linq.Expressions.ExpressionType.Parameter)
-            {
-                throw new NotSupportedException(exp.KeySelector.ToString());
-            }
-
-            ordering.Member = memberExp.Member;
-
             if (exp.NodeType == QueryExpressionType.OrderBy || exp.NodeType == QueryExpressionType.ThenBy)
             {
                 ordering.Ascending = true;

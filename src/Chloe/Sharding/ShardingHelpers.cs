@@ -116,7 +116,70 @@ namespace Chloe.Sharding
             return selector;
         }
 
+        public static QueryProjection MakeQueryProjection(ShardingQueryModel queryModel)
+        {
+            QueryProjection queryProjection = new QueryProjection();
+            queryProjection.RootEntityType = queryModel.RootEntityType;
+            queryProjection.IgnoreAllFilters = queryModel.IgnoreAllFilters;
+            queryProjection.Conditions.AddRange(queryModel.Conditions);
+            queryProjection.Orderings.AddRange(queryModel.Orderings);
 
+            int? takeCount = null;
+
+            if (queryModel.Take != null)
+            {
+                takeCount = (queryModel.Skip ?? 0) + queryModel.Take.Value;
+            }
+            queryProjection.Take = takeCount;
+
+            LambdaExpression selector = queryModel.Selector;
+
+            if (selector == null)
+            {
+                var delType = typeof(Func<,>).MakeGenericType(queryModel.RootEntityType, queryModel.RootEntityType);
+                var parameterExp = Expression.Parameter(queryModel.RootEntityType);
+                selector = Expression.Lambda(delType, parameterExp, parameterExp);
+            }
+
+            if (queryModel.Orderings.Count > 0)
+            {
+                List<Type> dynamicTypeProperties = new List<Type>(queryModel.Orderings.Count + 1);
+                dynamicTypeProperties.Add(selector.Body.Type);
+                dynamicTypeProperties.AddRange(queryModel.Orderings.Select(a => a.KeySelector.Body.Type));
+
+                DynamicType dynamicType = DynamicTypeContainer.Get(dynamicTypeProperties);
+
+                queryProjection.ResultMapper = dynamicType.Properties[0].Getter;
+
+                ParameterExpression parameterExp = selector.Parameters[0];
+                List<MemberBinding> bindings = new List<MemberBinding>(dynamicTypeProperties.Count);
+                MemberAssignment resultBind = Expression.Bind(dynamicType.Properties[0].Property, parameterExp);
+                bindings.Add(resultBind);
+
+                for (int i = 0; i < queryModel.Orderings.Count; i++)
+                {
+                    var ordering = queryModel.Orderings[i];
+                    OrderProperty orderProperty = new OrderProperty() { ValueGetter = dynamicType.Properties[i + 1].Getter, Ascending = ordering.Ascending };
+                    queryProjection.OrderProperties.Add(orderProperty);
+
+                    var orderKeySelectorExp = ParameterExpressionReplacer.Replace(ordering.KeySelector.Body, parameterExp);
+                    MemberAssignment orderingBind = Expression.Bind(dynamicType.Properties[i + 1].Property, orderKeySelectorExp);
+                    bindings.Add(orderingBind);
+                }
+
+                NewExpression newExp = Expression.New(dynamicType.Type);
+                Expression lambdaBody = Expression.MemberInit(newExp, bindings);
+                LambdaExpression selectorLambda = Expression.Lambda(typeof(Func<,>).MakeGenericType(queryModel.RootEntityType, dynamicType.Type), lambdaBody, parameterExp);
+                queryProjection.Selector = selectorLambda;
+            }
+            else
+            {
+                queryProjection.ResultMapper = a => a;
+                queryProjection.Selector = selector;
+            }
+
+            return queryProjection;
+        }
 
         public static List<TableDataQueryPlan> MakeEntityQueryPlans(ShardingQueryModel queryModel, List<KeyQueryResult> keyResults, TypeDescriptor typeDescriptor, int maxInItems)
         {
@@ -160,6 +223,49 @@ namespace Chloe.Sharding
 
             return queryPlans;
         }
+        public static List<TableDataQueryPlan> MakeEntityQueryPlans(QueryProjection queryProjection, List<KeyQueryResult> keyResults, TypeDescriptor typeDescriptor, int maxInItems)
+        {
+            List<TableDataQueryPlan> queryPlans = new List<TableDataQueryPlan>();
+
+            var listConstructor = typeof(List<>).MakeGenericType(typeDescriptor.PrimaryKeys.First().PropertyType).GetConstructor(new Type[] { typeof(int) });
+            InstanceCreator listCreator = InstanceCreatorContainer.Get(listConstructor);
+
+            ParameterExpression parameter = Expression.Parameter(queryProjection.RootEntityType, "a");
+            Expression keyMemberAccess = Expression.MakeMemberAccess(parameter, typeDescriptor.PrimaryKeys.First().Definition.Property);
+
+            foreach (var keyResult in keyResults.Where(a => a.Keys.Count > 0))
+            {
+                List<List<object>> batches = Slice(keyResult.Keys, maxInItems);
+
+                foreach (var batch in batches)
+                {
+                    IList keyList = (IList)listCreator(batch.Count);
+                    foreach (var inItem in batch)
+                    {
+                        keyList.Add(inItem);
+                    }
+
+                    Expression containsCall = Expression.Call(Expression.Constant(keyList), keyList.GetType().GetMethod(nameof(List<int>.Contains)), keyMemberAccess);
+                    Expression conditionBody = containsCall;
+
+                    LambdaExpression condition = LambdaExpression.Lambda(typeof(Func<,>).MakeGenericType(queryProjection.RootEntityType, typeof(bool)), conditionBody, parameter);
+
+                    DataQueryModel dataQueryModel = new DataQueryModel(queryProjection.RootEntityType);
+                    dataQueryModel.Table = keyResult.Table;
+                    dataQueryModel.IgnoreAllFilters = true;
+                    dataQueryModel.Orderings.AddRange(queryProjection.Orderings);
+                    dataQueryModel.Conditions.Add(condition);
+                    dataQueryModel.Selector = queryProjection.Selector;
+
+                    TableDataQueryPlan queryPlan = new TableDataQueryPlan();
+                    queryPlan.QueryModel = dataQueryModel;
+
+                    queryPlans.Add(queryPlan);
+                }
+            }
+
+            return queryPlans;
+        }
 
         public static DataQueryModel MakeDataQueryModel(IPhysicTable table, ShardingQueryModel queryModel)
         {
@@ -182,6 +288,7 @@ namespace Chloe.Sharding
             dataQueryModel.Orderings.AddRange(queryModel.Orderings);
             dataQueryModel.Skip = skip;
             dataQueryModel.Take = take;
+            dataQueryModel.Selector = queryModel.Selector;
 
             return dataQueryModel;
         }
@@ -189,8 +296,18 @@ namespace Chloe.Sharding
         public static IQuery MakeQuery(IDbContext dbContext, DataQueryModel queryModel, bool withSkipAndTake)
         {
             Type entityType = queryModel.RootEntityType;
-            var method = typeof(ShardingHelpers).GetMethod(nameof(ShardingHelpers.MakeTypedQuery), new Type[] { typeof(IDbContext), typeof(DataQueryModel), typeof(bool) });
-            var query = (IQuery)method.MakeGenericMethod(entityType).Invoke(null, new object[3] { dbContext, queryModel, withSkipAndTake });
+            MethodInfo method;
+
+            if (queryModel.Selector == null)
+            {
+                method = typeof(ShardingHelpers).GetMethod(nameof(ShardingHelpers.MakeTypedQuery)).MakeGenericMethod(queryModel.RootEntityType);
+            }
+            else
+            {
+                method = typeof(ShardingHelpers).GetMethod(nameof(ShardingHelpers.MakeTypedQueryWithSelector)).MakeGenericMethod(queryModel.RootEntityType, queryModel.Selector.Body.Type);
+            }
+
+            var query = (IQuery)method.Invoke(null, new object[3] { dbContext, queryModel, withSkipAndTake });
             return query;
         }
         static IQuery<T> MakeTypedQuery<T>(IDbContext dbContext, DataQueryModel queryModel, bool withSkipAndTake)
@@ -231,6 +348,48 @@ namespace Chloe.Sharding
             }
 
             return q;
+        }
+        static IQuery<TResult> MakeTypedQueryWithSelector<T, TResult>(IDbContext dbContext, DataQueryModel queryModel, bool withSkipAndTake)
+        {
+            var q = dbContext.Query<T>(queryModel.Table.Name);
+
+            foreach (var condition in queryModel.Conditions)
+            {
+                q = q.Where((Expression<Func<T, bool>>)condition);
+            }
+
+            if (queryModel.IgnoreAllFilters)
+            {
+                q = q.IgnoreAllFilters();
+            }
+
+            IOrderedQuery<T> orderedQuery = null;
+            foreach (var ordering in queryModel.Orderings)
+            {
+                if (orderedQuery == null)
+                    orderedQuery = q.InnerOrderBy(ordering);
+                else
+                    orderedQuery = orderedQuery.InnerThenBy(ordering);
+
+                q = orderedQuery;
+            }
+
+            Expression<Func<T, TResult>> selector = (Expression<Func<T, TResult>>)queryModel.Selector;
+            var query = q.Select<TResult>(selector);
+
+            if (withSkipAndTake)
+            {
+                if (queryModel.Skip != null)
+                {
+                    query = query.Skip(queryModel.Skip.Value);
+                }
+                if (queryModel.Take != null)
+                {
+                    query = query.Take(queryModel.Take.Value);
+                }
+            }
+
+            return query;
         }
 
         public static LambdaExpression MakeAggregateSelector(LambdaExpression selector)

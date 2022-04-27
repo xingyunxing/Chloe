@@ -35,14 +35,15 @@ namespace Chloe.Sharding.Queries
 
             protected override async Task<IFeatureEnumerator<object>> CreateEnumerator(bool @async)
             {
-                List<KeyQueryResult> keyResult = await this.GetKeys();
+                QueryProjection queryProjection = ShardingHelpers.MakeQueryProjection(this.QueryModel);
 
+                List<KeyQueryResult> keyResult = await this.GetKeys();
                 ParallelQueryContext queryContext = new ParallelQueryContext();
 
                 try
                 {
-                    List<TableDataQueryPlan> dataQueryPlans = this.MakeQueryPlans(queryContext, keyResult);
-                    IFeatureEnumerator<object> enumerator = this.CreateQueryEntityEnumerator(queryContext, dataQueryPlans);
+                    List<TableDataQueryPlan> dataQueryPlans = this.MakeQueryPlans(queryContext, queryProjection, keyResult);
+                    IFeatureEnumerator<object> enumerator = this.CreateQueryEntityEnumerator(queryContext, queryProjection, dataQueryPlans);
                     return enumerator;
                 }
                 catch
@@ -59,22 +60,21 @@ namespace Chloe.Sharding.Queries
                 return keyResult;
             }
 
-            IFeatureEnumerator<object> CreateQueryEntityEnumerator(ParallelQueryContext queryContext, List<TableDataQueryPlan> dataQueryPlans)
+            IFeatureEnumerator<object> CreateQueryEntityEnumerator(ParallelQueryContext queryContext, QueryProjection queryProjection, List<TableDataQueryPlan> dataQueryPlans)
             {
-                List<OrderProperty> orders = this.QueryModel.MakeOrderProperties();
-
+                List<OrderProperty> orders = queryProjection.OrderProperties;
                 ParallelMergeEnumerable<object> mergeResult = new ParallelMergeEnumerable<object>(queryContext, dataQueryPlans.Select(a => new OrderedFeatureEnumerable<object>(a.Query, orders)));
 
-                var enumerator = mergeResult.GetFeatureEnumerator(this._cancellationToken);
+                var enumerator = mergeResult.Select(a => queryProjection.ResultMapper(a)).GetFeatureEnumerator(this._cancellationToken);
 
                 return enumerator;
             }
 
-            List<TableDataQueryPlan> MakeQueryPlans(ParallelQueryContext queryContext, List<KeyQueryResult> keyResult)
+            List<TableDataQueryPlan> MakeQueryPlans(ParallelQueryContext queryContext, QueryProjection queryProjection, List<KeyQueryResult> keyResult)
             {
                 //构建 in (id1,id2...) 查询
 
-                List<TableDataQueryPlan> dataQueryPlans = ShardingHelpers.MakeEntityQueryPlans(this.QueryModel, keyResult, this.EntityTypeDescriptor, this.ShardingContext.MaxInItems);
+                List<TableDataQueryPlan> dataQueryPlans = ShardingHelpers.MakeEntityQueryPlans(queryProjection, keyResult, this.EntityTypeDescriptor, this.ShardingContext.MaxInItems);
 
                 foreach (var group in dataQueryPlans.GroupBy(a => a.QueryModel.Table.DataSource.Name))
                 {
