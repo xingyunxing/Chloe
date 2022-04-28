@@ -6,13 +6,12 @@ namespace Chloe.Sharding
 {
     internal class ShardingQueryModel
     {
-        public ShardingQueryModel(TypeDescriptor rootEntityTypeDescriptor)
+        public ShardingQueryModel(Type rootEntityType)
         {
-            this.RootEntityTypeDescriptor = rootEntityTypeDescriptor;
+            this.RootEntityType = rootEntityType;
         }
 
-        public Type RootEntityType => this.RootEntityTypeDescriptor.Definition.Type;
-        public TypeDescriptor RootEntityTypeDescriptor { get; set; }
+        public Type RootEntityType { get; set; }
 
         public int? Skip { get; set; }
         public int? Take { get; set; }

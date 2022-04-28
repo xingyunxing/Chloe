@@ -20,8 +20,7 @@ namespace Chloe.Sharding.QueryState
         }
         static ShardingQueryModel CreateQueryModel(RootQueryExpression exp)
         {
-            TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(exp.ElementType);
-            ShardingQueryModel queryModel = new ShardingQueryModel(typeDescriptor);
+            ShardingQueryModel queryModel = new ShardingQueryModel(exp.ElementType);
             return queryModel;
         }
 

@@ -147,7 +147,7 @@ namespace Chloe.Sharding
 
         public static QueryProjection MakeQueryProjection(ShardingQueryModel queryModel)
         {
-            QueryProjection queryProjection = new QueryProjection(queryModel.RootEntityTypeDescriptor);
+            QueryProjection queryProjection = new QueryProjection(queryModel.RootEntityType);
             queryProjection.IgnoreAllFilters = queryModel.IgnoreAllFilters;
             queryProjection.Conditions.AddRange(queryModel.Conditions);
             queryProjection.Orderings.AddRange(queryModel.Orderings);
@@ -178,8 +178,8 @@ namespace Chloe.Sharding
                     {
                         var ordering = queryModel.Orderings[i];
                         MemberInfo sortField = PeekSortField(ordering.KeySelector);
-                        var propertyDescriptor = queryModel.RootEntityTypeDescriptor.GetPrimitivePropertyDescriptor(sortField);
-                        OrderProperty orderProperty = new OrderProperty() { ValueGetter = propertyDescriptor.GetValue, Ascending = ordering.Ascending };
+                        var orderValueGetter = MemberGetterContainer.Get(sortField);
+                        OrderProperty orderProperty = new OrderProperty() { ValueGetter = orderValueGetter, Ascending = ordering.Ascending };
                         queryProjection.OrderProperties.Add(orderProperty);
                     }
 
@@ -256,7 +256,7 @@ namespace Chloe.Sharding
 
                     LambdaExpression condition = LambdaExpression.Lambda(typeof(Func<,>).MakeGenericType(queryModel.RootEntityType, typeof(bool)), conditionBody, parameter);
 
-                    DataQueryModel dataQueryModel = new DataQueryModel(queryModel.RootEntityTypeDescriptor);
+                    DataQueryModel dataQueryModel = new DataQueryModel(queryModel.RootEntityType);
                     dataQueryModel.Table = keyResult.Table;
                     dataQueryModel.IgnoreAllFilters = true;
                     dataQueryModel.Orderings.AddRange(queryModel.Orderings);
@@ -298,7 +298,7 @@ namespace Chloe.Sharding
 
                     LambdaExpression condition = LambdaExpression.Lambda(typeof(Func<,>).MakeGenericType(queryProjection.RootEntityType, typeof(bool)), conditionBody, parameter);
 
-                    DataQueryModel dataQueryModel = new DataQueryModel(queryProjection.RootEntityTypeDescriptor);
+                    DataQueryModel dataQueryModel = new DataQueryModel(queryProjection.RootEntityType);
                     dataQueryModel.Table = keyResult.Table;
                     dataQueryModel.IgnoreAllFilters = true;
                     dataQueryModel.Orderings.AddRange(queryProjection.Orderings);
@@ -329,7 +329,7 @@ namespace Chloe.Sharding
         }
         public static DataQueryModel MakeDataQueryModel(IPhysicTable table, ShardingQueryModel queryModel, int? skip, int? take)
         {
-            DataQueryModel dataQueryModel = new DataQueryModel(queryModel.RootEntityTypeDescriptor);
+            DataQueryModel dataQueryModel = new DataQueryModel(queryModel.RootEntityType);
             dataQueryModel.Table = table;
             dataQueryModel.IgnoreAllFilters = queryModel.IgnoreAllFilters;
             dataQueryModel.Conditions.AddRange(queryModel.Conditions);

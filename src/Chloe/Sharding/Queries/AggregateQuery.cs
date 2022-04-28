@@ -81,7 +81,7 @@ namespace Chloe.Sharding.Queries
                 {
                     AggregateQueryPlan<object> aggQueryPlan = new AggregateQueryPlan<object>();
 
-                    DataQueryModel dataQueryModel = new DataQueryModel(queryPlan.QueryModel.RootEntityTypeDescriptor);
+                    DataQueryModel dataQueryModel = new DataQueryModel(queryPlan.QueryModel.RootEntityType);
                     dataQueryModel.Table = table;
                     dataQueryModel.IgnoreAllFilters = queryPlan.QueryModel.IgnoreAllFilters;
                     dataQueryModel.Conditions.AddRange(queryPlan.QueryModel.Conditions);
@@ -208,7 +208,7 @@ namespace Chloe.Sharding.Queries
                 {
                     var aggQueryPlan = new AggregateQueryPlan<TResult>();
 
-                    DataQueryModel dataQueryModel = new DataQueryModel(queryPlan.QueryModel.RootEntityTypeDescriptor);
+                    DataQueryModel dataQueryModel = new DataQueryModel(queryPlan.QueryModel.RootEntityType);
                     dataQueryModel.Table = table;
                     dataQueryModel.IgnoreAllFilters = queryPlan.QueryModel.IgnoreAllFilters;
                     dataQueryModel.Conditions.AddRange(queryPlan.QueryModel.Conditions);

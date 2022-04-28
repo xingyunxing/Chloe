@@ -210,6 +210,22 @@ namespace Chloe.Sharding
 
                             continue;
                         }
+
+                        if (callExp.Method.Name == nameof(Sql.Max))
+                        {
+                            groupQueryMapper.ConstructorArgExpressions.Add(callExp);
+                            groupQueryMapper.ConstructorArgGetters.Add(MakeMaxGetter(argExp.Type));
+
+                            continue;
+                        }
+
+                        if (callExp.Method.Name == nameof(Sql.Min))
+                        {
+                            groupQueryMapper.ConstructorArgExpressions.Add(callExp);
+                            groupQueryMapper.ConstructorArgGetters.Add(MakeMinGetter(argExp.Type));
+
+                            continue;
+                        }
                     }
                 }
 
@@ -272,6 +288,22 @@ namespace Chloe.Sharding
                         {
                             groupQueryMapper.MemberExpressions.Add(callExp);
                             groupQueryMapper.MemberBinders.Add(MakeSumMemberBinder(memberSetter, memberAssignment.Expression.Type));
+
+                            continue;
+                        }
+
+                        if (callExp.Method.Name == nameof(Sql.Max))
+                        {
+                            groupQueryMapper.MemberExpressions.Add(callExp);
+                            groupQueryMapper.MemberBinders.Add(MakeMaxMemberBinder(memberSetter, memberAssignment.Expression.Type));
+
+                            continue;
+                        }
+
+                        if (callExp.Method.Name == nameof(Sql.Min))
+                        {
+                            groupQueryMapper.MemberExpressions.Add(callExp);
+                            groupQueryMapper.MemberBinders.Add(MakeMinMemberBinder(memberSetter, memberAssignment.Expression.Type));
 
                             continue;
                         }
@@ -459,6 +491,28 @@ namespace Chloe.Sharding
 
             return argGetter;
         }
+        static Func<Func<object, object>, IEnumerable<object>, object> MakeMaxGetter(Type targetType)
+        {
+            Func<Func<object, object>, IEnumerable<object>, object> getter = (valueGetter, group) =>
+            {
+                var values = group.Select(a => valueGetter(a));
+                var max = values.Max(value => value);
+                return max;
+            };
+
+            return getter;
+        }
+        static Func<Func<object, object>, IEnumerable<object>, object> MakeMinGetter(Type targetType)
+        {
+            Func<Func<object, object>, IEnumerable<object>, object> getter = (valueGetter, group) =>
+            {
+                var values = group.Select(a => valueGetter(a));
+                var min = values.Min(value => value);
+                return min;
+            };
+
+            return getter;
+        }
 
 
         static Action<Func<object, object>, IEnumerable<object>, object> MakeMemberBinder(MemberSetter memberSetter)
@@ -517,6 +571,27 @@ namespace Chloe.Sharding
 
             return binder;
         }
+        static Action<Func<object, object>, IEnumerable<object>, object> MakeMaxMemberBinder(MemberSetter memberSetter, Type targetType)
+        {
+            var getter = MakeMaxGetter(targetType);
+            Action<Func<object, object>, IEnumerable<object>, object> binder = (valueGetter, group, instance) =>
+            {
+                object value = getter(valueGetter, group);
+                memberSetter(instance, value);
+            };
 
+            return binder;
+        }
+        static Action<Func<object, object>, IEnumerable<object>, object> MakeMinMemberBinder(MemberSetter memberSetter, Type targetType)
+        {
+            var getter = MakeMinGetter(targetType);
+            Action<Func<object, object>, IEnumerable<object>, object> binder = (valueGetter, group, instance) =>
+            {
+                object value = getter(valueGetter, group);
+                memberSetter(instance, value);
+            };
+
+            return binder;
+        }
     }
 }
