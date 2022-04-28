@@ -1,16 +1,18 @@
-﻿using Chloe.Reflection;
+﻿using Chloe.Descriptors;
+using Chloe.Reflection;
 using System.Linq.Expressions;
 
 namespace Chloe.Sharding
 {
     internal class ShardingQueryModel
     {
-        public ShardingQueryModel()
+        public ShardingQueryModel(TypeDescriptor rootEntityTypeDescriptor)
         {
-
+            this.RootEntityTypeDescriptor = rootEntityTypeDescriptor;
         }
 
-        public Type RootEntityType { get; set; }
+        public Type RootEntityType => this.RootEntityTypeDescriptor.Definition.Type;
+        public TypeDescriptor RootEntityTypeDescriptor { get; set; }
 
         public int? Skip { get; set; }
         public int? Take { get; set; }

@@ -9,49 +9,50 @@ namespace Chloe.Sharding
     {
         async Task<IFeatureEnumerable<T>> Execute()
         {
-            ShardingQueryPlan queryPlan = this.MakeQueryPlan(this);
+            throw new NotImplementedException();
+            //ShardingQueryPlan queryPlan = this.MakeQueryPlan(this);
 
-            if (queryPlan.QueryModel.GroupKeySelectors.Count > 0)
-            {
-                //分组查询
-                var groupAggQueryType = typeof(GroupAggregateQuery).MakeGenericType(queryPlan.QueryModel.Selector.Parameters[0].Type, typeof(T));
-                var groupAggQuery = groupAggQueryType.GetConstructor(new Type[] { queryPlan.GetType() }).FastCreateInstance(queryPlan);
+            //if (queryPlan.QueryModel.GroupKeySelectors.Count > 0)
+            //{
+            //    //分组查询
+            //    var groupAggQueryType = typeof(GroupAggregateQuery).MakeGenericType(queryPlan.QueryModel.Selector.Parameters[0].Type, typeof(T));
+            //    var groupAggQuery = groupAggQueryType.GetConstructor(new Type[] { queryPlan.GetType() }).FastCreateInstance(queryPlan);
 
-                return (IFeatureEnumerable<T>)groupAggQuery;
-            }
+            //    return (IFeatureEnumerable<T>)groupAggQuery;
+            //}
 
-            if (queryPlan.Tables.Count > 1)
-            {
-                //主键或唯一索引查询
-                bool isUniqueDataQuery = UniqueDataQueryAuthenticator.IsUniqueDataQuery(queryPlan.ShardingContext, queryPlan.QueryModel.GetFinalConditions());
+            //if (queryPlan.Tables.Count > 1)
+            //{
+            //    //主键或唯一索引查询
+            //    bool isUniqueDataQuery = UniqueDataQueryAuthenticator.IsUniqueDataQuery(queryPlan.ShardingContext, queryPlan.QueryModel.GetFinalConditions());
 
-                if (isUniqueDataQuery)
-                {
-                    UniqueDataQuery query = new UniqueDataQuery(queryPlan);
-                    return (IFeatureEnumerable<T>)query;
-                }
-            }
+            //    if (isUniqueDataQuery)
+            //    {
+            //        UniqueDataQuery query = new UniqueDataQuery(queryPlan);
+            //        return (IFeatureEnumerable<T>)query;
+            //    }
+            //}
 
-            if (queryPlan.IsOrderedTables && queryPlan.QueryModel.HasSkip())
-            {
-                //走分页逻辑，对程序性能有可能好点？
-                var pagingResult = await this.ExecutePaging(queryPlan);
-                return pagingResult.Result;
-            }
+            //if (queryPlan.IsOrderedTables && queryPlan.QueryModel.HasSkip())
+            //{
+            //    //走分页逻辑，对程序性能有可能好点？
+            //    var pagingResult = await this.ExecutePaging(queryPlan);
+            //    return pagingResult.Result;
+            //}
 
-            if (queryPlan.IsOrderedTables && !queryPlan.QueryModel.HasSkip())
-            {
-                //走串行？
-            }
+            //if (queryPlan.IsOrderedTables && !queryPlan.QueryModel.HasSkip())
+            //{
+            //    //走串行？
+            //}
 
-            if (!queryPlan.QueryModel.HasSkip())
-            {
-                //未指定 skip
-                return (IFeatureEnumerable<T>)new NonPagingQuery(queryPlan);
-            }
+            //if (!queryPlan.QueryModel.HasSkip())
+            //{
+            //    //未指定 skip
+            //    return (IFeatureEnumerable<T>)new NonPagingQuery(queryPlan);
+            //}
 
-            OrdinaryQuery ordinaryQuery = new OrdinaryQuery(queryPlan);
-            return (IFeatureEnumerable<T>)ordinaryQuery;
+            //OrdinaryQuery ordinaryQuery = new OrdinaryQuery(queryPlan);
+            //return (IFeatureEnumerable<T>)ordinaryQuery;
         }
 
         async Task<PagingExecuteResult<T>> ExecutePaging(int pageNumber, int pageSize)
@@ -100,77 +101,79 @@ namespace Chloe.Sharding
             ShardingQueryPlan queryPlan = this.MakeQueryPlan(this);
             AnyQuery anyQuery = new AnyQuery(queryPlan);
 
-            List<QueryResult<object>> results = await anyQuery.ToListAsync();
-            bool hasData = results.Any(a => (bool)a.Result == true);
+            List<QueryResult<bool>> results = await anyQuery.ToListAsync();
+            bool hasData = results.Any(a => a.Result == true);
             return hasData;
         }
 
         async Task<decimal?> QueryAverageAsync(LambdaExpression selector)
         {
             throw new NotImplementedException();
-            var aggSelector = ShardingHelpers.MakeAggregateSelector(selector);
+            //var aggSelector = ShardingHelpers.MakeAggregateSelector(selector);
 
-            Func<IQuery, bool, Task<object>> executor = async (query, @async) =>
-            {
-                var q = query.Select(aggSelector);
-                var result = @async ? await q.FirstAsync() : q.First();
-                return result;
-            };
+            //Func<IQuery, bool, Task<object>> executor = async (query, @async) =>
+            //{
+            //    var q = query.Select(aggSelector);
+            //    var result = @async ? await q.FirstAsync() : q.First();
+            //    return result;
+            //};
 
-            AggregateQuery aggQuery = new AggregateQuery(this.MakeQueryPlan(this), executor);
+            //AggregateQuery aggQuery = new AggregateQuery(this.MakeQueryPlan(this), executor);
 
-            decimal? sum = null;
-            long count = 0;
+            //decimal? sum = null;
+            //long count = 0;
 
-            await aggQuery.AsAsyncEnumerable().Select(a => (AggregateModel)a.Result).ForEach(a =>
-            {
-                if (a.Sum == null)
-                    return;
+            //await aggQuery.AsAsyncEnumerable().Select(a => (AggregateModel)a.Result).ForEach(a =>
+            //{
+            //    if (a.Sum == null)
+            //        return;
 
-                sum = (sum ?? 0) + a.Sum.Value;
-                count = count + a.Count;
-            });
+            //    sum = (sum ?? 0) + a.Sum.Value;
+            //    count = count + a.Count;
+            //});
 
-            if (sum == null)
-                return null;
+            //if (sum == null)
+            //    return null;
 
-            decimal avg = sum.Value / count;
-            return avg;
+            //decimal avg = sum.Value / count;
+            //return avg;
         }
 
         ShardingQueryPlan MakeQueryPlan(ShardingQuery<T> query)
         {
-            ShardingQueryPlan queryPlan = new ShardingQueryPlan();
-            queryPlan.QueryModel = ShardingQueryModelPeeker.Peek(query.InnerQuery.QueryExpression);
-
-            //TODO get dbContext
-
             throw new NotImplementedException();
-            ShardingDbContext dbContext = null;
 
-            IShardingContext shardingContext = dbContext.CreateShardingContext(queryPlan.QueryModel.RootEntityType);
+            //ShardingQueryPlan queryPlan = new ShardingQueryPlan();
+            //queryPlan.QueryModel = ShardingQueryModelPeeker.Peek(query.InnerQuery.QueryExpression);
 
-            queryPlan.ShardingContext = shardingContext;
+            ////TODO get dbContext
 
-            List<RouteTable> routeTables = ShardingTableDiscoverer.GetRouteTables(queryPlan.QueryModel.GetFinalConditions(), shardingContext).ToList();
+            //throw new NotImplementedException();
+            //ShardingDbContext dbContext = null;
 
-            List<Ordering> orderings = queryPlan.QueryModel.Orderings;
+            //IShardingContext shardingContext = dbContext.CreateShardingContext(queryPlan.QueryModel.RootEntityType);
 
-            //对物理表重排
-            SortResult sortResult;
-            if (orderings.Count == 0)
-            {
-                sortResult = new SortResult() { IsOrdered = true, Tables = routeTables };
-            }
-            else
-            {
-                sortResult = shardingContext.SortTables(routeTables, orderings);
-            }
+            //queryPlan.ShardingContext = shardingContext;
 
-            queryPlan.IsOrderedTables = sortResult.IsOrdered;
-            queryPlan.Tables.AddRange(sortResult.Tables.Select(a => new PhysicTable(a)));
+            //List<RouteTable> routeTables = ShardingTableDiscoverer.GetRouteTables(queryPlan.QueryModel.GetFinalConditions(), shardingContext).ToList();
 
-            return queryPlan;
+            //List<Ordering> orderings = queryPlan.QueryModel.Orderings;
+
+            ////对物理表重排
+            //SortResult sortResult;
+            //if (orderings.Count == 0)
+            //{
+            //    sortResult = new SortResult() { IsOrdered = true, Tables = routeTables };
+            //}
+            //else
+            //{
+            //    sortResult = shardingContext.SortTables(routeTables, orderings);
+            //}
+
+            //queryPlan.IsOrderedTables = sortResult.IsOrdered;
+            //queryPlan.Tables.AddRange(sortResult.Tables.Select(a => new PhysicTable(a)));
+
+            //return queryPlan;
         }
     }
 }

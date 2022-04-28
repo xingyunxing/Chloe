@@ -45,6 +45,23 @@ namespace Chloe
             throw new NotImplementedException();
         }
 
+        public static object Max(this IQuery query, LambdaExpression selector)
+        {
+            throw new NotImplementedException();
+        }
+        public static Task<object> MaxAsync(this IQuery query, LambdaExpression selector)
+        {
+            throw new NotImplementedException();
+        }
+        public static object Min(this IQuery query, LambdaExpression selector)
+        {
+            throw new NotImplementedException();
+        }
+        public static Task<object> MinAsync(this IQuery query, LambdaExpression selector)
+        {
+            throw new NotImplementedException();
+        }
+
         public static bool Any(this IQuery query)
         {
             throw new NotImplementedException();

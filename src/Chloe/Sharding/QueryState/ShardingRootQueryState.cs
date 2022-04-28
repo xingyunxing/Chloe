@@ -1,4 +1,6 @@
-﻿using Chloe.Query.QueryExpressions;
+﻿using Chloe.Descriptors;
+using Chloe.Infrastructure;
+using Chloe.Query.QueryExpressions;
 using Chloe.Query.QueryState;
 
 namespace Chloe.Sharding.QueryState
@@ -18,8 +20,8 @@ namespace Chloe.Sharding.QueryState
         }
         static ShardingQueryModel CreateQueryModel(RootQueryExpression exp)
         {
-            ShardingQueryModel queryModel = new ShardingQueryModel();
-            queryModel.RootEntityType = exp.ElementType;
+            TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(exp.ElementType);
+            ShardingQueryModel queryModel = new ShardingQueryModel(typeDescriptor);
             return queryModel;
         }
 

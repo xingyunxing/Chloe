@@ -10,7 +10,7 @@ namespace Chloe.Sharding.Queries
         public SingleTableAnyQuery Query { get; set; }
     }
 
-    internal class AnyQuery : FeatureEnumerable<QueryResult<object>>
+    internal class AnyQuery : FeatureEnumerable<QueryResult<bool>>
     {
         ShardingQueryPlan _queryPlan;
         List<IPhysicTable> _tables;
@@ -21,20 +21,20 @@ namespace Chloe.Sharding.Queries
             this._tables = queryPlan.Tables;
         }
 
-        public override IFeatureEnumerator<QueryResult<object>> GetFeatureEnumerator(CancellationToken cancellationToken = default)
+        public override IFeatureEnumerator<QueryResult<bool>> GetFeatureEnumerator(CancellationToken cancellationToken = default)
         {
             return new Enumerator(this, cancellationToken);
         }
 
-        class Enumerator : IFeatureEnumerator<QueryResult<object>>
+        class Enumerator : IFeatureEnumerator<QueryResult<bool>>
         {
             AnyQuery _enumerable;
             CancellationToken _cancellationToken;
 
-            IFeatureEnumerator<object> _innerEnumerator;
+            IFeatureEnumerator<bool> _innerEnumerator;
 
             int _currentIdx = 0;
-            QueryResult<object> _current;
+            QueryResult<bool> _current;
 
             public Enumerator(AnyQuery enumerable, CancellationToken cancellationToken = default)
             {
@@ -42,7 +42,7 @@ namespace Chloe.Sharding.Queries
                 this._cancellationToken = cancellationToken;
             }
 
-            public QueryResult<object> Current => this._current;
+            public QueryResult<bool> Current => this._current;
 
             object IEnumerator.Current => this._current;
 
@@ -79,7 +79,7 @@ namespace Chloe.Sharding.Queries
                 {
                     AnyQueryPlan anyQueryPlan = new AnyQueryPlan();
 
-                    DataQueryModel dataQueryModel = new DataQueryModel(queryPlan.QueryModel.RootEntityType);
+                    DataQueryModel dataQueryModel = new DataQueryModel(queryPlan.QueryModel.RootEntityTypeDescriptor);
                     dataQueryModel.Table = table;
                     dataQueryModel.IgnoreAllFilters = queryPlan.QueryModel.IgnoreAllFilters;
                     dataQueryModel.Conditions.AddRange(queryPlan.QueryModel.Conditions);
@@ -105,7 +105,7 @@ namespace Chloe.Sharding.Queries
                     }
                 }
 
-                ParallelConcatEnumerable<object> queryEnumerable = new ParallelConcatEnumerable<object>(queryContext, countQueryPlans.Select(a => a.Query));
+                var queryEnumerable = new ParallelConcatEnumerable<bool>(queryContext, countQueryPlans.Select(a => a.Query));
                 this._innerEnumerator = queryEnumerable.GetFeatureEnumerator(this._cancellationToken);
             }
             async BoolResultTask MoveNext(bool @async)
@@ -124,7 +124,7 @@ namespace Chloe.Sharding.Queries
                 }
 
                 IPhysicTable table = this._enumerable._tables[this._currentIdx++];
-                this._current = new QueryResult<object>() { Table = table, Result = this._innerEnumerator.GetCurrent() };
+                this._current = new QueryResult<bool>() { Table = table, Result = this._innerEnumerator.GetCurrent() };
                 return true;
             }
 

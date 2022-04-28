@@ -25,7 +25,7 @@ namespace Chloe.Sharding.Queries
             return new Enumerator(this, cancellationToken);
         }
 
-        class Enumerator : TableQueryEnumerator
+        class Enumerator : TableQueryEnumerator<object>
         {
             SingleTableEntityQuery _enumerable;
 

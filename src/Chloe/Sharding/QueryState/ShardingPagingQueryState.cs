@@ -42,15 +42,15 @@ namespace Chloe.Sharding.QueryState
 
             return new ScalarFeatureEnumerable<PagingResult<TElement>>(pagingResult);
         }
-        AggregateQuery GetCountQuery(ShardingQueryPlan queryPlan)
+        AggregateQuery<long> GetCountQuery(ShardingQueryPlan queryPlan)
         {
-            Func<IQuery, bool, Task<object>> executor = async (query, @async) =>
+            Func<IQuery, bool, Task<long>> executor = async (query, @async) =>
             {
                 long result = @async ? await query.LongCountAsync() : query.LongCount();
                 return result;
             };
 
-            AggregateQuery aggQuery = new AggregateQuery(queryPlan, executor);
+            var aggQuery = new AggregateQuery<long>(queryPlan, executor);
             return aggQuery;
         }
 
@@ -81,9 +81,9 @@ namespace Chloe.Sharding.QueryState
                 protected override async Task<IFeatureEnumerator<object>> CreateEnumerator(bool @async)
                 {
                     ShardingQueryPlan queryPlan = this._enumerable.QueryState.CreateQueryPlan();
-                    AggregateQuery countQuery = this._enumerable.QueryState.GetCountQuery(queryPlan);
+                    AggregateQuery<long> countQuery = this._enumerable.QueryState.GetCountQuery(queryPlan);
 
-                    List<QueryResult<long>> routeTableCounts = await countQuery.AsAsyncEnumerable().Select(a => new QueryResult<long>() { Table = a.Table, Result = (long)a.Result }).ToListAsync();
+                    List<QueryResult<long>> routeTableCounts = await countQuery.AsAsyncEnumerable().ToListAsync();
                     long totals = routeTableCounts.Select(a => a.Result).Sum();
 
                     if (queryPlan.IsOrderedTables)

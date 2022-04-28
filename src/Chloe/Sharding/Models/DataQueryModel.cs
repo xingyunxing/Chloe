@@ -1,16 +1,19 @@
-﻿using Chloe.Reflection;
+﻿using Chloe.Descriptors;
+using Chloe.Reflection;
 using System.Linq.Expressions;
 
 namespace Chloe.Sharding
 {
     class DataQueryModel
     {
-        public DataQueryModel(Type rootEntityType)
+        public DataQueryModel(TypeDescriptor rootEntityTypeDescriptor)
         {
-            this.RootEntityType = rootEntityType;
+            this.RootEntityTypeDescriptor = rootEntityTypeDescriptor;
         }
 
-        public Type RootEntityType { get; set; }
+        public TypeDescriptor RootEntityTypeDescriptor { get; set; }
+        public Type RootEntityType => this.RootEntityTypeDescriptor.Definition.Type;
+
         public IPhysicTable Table { get; set; }
 
         public int? Skip { get; set; }
@@ -26,7 +29,13 @@ namespace Chloe.Sharding
 
     class QueryProjection
     {
-        public Type RootEntityType { get; set; }
+        public QueryProjection(TypeDescriptor rootEntityTypeDescriptor)
+        {
+            this.RootEntityTypeDescriptor = rootEntityTypeDescriptor;
+        }
+
+        public TypeDescriptor RootEntityTypeDescriptor { get; set; }
+        public Type RootEntityType => this.RootEntityTypeDescriptor.Definition.Type;
 
         public int? Skip { get; set; }
         public int? Take { get; set; }
@@ -42,7 +51,7 @@ namespace Chloe.Sharding
 
         public DataQueryModel CreateQueryModel(IPhysicTable table)
         {
-            DataQueryModel queryModel = new DataQueryModel(this.RootEntityType);
+            DataQueryModel queryModel = new DataQueryModel(this.RootEntityTypeDescriptor);
             queryModel.Table = table;
             queryModel.Skip = this.Skip;
             queryModel.Take = this.Take;

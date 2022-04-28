@@ -2,7 +2,7 @@
 
 namespace Chloe.Sharding.Queries
 {
-    class SingleTableAnyQuery : FeatureEnumerable<object>
+    class SingleTableAnyQuery : FeatureEnumerable<bool>
     {
         IParallelQueryContext _queryContext;
         IShareDbContextPool _dbContextPool;
@@ -15,12 +15,12 @@ namespace Chloe.Sharding.Queries
             this._queryModel = queryModel;
         }
 
-        public override IFeatureEnumerator<object> GetFeatureEnumerator(CancellationToken cancellationToken = default)
+        public override IFeatureEnumerator<bool> GetFeatureEnumerator(CancellationToken cancellationToken = default)
         {
             return new Enumerator(this, cancellationToken);
         }
 
-        class Enumerator : TableQueryEnumerator
+        class Enumerator : TableQueryEnumerator<bool>
         {
             SingleTableAnyQuery _enumerable;
 
@@ -29,21 +29,21 @@ namespace Chloe.Sharding.Queries
                 this._enumerable = enumerable;
             }
 
-            protected override async Task<(IFeatureEnumerable<object> Query, bool IsLazyQuery)> CreateQuery(IQuery query, bool async)
+            protected override async Task<(IFeatureEnumerable<bool> Query, bool IsLazyQuery)> CreateQuery(IQuery query, bool async)
             {
                 var queryContext = this._enumerable._queryContext;
 
                 bool canceled = queryContext.BeforeExecuteCommand();
                 if (canceled)
                 {
-                    return (NullFeatureEnumerable<object>.Instance, false);
+                    return (NullFeatureEnumerable<bool>.Instance, false);
                 }
 
                 bool hasData = @async ? await query.AnyAsync() : query.Any();
 
                 queryContext.AfterExecuteCommand(hasData);
 
-                var featureEnumerable = new ScalarFeatureEnumerable<object>(hasData);
+                var featureEnumerable = new ScalarFeatureEnumerable<bool>(hasData);
                 return (featureEnumerable, false);
             }
         }

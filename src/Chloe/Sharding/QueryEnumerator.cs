@@ -4,12 +4,12 @@ using System.Threading;
 
 namespace Chloe.Sharding
 {
-    internal class QueryEnumerator : IFeatureEnumerator<object>
+    internal class QueryEnumerator<TResult> : IFeatureEnumerator<TResult>
     {
         IShareDbContextPool _dbContextPool;
-        Func<IDbContext, bool, Task<(IFeatureEnumerable<object> Query, bool IsLazyQuery)>> _queryCreator;
+        Func<IDbContext, bool, Task<(IFeatureEnumerable<TResult> Query, bool IsLazyQuery)>> _queryCreator;
         CancellationToken _cancellationToken;
-        IFeatureEnumerator<object> _enumerator;
+        IFeatureEnumerator<TResult> _enumerator;
 
         IPoolItem<IDbContext> _poolResource;
 
@@ -17,14 +17,14 @@ namespace Chloe.Sharding
         {
 
         }
-        public QueryEnumerator(IShareDbContextPool dbContextPool, Func<IDbContext, bool, Task<(IFeatureEnumerable<object> Query, bool IsLazyQuery)>> queryCreator, CancellationToken cancellationToken = default)
+        public QueryEnumerator(IShareDbContextPool dbContextPool, Func<IDbContext, bool, Task<(IFeatureEnumerable<TResult> Query, bool IsLazyQuery)>> queryCreator, CancellationToken cancellationToken = default)
         {
             this._dbContextPool = dbContextPool;
             this._queryCreator = queryCreator;
             this._cancellationToken = cancellationToken;
         }
 
-        public object Current => this._enumerator.GetCurrent();
+        public TResult Current => this._enumerator.GetCurrent();
 
         object IEnumerator.Current => this.Current;
 
@@ -82,7 +82,7 @@ namespace Chloe.Sharding
             this._enumerator = result.Query.GetFeatureEnumerator(this._cancellationToken);
         }
 
-        protected virtual async Task<(IFeatureEnumerable<object> Query, bool IsLazyQuery)> CreateQuery(IDbContext dbContext, bool @async)
+        protected virtual async Task<(IFeatureEnumerable<TResult> Query, bool IsLazyQuery)> CreateQuery(IDbContext dbContext, bool @async)
         {
             if (this._queryCreator == null)
             {
@@ -98,16 +98,16 @@ namespace Chloe.Sharding
         }
     }
 
-    class TableQueryEnumerator : QueryEnumerator
+    class TableQueryEnumerator<TResult> : QueryEnumerator<TResult>
     {
         DataQueryModel _queryModel;
-        Func<IQuery, bool, Task<(IFeatureEnumerable<object> Query, bool IsLazyQuery)>> _executor;
+        Func<IQuery, bool, Task<(IFeatureEnumerable<TResult> Query, bool IsLazyQuery)>> _executor;
 
         public TableQueryEnumerator(IShareDbContextPool dbContextPool, DataQueryModel queryModel, CancellationToken cancellationToken = default) : this(dbContextPool, null, queryModel, cancellationToken)
         {
 
         }
-        public TableQueryEnumerator(IShareDbContextPool dbContextPool, Func<IQuery, bool, Task<(IFeatureEnumerable<object> Query, bool IsLazyQuery)>> executor, DataQueryModel queryModel, CancellationToken cancellationToken = default) : base(dbContextPool, cancellationToken)
+        public TableQueryEnumerator(IShareDbContextPool dbContextPool, Func<IQuery, bool, Task<(IFeatureEnumerable<TResult> Query, bool IsLazyQuery)>> executor, DataQueryModel queryModel, CancellationToken cancellationToken = default) : base(dbContextPool, cancellationToken)
         {
             this._executor = executor;
             this._queryModel = queryModel;
@@ -124,7 +124,7 @@ namespace Chloe.Sharding
             return q;
         }
 
-        protected sealed override async Task<(IFeatureEnumerable<object> Query, bool IsLazyQuery)> CreateQuery(IDbContext dbContext, bool @async)
+        protected sealed override async Task<(IFeatureEnumerable<TResult> Query, bool IsLazyQuery)> CreateQuery(IDbContext dbContext, bool @async)
         {
             var q = MakeQuery(dbContext, this._queryModel);
             var result = await this.CreateQuery(q, @async);
@@ -132,7 +132,7 @@ namespace Chloe.Sharding
             return result;
         }
 
-        protected virtual async Task<(IFeatureEnumerable<object> Query, bool IsLazyQuery)> CreateQuery(IQuery query, bool @async)
+        protected virtual async Task<(IFeatureEnumerable<TResult> Query, bool IsLazyQuery)> CreateQuery(IQuery query, bool @async)
         {
             if (this._executor == null)
             {

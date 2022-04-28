@@ -85,6 +85,10 @@ namespace Chloe.Descriptors
             member = member.AsReflectedMemberOf(this.Definition.Type);
             return this.UniqueIndexs.Any(a => a.Definition.Property == member);
         }
+        public bool IsMappingMember(MemberInfo member)
+        {
+            return this.FindPrimitivePropertyDescriptor(member) != null;
+        }
 
         public PrimitivePropertyDescriptor FindPrimitivePropertyDescriptor(MemberInfo member)
         {

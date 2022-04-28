@@ -18,6 +18,20 @@ namespace Chloe.Sharding.QueryState
 
         public override IFeatureEnumerable<object> CreateQuery()
         {
+            if (this.QueryExpression.Method.Name == "Count")
+            {
+                var queryEnumerableType = typeof(CountQueryEnumerable<>).MakeGenericType(this.QueryModel.RootEntityType);
+                var queryEnumerable = queryEnumerableType.GetConstructor(new Type[1] { typeof(ShardingAggregateQueryState) }).FastCreateInstance(this);
+                return (IFeatureEnumerable<object>)queryEnumerable;
+            }
+
+            if (this.QueryExpression.Method.Name == "LongCount")
+            {
+                var queryEnumerableType = typeof(LongCountQueryEnumerable<>).MakeGenericType(this.QueryModel.RootEntityType);
+                var queryEnumerable = queryEnumerableType.GetConstructor(new Type[1] { typeof(ShardingAggregateQueryState) }).FastCreateInstance(this);
+                return (IFeatureEnumerable<object>)queryEnumerable;
+            }
+
             if (this.QueryExpression.Method.Name == "Average")
             {
                 return new AverageQueryEnumerable(this);
@@ -28,16 +42,18 @@ namespace Chloe.Sharding.QueryState
                 return new SumQueryEnumerable(this);
             }
 
-            if (this.QueryExpression.Method.Name == "Count")
+            if (this.QueryExpression.Method.Name == "Max")
             {
-                var longCountQueryEnumerable = new LongCountQueryEnumerable(this);
-                return (IFeatureEnumerable<object>)longCountQueryEnumerable.Select(a => (int)a);
+                var queryEnumerableType = typeof(ExtremeQueryEnumerable<,>).MakeGenericType(this.QueryModel.RootEntityType, this.QueryModel.Selector.Body.Type);
+                var queryEnumerable = queryEnumerableType.GetConstructor(new Type[2] { typeof(ShardingAggregateQueryState), typeof(bool) }).FastCreateInstance(this, true);
+                return (IFeatureEnumerable<object>)queryEnumerable;
             }
 
-            if (this.QueryExpression.Method.Name == "LongCount")
+            if (this.QueryExpression.Method.Name == "Min")
             {
-                var longCountQueryEnumerable = new LongCountQueryEnumerable(this);
-                return (IFeatureEnumerable<object>)longCountQueryEnumerable;
+                var queryEnumerableType = typeof(ExtremeQueryEnumerable<,>).MakeGenericType(this.QueryModel.RootEntityType, this.QueryModel.Selector.Body.Type);
+                var queryEnumerable = queryEnumerableType.GetConstructor(new Type[2] { typeof(ShardingAggregateQueryState), typeof(bool) }).FastCreateInstance(this, false);
+                return (IFeatureEnumerable<object>)queryEnumerable;
             }
 
             throw new NotImplementedException();
@@ -73,26 +89,26 @@ namespace Chloe.Sharding.QueryState
                     var selector = (LambdaExpression)queryState.QueryExpression.Arguments[0];
                     var aggSelector = ShardingHelpers.MakeAggregateSelector(selector);
 
-                    Func<IQuery, bool, Task<object>> executor = async (query, @async) =>
+                    Func<IQuery, bool, Task<AggregateModel>> executor = async (query, @async) =>
                     {
-                        var q = query.Select(aggSelector);
+                        IQuery<AggregateModel> q = (IQuery<AggregateModel>)query.Select(aggSelector);
                         var result = @async ? await q.FirstAsync() : q.First();
                         return result;
                     };
 
-                    AggregateQuery aggQuery = new AggregateQuery(queryState.CreateQueryPlan(), executor);
+                    var aggQuery = new AggregateQuery<AggregateModel>(queryState.CreateQueryPlan(), executor);
 
                     decimal? sum = null;
                     long count = 0;
 
-                    await aggQuery.AsAsyncEnumerable().Select(a => (AggregateModel)a.Result).ForEach(a =>
-                    {
-                        if (a.Sum == null)
-                            return;
+                    await aggQuery.AsAsyncEnumerable().Select(a => a.Result).ForEach(a =>
+                   {
+                       if (a.Sum == null)
+                           return;
 
-                        sum = (sum ?? 0) + a.Sum.Value;
-                        count = count + a.Count;
-                    }, this._cancellationToken);
+                       sum = (sum ?? 0) + a.Sum.Value;
+                       count = count + a.Count;
+                   }, this._cancellationToken);
 
                     if (sum == null)
                     {
@@ -158,7 +174,7 @@ namespace Chloe.Sharding.QueryState
                         return result;
                     };
 
-                    AggregateQuery aggQuery = new AggregateQuery(queryState.CreateQueryPlan(), executor);
+                    var aggQuery = new AggregateQuery<object>(queryState.CreateQueryPlan(), executor);
 
                     var aggQueryEnumerable = aggQuery.AsAsyncEnumerable();
 
@@ -197,8 +213,7 @@ namespace Chloe.Sharding.QueryState
                 }
             }
         }
-
-        class CountQueryEnumerable : FeatureEnumerable<object>
+        class CountQueryEnumerable<T> : FeatureEnumerable<int>
         {
             ShardingAggregateQueryState QueryState;
 
@@ -207,42 +222,42 @@ namespace Chloe.Sharding.QueryState
                 this.QueryState = queryState;
             }
 
-            public override IFeatureEnumerator<object> GetFeatureEnumerator(CancellationToken cancellationToken = default)
+            public override IFeatureEnumerator<int> GetFeatureEnumerator(CancellationToken cancellationToken = default)
             {
                 return new Enumerator(this, cancellationToken);
             }
 
-            class Enumerator : FeatureEnumerator<object>
+            class Enumerator : FeatureEnumerator<int>
             {
-                CountQueryEnumerable _enumerable;
+                CountQueryEnumerable<T> _enumerable;
                 CancellationToken _cancellationToken;
-                public Enumerator(CountQueryEnumerable enumerable, CancellationToken cancellationToken)
+                public Enumerator(CountQueryEnumerable<T> enumerable, CancellationToken cancellationToken)
                 {
                     this._enumerable = enumerable;
                     this._cancellationToken = cancellationToken;
                 }
 
-                protected override async Task<IFeatureEnumerator<object>> CreateEnumerator(bool @async)
+                protected override async Task<IFeatureEnumerator<int>> CreateEnumerator(bool @async)
                 {
                     var queryState = this._enumerable.QueryState;
 
-                    Func<IQuery, bool, Task<object>> executor = async (query, @async) =>
+                    Func<IQuery, bool, Task<int>> executor = async (query, @async) =>
                     {
-                        object result = @async ? await query.CountAsync() : query.Count();
+                        IQuery<T> q = (IQuery<T>)query;
+                        int result = @async ? await q.CountAsync() : q.Count();
                         return result;
                     };
 
-                    AggregateQuery aggQuery = new AggregateQuery(queryState.CreateQueryPlan(), executor);
+                    AggregateQuery<int> aggQuery = new AggregateQuery<int>(queryState.CreateQueryPlan(), executor);
 
                     var aggQueryEnumerable = aggQuery.AsAsyncEnumerable();
 
-                    var totals = await aggQueryEnumerable.Select(a => (long)a.Result).SumAsync(this._cancellationToken);
-
-                    return (IFeatureEnumerator<object>)new ScalarFeatureEnumerator<long?>(totals);
+                    var totals = await aggQueryEnumerable.Select(a => a.Result).SumAsync(this._cancellationToken);
+                    return new ScalarFeatureEnumerator<int>(totals);
                 }
             }
         }
-        class LongCountQueryEnumerable : FeatureEnumerable<long>
+        class LongCountQueryEnumerable<T> : FeatureEnumerable<long>
         {
             ShardingAggregateQueryState QueryState;
 
@@ -258,9 +273,9 @@ namespace Chloe.Sharding.QueryState
 
             class Enumerator : FeatureEnumerator<long>
             {
-                LongCountQueryEnumerable _enumerable;
+                LongCountQueryEnumerable<T> _enumerable;
                 CancellationToken _cancellationToken;
-                public Enumerator(LongCountQueryEnumerable enumerable, CancellationToken cancellationToken)
+                public Enumerator(LongCountQueryEnumerable<T> enumerable, CancellationToken cancellationToken)
                 {
                     this._enumerable = enumerable;
                     this._cancellationToken = cancellationToken;
@@ -270,19 +285,76 @@ namespace Chloe.Sharding.QueryState
                 {
                     var queryState = this._enumerable.QueryState;
 
-                    Func<IQuery, bool, Task<object>> executor = async (query, @async) =>
+                    Func<IQuery, bool, Task<long>> executor = async (query, @async) =>
                     {
-                        object result = @async ? await query.LongCountAsync() : query.LongCount();
+                        IQuery<T> q = (IQuery<T>)query;
+                        long result = @async ? await q.LongCountAsync() : q.LongCount();
                         return result;
                     };
 
-                    AggregateQuery aggQuery = new AggregateQuery(queryState.CreateQueryPlan(), executor);
+                    AggregateQuery<long> aggQuery = new AggregateQuery<long>(queryState.CreateQueryPlan(), executor);
 
                     var aggQueryEnumerable = aggQuery.AsAsyncEnumerable();
 
-                    var totals = await aggQueryEnumerable.Select(a => (long)a.Result).SumAsync(this._cancellationToken);
-
+                    var totals = await aggQueryEnumerable.Select(a => a.Result).SumAsync(this._cancellationToken);
                     return new ScalarFeatureEnumerator<long>(totals);
+                }
+            }
+        }
+
+        class ExtremeQueryEnumerable<T, TResult> : FeatureEnumerable<TResult>
+        {
+            ShardingAggregateQueryState QueryState;
+            bool IsMaxQuery;
+
+            public ExtremeQueryEnumerable(ShardingAggregateQueryState queryState, bool isMaxQuery)
+            {
+                this.QueryState = queryState;
+                this.IsMaxQuery = isMaxQuery;
+            }
+
+            public override IFeatureEnumerator<TResult> GetFeatureEnumerator(CancellationToken cancellationToken = default)
+            {
+                return new Enumerator(this, cancellationToken);
+            }
+
+            class Enumerator : FeatureEnumerator<TResult>
+            {
+                ExtremeQueryEnumerable<T, TResult> _enumerable;
+                CancellationToken _cancellationToken;
+                public Enumerator(ExtremeQueryEnumerable<T, TResult> enumerable, CancellationToken cancellationToken)
+                {
+                    this._enumerable = enumerable;
+                    this._cancellationToken = cancellationToken;
+                }
+
+                protected override async Task<IFeatureEnumerator<TResult>> CreateEnumerator(bool @async)
+                {
+                    var queryState = this._enumerable.QueryState;
+                    var selector = (Expression<Func<T, TResult>>)queryState.QueryExpression.Arguments[0];
+
+                    Func<IQuery, bool, Task<TResult>> executor = async (query, @async) =>
+                    {
+                        IQuery<T> q = (IQuery<T>)query;
+                        TResult result;
+                        if (this._enumerable.IsMaxQuery)
+                        {
+                            result = @async ? await q.MaxAsync(selector) : q.Max(selector);
+                        }
+                        else
+                        {
+                            result = @async ? await q.MinAsync(selector) : q.Min(selector);
+                        }
+
+                        return result;
+                    };
+
+                    AggregateQuery<TResult> aggQuery = new AggregateQuery<TResult>(queryState.CreateQueryPlan(), executor);
+
+                    var results = await aggQuery.Select(a => a.Result).AsAsyncEnumerable().ToListAsync(this._cancellationToken);
+
+                    TResult result = this._enumerable.IsMaxQuery ? results.Max() : results.Min();
+                    return new ScalarFeatureEnumerator<TResult>(result);
                 }
             }
         }

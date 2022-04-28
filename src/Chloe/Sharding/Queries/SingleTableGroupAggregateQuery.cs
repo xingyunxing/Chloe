@@ -36,7 +36,7 @@ namespace Chloe.Sharding.Queries
             return new Enumerator(this, cancellationToken);
         }
 
-        class Enumerator : QueryEnumerator
+        class Enumerator : QueryEnumerator<object>
         {
             SingleTableGroupAggregateQuery _enumerable;
             CancellationToken _cancellationToken;
