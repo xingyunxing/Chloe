@@ -1,7 +1,4 @@
-﻿using Chloe.Core.Visitors;
-using Chloe.Reflection;
-using System.Linq.Expressions;
-using System.Threading;
+﻿using System.Threading;
 
 namespace Chloe.Sharding.Queries
 {

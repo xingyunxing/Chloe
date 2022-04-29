@@ -1,9 +1,6 @@
 ﻿using Chloe.Query;
 using Chloe.Query.QueryExpressions;
-using Chloe.Query.QueryState;
 using Chloe.Sharding.Queries;
-using Chloe.Utility;
-using System.Linq.Expressions;
 
 namespace Chloe.Sharding.QueryState
 {
@@ -84,6 +81,11 @@ namespace Chloe.Sharding.QueryState
             throw new NotSupportedException($"{nameof(IQuery<object>.Paging)}");
         }
 
+        public IQueryState Accept(JoinQueryExpression exp)
+        {
+            throw new NotSupportedException($"{nameof(IQuery<object>.Join)}");
+        }
+
         public virtual IFeatureEnumerable<object> CreateQuery()
         {
             ShardingQueryPlan queryPlan = this.CreateQueryPlan();
@@ -119,7 +121,7 @@ namespace Chloe.Sharding.QueryState
             return new NonPagingQuery(queryPlan);
         }
 
-        public ShardingQueryPlan CreateQueryPlan()
+        protected ShardingQueryPlan CreateQueryPlan()
         {
             IShardingContext shardingContext = this.Context.DbContext.CreateShardingContext(this.QueryModel.RootEntityType);
             List<RouteTable> routeTables = ShardingTableDiscoverer.GetRouteTables(this.QueryModel.GetFinalConditions(), shardingContext).ToList();
@@ -145,24 +147,5 @@ namespace Chloe.Sharding.QueryState
             return queryPlan;
         }
 
-        public virtual MappingData GenerateMappingData()
-        {
-            throw new NotSupportedException();
-        }
-
-        public QueryModel ToFromQueryModel()
-        {
-            throw new NotSupportedException();
-        }
-
-        public JoinQueryResult ToJoinQueryResult(JoinType joinType, LambdaExpression conditionExpression, ScopeParameterDictionary scopeParameters, StringSet scopeTables, Func<string, string> tableAliasGenerator)
-        {
-            throw new NotSupportedException();
-        }
-
-        //public virtual IFeatureEnumerable<object> CreateFeatureQuery()
-        //{
-        //    throw new NotImplementedException();
-        //}
     }
 }

@@ -148,7 +148,7 @@ namespace Chloe.Query.Visitors
 
             var query = ExpressionEvaluator.Evaluate(exp.Object);
             var queryType = query.GetType();
-            MethodInfo method_Query_CreateAggregateQuery = queryType.GetMethod(nameof(Query<int>.CreateAggregateQuery));
+            MethodInfo method_Query_CreateAggregateQuery = queryType.GetMethod(nameof(Query<int>.CreateAggregateQueryCore), BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             method_Query_CreateAggregateQuery = method_Query_CreateAggregateQuery.MakeGenericMethod(calledAggregateMethod.ReturnType);
 
             /* query.CreateAggregateQuery(calledAggregateMethod, arguments) */
@@ -234,7 +234,7 @@ namespace Chloe.Query.Visitors
             }
 
             QueryBase query = ExpressionEvaluator.Evaluate(exp) as QueryBase;
-            IQueryState qs = QueryExpressionResolver.Resolve(query.QueryExpression, this._scopeParameters, this._scopeTables);
+            QueryStateBase qs = QueryExpressionResolver.Resolve(query.QueryExpression, this._scopeParameters, this._scopeTables);
             MappingData mappingData = qs.GenerateMappingData();
 
             DbSqlQueryExpression sqlQueryExpression = mappingData.SqlQuery.Update(resultType);

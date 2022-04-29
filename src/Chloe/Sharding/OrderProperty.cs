@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using Chloe.Reflection;
+﻿using Chloe.Reflection;
 
 namespace Chloe.Sharding
 {

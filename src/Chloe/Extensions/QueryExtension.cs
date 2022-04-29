@@ -1,88 +1,166 @@
 ﻿using System.Collections;
 using System.Linq.Expressions;
+using Chloe.Reflection;
+using Chloe.Threading.Tasks;
 
 namespace Chloe
 {
     public static class QueryExtension
     {
+        static object CallMethod(object obj, string methodName, object arg)
+        {
+            var paramterTypes = arg == null ? Type.EmptyTypes : new Type[1] { arg.GetType() };
+
+            var method = obj.GetType().GetMethod(methodName, paramterTypes);
+            var result = method.FastInvoke(obj, arg == null ? PublicConstants.EmptyArray : new object[1] { arg });
+            return result;
+        }
+        static TResult CallMethod<TResult>(object obj, string methodName, object arg)
+        {
+            var result = CallMethod(obj, methodName, arg);
+            return (TResult)result;
+        }
+        static async Task<object> CallMethodAsync(object obj, string methodName, object arg)
+        {
+            var paramterTypes = arg == null ? Type.EmptyTypes : new Type[1] { arg.GetType() };
+
+            var method = obj.GetType().GetMethod(methodName, paramterTypes);
+            var task = (Task)method.FastInvoke(obj, arg == null ? PublicConstants.EmptyArray : new object[1] { arg });
+            await task;
+            var result = task.GetCompletedTaskResult();
+            return result;
+        }
+        static async Task<TResult> CallMethodAsync<TResult>(object obj, string methodName, object arg)
+        {
+            var result = await CallMethodAsync(obj, methodName, arg);
+            return (TResult)result;
+        }
+
+        static object CallGenericMethod(object obj, string methodName, LambdaExpression selector)
+        {
+            var method = obj.GetType().GetMethod(methodName).MakeGenericMethod(selector.Body.Type);
+            var result = method.FastInvoke(obj, new object[1] { selector });
+            return result;
+        }
+        static TResult CallGenericMethod<TResult>(object obj, string methodName, LambdaExpression selector)
+        {
+            var result = CallGenericMethod(obj, methodName, selector);
+            return (TResult)result;
+        }
+        static async Task<object> CallGenericMethodAsync(object obj, string methodName, LambdaExpression selector)
+        {
+            var method = obj.GetType().GetMethod(methodName).MakeGenericMethod(selector.Body.Type);
+            var task = (Task)method.FastInvoke(obj, new object[1] { selector });
+            await task;
+            var result = task.GetCompletedTaskResult();
+            return result;
+        }
+        static async Task<TResult> CallGenericMethodAsync<TResult>(object obj, string methodName, LambdaExpression selector)
+        {
+            var result = await CallGenericMethodAsync(obj, methodName, selector);
+            return (TResult)result;
+        }
+
+
+        public static IQuery Select(this IQuery query, LambdaExpression selector)
+        {
+            var result = CallGenericMethod<IQuery>(query, nameof(IQuery<object>.Select), selector);
+            return result;
+        }
+
+        public static IQuery Skip(this IQuery query, int count)
+        {
+            var result = CallMethod<IQuery>(query, nameof(IQuery<object>.Skip), count);
+            return result;
+        }
+
+        public static IQuery Take(this IQuery query, int count)
+        {
+            var result = CallMethod<IQuery>(query, nameof(IQuery<object>.Take), count);
+            return result;
+        }
+
         public static IEnumerable AsEnumerable(this IQuery query)
         {
-            throw new NotImplementedException();
+            var result = CallMethod<IEnumerable>(query, nameof(IQuery<object>.AsEnumerable), null);
+            return result;
         }
         public static IList ToList(this IQuery query)
         {
-            throw new NotImplementedException();
+            var result = CallMethod<IList>(query, nameof(IQuery<object>.ToList), null);
+            return result;
         }
-        public static async Task<IList> ToListAsync(this IQuery query)
+        public static Task<IList> ToListAsync(this IQuery query)
         {
-            throw new NotImplementedException();
+            return CallMethodAsync<IList>(query, nameof(IQuery<object>.ToListAsync), null);
         }
 
         public static int Count(this IQuery query)
         {
-            throw new NotImplementedException();
+            return CallMethod<int>(query, nameof(IQuery<object>.Count), null);
         }
-        public static async Task<int> CountAsync(this IQuery query)
+        public static Task<int> CountAsync(this IQuery query)
         {
-            throw new NotImplementedException();
+            return CallMethodAsync<int>(query, nameof(IQuery<object>.CountAsync), null);
         }
 
         public static long LongCount(this IQuery query)
         {
-            throw new NotImplementedException();
+            return CallMethod<long>(query, nameof(IQuery<object>.LongCount), null);
         }
-        public static async Task<long> LongCountAsync(this IQuery query)
+        public static Task<long> LongCountAsync(this IQuery query)
         {
-            throw new NotImplementedException();
+            return CallMethodAsync<long>(query, nameof(IQuery<object>.LongCountAsync), null);
         }
 
         public static object Sum(this IQuery query, LambdaExpression selector)
         {
-            throw new NotImplementedException();
+            var result = CallMethod(query, nameof(IQuery<object>.Sum), selector);
+            return result;
         }
         public static Task<object> SumAsync(this IQuery query, LambdaExpression selector)
         {
-            throw new NotImplementedException();
+            return CallMethodAsync(query, nameof(IQuery<object>.SumAsync), selector);
         }
 
         public static object Max(this IQuery query, LambdaExpression selector)
         {
-            throw new NotImplementedException();
+            var result = CallGenericMethod(query, nameof(IQuery<object>.Max), selector);
+            return result;
         }
         public static Task<object> MaxAsync(this IQuery query, LambdaExpression selector)
         {
-            throw new NotImplementedException();
+            var result = CallGenericMethodAsync(query, nameof(IQuery<object>.MaxAsync), selector);
+            return result;
         }
         public static object Min(this IQuery query, LambdaExpression selector)
         {
-            throw new NotImplementedException();
+            var result = CallGenericMethod(query, nameof(IQuery<object>.Min), selector);
+            return result;
         }
         public static Task<object> MinAsync(this IQuery query, LambdaExpression selector)
         {
-            throw new NotImplementedException();
+            var result = CallGenericMethodAsync(query, nameof(IQuery<object>.MinAsync), selector);
+            return result;
         }
+
 
         public static bool Any(this IQuery query)
         {
-            throw new NotImplementedException();
+            return CallMethod<bool>(query, nameof(IQuery<object>.Any), null);
         }
-        public static async Task<bool> AnyAsync(this IQuery query)
+        public static Task<bool> AnyAsync(this IQuery query)
         {
-            throw new NotImplementedException();
+            return CallMethodAsync<bool>(query, nameof(IQuery<object>.AnyAsync), null);
         }
 
         public static object First(this IQuery query)
         {
-            throw new NotImplementedException();
+            return CallMethod(query, nameof(IQuery<object>.First), null);
         }
         public static Task<object> FirstAsync(this IQuery query)
         {
-            throw new NotImplementedException();
-        }
-
-        public static IQuery Select(this IQuery query, LambdaExpression selector)
-        {
-            throw new NotImplementedException();
+            return CallMethodAsync(query, nameof(IQuery<object>.FirstAsync), null);
         }
     }
 }

@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 
 namespace Chloe.Query.Visitors
 {
-    class QueryExpressionResolver : QueryExpressionVisitor<IQueryState>
+    class QueryExpressionResolver : QueryExpressionVisitor
     {
         ScopeParameterDictionary _scopeParameters;
         StringSet _scopeTables;
@@ -15,10 +15,10 @@ namespace Chloe.Query.Visitors
             this._scopeParameters = scopeParameters;
             this._scopeTables = scopeTables;
         }
-        public static IQueryState Resolve(QueryExpression queryExpression, ScopeParameterDictionary scopeParameters, StringSet scopeTables)
+        public static QueryStateBase Resolve(QueryExpression queryExpression, ScopeParameterDictionary scopeParameters, StringSet scopeTables)
         {
             QueryExpressionResolver resolver = new QueryExpressionResolver(scopeParameters, scopeTables);
-            return queryExpression.Accept(resolver);
+            return (QueryStateBase)queryExpression.Accept(resolver);
         }
 
         public override IQueryState Visit(RootQueryExpression exp)
@@ -26,45 +26,10 @@ namespace Chloe.Query.Visitors
             IQueryState queryState = new RootQueryState(exp, this._scopeParameters, this._scopeTables);
             return queryState;
         }
-        public override IQueryState Visit(WhereExpression exp)
-        {
-            IQueryState prevState = exp.PrevExpression.Accept(this);
-            IQueryState state = prevState.Accept(exp);
-            return state;
-        }
-        public override IQueryState Visit(OrderExpression exp)
-        {
-            IQueryState prevState = exp.PrevExpression.Accept(this);
-            IQueryState state = prevState.Accept(exp);
-            return state;
-        }
-        public override IQueryState Visit(SelectExpression exp)
-        {
-            IQueryState prevState = exp.PrevExpression.Accept(this);
-            IQueryState state = prevState.Accept(exp);
-            return state;
-        }
-        public override IQueryState Visit(SkipExpression exp)
-        {
-            IQueryState prevState = exp.PrevExpression.Accept(this);
-            IQueryState state = prevState.Accept(exp);
-            return state;
-        }
-        public override IQueryState Visit(TakeExpression exp)
-        {
-            IQueryState prevState = exp.PrevExpression.Accept(this);
-            IQueryState state = prevState.Accept(exp);
-            return state;
-        }
-        public override IQueryState Visit(AggregateQueryExpression exp)
-        {
-            IQueryState prevState = exp.PrevExpression.Accept(this);
-            IQueryState state = prevState.Accept(exp);
-            return state;
-        }
+
         public override IQueryState Visit(JoinQueryExpression exp)
         {
-            IQueryState qs = QueryExpressionResolver.Resolve(exp.PrevExpression, this._scopeParameters, this._scopeTables);
+            QueryStateBase qs = QueryExpressionResolver.Resolve(exp.PrevExpression, this._scopeParameters, this._scopeTables);
 
             QueryModel queryModel = qs.ToFromQueryModel();
 
@@ -119,36 +84,6 @@ namespace Chloe.Query.Visitors
 
             GeneralQueryState queryState = new GeneralQueryState((qs as QueryStateBase).Context, queryModel);
             return queryState;
-        }
-        public override IQueryState Visit(GroupingQueryExpression exp)
-        {
-            IQueryState prevState = exp.PrevExpression.Accept(this);
-            IQueryState state = prevState.Accept(exp);
-            return state;
-        }
-        public override IQueryState Visit(DistinctExpression exp)
-        {
-            IQueryState prevState = exp.PrevExpression.Accept(this);
-            IQueryState state = prevState.Accept(exp);
-            return state;
-        }
-        public override IQueryState Visit(IncludeExpression exp)
-        {
-            IQueryState prevState = exp.PrevExpression.Accept(this);
-            IQueryState state = prevState.Accept(exp);
-            return state;
-        }
-        public override IQueryState Visit(IgnoreAllFiltersExpression exp)
-        {
-            IQueryState prevState = exp.PrevExpression.Accept(this);
-            IQueryState state = prevState.Accept(exp);
-            return state;
-        }
-        public override IQueryState Visit(TrackingExpression exp)
-        {
-            IQueryState prevState = exp.PrevExpression.Accept(this);
-            IQueryState state = prevState.Accept(exp);
-            return state;
         }
     }
 }

@@ -6,6 +6,12 @@ namespace Chloe.Reflection
     {
         public static readonly object[] EmptyArray = new object[0];
 
+        public static MethodInfo FindMethod(this Type type, string name)
+        {
+            var method = type.GetMethod(name, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            return method;
+        }
+
         public static Type GetMemberType(this MemberInfo propertyOrField)
         {
             if (propertyOrField.MemberType == MemberTypes.Property)
@@ -94,7 +100,11 @@ namespace Chloe.Reflection
         }
         public static object FastInvokeMethod(this object instance, string methodName, params object[] parameters)
         {
-            return instance.GetType().GetMethod(methodName).FastInvoke(instance, parameters);
+            return instance.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).FastInvoke(instance, parameters);
+        }
+        public static TResult FastInvokeMethod<TResult>(this object instance, string methodName, params object[] parameters)
+        {
+            return (TResult)instance.FastInvokeMethod(methodName, parameters);
         }
 
         public static object CreateInstance(this ConstructorInfo constructor, params object[] parameters)

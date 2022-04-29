@@ -15,6 +15,7 @@ namespace Chloe.Query
         QueryExpression _expression;
 
         Type IQuery.ElementType { get { return typeof(T); } }
+        public override QueryExpression QueryExpression { get { return this._expression; } }
 
         static RootQueryExpression CreateRootQueryExpression(IDbContextInternal dbContext, string explicitTable, LockType @lock)
         {
@@ -424,8 +425,6 @@ namespace Chloe.Query
             return this.ExecuteAggregateQuery<float?>(GetCalledMethod(() => default(IQuery<T>).Average(default(Expression<Func<T, float?>>))), selector);
         }
 
-        public override QueryExpression QueryExpression { get { return this._expression; } }
-
         public IQuery<T> AsTracking()
         {
             TrackingExpression e = new TrackingExpression(typeof(T), this.QueryExpression);
@@ -462,7 +461,7 @@ namespace Chloe.Query
                 PublicHelper.CheckNull(argument);
 
             List<Expression> arguments = argument == null ? EmptyArgumentList : new List<Expression>(1) { argument };
-            var q = this.CreateAggregateQuery<TResult>(method, arguments);
+            var q = this.CreateAggregateQueryCore<TResult>(method, arguments);
             return q;
         }
         /// <summary>
@@ -472,7 +471,7 @@ namespace Chloe.Query
         /// <param name="method"></param>
         /// <param name="arguments"></param>
         /// <returns></returns>
-        public Query<TResult> CreateAggregateQuery<TResult>(MethodInfo method, List<Expression> arguments)
+        internal Query<TResult> CreateAggregateQueryCore<TResult>(MethodInfo method, List<Expression> arguments)
         {
             AggregateQueryExpression e = new AggregateQueryExpression(this._expression, method, arguments);
             var q = new Query<TResult>(e);

@@ -4,13 +4,13 @@ using System.Threading;
 
 namespace Chloe.Sharding.Queries
 {
-    class AnyQueryPlan
+    class AnyQueryPlan<T>
     {
         public DataQueryModel QueryModel { get; set; }
-        public SingleTableAnyQuery Query { get; set; }
+        public SingleTableAnyQuery<T> Query { get; set; }
     }
 
-    internal class AnyQuery : FeatureEnumerable<QueryResult<bool>>
+    internal class AnyQuery<T> : FeatureEnumerable<QueryResult<bool>>
     {
         ShardingQueryPlan _queryPlan;
         List<IPhysicTable> _tables;
@@ -28,7 +28,7 @@ namespace Chloe.Sharding.Queries
 
         class Enumerator : IFeatureEnumerator<QueryResult<bool>>
         {
-            AnyQuery _enumerable;
+            AnyQuery<T> _enumerable;
             CancellationToken _cancellationToken;
 
             IFeatureEnumerator<bool> _innerEnumerator;
@@ -36,7 +36,7 @@ namespace Chloe.Sharding.Queries
             int _currentIdx = 0;
             QueryResult<bool> _current;
 
-            public Enumerator(AnyQuery enumerable, CancellationToken cancellationToken = default)
+            public Enumerator(AnyQuery<T> enumerable, CancellationToken cancellationToken = default)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;
@@ -74,14 +74,16 @@ namespace Chloe.Sharding.Queries
                 var tables = this._enumerable._tables;
                 var queryPlan = this._enumerable._queryPlan;
 
-                List<AnyQueryPlan> countQueryPlans = new List<AnyQueryPlan>(tables.Count);
+                List<AnyQueryPlan<T>> countQueryPlans = new List<AnyQueryPlan<T>>(tables.Count);
                 foreach (IPhysicTable table in tables)
                 {
-                    AnyQueryPlan anyQueryPlan = new AnyQueryPlan();
+                    var anyQueryPlan = new AnyQueryPlan<T>();
 
                     DataQueryModel dataQueryModel = new DataQueryModel(queryPlan.QueryModel.RootEntityType);
                     dataQueryModel.Table = table;
                     dataQueryModel.IgnoreAllFilters = queryPlan.QueryModel.IgnoreAllFilters;
+
+                    dataQueryModel.Conditions.Capacity = queryPlan.QueryModel.Conditions.Count;
                     dataQueryModel.Conditions.AddRange(queryPlan.QueryModel.Conditions);
 
                     anyQueryPlan.QueryModel = dataQueryModel;
@@ -98,9 +100,9 @@ namespace Chloe.Sharding.Queries
                     ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(this._enumerable._queryPlan.ShardingContext, group.First().QueryModel.Table.DataSource, count);
                     queryContext.AddManagedResource(dbContextPool);
 
-                    foreach (AnyQueryPlan anyQueryPlan in group)
+                    foreach (AnyQueryPlan<T> anyQueryPlan in group)
                     {
-                        SingleTableAnyQuery query = new SingleTableAnyQuery(queryContext, dbContextPool, anyQueryPlan.QueryModel);
+                        var query = new SingleTableAnyQuery<T>(queryContext, dbContextPool, anyQueryPlan.QueryModel);
                         anyQueryPlan.Query = query;
                     }
                 }

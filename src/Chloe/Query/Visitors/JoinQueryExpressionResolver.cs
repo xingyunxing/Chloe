@@ -29,7 +29,7 @@ namespace Chloe.Query.Visitors
 
         public override JoinQueryResult Visit(RootQueryExpression exp)
         {
-            IQueryState queryState = new RootQueryState(exp, this._scopeParameters, this._queryModel.ScopeTables, a => { return this._queryModel.GenerateUniqueTableAlias(a); });
+            QueryStateBase queryState = new RootQueryState(exp, this._scopeParameters, this._queryModel.ScopeTables, a => { return this._queryModel.GenerateUniqueTableAlias(a); });
             JoinQueryResult result = queryState.ToJoinQueryResult(this._joinType, this._conditionExpression, this._scopeParameters, this._queryModel.ScopeTables, null);
             return result;
         }
@@ -86,7 +86,7 @@ namespace Chloe.Query.Visitors
 
         JoinQueryResult Visit(QueryExpression exp)
         {
-            IQueryState state = QueryExpressionResolver.Resolve(exp, this._scopeParameters, this._queryModel.ScopeTables);
+            QueryStateBase state = QueryExpressionResolver.Resolve(exp, this._scopeParameters, this._queryModel.ScopeTables);
             JoinQueryResult ret = state.ToJoinQueryResult(this._joinType, this._conditionExpression, this._scopeParameters, this._queryModel.ScopeTables, a => { return this._queryModel.GenerateUniqueTableAlias(a); });
             return ret;
         }

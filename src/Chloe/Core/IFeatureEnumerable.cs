@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Chloe.Threading.Tasks;
+using System.Collections;
 using System.Threading;
 
 namespace Chloe
@@ -136,7 +137,90 @@ namespace Chloe
 
         public static IFeatureEnumerable<TResult> Select<T, TResult>(this IFeatureEnumerable<T> source, Func<T, TResult> selector)
         {
-            throw new NotImplementedException();
+            return new SelectFeatureEnumerable<T, TResult>(source, selector);
+        }
+
+        public class SelectFeatureEnumerable<T, TResult> : FeatureEnumerable<TResult>
+        {
+            IFeatureEnumerable<T> _source;
+            Func<T, TResult> _selector;
+
+            public SelectFeatureEnumerable(IFeatureEnumerable<T> source, Func<T, TResult> selector)
+            {
+                this._source = source;
+                this._selector = selector;
+            }
+
+            public override IFeatureEnumerator<TResult> GetFeatureEnumerator(CancellationToken cancellationToken = default)
+            {
+                return new Enumerator(this, cancellationToken);
+            }
+
+            class Enumerator : IFeatureEnumerator<TResult>
+            {
+                SelectFeatureEnumerable<T, TResult> _enumerable;
+                CancellationToken _cancellationToken;
+
+                IFeatureEnumerator<T> _enumerator;
+
+                TResult _current;
+
+                public Enumerator(SelectFeatureEnumerable<T, TResult> enumerable, CancellationToken cancellationToken)
+                {
+                    this._enumerable = enumerable;
+                    this._cancellationToken = cancellationToken;
+                }
+
+                public TResult Current => this._current;
+
+                object IEnumerator.Current => this.Current;
+
+                public bool MoveNext()
+                {
+                    return this.MoveNext(false).GetResult();
+                }
+                public BoolResultTask MoveNextAsync()
+                {
+                    return this.MoveNext(true);
+                }
+                async BoolResultTask MoveNext(bool @async)
+                {
+                    if (this._enumerator == null)
+                    {
+                        this._enumerator = this._enumerable._source.GetFeatureEnumerator(this._cancellationToken);
+                    }
+
+                    bool hasNext = @async ? await this._enumerator.MoveNextAsync() : this._enumerator.MoveNext();
+                    if (hasNext)
+                    {
+                        this._current = this._enumerable._selector(this._enumerator.GetCurrent());
+                    }
+                    else
+                    {
+                        this._current = default;
+                    }
+
+                    return hasNext;
+                }
+
+                public async ValueTask DisposeAsync()
+                {
+                    if (this._enumerator != null)
+                    {
+                        await this._enumerator.DisposeAsync();
+                    }
+                }
+
+                public void Dispose()
+                {
+                    this._enumerator?.Dispose();
+                }
+
+                public void Reset()
+                {
+                    throw new NotImplementedException();
+                }
+            }
         }
     }
 }

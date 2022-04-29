@@ -1,5 +1,5 @@
 ﻿using Chloe.Query;
-using Chloe.Sharding.Queries;
+using Chloe.Query.QueryExpressions;
 using Chloe.Threading.Tasks;
 using System.Linq.Expressions;
 
@@ -7,8 +7,6 @@ namespace Chloe.Sharding
 {
     internal partial class ShardingQuery<T> : IQuery<T>
     {
-        internal Query<T> InnerQuery { get; set; }
-
         public ShardingQuery(IDbContextInternal dbContext, string explicitTable, LockType @lock)
            : this(new Query<T>(dbContext, explicitTable, @lock))
         {
@@ -22,36 +20,12 @@ namespace Chloe.Sharding
 
         }
 
-        ShardingQuery<T> AsShardingQuery(IQuery<T> query)
-        {
-            return query as ShardingQuery<T>;
-        }
-
         Type IQuery.ElementType { get { return typeof(T); } }
-
-        public bool Any()
-        {
-            return this.AnyAsync().GetResult();
-        }
-
-        public bool Any(Expression<Func<T, bool>> predicate)
-        {
-            return this.AnyAsync(predicate).GetResult();
-        }
-
-        public Task<bool> AnyAsync()
-        {
-            return this.QueryAny();
-        }
-
-        public Task<bool> AnyAsync(Expression<Func<T, bool>> predicate)
-        {
-            return this.Where(predicate).AnyAsync();
-        }
+        internal Query<T> InnerQuery { get; set; }
 
         public IEnumerable<T> AsEnumerable()
         {
-            return this.Execute().GetResult();
+            return this.GenerateIterator();
         }
 
         public IQuery<T> AsTracking()
@@ -59,161 +33,9 @@ namespace Chloe.Sharding
             return new ShardingQuery<T>(this.InnerQuery.AsTracking());
         }
 
-        public double? Average(Expression<Func<T, int>> selector)
-        {
-            return this.AverageAsync(selector).GetResult();
-        }
-
-        public double? Average(Expression<Func<T, int?>> selector)
-        {
-            return this.AverageAsync(selector).GetResult();
-        }
-
-        public double? Average(Expression<Func<T, long>> selector)
-        {
-            return this.AverageAsync(selector).GetResult();
-        }
-
-        public double? Average(Expression<Func<T, long?>> selector)
-        {
-            return this.AverageAsync(selector).GetResult();
-        }
-
-        public decimal? Average(Expression<Func<T, decimal>> selector)
-        {
-            return this.AverageAsync(selector).GetResult();
-        }
-
-        public decimal? Average(Expression<Func<T, decimal?>> selector)
-        {
-            return this.AverageAsync(selector).GetResult();
-        }
-
-        public double? Average(Expression<Func<T, double>> selector)
-        {
-            return this.AverageAsync(selector).GetResult();
-        }
-
-        public double? Average(Expression<Func<T, double?>> selector)
-        {
-            return this.AverageAsync(selector).GetResult();
-        }
-
-        public float? Average(Expression<Func<T, float>> selector)
-        {
-            return this.AverageAsync(selector).GetResult();
-        }
-
-        public float? Average(Expression<Func<T, float?>> selector)
-        {
-            return this.AverageAsync(selector).GetResult();
-        }
-
-        public async Task<double?> AverageAsync(Expression<Func<T, int>> selector)
-        {
-            var avg = await this.QueryAverageAsync(selector);
-            return (double?)avg;
-        }
-
-        public async Task<double?> AverageAsync(Expression<Func<T, int?>> selector)
-        {
-            var avg = await this.QueryAverageAsync(selector);
-            return (double?)avg;
-        }
-
-        public async Task<double?> AverageAsync(Expression<Func<T, long>> selector)
-        {
-            var avg = await this.QueryAverageAsync(selector);
-            return (double?)avg;
-        }
-
-        public async Task<double?> AverageAsync(Expression<Func<T, long?>> selector)
-        {
-            var avg = await this.QueryAverageAsync(selector);
-            return (double?)avg;
-        }
-
-        public async Task<decimal?> AverageAsync(Expression<Func<T, decimal>> selector)
-        {
-            var avg = await this.QueryAverageAsync(selector);
-            return avg;
-        }
-
-        public async Task<decimal?> AverageAsync(Expression<Func<T, decimal?>> selector)
-        {
-            var avg = await this.QueryAverageAsync(selector);
-            return avg;
-        }
-
-        public async Task<double?> AverageAsync(Expression<Func<T, double>> selector)
-        {
-            var avg = await this.QueryAverageAsync(selector);
-            return (double?)avg;
-        }
-
-        public async Task<double?> AverageAsync(Expression<Func<T, double?>> selector)
-        {
-            var avg = await this.QueryAverageAsync(selector);
-            return (double?)avg;
-        }
-
-        public async Task<float?> AverageAsync(Expression<Func<T, float>> selector)
-        {
-            var avg = await this.QueryAverageAsync(selector);
-            return (float?)avg;
-        }
-
-        public async Task<float?> AverageAsync(Expression<Func<T, float?>> selector)
-        {
-            var avg = await this.QueryAverageAsync(selector);
-            return (float?)avg;
-        }
-
         public IQuery<T> Distinct()
         {
             throw new NotImplementedException();
-        }
-
-        public T First()
-        {
-            return this.Take(1).AsEnumerable().First();
-        }
-
-        public T First(Expression<Func<T, bool>> predicate)
-        {
-            return this.Where(predicate).First();
-        }
-
-        public async Task<T> FirstAsync()
-        {
-            var q = this.Take(1) as ShardingQuery<T>;
-            return await (await q.Execute()).FirstAsync();
-        }
-
-        public Task<T> FirstAsync(Expression<Func<T, bool>> predicate)
-        {
-            return this.Where(predicate).FirstAsync();
-        }
-
-        public T FirstOrDefault()
-        {
-            return this.Take(1).AsEnumerable().FirstOrDefault();
-        }
-
-        public T FirstOrDefault(Expression<Func<T, bool>> predicate)
-        {
-            return this.Where(predicate).FirstOrDefault();
-        }
-
-        public async Task<T> FirstOrDefaultAsync()
-        {
-            var q = this.Take(1) as ShardingQuery<T>;
-            return await (await q.Execute()).FirstOrDefaultAsync();
-        }
-
-        public Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate)
-        {
-            return this.Where(predicate).FirstOrDefaultAsync();
         }
 
         public IJoinQuery<T, TOther> FullJoin<TOther>(Expression<Func<T, TOther, bool>> on)
@@ -226,10 +48,7 @@ namespace Chloe.Sharding
             throw new NotImplementedException();
         }
 
-        public IGroupingQuery<T> GroupBy<K>(Expression<Func<T, K>> keySelector)
-        {
-            return new ShardingGroupingQuery<T>(this.InnerQuery.GroupBy(keySelector));
-        }
+
 
         public IQuery<T> IgnoreAllFilters()
         {
@@ -281,55 +100,7 @@ namespace Chloe.Sharding
             throw new NotImplementedException();
         }
 
-        public int Count()
-        {
-            return (int)this.LongCount();
-        }
 
-        public async Task<int> CountAsync()
-        {
-            return (int)await this.LongCountAsync();
-        }
-
-        public long LongCount()
-        {
-            return this.LongCountAsync().GetResult();
-        }
-
-        public async Task<long> LongCountAsync()
-        {
-            return await this.QueryCount();
-        }
-
-        public TResult Max<TResult>(Expression<Func<T, TResult>> selector)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<TResult> MaxAsync<TResult>(Expression<Func<T, TResult>> selector)
-        {
-            throw new NotImplementedException();
-        }
-
-        public TResult Min<TResult>(Expression<Func<T, TResult>> selector)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<TResult> MinAsync<TResult>(Expression<Func<T, TResult>> selector)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IOrderedQuery<T> OrderBy<K>(Expression<Func<T, K>> keySelector)
-        {
-            return new ShardingOrderedQuery<T>(this.InnerQuery.OrderBy(keySelector));
-        }
-
-        public IOrderedQuery<T> OrderByDesc<K>(Expression<Func<T, K>> keySelector)
-        {
-            return new ShardingOrderedQuery<T>(this.InnerQuery.OrderByDesc(keySelector));
-        }
 
         public IJoinQuery<T, TOther> RightJoin<TOther>(Expression<Func<T, TOther, bool>> on)
         {
@@ -341,15 +112,202 @@ namespace Chloe.Sharding
             throw new NotImplementedException();
         }
 
-        public IQuery<TResult> Select<TResult>(Expression<Func<T, TResult>> selector)
+
+        public IGroupingQuery<T> GroupBy<K>(Expression<Func<T, K>> keySelector)
         {
-            throw new NotImplementedException();
+            return new ShardingGroupingQuery<T>(this.InnerQuery.GroupBy(keySelector));
         }
 
+        public IOrderedQuery<T> OrderBy<K>(Expression<Func<T, K>> keySelector)
+        {
+            return new ShardingOrderedQuery<T>(this.InnerQuery.OrderBy(keySelector));
+        }
+        public IOrderedQuery<T> OrderByDesc<K>(Expression<Func<T, K>> keySelector)
+        {
+            return new ShardingOrderedQuery<T>(this.InnerQuery.OrderByDesc(keySelector));
+        }
+
+        public IQuery<TResult> Select<TResult>(Expression<Func<T, TResult>> selector)
+        {
+            return new ShardingQuery<TResult>(this.InnerQuery.Select(selector));
+        }
+
+        public IQuery<T> Where(Expression<Func<T, bool>> predicate)
+        {
+            return new ShardingQuery<T>(this.InnerQuery.Where(predicate));
+        }
         public IQuery<T> Skip(int count)
         {
             return new ShardingQuery<T>(this.InnerQuery.Skip(count));
         }
+        public IQuery<T> Take(int count)
+        {
+            return new ShardingQuery<T>(this.InnerQuery.Take(count));
+        }
+        public IQuery<T> TakePage(int pageNumber, int pageSize)
+        {
+            return new ShardingQuery<T>(this.InnerQuery.TakePage(pageNumber, pageSize));
+        }
+
+
+        public bool Any()
+        {
+            return this.AnyAsync().GetResult();
+        }
+
+        public bool Any(Expression<Func<T, bool>> predicate)
+        {
+            return this.Where(predicate).AnyAsync().GetResult();
+        }
+
+        public Task<bool> AnyAsync()
+        {
+            return this.ExecuteAggregateQueryAsync<bool>(GetCalledMethod(() => default(IQuery<T>).Any()), null, false);
+        }
+
+        public Task<bool> AnyAsync(Expression<Func<T, bool>> predicate)
+        {
+            return this.Where(predicate).AnyAsync();
+        }
+
+
+        public int Count()
+        {
+            return this.CountAsync().GetResult();
+        }
+        public Task<int> CountAsync()
+        {
+            return this.ExecuteAggregateQueryAsync<int>(GetCalledMethod(() => default(IQuery<T>).Count()), null, false);
+        }
+
+        public long LongCount()
+        {
+            return this.LongCountAsync().GetResult();
+        }
+        public Task<long> LongCountAsync()
+        {
+            return this.ExecuteAggregateQueryAsync<long>(GetCalledMethod(() => default(IQuery<T>).LongCount()), null, false);
+        }
+
+        public TResult Max<TResult>(Expression<Func<T, TResult>> selector)
+        {
+            return this.MaxAsync(selector).GetResult();
+        }
+        public Task<TResult> MaxAsync<TResult>(Expression<Func<T, TResult>> selector)
+        {
+            return this.ExecuteAggregateQueryAsync<TResult>(GetCalledMethod(() => default(IQuery<T>).Max(default(Expression<Func<T, TResult>>))), selector);
+        }
+
+        public TResult Min<TResult>(Expression<Func<T, TResult>> selector)
+        {
+            return this.MinAsync(selector).GetResult();
+        }
+        public Task<TResult> MinAsync<TResult>(Expression<Func<T, TResult>> selector)
+        {
+            return this.ExecuteAggregateQueryAsync<TResult>(GetCalledMethod(() => default(IQuery<T>).Min(default(Expression<Func<T, TResult>>))), selector);
+        }
+
+
+        public double? Average(Expression<Func<T, int>> selector)
+        {
+            return this.AverageAsync(selector).GetResult();
+        }
+
+        public double? Average(Expression<Func<T, int?>> selector)
+        {
+            return this.AverageAsync(selector).GetResult();
+        }
+
+        public double? Average(Expression<Func<T, long>> selector)
+        {
+            return this.AverageAsync(selector).GetResult();
+        }
+
+        public double? Average(Expression<Func<T, long?>> selector)
+        {
+            return this.AverageAsync(selector).GetResult();
+        }
+
+        public decimal? Average(Expression<Func<T, decimal>> selector)
+        {
+            return this.AverageAsync(selector).GetResult();
+        }
+
+        public decimal? Average(Expression<Func<T, decimal?>> selector)
+        {
+            return this.AverageAsync(selector).GetResult();
+        }
+
+        public double? Average(Expression<Func<T, double>> selector)
+        {
+            return this.AverageAsync(selector).GetResult();
+        }
+
+        public double? Average(Expression<Func<T, double?>> selector)
+        {
+            return this.AverageAsync(selector).GetResult();
+        }
+
+        public float? Average(Expression<Func<T, float>> selector)
+        {
+            return this.AverageAsync(selector).GetResult();
+        }
+
+        public float? Average(Expression<Func<T, float?>> selector)
+        {
+            return this.AverageAsync(selector).GetResult();
+        }
+
+        public Task<double?> AverageAsync(Expression<Func<T, int>> selector)
+        {
+            return this.ExecuteAggregateQueryAsync<double?>(GetCalledMethod(() => default(IQuery<T>).Average(default(Expression<Func<T, int>>))), selector);
+        }
+
+        public Task<double?> AverageAsync(Expression<Func<T, int?>> selector)
+        {
+            return this.ExecuteAggregateQueryAsync<double?>(GetCalledMethod(() => default(IQuery<T>).Average(default(Expression<Func<T, int?>>))), selector);
+        }
+
+        public Task<double?> AverageAsync(Expression<Func<T, long>> selector)
+        {
+            return this.ExecuteAggregateQueryAsync<double?>(GetCalledMethod(() => default(IQuery<T>).Average(default(Expression<Func<T, long>>))), selector);
+        }
+
+        public Task<double?> AverageAsync(Expression<Func<T, long?>> selector)
+        {
+            return this.ExecuteAggregateQueryAsync<double?>(GetCalledMethod(() => default(IQuery<T>).Average(default(Expression<Func<T, long?>>))), selector);
+        }
+
+        public Task<decimal?> AverageAsync(Expression<Func<T, decimal>> selector)
+        {
+            return this.ExecuteAggregateQueryAsync<decimal?>(GetCalledMethod(() => default(IQuery<T>).Average(default(Expression<Func<T, decimal>>))), selector);
+        }
+
+        public async Task<decimal?> AverageAsync(Expression<Func<T, decimal?>> selector)
+        {
+            return await this.ExecuteAggregateQueryAsync<decimal?>(GetCalledMethod(() => default(IQuery<T>).Average(default(Expression<Func<T, decimal?>>))), selector);
+        }
+
+        public async Task<double?> AverageAsync(Expression<Func<T, double>> selector)
+        {
+            return await this.ExecuteAggregateQueryAsync<double?>(GetCalledMethod(() => default(IQuery<T>).Average(default(Expression<Func<T, double>>))), selector);
+        }
+
+        public async Task<double?> AverageAsync(Expression<Func<T, double?>> selector)
+        {
+            return await this.ExecuteAggregateQueryAsync<double?>(GetCalledMethod(() => default(IQuery<T>).Average(default(Expression<Func<T, double?>>))), selector);
+        }
+
+        public async Task<float?> AverageAsync(Expression<Func<T, float>> selector)
+        {
+            return await this.ExecuteAggregateQueryAsync<float?>(GetCalledMethod(() => default(IQuery<T>).Average(default(Expression<Func<T, float>>))), selector);
+        }
+
+        public async Task<float?> AverageAsync(Expression<Func<T, float?>> selector)
+        {
+            return await this.ExecuteAggregateQueryAsync<float?>(GetCalledMethod(() => default(IQuery<T>).Average(default(Expression<Func<T, float?>>))), selector);
+        }
+
 
         public int? Sum(Expression<Func<T, int>> selector)
         {
@@ -403,152 +361,105 @@ namespace Chloe.Sharding
 
         public async Task<int?> SumAsync(Expression<Func<T, int>> selector)
         {
-            throw new NotImplementedException();
-            //Func<IQuery, bool, Task<object>> executor = async (query, @async) =>
-            //{
-            //    var q = (query as IQuery<T>);
-            //    int? result = @async ? await q.SumAsync(selector) : q.Sum(selector);
-            //    return result;
-            //};
-
-            //AggregateQuery aggQuery = new AggregateQuery(this.MakeQueryPlan(this), executor);
-            //return await aggQuery.AsAsyncEnumerable().Select(a => (int?)a.Result).SumAsync();
+            var sum = await this.ExecuteAggregateQueryAsync<int?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, int>>))), selector);
+            return sum;
         }
 
         public async Task<int?> SumAsync(Expression<Func<T, int?>> selector)
         {
-            throw new NotImplementedException();
-            //Func<IQuery, bool, Task<object>> executor = async (query, @async) =>
-            //{
-            //    var q = (query as IQuery<T>);
-            //    int? result = @async ? await q.SumAsync(selector) : q.Sum(selector);
-            //    return result;
-            //};
-
-            //AggregateQuery aggQuery = new AggregateQuery(this.MakeQueryPlan(this), executor);
-            //return await aggQuery.AsAsyncEnumerable().Select(a => (int?)a.Result).SumAsync();
+            var sum = await this.ExecuteAggregateQueryAsync<int?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, int?>>))), selector);
+            return sum;
         }
 
         public async Task<long?> SumAsync(Expression<Func<T, long>> selector)
         {
-            throw new NotImplementedException();
-            //Func<IQuery, bool, Task<object>> executor = async (query, @async) =>
-            //{
-            //    var q = (query as IQuery<T>);
-            //    long? result = @async ? await q.SumAsync(selector) : q.Sum(selector);
-            //    return result;
-            //};
-
-            //AggregateQuery aggQuery = new AggregateQuery(this.MakeQueryPlan(this), executor);
-            //return await aggQuery.AsAsyncEnumerable().Select(a => (long?)a.Result).SumAsync();
+            var sum = await this.ExecuteAggregateQueryAsync<long?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, long>>))), selector);
+            return sum;
         }
 
         public async Task<long?> SumAsync(Expression<Func<T, long?>> selector)
         {
-            throw new NotImplementedException();
-            //Func<IQuery, bool, Task<object>> executor = async (query, @async) =>
-            //{
-            //    var q = (query as IQuery<T>);
-            //    long? result = @async ? await q.SumAsync(selector) : q.Sum(selector);
-            //    return result;
-            //};
-
-            //AggregateQuery aggQuery = new AggregateQuery(this.MakeQueryPlan(this), executor);
-            //return await aggQuery.AsAsyncEnumerable().Select(a => (long?)a.Result).SumAsync();
+            var sum = await this.ExecuteAggregateQueryAsync<long?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, long?>>))), selector);
+            return sum;
         }
 
         public async Task<decimal?> SumAsync(Expression<Func<T, decimal>> selector)
         {
-            throw new NotImplementedException();
-            //Func<IQuery, bool, Task<object>> executor = async (query, @async) =>
-            //{
-            //    var q = (query as IQuery<T>);
-            //    decimal? result = @async ? await q.SumAsync(selector) : q.Sum(selector);
-            //    return result;
-            //};
-
-            //AggregateQuery aggQuery = new AggregateQuery(this.MakeQueryPlan(this), executor);
-            //return await aggQuery.AsAsyncEnumerable().Select(a => (decimal?)a.Result).SumAsync();
+            var sum = await this.ExecuteAggregateQueryAsync<decimal?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, decimal>>))), selector);
+            return sum;
         }
 
         public async Task<decimal?> SumAsync(Expression<Func<T, decimal?>> selector)
         {
-            throw new NotImplementedException();
-            //Func<IQuery, bool, Task<object>> executor = async (query, @async) =>
-            //{
-            //    var q = (query as IQuery<T>);
-            //    decimal? result = @async ? await q.SumAsync(selector) : q.Sum(selector);
-            //    return result;
-            //};
-
-            //AggregateQuery aggQuery = new AggregateQuery(this.MakeQueryPlan(this), executor);
-            //return await aggQuery.AsAsyncEnumerable().Select(a => (decimal?)a.Result).SumAsync();
+            var sum = await this.ExecuteAggregateQueryAsync<decimal?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, decimal?>>))), selector);
+            return sum;
         }
 
         public async Task<double?> SumAsync(Expression<Func<T, double>> selector)
         {
-            throw new NotImplementedException();
-            //Func<IQuery, bool, Task<object>> executor = async (query, @async) =>
-            //{
-            //    var q = (query as IQuery<T>);
-            //    double? result = @async ? await q.SumAsync(selector) : q.Sum(selector);
-            //    return result;
-            //};
-
-            //AggregateQuery aggQuery = new AggregateQuery(this.MakeQueryPlan(this), executor);
-            //return await aggQuery.AsAsyncEnumerable().Select(a => (double?)a.Result).SumAsync();
+            var sum = await this.ExecuteAggregateQueryAsync<double?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, double>>))), selector);
+            return sum;
         }
 
         public async Task<double?> SumAsync(Expression<Func<T, double?>> selector)
         {
-            throw new NotImplementedException();
-            //Func<IQuery, bool, Task<object>> executor = async (query, @async) =>
-            //{
-            //    var q = (query as IQuery<T>);
-            //    double? result = @async ? await q.SumAsync(selector) : q.Sum(selector);
-            //    return result;
-            //};
-
-            //AggregateQuery aggQuery = new AggregateQuery(this.MakeQueryPlan(this), executor);
-            //return await aggQuery.AsAsyncEnumerable().Select(a => (double?)a.Result).SumAsync();
+            var sum = await this.ExecuteAggregateQueryAsync<double?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, double?>>))), selector);
+            return sum;
         }
 
         public async Task<float?> SumAsync(Expression<Func<T, float>> selector)
         {
-            throw new NotImplementedException();
-            //Func<IQuery, bool, Task<object>> executor = async (query, @async) =>
-            //{
-            //    var q = (query as IQuery<T>);
-            //    float? result = @async ? await q.SumAsync(selector) : q.Sum(selector);
-            //    return result;
-            //};
-
-            //AggregateQuery aggQuery = new AggregateQuery(this.MakeQueryPlan(this), executor);
-            //return await aggQuery.AsAsyncEnumerable().Select(a => (float?)a.Result).SumAsync();
+            var sum = await this.ExecuteAggregateQueryAsync<float?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, float>>))), selector);
+            return sum;
         }
 
         public async Task<float?> SumAsync(Expression<Func<T, float?>> selector)
         {
-            throw new NotImplementedException();
-            //Func<IQuery, bool, Task<object>> executor = async (query, @async) =>
-            //{
-            //    var q = (query as IQuery<T>);
-            //    float? result = @async ? await q.SumAsync(selector) : q.Sum(selector);
-            //    return result;
-            //};
-
-            //AggregateQuery aggQuery = new AggregateQuery(this.MakeQueryPlan(this), executor);
-            //return await aggQuery.AsAsyncEnumerable().Select(a => (float?)a.Result).SumAsync();
+            var sum = await this.ExecuteAggregateQueryAsync<float?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, float?>>))), selector);
+            return sum;
         }
 
-        public IQuery<T> Take(int count)
+
+        public T First()
         {
-            return new ShardingQuery<T>(this.InnerQuery.Take(count));
+            return this.Take(1).AsEnumerable().First();
         }
 
-        public IQuery<T> TakePage(int pageNumber, int pageSize)
+        public T First(Expression<Func<T, bool>> predicate)
         {
-            return new ShardingQuery<T>(this.InnerQuery.TakePage(pageNumber, pageSize));
+            return this.Where(predicate).First();
+        }
+
+        public async Task<T> FirstAsync()
+        {
+            var q = this.Take(1) as ShardingQuery<T>;
+            return await q.GenerateIterator().FirstAsync();
+        }
+
+        public Task<T> FirstAsync(Expression<Func<T, bool>> predicate)
+        {
+            return this.Where(predicate).FirstAsync();
+        }
+
+        public T FirstOrDefault()
+        {
+            return this.Take(1).AsEnumerable().FirstOrDefault();
+        }
+
+        public T FirstOrDefault(Expression<Func<T, bool>> predicate)
+        {
+            return this.Where(predicate).FirstOrDefault();
+        }
+
+        public async Task<T> FirstOrDefaultAsync()
+        {
+            var q = this.Take(1) as ShardingQuery<T>;
+            return await q.GenerateIterator().FirstOrDefaultAsync();
+        }
+
+        public Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate)
+        {
+            return this.Where(predicate).FirstOrDefaultAsync();
         }
 
         public PagingResult<T> Paging(int pageNumber, int pageSize)
@@ -557,14 +468,13 @@ namespace Chloe.Sharding
         }
         public async Task<PagingResult<T>> PagingAsync(int pageNumber, int pageSize)
         {
-            var pagingResult = await this.ExecutePaging(pageNumber, pageSize);
-
-            PagingResult<T> result = new PagingResult<T>();
-            result.Count = pagingResult.Count;
-            result.DataList = await pagingResult.Result.ToListAsync();
-
-            return result;
+            PagingExpression pagingExpression = new PagingExpression(typeof(PagingResult<T>), this.InnerQuery.QueryExpression, pageNumber, pageSize);
+            Query<PagingResult<T>> query = new Query<PagingResult<T>>(pagingExpression);
+            var shardingQuery = new ShardingQuery<PagingResult<T>>(query);
+            var pagingResult = await shardingQuery.GenerateIterator().FirstAsync();
+            return pagingResult;
         }
+
 
         public List<T> ToList()
         {
@@ -572,12 +482,9 @@ namespace Chloe.Sharding
         }
         public async Task<List<T>> ToListAsync()
         {
-            return await (await this.Execute()).ToListAsync();
+            IFeatureEnumerable<T> iterator = this.GenerateIterator();
+            return await iterator.ToListAsync();
         }
 
-        public IQuery<T> Where(Expression<Func<T, bool>> predicate)
-        {
-            return new ShardingQuery<T>(this.InnerQuery.Where(predicate));
-        }
     }
 }

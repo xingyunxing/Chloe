@@ -6,8 +6,6 @@ using System.Linq.Expressions;
 
 namespace Chloe.Query.QueryState
 {
-
-
     abstract class QueryStateBase : IQueryState
     {
         QueryModel _queryModel;
@@ -312,6 +310,11 @@ namespace Chloe.Query.QueryState
             result.ResultModel = newModel;
             result.JoinTable = joinTable;
             return result;
+        }
+
+        public IQueryState Accept(JoinQueryExpression exp)
+        {
+            throw new NotImplementedException();
         }
     }
 }

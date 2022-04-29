@@ -2,7 +2,7 @@
 
 namespace Chloe.Sharding.Queries
 {
-    class SingleTableAnyQuery : FeatureEnumerable<bool>
+    class SingleTableAnyQuery<T> : FeatureEnumerable<bool>
     {
         IParallelQueryContext _queryContext;
         IShareDbContextPool _dbContextPool;
@@ -22,9 +22,9 @@ namespace Chloe.Sharding.Queries
 
         class Enumerator : TableQueryEnumerator<bool>
         {
-            SingleTableAnyQuery _enumerable;
+            SingleTableAnyQuery<T> _enumerable;
 
-            public Enumerator(SingleTableAnyQuery enumerable, CancellationToken cancellationToken = default) : base(enumerable._dbContextPool, enumerable._queryModel, cancellationToken)
+            public Enumerator(SingleTableAnyQuery<T> enumerable, CancellationToken cancellationToken = default) : base(enumerable._dbContextPool, enumerable._queryModel, cancellationToken)
             {
                 this._enumerable = enumerable;
             }
@@ -39,7 +39,8 @@ namespace Chloe.Sharding.Queries
                     return (NullFeatureEnumerable<bool>.Instance, false);
                 }
 
-                bool hasData = @async ? await query.AnyAsync() : query.Any();
+                var q = (IQuery<T>)query;
+                bool hasData = @async ? await q.AnyAsync() : q.Any();
 
                 queryContext.AfterExecuteCommand(hasData);
 

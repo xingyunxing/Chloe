@@ -113,20 +113,10 @@ namespace Chloe.Sharding
             this._queryModel = queryModel;
         }
 
-        static IQuery MakeQuery(IDbContext dbContext, DataQueryModel queryModel)
-        {
-            if (queryModel.Selector != null)
-            {
-                throw new NotSupportedException("不支持这种情况");
-            }
-
-            var q = ShardingHelpers.MakeQuery(dbContext, queryModel, true);
-            return q;
-        }
 
         protected sealed override async Task<(IFeatureEnumerable<TResult> Query, bool IsLazyQuery)> CreateQuery(IDbContext dbContext, bool @async)
         {
-            var q = MakeQuery(dbContext, this._queryModel);
+            var q = ShardingHelpers.MakeQuery(dbContext, this._queryModel, true);
             var result = await this.CreateQuery(q, @async);
 
             return result;

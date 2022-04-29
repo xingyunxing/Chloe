@@ -1,7 +1,5 @@
-﻿using Chloe.Descriptors;
-using Chloe.Infrastructure;
-using Chloe.Query.QueryExpressions;
-using Chloe.Query.QueryState;
+﻿using Chloe.Query.QueryExpressions;
+using Chloe.Query;
 
 namespace Chloe.Sharding.QueryState
 {

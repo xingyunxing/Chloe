@@ -1,5 +1,4 @@
-﻿using Chloe.Descriptors;
-using Chloe.Reflection;
+﻿using Chloe.Reflection;
 using System.Linq.Expressions;
 
 namespace Chloe.Sharding
@@ -54,8 +53,13 @@ namespace Chloe.Sharding
             queryModel.Skip = this.Skip;
             queryModel.Take = this.Take;
             queryModel.IgnoreAllFilters = this.IgnoreAllFilters;
+
+            queryModel.Conditions.Capacity = this.Conditions.Count;
             queryModel.Conditions.AddRange(this.Conditions);
+
+            queryModel.Orderings.Capacity = this.Orderings.Capacity;
             queryModel.Orderings.AddRange(this.Orderings);
+
             queryModel.Selector = this.Selector;
 
 

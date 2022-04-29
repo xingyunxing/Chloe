@@ -10,7 +10,7 @@ namespace Chloe
 
         static PagingResult()
         {
-            MakeTypePagingResultMethod = typeof(PagingResult).GetMethod(nameof(PagingResult.MakeTypedPagingResult));
+            MakeTypePagingResultMethod = typeof(PagingResult).GetMethod(nameof(PagingResult.MakeTypedPagingResult), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
         }
 
         public long Count { get; set; }
@@ -33,6 +33,8 @@ namespace Chloe
                 return pagingResult;
             }
 
+            pagingResult.DataList.Capacity = this.DataList.Count;
+
             foreach (var item in this.DataList)
             {
                 pagingResult.DataList.Add((T)item);
@@ -44,6 +46,6 @@ namespace Chloe
     public class PagingResult<T>
     {
         public long Count { get; set; }
-        public List<T> DataList { get; set; }
+        public List<T> DataList { get; set; } = new List<T>();
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Chloe.Core.Visitors;
 using Chloe.Reflection;
+using Chloe.Sharding.Visitors;
 using System.Linq.Expressions;
 using System.Threading;
 
@@ -121,7 +122,9 @@ namespace Chloe.Sharding.Queries
 
                         GroupAggregateQueryModel groupAggregateQueryModel = new GroupAggregateQueryModel(this.QueryModel.RootEntityType);
                         groupAggregateQueryModel.Table = table;
-                        groupAggregateQueryModel.Conditions = this.QueryModel.Conditions;
+
+                        groupAggregateQueryModel.Conditions.Capacity = this.QueryModel.Conditions.Count;
+                        groupAggregateQueryModel.Conditions.AddRange(this.QueryModel.Conditions);
                         groupAggregateQueryModel.Selector = dynamicTypeSelector;
                         groupAggregateQueryModel.GroupKeySelectors = groupKeySelectors;
 

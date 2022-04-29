@@ -1,16 +1,9 @@
 ﻿using Chloe.Query.QueryExpressions;
-using Chloe.Utility;
-using System.Linq.Expressions;
 
-namespace Chloe.Query.QueryState
+namespace Chloe.Query
 {
     interface IQueryState
     {
-        MappingData GenerateMappingData();
-
-        QueryModel ToFromQueryModel();
-        JoinQueryResult ToJoinQueryResult(JoinType joinType, LambdaExpression conditionExpression, ScopeParameterDictionary scopeParameters, StringSet scopeTables, Func<string, string> tableAliasGenerator);
-
         IQueryState Accept(WhereExpression exp);
         IQueryState Accept(OrderExpression exp);
         IQueryState Accept(SelectExpression exp);
@@ -23,5 +16,6 @@ namespace Chloe.Query.QueryState
         IQueryState Accept(IgnoreAllFiltersExpression exp);
         IQueryState Accept(TrackingExpression exp);
         IQueryState Accept(PagingExpression exp);
+        IQueryState Accept(JoinQueryExpression exp);
     }
 }

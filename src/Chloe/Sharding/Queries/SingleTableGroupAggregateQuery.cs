@@ -1,6 +1,7 @@
 ﻿using Chloe.Reflection;
 using System.Collections;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading;
 
 namespace Chloe.Sharding.Queries
@@ -75,7 +76,7 @@ namespace Chloe.Sharding.Queries
             IQuery MakeGroupAggregateQuery(IDbContext dbContext)
             {
                 GroupAggregateQueryModel queryModel = this._enumerable.QueryModel;
-                var method = this.GetType().GetMethod(nameof(Enumerator.MakeTypedGroupAggregateQuery)).MakeGenericMethod(queryModel.RootEntityType);
+                var method = this.GetType().GetMethod(nameof(Enumerator.MakeTypedGroupAggregateQuery), BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).MakeGenericMethod(queryModel.RootEntityType);
                 var query = (IQuery)method.FastInvoke(null, dbContext, queryModel);
                 return query;
             }

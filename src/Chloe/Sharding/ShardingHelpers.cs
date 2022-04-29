@@ -149,7 +149,11 @@ namespace Chloe.Sharding
         {
             QueryProjection queryProjection = new QueryProjection(queryModel.RootEntityType);
             queryProjection.IgnoreAllFilters = queryModel.IgnoreAllFilters;
+
+            queryProjection.Conditions.Capacity = queryModel.Conditions.Count;
             queryProjection.Conditions.AddRange(queryModel.Conditions);
+
+            queryProjection.Orderings.Capacity = queryModel.Orderings.Count;
             queryProjection.Orderings.AddRange(queryModel.Orderings);
 
             int? takeCount = null;
@@ -207,7 +211,7 @@ namespace Chloe.Sharding
 
             parameterExp = selector.Parameters[0];
             List<MemberBinding> bindings = new List<MemberBinding>(dynamicTypeProperties.Count);
-            MemberAssignment resultBind = Expression.Bind(dynamicType.Properties[0].Property, parameterExp);
+            MemberAssignment resultBind = Expression.Bind(dynamicType.Properties[0].Property, selector.Body);
             bindings.Add(resultBind);
 
             for (int i = 0; i < queryModel.Orderings.Count; i++)
@@ -259,6 +263,8 @@ namespace Chloe.Sharding
                     DataQueryModel dataQueryModel = new DataQueryModel(queryModel.RootEntityType);
                     dataQueryModel.Table = keyResult.Table;
                     dataQueryModel.IgnoreAllFilters = true;
+
+                    dataQueryModel.Orderings.Capacity = queryModel.Orderings.Count;
                     dataQueryModel.Orderings.AddRange(queryModel.Orderings);
                     dataQueryModel.Conditions.Add(condition);
 
@@ -301,6 +307,8 @@ namespace Chloe.Sharding
                     DataQueryModel dataQueryModel = new DataQueryModel(queryProjection.RootEntityType);
                     dataQueryModel.Table = keyResult.Table;
                     dataQueryModel.IgnoreAllFilters = true;
+
+                    dataQueryModel.Orderings.Capacity = queryProjection.Orderings.Count;
                     dataQueryModel.Orderings.AddRange(queryProjection.Orderings);
                     dataQueryModel.Conditions.Add(condition);
                     dataQueryModel.Selector = queryProjection.Selector;
@@ -332,7 +340,11 @@ namespace Chloe.Sharding
             DataQueryModel dataQueryModel = new DataQueryModel(queryModel.RootEntityType);
             dataQueryModel.Table = table;
             dataQueryModel.IgnoreAllFilters = queryModel.IgnoreAllFilters;
+
+            dataQueryModel.Conditions.Capacity = queryModel.Conditions.Count;
             dataQueryModel.Conditions.AddRange(queryModel.Conditions);
+
+            dataQueryModel.Orderings.Capacity = queryModel.Orderings.Count;
             dataQueryModel.Orderings.AddRange(queryModel.Orderings);
             dataQueryModel.Skip = skip;
             dataQueryModel.Take = take;
@@ -348,11 +360,11 @@ namespace Chloe.Sharding
 
             if (queryModel.Selector == null)
             {
-                method = typeof(ShardingHelpers).GetMethod(nameof(ShardingHelpers.MakeTypedQuery)).MakeGenericMethod(entityType);
+                method = typeof(ShardingHelpers).FindMethod(nameof(ShardingHelpers.MakeTypedQuery)).MakeGenericMethod(entityType);
             }
             else
             {
-                method = typeof(ShardingHelpers).GetMethod(nameof(ShardingHelpers.MakeTypedQueryWithSelector)).MakeGenericMethod(entityType, queryModel.Selector.Body.Type);
+                method = typeof(ShardingHelpers).FindMethod(nameof(ShardingHelpers.MakeTypedQueryWithSelector)).MakeGenericMethod(entityType, queryModel.Selector.Body.Type);
             }
 
             var query = (IQuery)method.Invoke(null, new object[3] { dbContext, queryModel, withSkipAndTake });
