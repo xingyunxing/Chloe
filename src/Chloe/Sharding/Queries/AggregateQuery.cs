@@ -7,7 +7,7 @@ namespace Chloe.Sharding.Queries
     class AggregateQueryPlan<TResult>
     {
         public DataQueryModel QueryModel { get; set; }
-        public SingleTableAggregateQuery<TResult> Query { get; set; }
+        public ShardingTableAggregateQuery<TResult> Query { get; set; }
     }
 
     internal class AggregateQuery<TResult> : FeatureEnumerable<QueryResult<TResult>>
@@ -114,8 +114,8 @@ namespace Chloe.Sharding.Queries
 
                         foreach (AggregateQueryPlan<TResult> aggQueryPlan in group)
                         {
-                            var query = new SingleTableAggregateQuery<TResult>(queryContext, dbContextPool, aggQueryPlan.QueryModel, this._enumerable._executor);
-                            aggQueryPlan.Query = query;
+                            var shardingQuery = new ShardingTableAggregateQuery<TResult>(queryContext, dbContextPool, aggQueryPlan.QueryModel, this._enumerable._executor);
+                            aggQueryPlan.Query = shardingQuery;
                         }
                     }
                 }

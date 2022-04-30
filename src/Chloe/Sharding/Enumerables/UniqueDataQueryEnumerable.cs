@@ -75,8 +75,8 @@ namespace Chloe.Sharding.Enumerables
 
                     foreach (var dataQuery in group)
                     {
-                        SingleTableDataQuery query = new SingleTableDataQuery(queryContext, dbContextPool, dataQuery.QueryModel, lazyQuery);
-                        dataQuery.Query = query;
+                        ShardingTableDataQuery shardingQuery = new ShardingTableDataQuery(queryContext, dbContextPool, dataQuery.QueryModel, lazyQuery);
+                        dataQuery.Query = shardingQuery;
                     }
                 }
 

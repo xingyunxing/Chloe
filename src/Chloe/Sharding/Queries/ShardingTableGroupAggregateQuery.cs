@@ -19,13 +19,13 @@ namespace Chloe.Sharding.Queries
         public LambdaExpression Selector { get; set; }
     }
 
-    internal class SingleTableGroupAggregateQuery : FeatureEnumerable<object>
+    internal class ShardingTableGroupAggregateQuery : FeatureEnumerable<object>
     {
         IShareDbContextPool DbContextPool;
         GroupAggregateQueryModel QueryModel;
         bool LazyQuery;
 
-        public SingleTableGroupAggregateQuery(IShareDbContextPool dbContextPool, GroupAggregateQueryModel queryModel, bool lazyQuery)
+        public ShardingTableGroupAggregateQuery(IShareDbContextPool dbContextPool, GroupAggregateQueryModel queryModel, bool lazyQuery)
         {
             this.DbContextPool = dbContextPool;
             this.QueryModel = queryModel;
@@ -39,10 +39,10 @@ namespace Chloe.Sharding.Queries
 
         class Enumerator : QueryEnumerator<object>
         {
-            SingleTableGroupAggregateQuery _enumerable;
+            ShardingTableGroupAggregateQuery _enumerable;
             CancellationToken _cancellationToken;
 
-            public Enumerator(SingleTableGroupAggregateQuery enumerable, CancellationToken cancellationToken = default) : base(enumerable.DbContextPool)
+            public Enumerator(ShardingTableGroupAggregateQuery enumerable, CancellationToken cancellationToken = default) : base(enumerable.DbContextPool)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;
