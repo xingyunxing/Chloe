@@ -116,7 +116,7 @@ namespace Chloe.Sharding
 
         protected sealed override async Task<(IFeatureEnumerable<TResult> Query, bool IsLazyQuery)> CreateQuery(IDbContext dbContext, bool @async)
         {
-            var q = ShardingHelpers.MakeQuery(dbContext, this._queryModel, true);
+            var q = ShardingHelpers.MakeQuery(dbContext, this._queryModel);
             var result = await this.CreateQuery(q, @async);
 
             return result;

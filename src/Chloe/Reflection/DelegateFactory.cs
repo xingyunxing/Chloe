@@ -1,5 +1,5 @@
-﻿using System.Reflection;
-using Chloe.Reflection.Emit;
+﻿using Chloe.Reflection.Emit;
+using System.Reflection;
 
 namespace Chloe.Reflection
 {

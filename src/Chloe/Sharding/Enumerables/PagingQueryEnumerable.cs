@@ -1,7 +1,7 @@
 ﻿using Chloe.Sharding.Queries;
 using System.Threading;
 
-namespace Chloe.Sharding
+namespace Chloe.Sharding.Enumerables
 {
     class PagingQueryEnumerable : FeatureEnumerable<PagingResult>
     {
@@ -44,7 +44,7 @@ namespace Chloe.Sharding
                 }
                 else
                 {
-                    OrdinaryQuery ordinaryQuery = new OrdinaryQuery(queryPlan);
+                    OrdinaryQueryEnumerable ordinaryQuery = new OrdinaryQueryEnumerable(queryPlan);
                     dataList = await ordinaryQuery.ToListAsync(this._cancellationToken);
                 }
 

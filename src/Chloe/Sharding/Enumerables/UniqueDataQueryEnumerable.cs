@@ -1,12 +1,13 @@
-﻿using System.Threading;
+﻿using Chloe.Sharding.Queries;
+using System.Threading;
 
-namespace Chloe.Sharding.Queries
+namespace Chloe.Sharding.Enumerables
 {
-    internal class UniqueDataQuery : FeatureEnumerable<object>
+    internal class UniqueDataQueryEnumerable : FeatureEnumerable<object>
     {
         ShardingQueryPlan _queryPlan;
 
-        public UniqueDataQuery(ShardingQueryPlan queryPlan)
+        public UniqueDataQueryEnumerable(ShardingQueryPlan queryPlan)
         {
             this._queryPlan = queryPlan;
         }
@@ -18,10 +19,10 @@ namespace Chloe.Sharding.Queries
 
         class Enumerator : QueryFeatureEnumerator<object>
         {
-            UniqueDataQuery _enumerable;
+            UniqueDataQueryEnumerable _enumerable;
             CancellationToken _cancellationToken;
 
-            public Enumerator(UniqueDataQuery enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryPlan)
+            public Enumerator(UniqueDataQueryEnumerable enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryPlan)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;
@@ -74,7 +75,7 @@ namespace Chloe.Sharding.Queries
 
                     foreach (var dataQuery in group)
                     {
-                        SingleTableEntityQuery query = new SingleTableEntityQuery(queryContext, dbContextPool, dataQuery.QueryModel, lazyQuery);
+                        SingleTableDataQuery query = new SingleTableDataQuery(queryContext, dbContextPool, dataQuery.QueryModel, lazyQuery);
                         dataQuery.Query = query;
                     }
                 }

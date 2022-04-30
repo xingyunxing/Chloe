@@ -1,5 +1,5 @@
-﻿using Chloe.Query.QueryExpressions;
-using Chloe.Query;
+﻿using Chloe.Query;
+using Chloe.Query.QueryExpressions;
 
 namespace Chloe.Sharding.QueryState
 {
@@ -84,7 +84,7 @@ namespace Chloe.Sharding.QueryState
                 throw new NotSupportedException($"{nameof(IGroupingQuery<object>.OrderBy)} or {nameof(IGroupingQuery<object>.OrderByDesc)}");
             }
 
-            this.QueryModel.GroupKeySelectors.AddRange(exp.GroupKeySelectors);
+            this.QueryModel.GroupKeySelectors.AppendRange(exp.GroupKeySelectors);
             this.QueryModel.Selector = exp.Selector;
 
             return new ShardingGroupQueryState(this);

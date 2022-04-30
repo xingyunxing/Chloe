@@ -1,5 +1,6 @@
 ﻿using Chloe.Core.Visitors;
 using Chloe.Extensions;
+using Chloe.Sharding.Visitors;
 using Chloe.Threading.Tasks;
 using Chloe.Utility;
 using System.Data;

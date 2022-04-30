@@ -2,6 +2,11 @@
 {
     internal class ShardingQueryPlan
     {
+        public ShardingQueryPlan()
+        {
+
+        }
+
         public ShardingQueryModel QueryModel { get; set; }
 
         public List<IPhysicTable> Tables { get; set; } = new List<IPhysicTable>();

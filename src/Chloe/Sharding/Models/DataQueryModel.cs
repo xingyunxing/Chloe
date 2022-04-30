@@ -55,10 +55,10 @@ namespace Chloe.Sharding
             queryModel.IgnoreAllFilters = this.IgnoreAllFilters;
 
             queryModel.Conditions.Capacity = this.Conditions.Count;
-            queryModel.Conditions.AddRange(this.Conditions);
+            queryModel.Conditions.AppendRange(this.Conditions);
 
             queryModel.Orderings.Capacity = this.Orderings.Capacity;
-            queryModel.Orderings.AddRange(this.Orderings);
+            queryModel.Orderings.AppendRange(this.Orderings);
 
             queryModel.Selector = this.Selector;
 

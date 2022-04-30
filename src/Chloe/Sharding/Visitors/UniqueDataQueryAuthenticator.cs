@@ -2,7 +2,7 @@
 using Chloe.Extensions;
 using System.Linq.Expressions;
 
-namespace Chloe.Sharding
+namespace Chloe.Sharding.Visitors
 {
     internal class UniqueDataQueryAuthenticator : ExpressionVisitor<bool>
     {

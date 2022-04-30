@@ -1,6 +1,7 @@
 ﻿using Chloe.Query;
 using Chloe.Query.QueryExpressions;
-using Chloe.Sharding.Queries;
+using Chloe.Sharding.Enumerables;
+using Chloe.Sharding.Visitors;
 
 namespace Chloe.Sharding.QueryState
 {
@@ -98,7 +99,7 @@ namespace Chloe.Sharding.QueryState
                 return new PagingResultDataListEnumerable(pagingQueryEnumerable);
             }
 
-            OrdinaryQuery ordinaryQuery = new OrdinaryQuery(queryPlan);
+            OrdinaryQueryEnumerable ordinaryQuery = new OrdinaryQueryEnumerable(queryPlan);
             return ordinaryQuery;
         }
 
@@ -113,15 +114,15 @@ namespace Chloe.Sharding.QueryState
 
                 if (isUniqueDataQuery)
                 {
-                    UniqueDataQuery query = new UniqueDataQuery(queryPlan);
+                    UniqueDataQueryEnumerable query = new UniqueDataQueryEnumerable(queryPlan);
                     return query;
                 }
             }
 
-            return new NonPagingQuery(queryPlan);
+            return new NonPagingQueryEnumerable(queryPlan);
         }
 
-        protected ShardingQueryPlan CreateQueryPlan()
+        public ShardingQueryPlan CreateQueryPlan()
         {
             IShardingContext shardingContext = this.Context.DbContext.CreateShardingContext(this.QueryModel.RootEntityType);
             List<RouteTable> routeTables = ShardingTableDiscoverer.GetRouteTables(this.QueryModel.GetFinalConditions(), shardingContext).ToList();
@@ -142,7 +143,7 @@ namespace Chloe.Sharding.QueryState
             queryPlan.ShardingContext = shardingContext;
             queryPlan.QueryModel = this.QueryModel;
             queryPlan.IsOrderedTables = sortResult.IsOrdered;
-            queryPlan.Tables.AddRange(sortResult.Tables.Select(a => new PhysicTable(a)));
+            queryPlan.Tables.AppendRange(sortResult.Tables.Select(a => new PhysicTable(a)));
 
             return queryPlan;
         }

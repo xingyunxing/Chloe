@@ -68,32 +68,15 @@ namespace Chloe
 
         public static List<T> Clone<T>(List<T> source, int? capacity = null)
         {
-            List<T> ret = new List<T>(capacity ?? source.Count);
-            ret.AddRange(source);
-            return ret;
+            return source.Clone(capacity);
         }
         public static List<T> CloneAndAppendOne<T>(List<T> source, T t)
         {
-            List<T> ret = new List<T>(source.Count + 1);
-            ret.AddRange(source);
-            ret.Add(t);
-            return ret;
+            return source.CloneAndAppendOne(t);
         }
         public static Dictionary<TKey, TValue> Clone<TKey, TValue>(Dictionary<TKey, TValue> source)
         {
-            Dictionary<TKey, TValue> ret = Clone<TKey, TValue>(source, source.Count);
-            return ret;
-        }
-        public static Dictionary<TKey, TValue> Clone<TKey, TValue>(Dictionary<TKey, TValue> source, int capacity)
-        {
-            Dictionary<TKey, TValue> ret = new Dictionary<TKey, TValue>(capacity);
-
-            foreach (var kv in source)
-            {
-                ret.Add(kv.Key, kv.Value);
-            }
-
-            return ret;
+            return source.Clone();
         }
 
         public static void EnsureHasPrimaryKey(TypeDescriptor typeDescriptor)

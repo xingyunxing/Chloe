@@ -1,8 +1,7 @@
 ﻿namespace Chloe.Sharding.Queries
 {
-    class KeyQueryResult
+    class KeyQueryResult : QueryResult<List<object>>
     {
-        public IPhysicTable Table { get; set; }
-        public List<object> Keys { get; set; } = new List<object>();
+        public List<object> Keys => this.Result;
     }
 }

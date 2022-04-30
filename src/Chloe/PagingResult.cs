@@ -1,6 +1,6 @@
-﻿using System.Collections;
+﻿using Chloe.Reflection;
+using System.Collections;
 using System.Reflection;
-using Chloe.Reflection;
 
 namespace Chloe
 {

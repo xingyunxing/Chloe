@@ -1,4 +1,4 @@
-﻿using Chloe.Sharding.Queries;
+﻿using Chloe.Sharding.Enumerables;
 
 namespace Chloe.Sharding.QueryState
 {
@@ -11,8 +11,8 @@ namespace Chloe.Sharding.QueryState
 
         public override IFeatureEnumerable<object> CreateQuery()
         {
-            GroupAggregateQuery groupAggregateQuery = new GroupAggregateQuery(this.CreateQueryPlan());
-            return groupAggregateQuery;
+            var groupAggregateQueryEnumerable = new GroupAggregateQueryEnumerable(this.CreateQueryPlan());
+            return groupAggregateQueryEnumerable;
         }
     }
 }

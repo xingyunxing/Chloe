@@ -9,7 +9,7 @@ namespace Chloe.Sharding.Queries
     {
         public DataQueryModel QueryModel { get; set; }
 
-        public DynamicModelQuery Query { get; set; }
+        public SingleTableDataQuery Query { get; set; }
 
         public List<object> Keys { get; set; } = new List<object>();
     }
@@ -50,25 +50,25 @@ namespace Chloe.Sharding.Queries
 
             protected override async Task<IFeatureEnumerator<KeyQueryResult>> CreateEnumerator(bool @async)
             {
-                ParallelQueryContext queryContext = new ParallelQueryContext();
-
                 DynamicType dynamicType = this.GetDynamicType();
+                List<DynamicDataQueryPlan> dataQueryPlans;
+                ParallelQueryContext queryContext = new ParallelQueryContext();
                 try
                 {
-                    List<DynamicDataQueryPlan> dataQueryPlans = this.MakeDynamicDataQueryPlans(queryContext, dynamicType);
+                    dataQueryPlans = this.MakeDynamicDataQueryPlans(queryContext, dynamicType);
                     List<OrderProperty> orders = this.MakeOrderings(dynamicType);
-
                     await this.ExecuteQuery(queryContext, dataQueryPlans, dynamicType, orders);
-
-                    var tableKeyResult = dataQueryPlans.Select(a => new KeyQueryResult() { Table = a.QueryModel.Table, Keys = a.Keys });
-
-                    return new FeatureEnumeratorAdapter<KeyQueryResult>(tableKeyResult.GetEnumerator());
                 }
                 catch
                 {
                     queryContext.Dispose();
                     throw;
                 }
+
+                var tableKeyResult = dataQueryPlans.Select(a => new KeyQueryResult() { Table = a.QueryModel.Table, Result = a.Keys });
+
+                return new FeatureEnumeratorAdapter<KeyQueryResult>(tableKeyResult.GetEnumerator());
+
             }
 
             DynamicType GetDynamicType()
@@ -77,7 +77,7 @@ namespace Chloe.Sharding.Queries
 
                 dynamicTypeProperties.Add(this.ShardingContext.TypeDescriptor.PrimaryKeys.First().PropertyType);
                 dynamicTypeProperties.Add(typeof(int));
-                dynamicTypeProperties.AddRange(this.QueryModel.Orderings.Select(a => a.KeySelector.Body.Type));
+                dynamicTypeProperties.AppendRange(this.QueryModel.Orderings.Select(a => a.KeySelector.Body.Type));
 
                 //new Dynamic() { Id,Ordinal,Order1,Order2... }
                 DynamicType dynamicType = DynamicTypeContainer.Get(dynamicTypeProperties);
@@ -111,7 +111,7 @@ namespace Chloe.Sharding.Queries
 
                     foreach (var dataQuery in group)
                     {
-                        DynamicModelQuery query = new DynamicModelQuery(dbContextPool, dataQuery.QueryModel, lazyQuery);
+                        SingleTableDataQuery query = new SingleTableDataQuery(queryContext, dbContextPool, dataQuery.QueryModel, lazyQuery);
                         dataQuery.Query = query;
                     }
                 }

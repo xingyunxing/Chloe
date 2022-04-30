@@ -65,7 +65,7 @@ namespace Chloe.Query
             DbSqlQueryExpression sqlQuery = new DbSqlQueryExpression();
 
             sqlQuery.Table = this.FromTable;
-            sqlQuery.Orderings.AddRange(this.Orderings);
+            sqlQuery.Orderings.AppendRange(this.Orderings);
             sqlQuery.Condition = this.Condition;
 
             if (!this.IgnoreFilters)
@@ -73,7 +73,7 @@ namespace Chloe.Query
                 sqlQuery.Condition = this.ContextFilters.And().And(sqlQuery.Condition).And(this.GlobalFilters);
             }
 
-            sqlQuery.GroupSegments.AddRange(this.GroupSegments);
+            sqlQuery.GroupSegments.AppendRange(this.GroupSegments);
             sqlQuery.HavingCondition = this.HavingCondition;
 
             return sqlQuery;
@@ -85,12 +85,12 @@ namespace Chloe.Query
 
             newQueryModel.IsTracking = this.IsTracking;
             newQueryModel.ResultModel = this.ResultModel;
-            newQueryModel.Orderings.AddRange(this.Orderings);
+            newQueryModel.Orderings.AppendRange(this.Orderings);
             newQueryModel.Condition = this.Condition;
 
-            newQueryModel.GlobalFilters.AddRange(this.GlobalFilters);
-            newQueryModel.ContextFilters.AddRange(this.ContextFilters);
-            newQueryModel.GroupSegments.AddRange(this.GroupSegments);
+            newQueryModel.GlobalFilters.AppendRange(this.GlobalFilters);
+            newQueryModel.ContextFilters.AppendRange(this.ContextFilters);
+            newQueryModel.GroupSegments.AppendRange(this.GroupSegments);
             newQueryModel.AppendHavingCondition(this.HavingCondition);
 
             return newQueryModel;

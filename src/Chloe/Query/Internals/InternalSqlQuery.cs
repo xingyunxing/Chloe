@@ -137,8 +137,8 @@ namespace Chloe.Query.Internals
             MemberInfo[] properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.SetProperty);
             MemberInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.SetField);
             List<MemberInfo> members = new List<MemberInfo>(properties.Length + fields.Length);
-            members.AddRange(properties);
-            members.AddRange(fields);
+            members.AppendRange(properties);
+            members.AppendRange(fields);
 
             TypeDescriptor typeDescriptor = EntityTypeContainer.TryGetDescriptor(type);
 

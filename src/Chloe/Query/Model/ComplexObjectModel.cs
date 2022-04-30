@@ -300,7 +300,7 @@ namespace Chloe.Query
         {
             ComplexObjectModel newModel = new ComplexObjectModel(this.ConstructorDescriptor);
             newModel.DependentTable = dependentTable;
-            newModel.IncludeCollections.AddRange(this.IncludeCollections);
+            newModel.IncludeCollections.AppendRange(this.IncludeCollections);
 
             if (!ignoreFilters)
             {

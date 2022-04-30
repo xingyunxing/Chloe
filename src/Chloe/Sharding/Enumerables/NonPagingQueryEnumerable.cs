@@ -1,15 +1,16 @@
-﻿using System.Threading;
+﻿using Chloe.Sharding.Queries;
+using System.Threading;
 
-namespace Chloe.Sharding.Queries
+namespace Chloe.Sharding.Enumerables
 {
     /// <summary>
     /// 非分页查询
     /// </summary>
-    internal class NonPagingQuery : FeatureEnumerable<object>
+    internal class NonPagingQueryEnumerable : FeatureEnumerable<object>
     {
         ShardingQueryPlan _queryPlan;
 
-        public NonPagingQuery(ShardingQueryPlan queryPlan)
+        public NonPagingQueryEnumerable(ShardingQueryPlan queryPlan)
         {
             this._queryPlan = queryPlan;
         }
@@ -21,10 +22,10 @@ namespace Chloe.Sharding.Queries
 
         class Enumerator : QueryFeatureEnumerator<object>
         {
-            NonPagingQuery _enumerable;
+            NonPagingQueryEnumerable _enumerable;
             CancellationToken _cancellationToken;
 
-            public Enumerator(NonPagingQuery enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryPlan)
+            public Enumerator(NonPagingQueryEnumerable enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryPlan)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;
@@ -83,7 +84,7 @@ namespace Chloe.Sharding.Queries
 
                     foreach (var dataQueryPlan in group)
                     {
-                        SingleTableEntityQuery query = new SingleTableEntityQuery(queryContext, dbContextPool, dataQueryPlan.QueryModel, lazyQuery);
+                        SingleTableDataQuery query = new SingleTableDataQuery(queryContext, dbContextPool, dataQueryPlan.QueryModel, lazyQuery);
                         dataQueryPlan.Query = query;
                     }
                 }

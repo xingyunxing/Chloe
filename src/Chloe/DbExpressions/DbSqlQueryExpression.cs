@@ -10,8 +10,7 @@
         /// 
         /// </summary>
         /// <param name="type">作为子句时，有时候可以指定返回的 Type，如 select A = (select id from users)，(select id from users) 就可以表示拥有一个返回的类型 Int</param>
-        public DbSqlQueryExpression(Type type)
-           : base(DbExpressionType.SqlQuery, type)
+        public DbSqlQueryExpression(Type type) : base(DbExpressionType.SqlQuery, type)
         {
             this.ColumnSegments = new List<DbColumnSegment>();
             this.GroupSegments = new List<DbExpression>();
@@ -44,9 +43,9 @@
                 IsDistinct = this.IsDistinct
             };
 
-            sqlQuery.ColumnSegments.AddRange(this.ColumnSegments);
-            sqlQuery.GroupSegments.AddRange(this.GroupSegments);
-            sqlQuery.Orderings.AddRange(this.Orderings);
+            sqlQuery.ColumnSegments.AppendRange(this.ColumnSegments);
+            sqlQuery.GroupSegments.AppendRange(this.GroupSegments);
+            sqlQuery.Orderings.AppendRange(this.Orderings);
 
             return sqlQuery;
         }

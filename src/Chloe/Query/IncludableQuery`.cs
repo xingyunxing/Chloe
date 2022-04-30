@@ -77,7 +77,7 @@ namespace Chloe.Query
 
             List<LambdaExpression> filters = dbContext.QueryFilters.FindValue(elementType);
             if (filters != null)
-                navigation.ContextFilters.AddRange(filters);
+                navigation.ContextFilters.AppendRange(filters);
 
             return navigation;
         }

@@ -4,8 +4,7 @@ namespace Chloe.DbExpressions
 {
     public class DbNotEqualExpression : DbBinaryExpression
     {
-        public DbNotEqualExpression(DbExpression left, DbExpression right)
-            : this(left, right, null)
+        public DbNotEqualExpression(DbExpression left, DbExpression right) : this(left, right, null)
         {
 
         }

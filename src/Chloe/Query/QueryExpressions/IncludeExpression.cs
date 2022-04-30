@@ -34,7 +34,7 @@ namespace Chloe.Query.QueryExpressions
         public NavigationNode Clone()
         {
             NavigationNode current = new NavigationNode(this.Property) { Condition = this.Condition };
-            current.ContextFilters.AddRange(this.ContextFilters);
+            current.ContextFilters.AppendRange(this.ContextFilters);
             if (this.Next != null)
             {
                 current.Next = this.Next.Clone();

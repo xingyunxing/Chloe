@@ -2,17 +2,24 @@
 
 namespace Chloe.Sharding.Queries
 {
+    class TableDataQueryPlan
+    {
+        public DataQueryModel QueryModel { get; set; }
+
+        public SingleTableDataQuery Query { get; set; }
+    }
+
     /// <summary>
     /// 单表数据查询
     /// </summary>
-    class SingleTableEntityQuery : FeatureEnumerable<object>
+    class SingleTableDataQuery : FeatureEnumerable<object>
     {
         IParallelQueryContext QueryContext;
         IShareDbContextPool DbContextPool;
         DataQueryModel QueryModel;
         bool LazyQuery;
 
-        public SingleTableEntityQuery(IParallelQueryContext queryContext, IShareDbContextPool dbContextPool, DataQueryModel queryModel, bool lazyQuery)
+        public SingleTableDataQuery(IParallelQueryContext queryContext, IShareDbContextPool dbContextPool, DataQueryModel queryModel, bool lazyQuery)
         {
             this.QueryContext = queryContext;
             this.DbContextPool = dbContextPool;
@@ -27,9 +34,9 @@ namespace Chloe.Sharding.Queries
 
         class Enumerator : TableQueryEnumerator<object>
         {
-            SingleTableEntityQuery _enumerable;
+            SingleTableDataQuery _enumerable;
 
-            public Enumerator(SingleTableEntityQuery enumerable, CancellationToken cancellationToken) : base(enumerable.DbContextPool, enumerable.QueryModel, cancellationToken)
+            public Enumerator(SingleTableDataQuery enumerable, CancellationToken cancellationToken) : base(enumerable.DbContextPool, enumerable.QueryModel, cancellationToken)
             {
                 this._enumerable = enumerable;
             }

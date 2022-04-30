@@ -90,7 +90,7 @@ namespace Chloe.Query.QueryState
             {
                 ScopeParameterDictionary scopeParameters = this._queryModel.ScopeParameters.Clone(keySelector.Parameters[0], this._queryModel.ResultModel);
 
-                this._queryModel.GroupSegments.AddRange(GroupKeySelectorParser.Parse(keySelector, scopeParameters, this._queryModel.ScopeTables));
+                this._queryModel.GroupSegments.AppendRange(GroupKeySelectorParser.Parse(keySelector, scopeParameters, this._queryModel.ScopeTables));
             }
 
             foreach (LambdaExpression havingPredicate in exp.HavingPredicates)

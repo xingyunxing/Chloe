@@ -4,12 +4,14 @@ namespace Chloe.Sharding.Queries
 {
     class SingleTableAggregateQuery<TResult> : FeatureEnumerable<TResult>
     {
+        IParallelQueryContext _queryContext;
         IShareDbContextPool _dbContextPool;
         DataQueryModel _queryModel;
         Func<IQuery, bool, Task<TResult>> _executor;
 
-        public SingleTableAggregateQuery(IShareDbContextPool dbContextPool, DataQueryModel queryModel, Func<IQuery, bool, Task<TResult>> executor)
+        public SingleTableAggregateQuery(IParallelQueryContext queryContext, IShareDbContextPool dbContextPool, DataQueryModel queryModel, Func<IQuery, bool, Task<TResult>> executor)
         {
+            this._queryContext = queryContext;
             this._dbContextPool = dbContextPool;
             this._queryModel = queryModel;
             this._executor = executor;
@@ -31,7 +33,15 @@ namespace Chloe.Sharding.Queries
 
             protected override async Task<(IFeatureEnumerable<TResult> Query, bool IsLazyQuery)> CreateQuery(IQuery query, bool async)
             {
+                var queryContext = this._enumerable._queryContext;
+                bool canceled = queryContext.BeforeExecuteCommand();
+                if (canceled)
+                {
+                    return (NullFeatureEnumerable<TResult>.Instance, false);
+                }
+
                 var result = await this._enumerable._executor(query, @async);
+                queryContext.AfterExecuteCommand(result);
 
                 var featureEnumerable = new ScalarFeatureEnumerable<TResult>(result);
 

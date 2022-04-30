@@ -30,8 +30,8 @@ namespace Chloe.Query.QueryState
             newQueryModel.Condition = this.QueryModel.Condition;
             if (!this.QueryModel.IgnoreFilters)
             {
-                newQueryModel.GlobalFilters.AddRange(this.QueryModel.GlobalFilters);
-                newQueryModel.ContextFilters.AddRange(this.QueryModel.ContextFilters);
+                newQueryModel.GlobalFilters.AppendRange(this.QueryModel.GlobalFilters);
+                newQueryModel.ContextFilters.AppendRange(this.QueryModel.ContextFilters);
             }
 
             return newQueryModel;

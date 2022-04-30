@@ -15,12 +15,21 @@ namespace Chloe.Sharding.Queries
         ShardingQueryPlan _queryPlan;
         List<IPhysicTable> _tables;
         Func<IQuery, bool, Task<TResult>> _executor;
+        Func<ParallelQueryContext> _parallelQueryContextFactory;
 
-        public AggregateQuery(ShardingQueryPlan queryPlan, Func<IQuery, bool, Task<TResult>> executor)
+        public AggregateQuery(ShardingQueryPlan queryPlan, Func<IQuery, bool, Task<TResult>> executor) : this(queryPlan, executor, ParallelQueryContext.ParallelQueryContextFactory)
         {
             this._queryPlan = queryPlan;
             this._tables = queryPlan.Tables;
             this._executor = executor;
+        }
+
+        public AggregateQuery(ShardingQueryPlan queryPlan, Func<IQuery, bool, Task<TResult>> executor, Func<ParallelQueryContext> parallelQueryContextFactory)
+        {
+            this._queryPlan = queryPlan;
+            this._tables = queryPlan.Tables;
+            this._executor = executor;
+            this._parallelQueryContextFactory = parallelQueryContextFactory;
         }
 
         public override IFeatureEnumerator<QueryResult<TResult>> GetFeatureEnumerator(CancellationToken cancellationToken = default)
@@ -85,28 +94,35 @@ namespace Chloe.Sharding.Queries
                     dataQueryModel.Table = table;
                     dataQueryModel.IgnoreAllFilters = queryPlan.QueryModel.IgnoreAllFilters;
 
-                    dataQueryModel.Conditions.Capacity = queryPlan.QueryModel.Conditions.Count;
-                    dataQueryModel.Conditions.AddRange(queryPlan.QueryModel.Conditions);
+                    dataQueryModel.Conditions.AppendRange(queryPlan.QueryModel.Conditions);
 
                     aggQueryPlan.QueryModel = dataQueryModel;
 
                     aggQueryPlans.Add(aggQueryPlan);
                 }
 
-                ParallelQueryContext queryContext = new ParallelQueryContext();
+                ParallelQueryContext queryContext = this._enumerable._parallelQueryContextFactory();
 
-                foreach (var group in aggQueryPlans.GroupBy(a => a.QueryModel.Table.DataSource.Name))
+                try
                 {
-                    int count = group.Count();
-
-                    ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(this._enumerable._queryPlan.ShardingContext, group.First().QueryModel.Table.DataSource, count);
-                    queryContext.AddManagedResource(dbContextPool);
-
-                    foreach (AggregateQueryPlan<TResult> aggQueryPlan in group)
+                    foreach (var group in aggQueryPlans.GroupBy(a => a.QueryModel.Table.DataSource.Name))
                     {
-                        var query = new SingleTableAggregateQuery<TResult>(dbContextPool, aggQueryPlan.QueryModel, this._enumerable._executor);
-                        aggQueryPlan.Query = query;
+                        int count = group.Count();
+
+                        ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(this._enumerable._queryPlan.ShardingContext, group.First().QueryModel.Table.DataSource, count);
+                        queryContext.AddManagedResource(dbContextPool);
+
+                        foreach (AggregateQueryPlan<TResult> aggQueryPlan in group)
+                        {
+                            var query = new SingleTableAggregateQuery<TResult>(queryContext, dbContextPool, aggQueryPlan.QueryModel, this._enumerable._executor);
+                            aggQueryPlan.Query = query;
+                        }
                     }
+                }
+                catch
+                {
+                    queryContext.Dispose();
+                    throw;
                 }
 
                 ParallelConcatEnumerable<TResult> aggQueryEnumerable = new ParallelConcatEnumerable<TResult>(queryContext, aggQueryPlans.Select(a => a.Query));

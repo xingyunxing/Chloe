@@ -176,7 +176,7 @@
                 ret.InsertColumns.Add(kv.Key, this.MakeNewExpression(kv.Value));
             }
 
-            ret.Returns.AddRange(exp.Returns);
+            ret.Returns.AppendRange(exp.Returns);
 
             return ret;
         }
@@ -189,7 +189,7 @@
                 ret.UpdateColumns.Add(kv.Key, this.MakeNewExpression(kv.Value));
             }
 
-            ret.Returns.AddRange(exp.Returns);
+            ret.Returns.AppendRange(exp.Returns);
 
             return ret;
         }

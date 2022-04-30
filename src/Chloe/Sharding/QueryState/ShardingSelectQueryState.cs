@@ -1,6 +1,6 @@
 ﻿
-using Chloe.Query.QueryExpressions;
 using Chloe.Query;
+using Chloe.Query.QueryExpressions;
 
 namespace Chloe.Sharding.QueryState
 {

@@ -1,16 +1,17 @@
 ﻿using Chloe.Descriptors;
+using Chloe.Sharding.Queries;
 using System.Threading;
 
-namespace Chloe.Sharding.Queries
+namespace Chloe.Sharding.Enumerables
 {
     /// <summary>
     /// 普通查询
     /// </summary>
-    internal class OrdinaryQuery : FeatureEnumerable<object>
+    internal class OrdinaryQueryEnumerable : FeatureEnumerable<object>
     {
         ShardingQueryPlan _queryPlan;
 
-        public OrdinaryQuery(ShardingQueryPlan queryPlan)
+        public OrdinaryQueryEnumerable(ShardingQueryPlan queryPlan)
         {
             this._queryPlan = queryPlan;
         }
@@ -22,10 +23,10 @@ namespace Chloe.Sharding.Queries
 
         class Enumerator : QueryFeatureEnumerator<object>
         {
-            OrdinaryQuery _enumerable;
+            OrdinaryQueryEnumerable _enumerable;
             CancellationToken _cancellationToken;
 
-            public Enumerator(OrdinaryQuery enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryPlan)
+            public Enumerator(OrdinaryQueryEnumerable enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryPlan)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;
@@ -87,7 +88,7 @@ namespace Chloe.Sharding.Queries
 
                     foreach (var dataQueryPlan in group)
                     {
-                        SingleTableEntityQuery query = new SingleTableEntityQuery(queryContext, dbContextPool, dataQueryPlan.QueryModel, lazyQuery);
+                        SingleTableDataQuery query = new SingleTableDataQuery(queryContext, dbContextPool, dataQueryPlan.QueryModel, lazyQuery);
                         dataQueryPlan.Query = query;
                     }
                 }

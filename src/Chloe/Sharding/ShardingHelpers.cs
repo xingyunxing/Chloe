@@ -151,10 +151,10 @@ namespace Chloe.Sharding
             queryProjection.IgnoreAllFilters = queryModel.IgnoreAllFilters;
 
             queryProjection.Conditions.Capacity = queryModel.Conditions.Count;
-            queryProjection.Conditions.AddRange(queryModel.Conditions);
+            queryProjection.Conditions.AppendRange(queryModel.Conditions);
 
             queryProjection.Orderings.Capacity = queryModel.Orderings.Count;
-            queryProjection.Orderings.AddRange(queryModel.Orderings);
+            queryProjection.Orderings.AppendRange(queryModel.Orderings);
 
             int? takeCount = null;
 
@@ -233,50 +233,6 @@ namespace Chloe.Sharding
             return queryProjection;
         }
 
-        public static List<TableDataQueryPlan> MakeEntityQueryPlans(ShardingQueryModel queryModel, List<KeyQueryResult> keyResults, TypeDescriptor typeDescriptor, int maxInItems)
-        {
-            List<TableDataQueryPlan> queryPlans = new List<TableDataQueryPlan>();
-
-            var listConstructor = typeof(List<>).MakeGenericType(typeDescriptor.PrimaryKeys.First().PropertyType).GetConstructor(new Type[] { typeof(int) });
-            InstanceCreator listCreator = InstanceCreatorContainer.Get(listConstructor);
-
-            ParameterExpression parameter = Expression.Parameter(queryModel.RootEntityType, "a");
-            Expression keyMemberAccess = Expression.MakeMemberAccess(parameter, typeDescriptor.PrimaryKeys.First().Definition.Property);
-
-            foreach (var keyResult in keyResults.Where(a => a.Keys.Count > 0))
-            {
-                List<List<object>> batches = Slice(keyResult.Keys, maxInItems);
-
-                foreach (var batch in batches)
-                {
-                    IList keyList = (IList)listCreator(batch.Count);
-                    foreach (var inItem in batch)
-                    {
-                        keyList.Add(inItem);
-                    }
-
-                    Expression containsCall = Expression.Call(Expression.Constant(keyList), keyList.GetType().GetMethod(nameof(List<int>.Contains)), keyMemberAccess);
-                    Expression conditionBody = containsCall;
-
-                    LambdaExpression condition = LambdaExpression.Lambda(typeof(Func<,>).MakeGenericType(queryModel.RootEntityType, typeof(bool)), conditionBody, parameter);
-
-                    DataQueryModel dataQueryModel = new DataQueryModel(queryModel.RootEntityType);
-                    dataQueryModel.Table = keyResult.Table;
-                    dataQueryModel.IgnoreAllFilters = true;
-
-                    dataQueryModel.Orderings.Capacity = queryModel.Orderings.Count;
-                    dataQueryModel.Orderings.AddRange(queryModel.Orderings);
-                    dataQueryModel.Conditions.Add(condition);
-
-                    TableDataQueryPlan queryPlan = new TableDataQueryPlan();
-                    queryPlan.QueryModel = dataQueryModel;
-
-                    queryPlans.Add(queryPlan);
-                }
-            }
-
-            return queryPlans;
-        }
         public static List<TableDataQueryPlan> MakeEntityQueryPlans(QueryProjection queryProjection, List<KeyQueryResult> keyResults, TypeDescriptor typeDescriptor, int maxInItems)
         {
             List<TableDataQueryPlan> queryPlans = new List<TableDataQueryPlan>();
@@ -309,7 +265,7 @@ namespace Chloe.Sharding
                     dataQueryModel.IgnoreAllFilters = true;
 
                     dataQueryModel.Orderings.Capacity = queryProjection.Orderings.Count;
-                    dataQueryModel.Orderings.AddRange(queryProjection.Orderings);
+                    dataQueryModel.Orderings.AppendRange(queryProjection.Orderings);
                     dataQueryModel.Conditions.Add(condition);
                     dataQueryModel.Selector = queryProjection.Selector;
 
@@ -341,11 +297,8 @@ namespace Chloe.Sharding
             dataQueryModel.Table = table;
             dataQueryModel.IgnoreAllFilters = queryModel.IgnoreAllFilters;
 
-            dataQueryModel.Conditions.Capacity = queryModel.Conditions.Count;
-            dataQueryModel.Conditions.AddRange(queryModel.Conditions);
-
-            dataQueryModel.Orderings.Capacity = queryModel.Orderings.Count;
-            dataQueryModel.Orderings.AddRange(queryModel.Orderings);
+            dataQueryModel.Conditions.AppendRange(queryModel.Conditions);
+            dataQueryModel.Orderings.AppendRange(queryModel.Orderings);
             dataQueryModel.Skip = skip;
             dataQueryModel.Take = take;
             dataQueryModel.Selector = queryModel.Selector;
@@ -353,7 +306,7 @@ namespace Chloe.Sharding
             return dataQueryModel;
         }
 
-        public static IQuery MakeQuery(IDbContext dbContext, DataQueryModel queryModel, bool withSkipAndTake)
+        public static IQuery MakeQuery(IDbContext dbContext, DataQueryModel queryModel)
         {
             Type entityType = queryModel.RootEntityType;
             MethodInfo method;
@@ -367,10 +320,14 @@ namespace Chloe.Sharding
                 method = typeof(ShardingHelpers).FindMethod(nameof(ShardingHelpers.MakeTypedQueryWithSelector)).MakeGenericMethod(entityType, queryModel.Selector.Body.Type);
             }
 
-            var query = (IQuery)method.Invoke(null, new object[3] { dbContext, queryModel, withSkipAndTake });
+            var query = (IQuery)method.Invoke(null, new object[2] { dbContext, queryModel });
             return query;
         }
-        static IQuery<T> MakeTypedQuery<T>(IDbContext dbContext, DataQueryModel queryModel, bool withSkipAndTake)
+        static IQuery<T> MakeTypedQuery<T>(IDbContext dbContext, DataQueryModel queryModel)
+        {
+            return MakeTypedQueryCore<T>(dbContext, queryModel, false);
+        }
+        static IQuery<T> MakeTypedQueryCore<T>(IDbContext dbContext, DataQueryModel queryModel, bool ignoreSkipAndTake)
         {
             var q = dbContext.Query<T>(queryModel.Table.Name);
 
@@ -395,7 +352,7 @@ namespace Chloe.Sharding
                 q = orderedQuery;
             }
 
-            if (withSkipAndTake)
+            if (!ignoreSkipAndTake)
             {
                 if (queryModel.Skip != null)
                 {
@@ -409,44 +366,20 @@ namespace Chloe.Sharding
 
             return q;
         }
-        static IQuery<TResult> MakeTypedQueryWithSelector<T, TResult>(IDbContext dbContext, DataQueryModel queryModel, bool withSkipAndTake)
+        static IQuery<TResult> MakeTypedQueryWithSelector<T, TResult>(IDbContext dbContext, DataQueryModel queryModel)
         {
-            var q = dbContext.Query<T>(queryModel.Table.Name);
-
-            foreach (var condition in queryModel.Conditions)
-            {
-                q = q.Where((Expression<Func<T, bool>>)condition);
-            }
-
-            if (queryModel.IgnoreAllFilters)
-            {
-                q = q.IgnoreAllFilters();
-            }
-
-            IOrderedQuery<T> orderedQuery = null;
-            foreach (var ordering in queryModel.Orderings)
-            {
-                if (orderedQuery == null)
-                    orderedQuery = q.InnerOrderBy(ordering);
-                else
-                    orderedQuery = orderedQuery.InnerThenBy(ordering);
-
-                q = orderedQuery;
-            }
+            var q = MakeTypedQueryCore<T>(dbContext, queryModel, true);
 
             Expression<Func<T, TResult>> selector = (Expression<Func<T, TResult>>)queryModel.Selector;
             var query = q.Select<TResult>(selector);
 
-            if (withSkipAndTake)
+            if (queryModel.Skip != null)
             {
-                if (queryModel.Skip != null)
-                {
-                    query = query.Skip(queryModel.Skip.Value);
-                }
-                if (queryModel.Take != null)
-                {
-                    query = query.Take(queryModel.Take.Value);
-                }
+                query = query.Skip(queryModel.Skip.Value);
+            }
+            if (queryModel.Take != null)
+            {
+                query = query.Take(queryModel.Take.Value);
             }
 
             return query;

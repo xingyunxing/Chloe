@@ -7,7 +7,7 @@ using System.Reflection;
 
 namespace Chloe.Sharding.Visitors
 {
-    class GroupSelectorResolver : ExpressionVisitor<GroupQueryMapper>
+    class GroupSelectorResolver : ExpressionVisitor<GroupQueryProjection>
     {
         public static readonly GroupSelectorResolver Instance = new GroupSelectorResolver();
 
@@ -17,12 +17,12 @@ namespace Chloe.Sharding.Visitors
         }
 
 
-        public static GroupQueryMapper Resolve(Expression exp)
+        public static GroupQueryProjection Resolve(Expression exp)
         {
             return Instance.Visit(exp);
         }
 
-        public override GroupQueryMapper Visit(Expression exp)
+        public override GroupQueryProjection Visit(Expression exp)
         {
             if (exp == null)
                 return default;
@@ -43,14 +43,14 @@ namespace Chloe.Sharding.Visitors
             }
         }
 
-        protected override GroupQueryMapper VisitLambda(LambdaExpression exp)
+        protected override GroupQueryProjection VisitLambda(LambdaExpression exp)
         {
             return this.Visit(exp.Body);
         }
-        protected override GroupQueryMapper VisitNew(NewExpression exp)
+        protected override GroupQueryProjection VisitNew(NewExpression exp)
         {
-            GroupQueryMapper groupQueryMapper = new GroupQueryMapper();
-            groupQueryMapper.Constructor = exp.Constructor;
+            GroupQueryProjection groupQueryProjection = new GroupQueryProjection();
+            groupQueryProjection.Constructor = exp.Constructor;
 
             foreach (Expression argExp in exp.Arguments)
             {
@@ -64,63 +64,63 @@ namespace Chloe.Sharding.Visitors
                         if (callExp.Method.Name == nameof(Sql.Average))
                         {
                             var newAggregateModelExpression = ShardingHelpers.ConvertToNewAggregateModelExpression(callExp.Arguments[0]);
-                            groupQueryMapper.ConstructorArgExpressions.Add(newAggregateModelExpression);
-                            groupQueryMapper.ConstructorArgGetters.Add(MakeAvgGetter(argExp.Type));
+                            groupQueryProjection.ConstructorArgExpressions.Add(newAggregateModelExpression);
+                            groupQueryProjection.ConstructorArgGetters.Add(MakeAvgGetter(argExp.Type));
 
                             continue;
                         }
 
                         if (callExp.Method.Name == nameof(Sql.Count))
                         {
-                            groupQueryMapper.ConstructorArgExpressions.Add(callExp);
-                            groupQueryMapper.ConstructorArgGetters.Add(MakeCountGetter(argExp.Type));
+                            groupQueryProjection.ConstructorArgExpressions.Add(callExp);
+                            groupQueryProjection.ConstructorArgGetters.Add(MakeCountGetter(argExp.Type));
 
                             continue;
                         }
 
                         if (callExp.Method.Name == nameof(Sql.LongCount))
                         {
-                            groupQueryMapper.ConstructorArgExpressions.Add(callExp);
-                            groupQueryMapper.ConstructorArgGetters.Add(MakeLongCountGetter(argExp.Type));
+                            groupQueryProjection.ConstructorArgExpressions.Add(callExp);
+                            groupQueryProjection.ConstructorArgGetters.Add(MakeLongCountGetter(argExp.Type));
 
                             continue;
                         }
 
                         if (callExp.Method.Name == nameof(Sql.Sum))
                         {
-                            groupQueryMapper.ConstructorArgExpressions.Add(callExp);
-                            groupQueryMapper.ConstructorArgGetters.Add(MakeSumGetter(argExp.Type));
+                            groupQueryProjection.ConstructorArgExpressions.Add(callExp);
+                            groupQueryProjection.ConstructorArgGetters.Add(MakeSumGetter(argExp.Type));
 
                             continue;
                         }
 
                         if (callExp.Method.Name == nameof(Sql.Max))
                         {
-                            groupQueryMapper.ConstructorArgExpressions.Add(callExp);
-                            groupQueryMapper.ConstructorArgGetters.Add(MakeMaxGetter(argExp.Type));
+                            groupQueryProjection.ConstructorArgExpressions.Add(callExp);
+                            groupQueryProjection.ConstructorArgGetters.Add(MakeMaxGetter(argExp.Type));
 
                             continue;
                         }
 
                         if (callExp.Method.Name == nameof(Sql.Min))
                         {
-                            groupQueryMapper.ConstructorArgExpressions.Add(callExp);
-                            groupQueryMapper.ConstructorArgGetters.Add(MakeMinGetter(argExp.Type));
+                            groupQueryProjection.ConstructorArgExpressions.Add(callExp);
+                            groupQueryProjection.ConstructorArgGetters.Add(MakeMinGetter(argExp.Type));
 
                             continue;
                         }
                     }
                 }
 
-                groupQueryMapper.ConstructorArgExpressions.Add(argExp);
-                groupQueryMapper.ConstructorArgGetters.Add(MakeGetter());
+                groupQueryProjection.ConstructorArgExpressions.Add(argExp);
+                groupQueryProjection.ConstructorArgGetters.Add(MakeGetter());
             }
 
-            return groupQueryMapper;
+            return groupQueryProjection;
         }
-        protected override GroupQueryMapper VisitMemberInit(MemberInitExpression exp)
+        protected override GroupQueryProjection VisitMemberInit(MemberInitExpression exp)
         {
-            GroupQueryMapper groupQueryMapper = this.Visit(exp.NewExpression);
+            GroupQueryProjection groupQueryProjection = this.Visit(exp.NewExpression);
 
             foreach (MemberBinding binding in exp.Bindings)
             {
@@ -145,59 +145,59 @@ namespace Chloe.Sharding.Visitors
                         if (callExp.Method.Name == nameof(Sql.Average))
                         {
                             var newAggregateModelExpression = ShardingHelpers.ConvertToNewAggregateModelExpression(callExp.Arguments[0]);
-                            groupQueryMapper.MemberExpressions.Add(newAggregateModelExpression);
-                            groupQueryMapper.MemberBinders.Add(MakeAvgMemberBinder(memberSetter, memberAssignment.Expression.Type));
+                            groupQueryProjection.MemberExpressions.Add(newAggregateModelExpression);
+                            groupQueryProjection.MemberBinders.Add(MakeAvgMemberBinder(memberSetter, memberAssignment.Expression.Type));
 
                             continue;
                         }
 
                         if (callExp.Method.Name == nameof(Sql.Count))
                         {
-                            groupQueryMapper.MemberExpressions.Add(callExp);
-                            groupQueryMapper.MemberBinders.Add(MakeCountMemberBinder(memberSetter, memberAssignment.Expression.Type));
+                            groupQueryProjection.MemberExpressions.Add(callExp);
+                            groupQueryProjection.MemberBinders.Add(MakeCountMemberBinder(memberSetter, memberAssignment.Expression.Type));
 
                             continue;
                         }
 
                         if (callExp.Method.Name == nameof(Sql.LongCount))
                         {
-                            groupQueryMapper.MemberExpressions.Add(callExp);
-                            groupQueryMapper.MemberBinders.Add(MakeLongCountMemberBinder(memberSetter, memberAssignment.Expression.Type));
+                            groupQueryProjection.MemberExpressions.Add(callExp);
+                            groupQueryProjection.MemberBinders.Add(MakeLongCountMemberBinder(memberSetter, memberAssignment.Expression.Type));
 
                             continue;
                         }
 
                         if (callExp.Method.Name == nameof(Sql.Sum))
                         {
-                            groupQueryMapper.MemberExpressions.Add(callExp);
-                            groupQueryMapper.MemberBinders.Add(MakeSumMemberBinder(memberSetter, memberAssignment.Expression.Type));
+                            groupQueryProjection.MemberExpressions.Add(callExp);
+                            groupQueryProjection.MemberBinders.Add(MakeSumMemberBinder(memberSetter, memberAssignment.Expression.Type));
 
                             continue;
                         }
 
                         if (callExp.Method.Name == nameof(Sql.Max))
                         {
-                            groupQueryMapper.MemberExpressions.Add(callExp);
-                            groupQueryMapper.MemberBinders.Add(MakeMaxMemberBinder(memberSetter, memberAssignment.Expression.Type));
+                            groupQueryProjection.MemberExpressions.Add(callExp);
+                            groupQueryProjection.MemberBinders.Add(MakeMaxMemberBinder(memberSetter, memberAssignment.Expression.Type));
 
                             continue;
                         }
 
                         if (callExp.Method.Name == nameof(Sql.Min))
                         {
-                            groupQueryMapper.MemberExpressions.Add(callExp);
-                            groupQueryMapper.MemberBinders.Add(MakeMinMemberBinder(memberSetter, memberAssignment.Expression.Type));
+                            groupQueryProjection.MemberExpressions.Add(callExp);
+                            groupQueryProjection.MemberBinders.Add(MakeMinMemberBinder(memberSetter, memberAssignment.Expression.Type));
 
                             continue;
                         }
                     }
                 }
 
-                groupQueryMapper.MemberExpressions.Add(memberAssignment.Expression);
-                groupQueryMapper.MemberBinders.Add(MakeMemberBinder(memberSetter));
+                groupQueryProjection.MemberExpressions.Add(memberAssignment.Expression);
+                groupQueryProjection.MemberBinders.Add(MakeMemberBinder(memberSetter));
             }
 
-            return groupQueryMapper;
+            return groupQueryProjection;
         }
 
         static Func<Func<object, object>, IEnumerable<object>, object> MakeGetter()

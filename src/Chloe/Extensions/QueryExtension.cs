@@ -1,11 +1,11 @@
-﻿using System.Collections;
-using System.Linq.Expressions;
-using Chloe.Reflection;
+﻿using Chloe.Reflection;
 using Chloe.Threading.Tasks;
+using System.Collections;
+using System.Linq.Expressions;
 
 namespace Chloe
 {
-    public static class QueryExtension
+    static class QueryExtension
     {
         static object CallMethod(object obj, string methodName, object arg)
         {

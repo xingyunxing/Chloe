@@ -55,9 +55,9 @@ namespace Chloe.Query
         public IQuery<TResult> Select<TResult>(Expression<Func<T, TResult>> selector)
         {
             var e = new GroupingQueryExpression(typeof(TResult), this._fromQuery.QueryExpression, selector);
-            e.GroupKeySelectors.AddRange(this._groupKeySelectors);
-            e.HavingPredicates.AddRange(this._havingPredicates);
-            e.Orderings.AddRange(this._orderings);
+            e.GroupKeySelectors.AppendRange(this._groupKeySelectors);
+            e.HavingPredicates.AppendRange(this._havingPredicates);
+            e.Orderings.AppendRange(this._orderings);
             return new Query<TResult>(e);
         }
 

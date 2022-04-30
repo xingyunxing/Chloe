@@ -3,8 +3,13 @@ using System.Reflection;
 
 namespace Chloe.Sharding
 {
-    public class GroupQueryMapper
+    public class GroupQueryProjection
     {
+        public GroupQueryProjection()
+        {
+
+        }
+
         public ConstructorInfo Constructor { get; set; }
         public List<Expression> ConstructorArgExpressions { get; set; } = new List<Expression>();
         public List<Func<Func<object, object>, IEnumerable<object>, object>> ConstructorArgGetters { get; set; } = new List<Func<Func<object, object>, IEnumerable<object>, object>>();

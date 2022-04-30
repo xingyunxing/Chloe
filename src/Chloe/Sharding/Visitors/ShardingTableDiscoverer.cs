@@ -4,7 +4,7 @@ using System.Collections;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Chloe.Sharding
+namespace Chloe.Sharding.Visitors
 {
     internal class ShardingTableDiscoverer : ExpressionVisitor<IEnumerable<RouteTable>>
     {

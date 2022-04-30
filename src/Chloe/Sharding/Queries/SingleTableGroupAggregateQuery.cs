@@ -57,13 +57,11 @@ namespace Chloe.Sharding.Queries
                     IEnumerable dataList = null;
                     if (@async)
                     {
-                        var task = (Task)q.FastInvokeMethod(nameof(IQuery<object>.ToListAsync));
-                        await task;
-                        dataList = (IEnumerable)task.GetType().GetProperty(nameof(Task<object>.Result)).FastGetMemberValue(task);
+                        dataList = await q.ToListAsync();
                     }
                     else
                     {
-                        dataList = (IEnumerable)q.FastInvokeMethod(nameof(IQuery<object>.ToList));
+                        dataList = q.ToList();
                     }
 
                     return (new FeatureEnumerableAdapter<object>(dataList), false);

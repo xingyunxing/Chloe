@@ -9,7 +9,7 @@ namespace Chloe.Query.QueryExpressions
         public JoinQueryExpression(Type elementType, QueryExpression prevExpression, List<JoinQueryInfo> joinedQueries, LambdaExpression selector) : base(QueryExpressionType.JoinQuery, elementType, prevExpression)
         {
             this._joinedQueries = new List<JoinQueryInfo>(joinedQueries.Count);
-            this._joinedQueries.AddRange(joinedQueries);
+            this._joinedQueries.AppendRange(joinedQueries);
             this._selector = selector;
         }
 
