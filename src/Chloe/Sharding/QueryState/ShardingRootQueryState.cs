@@ -12,8 +12,8 @@ namespace Chloe.Sharding.QueryState
 
         static ShardingQueryContext CreateQueryContext(RootQueryExpression exp)
         {
-            var dbContext = (ShardingDbContext)exp.Provider;
-            ShardingQueryContext queryContext = new ShardingQueryContext(dbContext);
+            var dbContextProvider = (ShardingDbContextProvider)exp.Provider;
+            ShardingQueryContext queryContext = new ShardingQueryContext(dbContextProvider);
             return queryContext;
         }
         static ShardingQueryModel CreateQueryModel(RootQueryExpression exp)

@@ -2,10 +2,10 @@
 {
     class ShardingQueryContext
     {
-        public ShardingQueryContext(ShardingDbContext dbContext)
+        public ShardingQueryContext(ShardingDbContextProvider dbContextProvider)
         {
-            this.DbContext = dbContext;
+            this.DbContextProvider = dbContextProvider;
         }
-        public ShardingDbContext DbContext { get; set; }
+        public ShardingDbContextProvider DbContextProvider { get; set; }
     }
 }

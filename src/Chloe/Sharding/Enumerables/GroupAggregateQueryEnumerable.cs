@@ -155,14 +155,14 @@ namespace Chloe.Sharding.Enumerables
                     {
                         int count = group.Count();
 
-                        ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(this.QueryPlan.ShardingContext, group.First().Table.DataSource, count);
-                        queryContext.AddManagedResource(dbContextPool);
+                        SharedDbContextProviderPool dbContextProviderPool = ShardingHelpers.CreateDbContextProviderPool(this.QueryPlan.ShardingContext, group.First().Table.DataSource, count);
+                        queryContext.AddManagedResource(dbContextProviderPool);
 
-                        bool lazyQuery = dbContextPool.Size >= count;
+                        bool lazyQuery = dbContextProviderPool.Size >= count;
 
                         foreach (var queryModel in group)
                         {
-                            ShardingTableGroupAggregateQuery shardingQuery = new ShardingTableGroupAggregateQuery(dbContextPool, queryModel, lazyQuery);
+                            ShardingTableGroupAggregateQuery shardingQuery = new ShardingTableGroupAggregateQuery(dbContextProviderPool, queryModel, lazyQuery);
                             shardingQueries.Add(shardingQuery);
                         }
                     }

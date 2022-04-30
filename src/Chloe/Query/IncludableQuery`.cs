@@ -47,7 +47,7 @@ namespace Chloe.Query
             {
                 PropertyInfo member = memberExps[i].Member as PropertyInfo;
 
-                IDbContextInternal dbContext = prevExpression.GetRootDbContext() as IDbContextInternal;
+                DbContext dbContext = prevExpression.GetRootDbContext() as DbContext;
                 NavigationNode navigation = InitNavigationNode(member, dbContext);
 
                 if (startNavigation == null)
@@ -65,7 +65,7 @@ namespace Chloe.Query
 
             return ret;
         }
-        static NavigationNode InitNavigationNode(PropertyInfo member, IDbContextInternal dbContext)
+        static NavigationNode InitNavigationNode(PropertyInfo member, DbContext dbContext)
         {
             NavigationNode navigation = new NavigationNode(member);
 
@@ -94,7 +94,7 @@ namespace Chloe.Query
             {
                 PropertyInfo member = memberExps[i].Member as PropertyInfo;
 
-                IDbContextInternal dbContext = this.QueryExpression.GetRootDbContext() as IDbContextInternal;
+                DbContext dbContext = this.QueryExpression.GetRootDbContext() as DbContext;
                 NavigationNode navigation = InitNavigationNode(member, dbContext);
 
                 lastNavigation.Next = navigation;

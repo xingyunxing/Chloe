@@ -75,6 +75,7 @@ namespace Chloe.Query.QueryState
 
         static QueryModel CreateQueryModel(RootQueryExpression rootQueryExp, ScopeParameterDictionary scopeParameters, StringSet scopeTables, Func<string, string> tableAliasGenerator)
         {
+            DbContext dbContext = (DbContext)rootQueryExp.Provider;
             Type entityType = rootQueryExp.ElementType;
 
             if (entityType.IsAbstract || entityType.IsInterface)
@@ -99,7 +100,8 @@ namespace Chloe.Query.QueryState
 
             queryModel.ResultModel = model;
 
-            ParseFilters(queryModel, typeDescriptor.Definition.Filters, rootQueryExp.ContextFilters);
+            List<LambdaExpression> contextFilters = dbContext.QueryFilters.FindValue(entityType) ?? new List<LambdaExpression>();
+            ParseFilters(queryModel, typeDescriptor.Definition.Filters, contextFilters);
 
             return queryModel;
         }

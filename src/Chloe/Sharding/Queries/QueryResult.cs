@@ -1,4 +1,6 @@
-﻿namespace Chloe.Sharding.Queries
+﻿using Chloe.Routing;
+
+namespace Chloe.Sharding.Queries
 {
     class QueryResult<T>
     {

@@ -1,8 +1,8 @@
 ﻿namespace Chloe.Sharding
 {
-    static class ShareObjectPoolExtension
+    static class SharedObjectPoolExtension
     {
-        public static async Task<IPoolItem<T>> GetOne<T>(this IShareObjectPool<T> pool, bool @async)
+        public static async Task<IPoolItem<T>> GetOne<T>(this ISharedObjectPool<T> pool, bool @async)
         {
             if (async)
             {
@@ -14,7 +14,7 @@
     }
 
 
-    internal interface IShareObjectPool<T> : IDisposable
+    internal interface ISharedObjectPool<T> : IDisposable
     {
         int Size { get; }
         Task<IPoolItem<T>> GetAsync();
@@ -26,19 +26,19 @@
         public T Resource { get; }
     }
 
-    interface IShareDbContextPool : IShareObjectPool<IDbContext>
+    interface ISharedDbContextProviderPool : ISharedObjectPool<IDbContextProvider>
     {
 
     }
 
-    class ShareObjectPool<T> : IShareObjectPool<T>
+    class SharedObjectPool<T> : ISharedObjectPool<T>
     {
         bool _disposed;
         List<T> All;
         Queue<T> Stocks;
         Queue<TaskCompletionSource<T>> Waitings;
 
-        public ShareObjectPool(List<T> objects)
+        public SharedObjectPool(List<T> objects)
         {
             this.All = objects;
             this.Stocks = new Queue<T>(objects);
@@ -118,10 +118,10 @@
 
         class PoolItem : IPoolItem<T>
         {
-            ShareObjectPool<T> Pool;
+            SharedObjectPool<T> Pool;
             bool _disposed;
 
-            public PoolItem(T resource, ShareObjectPool<T> pool)
+            public PoolItem(T resource, SharedObjectPool<T> pool)
             {
                 this.Resource = resource;
                 this.Pool = pool;
@@ -140,9 +140,9 @@
         }
     }
 
-    class ShareDbContextPool : ShareObjectPool<IDbContext>, IShareDbContextPool
+    class SharedDbContextProviderPool : SharedObjectPool<IDbContextProvider>, ISharedDbContextProviderPool
     {
-        public ShareDbContextPool(List<IDbContext> dbContexts) : base(dbContexts)
+        public SharedDbContextProviderPool(List<IDbContextProvider> dbContextProviders) : base(dbContextProviders)
         {
 
         }

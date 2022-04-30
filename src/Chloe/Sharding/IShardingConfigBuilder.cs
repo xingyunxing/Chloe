@@ -21,7 +21,7 @@ namespace Chloe.Sharding
         }
         public IShardingConfigBuilder<T> HasRouteFactory(Func<IShardingRoute> routeFactory)
         {
-            return this.HasRouteFactory(new ShardingRouteFactory(routeFactory));
+            return this.HasRouteFactory(new ShardingRouteFactoryFacade(routeFactory));
         }
         public IShardingConfigBuilder<T> HasRouteFactory(IShardingRouteFactory routeFactory)
         {
@@ -46,7 +46,7 @@ namespace Chloe.Sharding
         {
             var memberExp = this._shardingKey.Body as MemberExpression;
 
-            ShardingConfig shardingConfig = new ShardingConfig();
+            ShardingConfigFacade shardingConfig = new ShardingConfigFacade();
             shardingConfig.EntityType = typeof(T);
             shardingConfig.RouteFactory = this._routeFactory;
             shardingConfig.ShardingKey = memberExp.Member;

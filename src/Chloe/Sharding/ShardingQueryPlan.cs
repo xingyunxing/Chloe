@@ -1,4 +1,6 @@
-﻿namespace Chloe.Sharding
+﻿using Chloe.Routing;
+
+namespace Chloe.Sharding
 {
     internal class ShardingQueryPlan
     {

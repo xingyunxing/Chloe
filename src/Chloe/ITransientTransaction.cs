@@ -17,6 +17,18 @@ namespace Chloe
         bool _disposed = false;
         bool _completed = false;
 
+        DbContextFacade _dbContext;
+
+        public TransientTransaction(DbContextFacade dbContext) : this(dbContext, null)
+        {
+
+        }
+
+        public TransientTransaction(DbContextFacade dbContext, IsolationLevel? il)
+        {
+            this._dbContext = dbContext;
+            this._dbContext.Butler.BeginTransaction(il);
+        }
         public TransientTransaction(IDbContext dbContext) : this(dbContext, null)
         {
 
@@ -32,21 +44,22 @@ namespace Chloe
             if (this._completed)
                 return;
 
-            if (this.DbContext.Session.IsInTransaction)
-                this.DbContext.Session.CommitTransaction();
+            if (this._dbContext.Butler.IsInTransaction)
+                this._dbContext.Butler.CommitTransaction();
 
             this._completed = true;
         }
 
         public IDbContext DbContext { get; private set; }
+        public IDbContextFacade DbContextFacade { get; }
 
         public void Rollback()
         {
             if (this._completed)
                 return;
 
-            if (this.DbContext.Session.IsInTransaction)
-                this.DbContext.Session.RollbackTransaction();
+            if (this._dbContext.Butler.IsInTransaction)
+                this._dbContext.Butler.RollbackTransaction();
 
             this._completed = true;
         }

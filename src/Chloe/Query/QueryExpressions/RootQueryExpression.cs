@@ -15,7 +15,7 @@ namespace Chloe.Query.QueryExpressions
 
         public string ExplicitTable { get; private set; }
         public LockType Lock { get; private set; }
-        public List<LambdaExpression> ContextFilters { get; private set; } = new List<LambdaExpression>();
+
         public override T Accept<T>(QueryExpressionVisitor<T> visitor)
         {
             return visitor.Visit(this);

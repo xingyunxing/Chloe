@@ -1,4 +1,5 @@
 ﻿using Chloe.Reflection;
+using Chloe.Routing;
 using System.Collections;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -21,13 +22,13 @@ namespace Chloe.Sharding.Queries
 
     internal class ShardingTableGroupAggregateQuery : FeatureEnumerable<object>
     {
-        IShareDbContextPool DbContextPool;
+        ISharedDbContextProviderPool DbContextProviderPool;
         GroupAggregateQueryModel QueryModel;
         bool LazyQuery;
 
-        public ShardingTableGroupAggregateQuery(IShareDbContextPool dbContextPool, GroupAggregateQueryModel queryModel, bool lazyQuery)
+        public ShardingTableGroupAggregateQuery(ISharedDbContextProviderPool dbContextProviderPool, GroupAggregateQueryModel queryModel, bool lazyQuery)
         {
-            this.DbContextPool = dbContextPool;
+            this.DbContextProviderPool = dbContextProviderPool;
             this.QueryModel = queryModel;
             this.LazyQuery = lazyQuery;
         }
@@ -42,15 +43,15 @@ namespace Chloe.Sharding.Queries
             ShardingTableGroupAggregateQuery _enumerable;
             CancellationToken _cancellationToken;
 
-            public Enumerator(ShardingTableGroupAggregateQuery enumerable, CancellationToken cancellationToken = default) : base(enumerable.DbContextPool)
+            public Enumerator(ShardingTableGroupAggregateQuery enumerable, CancellationToken cancellationToken = default) : base(enumerable.DbContextProviderPool)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;
             }
 
-            protected override async Task<(IFeatureEnumerable<object> Query, bool IsLazyQuery)> CreateQuery(IDbContext dbContext, bool @async)
+            protected override async Task<(IFeatureEnumerable<object> Query, bool IsLazyQuery)> CreateQuery(IDbContextProvider dbContextProvider, bool @async)
             {
-                var q = this.MakeGroupAggregateQuery(dbContext);
+                var q = this.MakeGroupAggregateQuery(dbContextProvider);
 
                 if (!this._enumerable.LazyQuery)
                 {
@@ -71,17 +72,17 @@ namespace Chloe.Sharding.Queries
                 return (new FeatureEnumerableAdapter<object>(lazyEnumerable), true);
             }
 
-            IQuery MakeGroupAggregateQuery(IDbContext dbContext)
+            IQuery MakeGroupAggregateQuery(IDbContextProvider dbContextProvider)
             {
                 GroupAggregateQueryModel queryModel = this._enumerable.QueryModel;
                 var method = this.GetType().GetMethod(nameof(Enumerator.MakeTypedGroupAggregateQuery), BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).MakeGenericMethod(queryModel.RootEntityType);
-                var query = (IQuery)method.FastInvoke(null, dbContext, queryModel);
+                var query = (IQuery)method.FastInvoke(null, dbContextProvider, queryModel);
                 return query;
             }
 
-            static IQuery MakeTypedGroupAggregateQuery<T>(IDbContext dbContext, GroupAggregateQueryModel queryModel)
+            static IQuery MakeTypedGroupAggregateQuery<T>(IDbContextProvider dbContextProvider, GroupAggregateQueryModel queryModel)
             {
-                var query = dbContext.Query<T>(queryModel.Table.Name);
+                var query = dbContextProvider.Query<T>(queryModel.Table.Name, LockType.Unspecified);
 
                 foreach (var condition in queryModel.Conditions)
                 {

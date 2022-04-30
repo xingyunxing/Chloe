@@ -1,4 +1,5 @@
-﻿using Chloe.Threading.Tasks;
+﻿using Chloe.Routing;
+using Chloe.Threading.Tasks;
 using System.Collections;
 using System.Threading;
 
@@ -109,12 +110,12 @@ namespace Chloe.Sharding.Queries
                     {
                         int count = group.Count();
 
-                        ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(this._enumerable._queryPlan.ShardingContext, group.First().QueryModel.Table.DataSource, count);
-                        queryContext.AddManagedResource(dbContextPool);
+                        SharedDbContextProviderPool dbContextProviderPool = ShardingHelpers.CreateDbContextProviderPool(this._enumerable._queryPlan.ShardingContext, group.First().QueryModel.Table.DataSource, count);
+                        queryContext.AddManagedResource(dbContextProviderPool);
 
                         foreach (AggregateQueryPlan<TResult> aggQueryPlan in group)
                         {
-                            var shardingQuery = new ShardingTableAggregateQuery<TResult>(queryContext, dbContextPool, aggQueryPlan.QueryModel, this._enumerable._executor);
+                            var shardingQuery = new ShardingTableAggregateQuery<TResult>(queryContext, dbContextProviderPool, aggQueryPlan.QueryModel, this._enumerable._executor);
                             aggQueryPlan.Query = shardingQuery;
                         }
                     }

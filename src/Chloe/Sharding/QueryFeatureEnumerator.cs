@@ -19,7 +19,7 @@
             {
                 if (hasNext)
                 {
-                    this.QueryPlan.ShardingContext.DbContext.TrackEntity(this.Current);
+                    this.QueryPlan.ShardingContext.DbContextProvider.TrackEntity(this.Current);
                 }
             }
 

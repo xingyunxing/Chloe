@@ -1,4 +1,5 @@
 ﻿using Chloe.Sharding.Queries;
+using Chloe.Routing;
 using System.Threading;
 
 namespace Chloe.Sharding.Enumerables
@@ -67,15 +68,15 @@ namespace Chloe.Sharding.Enumerables
                 {
                     int count = group.Count();
 
-                    ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(this.ShardingContext, group.First().QueryModel.Table.DataSource, count);
-                    queryContext.AddManagedResource(dbContextPool);
+                    SharedDbContextProviderPool dbContextProviderPool = ShardingHelpers.CreateDbContextProviderPool(this.ShardingContext, group.First().QueryModel.Table.DataSource, count);
+                    queryContext.AddManagedResource(dbContextProviderPool);
 
                     //因为是根据主键查询了，所以返回的数据肯定是一条，因此直接把数据加载进内存即可
                     bool lazyQuery = false;
 
                     foreach (var dataQuery in group)
                     {
-                        ShardingTableDataQuery shardingQuery = new ShardingTableDataQuery(queryContext, dbContextPool, dataQuery.QueryModel, lazyQuery);
+                        ShardingTableDataQuery shardingQuery = new ShardingTableDataQuery(queryContext, dbContextProviderPool, dataQuery.QueryModel, lazyQuery);
                         dataQuery.Query = shardingQuery;
                     }
                 }

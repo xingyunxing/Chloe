@@ -1,8 +1,10 @@
-﻿namespace Chloe.Sharding
+﻿using Chloe.Sharding;
+
+namespace Chloe.Routing
 {
     public interface IShardingRouteFactory
     {
-        IShardingRoute CreateRoute(ShardingDbContext shardingDbContext);
+        IShardingRoute CreateRoute(ShardingDbContextProvider shardingDbContextProvider);
     }
     class ShardingRouteFactory : IShardingRouteFactory
     {
@@ -12,7 +14,7 @@
         {
             this._routeFactory = routeFactory;
         }
-        public IShardingRoute CreateRoute(ShardingDbContext shardingDbContext)
+        public IShardingRoute CreateRoute(ShardingDbContextProvider shardingDbContextProvider)
         {
             return this._routeFactory();
         }

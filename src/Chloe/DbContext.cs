@@ -36,7 +36,7 @@ namespace Chloe
             }
         }
 
-        Dictionary<Type, List<LambdaExpression>> IDbContextInternal.QueryFilters { get { return this._queryFilters; } }
+        internal Dictionary<Type, List<LambdaExpression>> QueryFilters { get { return this._queryFilters; } }
         internal InnerAdoSession AdoSession
         {
             get

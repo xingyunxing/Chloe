@@ -7,21 +7,23 @@ namespace Chloe.Sharding
 {
     internal partial class ShardingQuery<T> : IQuery<T>
     {
-        public ShardingQuery(IDbContextInternal dbContext, string explicitTable, LockType @lock)
-           : this(new Query<T>(dbContext, explicitTable, @lock))
+        public ShardingQuery(ShardingDbContextProvider dbContextProvider, string explicitTable, LockType @lock) : this(CreateRootQueryExpression(dbContextProvider, explicitTable, @lock))
         {
         }
-        public ShardingQuery(Query<T> query)
+        public ShardingQuery(QueryExpression exp)
         {
-            this.InnerQuery = query;
+            this.QueryExpression = exp;
         }
-        public ShardingQuery(IQuery<T> query) : this((Query<T>)query)
-        {
 
+        static RootQueryExpression CreateRootQueryExpression(ShardingDbContextProvider dbContextProvider, string explicitTable, LockType @lock)
+        {
+            Type entityType = typeof(T);
+            RootQueryExpression ret = new RootQueryExpression(entityType, dbContextProvider, explicitTable, @lock);
+            return ret;
         }
 
         Type IQuery.ElementType { get { return typeof(T); } }
-        internal Query<T> InnerQuery { get; set; }
+        public QueryExpression QueryExpression { get; private set; }
 
         public IEnumerable<T> AsEnumerable()
         {
@@ -30,7 +32,8 @@ namespace Chloe.Sharding
 
         public IQuery<T> AsTracking()
         {
-            return new ShardingQuery<T>(this.InnerQuery.AsTracking());
+            TrackingExpression e = new TrackingExpression(typeof(T), this.QueryExpression);
+            return new ShardingQuery<T>(e);
         }
 
         public IQuery<T> Distinct()
@@ -38,21 +41,10 @@ namespace Chloe.Sharding
             throw new NotImplementedException();
         }
 
-        public IJoinQuery<T, TOther> FullJoin<TOther>(Expression<Func<T, TOther, bool>> on)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IJoinQuery<T, TOther> FullJoin<TOther>(IQuery<TOther> q, Expression<Func<T, TOther, bool>> on)
-        {
-            throw new NotImplementedException();
-        }
-
-
-
         public IQuery<T> IgnoreAllFilters()
         {
-            return new ShardingQuery<T>(this.InnerQuery.IgnoreAllFilters());
+            IgnoreAllFiltersExpression e = new IgnoreAllFiltersExpression(typeof(T), this.QueryExpression);
+            return new ShardingQuery<T>(e);
         }
 
         public IIncludableQuery<T, TProperty> Include<TProperty>(Expression<Func<T, TProperty>> p)
@@ -101,7 +93,6 @@ namespace Chloe.Sharding
         }
 
 
-
         public IJoinQuery<T, TOther> RightJoin<TOther>(Expression<Func<T, TOther, bool>> on)
         {
             throw new NotImplementedException();
@@ -112,41 +103,63 @@ namespace Chloe.Sharding
             throw new NotImplementedException();
         }
 
+        public IJoinQuery<T, TOther> FullJoin<TOther>(Expression<Func<T, TOther, bool>> on)
+        {
+            throw new NotImplementedException();
+        }
+        public IJoinQuery<T, TOther> FullJoin<TOther>(IQuery<TOther> q, Expression<Func<T, TOther, bool>> on)
+        {
+            throw new NotImplementedException();
+        }
 
         public IGroupingQuery<T> GroupBy<K>(Expression<Func<T, K>> keySelector)
         {
-            return new ShardingGroupingQuery<T>(this.InnerQuery.GroupBy(keySelector));
+            return new ShardingGroupingQuery<T>(this, keySelector);
         }
 
         public IOrderedQuery<T> OrderBy<K>(Expression<Func<T, K>> keySelector)
         {
-            return new ShardingOrderedQuery<T>(this.InnerQuery.OrderBy(keySelector));
+            PublicHelper.CheckNull(keySelector);
+            OrderExpression e = new OrderExpression(typeof(T), this.QueryExpression, QueryExpressionType.OrderBy, keySelector);
+            return new ShardingOrderedQuery<T>(e);
         }
         public IOrderedQuery<T> OrderByDesc<K>(Expression<Func<T, K>> keySelector)
         {
-            return new ShardingOrderedQuery<T>(this.InnerQuery.OrderByDesc(keySelector));
+            PublicHelper.CheckNull(keySelector);
+            OrderExpression e = new OrderExpression(typeof(T), this.QueryExpression, QueryExpressionType.OrderByDesc, keySelector);
+            return new ShardingOrderedQuery<T>(e);
         }
 
         public IQuery<TResult> Select<TResult>(Expression<Func<T, TResult>> selector)
         {
-            return new ShardingQuery<TResult>(this.InnerQuery.Select(selector));
+            PublicHelper.CheckNull(selector);
+            SelectExpression e = new SelectExpression(typeof(TResult), this.QueryExpression, selector);
+            return new ShardingQuery<TResult>(e);
         }
 
         public IQuery<T> Where(Expression<Func<T, bool>> predicate)
         {
-            return new ShardingQuery<T>(this.InnerQuery.Where(predicate));
+            PublicHelper.CheckNull(predicate);
+            WhereExpression e = new WhereExpression(typeof(T), this.QueryExpression, predicate);
+            return new ShardingQuery<T>(e);
         }
         public IQuery<T> Skip(int count)
         {
-            return new ShardingQuery<T>(this.InnerQuery.Skip(count));
+            SkipExpression e = new SkipExpression(typeof(T), this.QueryExpression, count);
+            return new ShardingQuery<T>(e);
         }
         public IQuery<T> Take(int count)
         {
-            return new ShardingQuery<T>(this.InnerQuery.Take(count));
+            TakeExpression e = new TakeExpression(typeof(T), this.QueryExpression, count);
+            return new ShardingQuery<T>(e);
         }
         public IQuery<T> TakePage(int pageNumber, int pageSize)
         {
-            return new ShardingQuery<T>(this.InnerQuery.TakePage(pageNumber, pageSize));
+            int skipCount = (pageNumber - 1) * pageSize;
+            int takeCount = pageSize;
+
+            IQuery<T> q = this.Skip(skipCount).Take(takeCount);
+            return q;
         }
 
 
@@ -468,9 +481,8 @@ namespace Chloe.Sharding
         }
         public async Task<PagingResult<T>> PagingAsync(int pageNumber, int pageSize)
         {
-            PagingExpression pagingExpression = new PagingExpression(typeof(PagingResult<T>), this.InnerQuery.QueryExpression, pageNumber, pageSize);
-            Query<PagingResult<T>> query = new Query<PagingResult<T>>(pagingExpression);
-            var shardingQuery = new ShardingQuery<PagingResult<T>>(query);
+            PagingExpression pagingExpression = new PagingExpression(typeof(PagingResult<T>), this.QueryExpression, pageNumber, pageSize);
+            var shardingQuery = new ShardingQuery<PagingResult<T>>(pagingExpression);
             var pagingResult = await shardingQuery.GenerateIterator().FirstAsync();
             return pagingResult;
         }

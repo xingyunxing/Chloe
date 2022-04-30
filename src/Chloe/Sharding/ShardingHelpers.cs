@@ -1,6 +1,7 @@
 ﻿using Chloe.Core.Visitors;
 using Chloe.Descriptors;
 using Chloe.Reflection;
+using Chloe.Routing;
 using Chloe.Sharding.Models;
 using Chloe.Sharding.Queries;
 using System.Collections;
@@ -106,12 +107,12 @@ namespace Chloe.Sharding
             return orderedQuery;
         }
 
-        public static ShareDbContextPool CreateDbContextPool(IShardingContext shardingContext, IPhysicDataSource dataSource, int desiredContexts)
+        public static SharedDbContextProviderPool CreateDbContextProviderPool(IShardingContext shardingContext, IPhysicDataSource dataSource, int desiredContexts)
         {
-            List<IDbContext> dbContexts = shardingContext.CreateDbContextProviders(dataSource, desiredContexts);
-            ShareDbContextPool dbContextPool = new ShareDbContextPool(dbContexts);
+            List<IDbContextProvider> dbContexts = shardingContext.CreateDbContextProviders(dataSource, desiredContexts);
+            SharedDbContextProviderPool dbContextProviderPool = new SharedDbContextProviderPool(dbContexts);
 
-            return dbContextPool;
+            return dbContextProviderPool;
         }
 
         public static LambdaExpression MakeDynamicSelector(ShardingQueryPlan queryPlan, DynamicType dynamicType, TypeDescriptor entityTypeDescriptor, int tableIndex)
@@ -306,7 +307,7 @@ namespace Chloe.Sharding
             return dataQueryModel;
         }
 
-        public static IQuery MakeQuery(IDbContext dbContext, DataQueryModel queryModel)
+        public static IQuery MakeQuery(IDbContextProvider dbContextProvider, DataQueryModel queryModel)
         {
             Type entityType = queryModel.RootEntityType;
             MethodInfo method;
@@ -320,16 +321,16 @@ namespace Chloe.Sharding
                 method = typeof(ShardingHelpers).FindMethod(nameof(ShardingHelpers.MakeTypedQueryWithSelector)).MakeGenericMethod(entityType, queryModel.Selector.Body.Type);
             }
 
-            var query = (IQuery)method.Invoke(null, new object[2] { dbContext, queryModel });
+            var query = (IQuery)method.Invoke(null, new object[2] { dbContextProvider, queryModel });
             return query;
         }
-        static IQuery<T> MakeTypedQuery<T>(IDbContext dbContext, DataQueryModel queryModel)
+        static IQuery<T> MakeTypedQuery<T>(IDbContextProvider dbContextProvider, DataQueryModel queryModel)
         {
-            return MakeTypedQueryCore<T>(dbContext, queryModel, false);
+            return MakeTypedQueryCore<T>(dbContextProvider, queryModel, false);
         }
-        static IQuery<T> MakeTypedQueryCore<T>(IDbContext dbContext, DataQueryModel queryModel, bool ignoreSkipAndTake)
+        static IQuery<T> MakeTypedQueryCore<T>(IDbContextProvider dbContextProvider, DataQueryModel queryModel, bool ignoreSkipAndTake)
         {
-            var q = dbContext.Query<T>(queryModel.Table.Name);
+            var q = dbContextProvider.Query<T>(queryModel.Table.Name, LockType.Unspecified);
 
             foreach (var condition in queryModel.Conditions)
             {
@@ -366,9 +367,9 @@ namespace Chloe.Sharding
 
             return q;
         }
-        static IQuery<TResult> MakeTypedQueryWithSelector<T, TResult>(IDbContext dbContext, DataQueryModel queryModel)
+        static IQuery<TResult> MakeTypedQueryWithSelector<T, TResult>(IDbContextProvider dbContextProvider, DataQueryModel queryModel)
         {
-            var q = MakeTypedQueryCore<T>(dbContext, queryModel, true);
+            var q = MakeTypedQueryCore<T>(dbContextProvider, queryModel, true);
 
             Expression<Func<T, TResult>> selector = (Expression<Func<T, TResult>>)queryModel.Selector;
             var query = q.Select<TResult>(selector);

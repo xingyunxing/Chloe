@@ -15,7 +15,7 @@ namespace Chloe.Sharding.Internals
 
         public override IFeatureEnumerator<T> GetFeatureEnumerator(CancellationToken cancellationToken = default)
         {
-            ShardingQueryStateBase queryState = ShardingQueryExpressionResolver.Resolve(this._query.InnerQuery.QueryExpression);
+            ShardingQueryStateBase queryState = ShardingQueryExpressionResolver.Resolve(this._query.QueryExpression);
 
             IFeatureEnumerable<object> queryEnumerable = queryState.CreateQuery();
 

@@ -6,20 +6,20 @@ namespace Chloe.Sharding
 {
     internal class QueryEnumerator<TResult> : IFeatureEnumerator<TResult>
     {
-        IShareDbContextPool _dbContextPool;
-        Func<IDbContext, bool, Task<(IFeatureEnumerable<TResult> Query, bool IsLazyQuery)>> _queryCreator;
+        ISharedDbContextProviderPool _dbContextProviderPool;
+        Func<IDbContextProvider, bool, Task<(IFeatureEnumerable<TResult> Query, bool IsLazyQuery)>> _queryCreator;
         CancellationToken _cancellationToken;
         IFeatureEnumerator<TResult> _enumerator;
 
-        IPoolItem<IDbContext> _poolResource;
+        IPoolItem<IDbContextProvider> _poolResource;
 
-        public QueryEnumerator(IShareDbContextPool dbContextPool, CancellationToken cancellationToken = default) : this(dbContextPool, null, cancellationToken)
+        public QueryEnumerator(ISharedDbContextProviderPool dbContextProviderPool, CancellationToken cancellationToken = default) : this(dbContextProviderPool, null, cancellationToken)
         {
 
         }
-        public QueryEnumerator(IShareDbContextPool dbContextPool, Func<IDbContext, bool, Task<(IFeatureEnumerable<TResult> Query, bool IsLazyQuery)>> queryCreator, CancellationToken cancellationToken = default)
+        public QueryEnumerator(ISharedDbContextProviderPool dbContextProviderPool, Func<IDbContextProvider, bool, Task<(IFeatureEnumerable<TResult> Query, bool IsLazyQuery)>> queryCreator, CancellationToken cancellationToken = default)
         {
-            this._dbContextPool = dbContextPool;
+            this._dbContextProviderPool = dbContextProviderPool;
             this._queryCreator = queryCreator;
             this._cancellationToken = cancellationToken;
         }
@@ -66,12 +66,12 @@ namespace Chloe.Sharding
 
         async ValueTask InitEnumerator(bool @async)
         {
-            var poolResource = await this._dbContextPool.GetOne(@async);
+            var poolResource = await this._dbContextProviderPool.GetOne(@async);
             this._poolResource = poolResource;
 
-            var dbContext = poolResource.Resource;
+            var dbContextProvider = poolResource.Resource;
 
-            var result = await this.CreateQuery(dbContext, @async);
+            var result = await this.CreateQuery(dbContextProvider, @async);
 
             if (!result.IsLazyQuery)
             {
@@ -82,14 +82,14 @@ namespace Chloe.Sharding
             this._enumerator = result.Query.GetFeatureEnumerator(this._cancellationToken);
         }
 
-        protected virtual async Task<(IFeatureEnumerable<TResult> Query, bool IsLazyQuery)> CreateQuery(IDbContext dbContext, bool @async)
+        protected virtual async Task<(IFeatureEnumerable<TResult> Query, bool IsLazyQuery)> CreateQuery(IDbContextProvider dbContextProvider, bool @async)
         {
             if (this._queryCreator == null)
             {
                 throw new NotImplementedException();
             }
 
-            return await this._queryCreator(dbContext, @async);
+            return await this._queryCreator(dbContextProvider, @async);
         }
 
         public void Reset()
@@ -103,20 +103,20 @@ namespace Chloe.Sharding
         DataQueryModel _queryModel;
         Func<IQuery, bool, Task<(IFeatureEnumerable<TResult> Query, bool IsLazyQuery)>> _executor;
 
-        public TableQueryEnumerator(IShareDbContextPool dbContextPool, DataQueryModel queryModel, CancellationToken cancellationToken = default) : this(dbContextPool, null, queryModel, cancellationToken)
+        public TableQueryEnumerator(ISharedDbContextProviderPool dbContextProviderPool, DataQueryModel queryModel, CancellationToken cancellationToken = default) : this(dbContextProviderPool, null, queryModel, cancellationToken)
         {
 
         }
-        public TableQueryEnumerator(IShareDbContextPool dbContextPool, Func<IQuery, bool, Task<(IFeatureEnumerable<TResult> Query, bool IsLazyQuery)>> executor, DataQueryModel queryModel, CancellationToken cancellationToken = default) : base(dbContextPool, cancellationToken)
+        public TableQueryEnumerator(ISharedDbContextProviderPool dbContextProviderPool, Func<IQuery, bool, Task<(IFeatureEnumerable<TResult> Query, bool IsLazyQuery)>> executor, DataQueryModel queryModel, CancellationToken cancellationToken = default) : base(dbContextProviderPool, cancellationToken)
         {
             this._executor = executor;
             this._queryModel = queryModel;
         }
 
 
-        protected sealed override async Task<(IFeatureEnumerable<TResult> Query, bool IsLazyQuery)> CreateQuery(IDbContext dbContext, bool @async)
+        protected sealed override async Task<(IFeatureEnumerable<TResult> Query, bool IsLazyQuery)> CreateQuery(IDbContextProvider dbContextProvider, bool @async)
         {
-            var q = ShardingHelpers.MakeQuery(dbContext, this._queryModel);
+            var q = ShardingHelpers.MakeQuery(dbContextProvider, this._queryModel);
             var result = await this.CreateQuery(q, @async);
 
             return result;

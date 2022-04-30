@@ -1,4 +1,4 @@
-﻿namespace Chloe.Sharding
+﻿namespace Chloe.Routing
 {
     public interface IPhysicTable
     {

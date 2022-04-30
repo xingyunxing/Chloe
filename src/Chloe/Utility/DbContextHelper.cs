@@ -160,5 +160,19 @@ namespace Chloe
 
             return q.FirstOrDefault();
         }
+
+        public static async Task<TEntity> QueryByKey<TEntity>(IDbContextFacade dbContext, object key, string table, LockType @lock, bool tracking, bool @async)
+        {
+            Expression<Func<TEntity, bool>> condition = PrimaryKeyHelper.BuildCondition<TEntity>(key);
+            var q = dbContext.Query<TEntity>(table, @lock).Where(condition);
+
+            if (tracking)
+                q = q.AsTracking();
+
+            if (@async)
+                return await q.FirstOrDefaultAsync();
+
+            return q.FirstOrDefault();
+        }
     }
 }

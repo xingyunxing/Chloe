@@ -1,5 +1,6 @@
 ﻿using Chloe.Descriptors;
 using Chloe.Reflection;
+using Chloe.Routing;
 using System.Linq.Expressions;
 using System.Threading;
 
@@ -104,14 +105,14 @@ namespace Chloe.Sharding.Queries
                 {
                     int count = group.Count();
 
-                    ShareDbContextPool dbContextPool = ShardingHelpers.CreateDbContextPool(this.QueryPlan.ShardingContext, group.First().QueryModel.Table.DataSource, count);
-                    queryContext.AddManagedResource(dbContextPool);
+                    SharedDbContextProviderPool dbContextProviderPool = ShardingHelpers.CreateDbContextProviderPool(this.QueryPlan.ShardingContext, group.First().QueryModel.Table.DataSource, count);
+                    queryContext.AddManagedResource(dbContextProviderPool);
 
-                    bool lazyQuery = dbContextPool.Size >= count;
+                    bool lazyQuery = dbContextProviderPool.Size >= count;
 
                     foreach (var dataQuery in group)
                     {
-                        ShardingTableDataQuery shardingQuery = new ShardingTableDataQuery(queryContext, dbContextPool, dataQuery.QueryModel, lazyQuery);
+                        ShardingTableDataQuery shardingQuery = new ShardingTableDataQuery(queryContext, dbContextProviderPool, dataQuery.QueryModel, lazyQuery);
                         dataQuery.Query = shardingQuery;
                     }
                 }

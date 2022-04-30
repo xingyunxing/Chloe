@@ -1,5 +1,6 @@
 ﻿using Chloe.Query;
 using Chloe.Query.QueryExpressions;
+using Chloe.Routing;
 using Chloe.Sharding.Enumerables;
 using Chloe.Sharding.Visitors;
 
@@ -124,15 +125,15 @@ namespace Chloe.Sharding.QueryState
 
         public ShardingQueryPlan CreateQueryPlan()
         {
-            IShardingContext shardingContext = this.Context.DbContext.CreateShardingContext(this.QueryModel.RootEntityType);
+            IShardingContext shardingContext = this.Context.DbContextProvider.CreateShardingContext(this.QueryModel.RootEntityType);
             List<RouteTable> routeTables = ShardingTableDiscoverer.GetRouteTables(this.QueryModel.GetFinalConditions(), shardingContext).ToList();
             List<Ordering> orderings = this.QueryModel.Orderings;
 
             //对物理表重排
-            SortResult sortResult;
+            SortResultFacade sortResult;
             if (orderings.Count == 0)
             {
-                sortResult = new SortResult() { IsOrdered = true, Tables = routeTables };
+                sortResult = new SortResultFacade() { IsOrdered = true, Tables = routeTables };
             }
             else
             {

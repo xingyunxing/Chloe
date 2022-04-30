@@ -15,14 +15,14 @@ namespace Chloe.Sharding.Queries
     class ShardingTableDataQuery : FeatureEnumerable<object>
     {
         IParallelQueryContext QueryContext;
-        IShareDbContextPool DbContextPool;
+        ISharedDbContextProviderPool DbContextProviderPool;
         DataQueryModel QueryModel;
         bool LazyQuery;
 
-        public ShardingTableDataQuery(IParallelQueryContext queryContext, IShareDbContextPool dbContextPool, DataQueryModel queryModel, bool lazyQuery)
+        public ShardingTableDataQuery(IParallelQueryContext queryContext, ISharedDbContextProviderPool dbContextProviderPool, DataQueryModel queryModel, bool lazyQuery)
         {
             this.QueryContext = queryContext;
-            this.DbContextPool = dbContextPool;
+            this.DbContextProviderPool = dbContextProviderPool;
             this.QueryModel = queryModel;
             this.LazyQuery = lazyQuery;
         }
@@ -36,7 +36,7 @@ namespace Chloe.Sharding.Queries
         {
             ShardingTableDataQuery _enumerable;
 
-            public Enumerator(ShardingTableDataQuery enumerable, CancellationToken cancellationToken) : base(enumerable.DbContextPool, enumerable.QueryModel, cancellationToken)
+            public Enumerator(ShardingTableDataQuery enumerable, CancellationToken cancellationToken) : base(enumerable.DbContextProviderPool, enumerable.QueryModel, cancellationToken)
             {
                 this._enumerable = enumerable;
             }

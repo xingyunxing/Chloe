@@ -1,14 +1,17 @@
-﻿using System.Linq.Expressions;
+﻿using Chloe.Query.QueryExpressions;
+using System.Linq.Expressions;
 
 namespace Chloe.Sharding
 {
     class ShardingGroupingQuery<T> : IGroupingQuery<T>
     {
-        protected IGroupingQuery<T> _query;
+        protected ShardingQuery<T> _fromQuery;
+        List<LambdaExpression> _groupKeySelectors;
 
-        public ShardingGroupingQuery(IGroupingQuery<T> query)
+        public ShardingGroupingQuery(ShardingQuery<T> fromQuery, LambdaExpression keySelector)
         {
-            this._query = query;
+            this._fromQuery = fromQuery;
+            this._groupKeySelectors = new List<LambdaExpression>(1) { keySelector };
         }
 
         public IGroupingQuery<T> AndBy<K>(Expression<Func<T, K>> keySelector)
@@ -29,7 +32,10 @@ namespace Chloe.Sharding
         }
         public IQuery<TResult> Select<TResult>(Expression<Func<T, TResult>> selector)
         {
-            return new ShardingQuery<TResult>(this._query.Select(selector));
+            var e = new GroupingQueryExpression(typeof(TResult), this._fromQuery.QueryExpression, selector);
+            e.GroupKeySelectors.AppendRange(this._groupKeySelectors);
+
+            return new ShardingQuery<TResult>(e);
         }
     }
 }

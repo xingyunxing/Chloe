@@ -21,10 +21,6 @@ namespace Chloe.Query
         {
             Type entityType = typeof(T);
             RootQueryExpression ret = new RootQueryExpression(entityType, dbContext, explicitTable, @lock);
-            List<LambdaExpression> filters = dbContext.QueryFilters.FindValue(entityType);
-            if (filters != null)
-                ret.ContextFilters.AddRange(filters);
-
             return ret;
         }
         public Query(IDbContextInternal dbContext, string explicitTable, LockType @lock) : this(CreateRootQueryExpression(dbContext, explicitTable, @lock))
