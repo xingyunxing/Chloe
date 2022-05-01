@@ -2,7 +2,7 @@
 {
     public class ShardingConfigContainer
     {
-        static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, IShardingConfig> InstanceCache = new System.Collections.Concurrent.ConcurrentDictionary<Type, IShardingConfig>();
+        static readonly Dictionary<Type, IShardingConfig> InstanceCache = new Dictionary<Type, IShardingConfig>();
 
         public static IShardingConfig Get(Type entityType)
         {
@@ -17,7 +17,10 @@
 
         public static void Add(IShardingConfig config)
         {
-            InstanceCache[config.EntityType] = config;
+            lock (InstanceCache)
+            {
+                InstanceCache[config.EntityType] = config;
+            }
         }
     }
 }

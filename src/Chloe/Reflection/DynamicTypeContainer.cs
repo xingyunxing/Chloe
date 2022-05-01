@@ -6,7 +6,7 @@ namespace Chloe.Reflection
 {
     public class DynamicTypeContainer
     {
-        static readonly System.Collections.Concurrent.ConcurrentDictionary<string, DynamicType> Cache = new System.Collections.Concurrent.ConcurrentDictionary<string, DynamicType>();
+        static readonly Dictionary<string, DynamicType> Cache = new Dictionary<string, DynamicType>();
         public static DynamicType Get(List<Type> typeProperties)
         {
             string key = GenKey(typeProperties);
@@ -32,7 +32,7 @@ namespace Chloe.Reflection
                         dynamicType = new DynamicType() { Type = type };
                         dynamicType.Properties = dynamicTypeProperties.AsReadOnly();
 
-                        Cache.GetOrAdd(key, dynamicType);
+                        Cache.Add(key, dynamicType);
                     }
                 }
             }

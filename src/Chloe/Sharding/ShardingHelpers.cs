@@ -68,7 +68,6 @@ namespace Chloe.Sharding
         public static IEnumerable<(IPhysicDataSource DataSource, List<IPhysicTable> Tables)> GroupTables(IEnumerable<IPhysicTable> tables)
         {
             //TODO 对表排序
-            //var tables = routeTables.Select(a => (IPhysicTable)new PhysicTable(a));
             var groupedTables = tables.GroupBy(a => a.DataSource.Name).Select(a => (a.First().DataSource, a.ToList()));
             return groupedTables;
 

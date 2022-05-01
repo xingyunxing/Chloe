@@ -47,12 +47,12 @@ namespace Chloe
             }
 
             bool isShardingType = this.IsShardingType(entityType);
-            if (!isShardingType)
+            if (isShardingType)
             {
-                return this.DefaultDbContextProvider;
+                return this.ShardingDbContextProvider;
             }
 
-            return this.ShardingDbContextProvider;
+            return this.DefaultDbContextProvider;
         }
         IDbContextProvider GetDbContextProvider<TEntity>()
         {

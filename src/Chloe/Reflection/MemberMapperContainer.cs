@@ -4,18 +4,18 @@ namespace Chloe.Reflection
 {
     public class MemberMapperContainer
     {
-        static readonly System.Collections.Concurrent.ConcurrentDictionary<MemberInfo, MemberMapper> Cache = new System.Collections.Concurrent.ConcurrentDictionary<MemberInfo, MemberMapper>();
+        static readonly Dictionary<MemberInfo, MemberMapper> Cache = new Dictionary<MemberInfo, MemberMapper>();
         public static MemberMapper Get(MemberInfo memberInfo)
         {
             MemberMapper mapper = null;
             if (!Cache.TryGetValue(memberInfo, out mapper))
             {
-                lock (memberInfo)
+                lock (Cache)
                 {
                     if (!Cache.TryGetValue(memberInfo, out mapper))
                     {
                         mapper = DefaultDelegateFactory.Instance.CreateMapper(memberInfo);
-                        Cache.GetOrAdd(memberInfo, mapper);
+                        Cache.Add(memberInfo, mapper);
                     }
                 }
             }
