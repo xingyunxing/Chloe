@@ -1,4 +1,5 @@
 ﻿using Chloe.Infrastructure;
+using Chloe.RDBMS;
 using System.Data;
 
 namespace Chloe.MySql
@@ -11,6 +12,16 @@ namespace Chloe.MySql
         }
         public MySqlContext(Func<IDbConnection> dbConnectionFactory) : this(new DbConnectionFactory(dbConnectionFactory))
         {
+        }
+
+        /// <summary>
+        /// 设置方法解析器。
+        /// </summary>
+        /// <param name="methodName"></param>
+        /// <param name="handler"></param>
+        public static void SetMethodHandler(string methodName, IMethodHandler handler)
+        {
+            MySqlContextProvider.SetMethodHandler(methodName, handler);
         }
     }
 

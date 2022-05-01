@@ -521,7 +521,18 @@ namespace ChloeDemo.Sharding
             IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
-            var results = await q.Where(a => a.Amount > 0).GroupBy(a => a.CreateMonth).Select(a => new { a.CreateMonth, Count = Sql.Count(), Sum = Sql.Sum(a.Amount), AmountCount = Sql.Count(a.Amount), Avg = Sql.Average(a.Amount), MaxAmount = Sql.Max(a.Amount), MinAmount = Sql.Min(a.Amount) }).ToListAsync();
+            var results = await q.Where(a => a.Amount > 0)
+                .GroupBy(a => a.CreateMonth)
+                .Select(a => new
+                {
+                    a.CreateMonth,
+                    Count = Sql.Count(),
+                    Sum = Sql.Sum(a.Amount),
+                    AmountCount = Sql.Count(a.Amount),
+                    Avg = Sql.Average(a.Amount),
+                    MaxAmount = Sql.Max(a.Amount),
+                    MinAmount = Sql.Min(a.Amount)
+                }).ToListAsync();
 
             Debug.Assert(results.Count == 12);
 

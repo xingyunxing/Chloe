@@ -1,4 +1,5 @@
 ﻿using Chloe.Infrastructure;
+using Chloe.RDBMS;
 using System.Data;
 
 namespace Chloe.Oracle
@@ -11,6 +12,31 @@ namespace Chloe.Oracle
         }
         public OracleContext(Func<IDbConnection> dbConnectionFactory) : this(new DbConnectionFactory(dbConnectionFactory))
         {
+        }
+
+        /// <summary>
+        /// 是否将 sql 中的表名/字段名转成大写。默认为 true。
+        /// </summary>
+        public bool ConvertToUppercase
+        {
+            get
+            {
+                return (this.DefaultDbContextProvider as OracleContextProvider).ConvertToUppercase;
+            }
+            set
+            {
+                (this.DefaultDbContextProvider as OracleContextProvider).ConvertToUppercase = value;
+            }
+        }
+
+        /// <summary>
+        /// 设置方法解析器。
+        /// </summary>
+        /// <param name="methodName"></param>
+        /// <param name="handler"></param>
+        public static void SetMethodHandler(string methodName, IMethodHandler handler)
+        {
+            OracleContextProvider.SetMethodHandler(methodName, handler);
         }
     }
 

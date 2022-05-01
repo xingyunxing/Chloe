@@ -1,4 +1,5 @@
 ﻿using Chloe.Infrastructure;
+using Chloe.RDBMS;
 using System.Data;
 
 namespace Chloe.SQLite
@@ -18,6 +19,16 @@ namespace Chloe.SQLite
         }
         public SQLiteContext(Func<IDbConnection> dbConnectionFactory, bool concurrencyMode) : this(new DbConnectionFactory(dbConnectionFactory), concurrencyMode)
         {
+        }
+
+        /// <summary>
+        /// 设置方法解析器。
+        /// </summary>
+        /// <param name="methodName"></param>
+        /// <param name="handler"></param>
+        public static void SetMethodHandler(string methodName, IMethodHandler handler)
+        {
+            SQLiteContextProvider.SetMethodHandler(methodName, handler);
         }
     }
 
