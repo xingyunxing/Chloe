@@ -17,13 +17,13 @@ namespace Chloe.Query
         Type IQuery.ElementType { get { return typeof(T); } }
         public override QueryExpression QueryExpression { get { return this._expression; } }
 
-        static RootQueryExpression CreateRootQueryExpression(IDbContextInternal dbContext, string explicitTable, LockType @lock)
+        static RootQueryExpression CreateRootQueryExpression(DbContextProvider dbContextProvider, string explicitTable, LockType @lock)
         {
             Type entityType = typeof(T);
-            RootQueryExpression ret = new RootQueryExpression(entityType, dbContext, explicitTable, @lock);
+            RootQueryExpression ret = new RootQueryExpression(entityType, dbContextProvider, explicitTable, @lock);
             return ret;
         }
-        public Query(IDbContextInternal dbContext, string explicitTable, LockType @lock) : this(CreateRootQueryExpression(dbContext, explicitTable, @lock))
+        public Query(DbContextProvider dbContextProvider, string explicitTable, LockType @lock) : this(CreateRootQueryExpression(dbContextProvider, explicitTable, @lock))
         {
         }
         public Query(QueryExpression exp)
@@ -230,8 +230,8 @@ namespace Chloe.Query
 
         public IJoinQuery<T, TOther> Join<TOther>(JoinType joinType, Expression<Func<T, TOther, bool>> on)
         {
-            IDbContext dbContext = this.QueryExpression.GetRootDbContext();
-            return this.Join<TOther>(dbContext.Query<TOther>(), joinType, on);
+            IDbContextProvider dbContextProvider = this.QueryExpression.GetRootDbContextProvider();
+            return this.Join<TOther>(dbContextProvider.Query<TOther>(), joinType, on);
         }
         public IJoinQuery<T, TOther> Join<TOther>(IQuery<TOther> q, JoinType joinType, Expression<Func<T, TOther, bool>> on)
         {
@@ -242,23 +242,23 @@ namespace Chloe.Query
 
         public IJoinQuery<T, TOther> InnerJoin<TOther>(Expression<Func<T, TOther, bool>> on)
         {
-            IDbContext dbContext = this.QueryExpression.GetRootDbContext();
-            return this.InnerJoin<TOther>(dbContext.Query<TOther>(), on);
+            IDbContextProvider dbContextProvider = this.QueryExpression.GetRootDbContextProvider();
+            return this.InnerJoin<TOther>(dbContextProvider.Query<TOther>(), on);
         }
         public IJoinQuery<T, TOther> LeftJoin<TOther>(Expression<Func<T, TOther, bool>> on)
         {
-            IDbContext dbContext = this.QueryExpression.GetRootDbContext();
-            return this.LeftJoin<TOther>(dbContext.Query<TOther>(), on);
+            IDbContextProvider dbContextProvider = this.QueryExpression.GetRootDbContextProvider();
+            return this.LeftJoin<TOther>(dbContextProvider.Query<TOther>(), on);
         }
         public IJoinQuery<T, TOther> RightJoin<TOther>(Expression<Func<T, TOther, bool>> on)
         {
-            IDbContext dbContext = this.QueryExpression.GetRootDbContext();
-            return this.RightJoin<TOther>(dbContext.Query<TOther>(), on);
+            IDbContextProvider dbContextProvider = this.QueryExpression.GetRootDbContextProvider();
+            return this.RightJoin<TOther>(dbContextProvider.Query<TOther>(), on);
         }
         public IJoinQuery<T, TOther> FullJoin<TOther>(Expression<Func<T, TOther, bool>> on)
         {
-            IDbContext dbContext = this.QueryExpression.GetRootDbContext();
-            return this.FullJoin<TOther>(dbContext.Query<TOther>(), on);
+            IDbContextProvider dbContextProvider = this.QueryExpression.GetRootDbContextProvider();
+            return this.FullJoin<TOther>(dbContextProvider.Query<TOther>(), on);
         }
 
         public IJoinQuery<T, TOther> InnerJoin<TOther>(IQuery<TOther> q, Expression<Func<T, TOther, bool>> on)

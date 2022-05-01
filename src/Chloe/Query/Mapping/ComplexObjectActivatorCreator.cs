@@ -43,16 +43,16 @@ namespace Chloe.Query.Mapping
         {
             return this.CreateObjectActivator(null);
         }
-        public IObjectActivator CreateObjectActivator(IDbContext dbContext)
+        public IObjectActivator CreateObjectActivator(IDbContextProvider dbContextProvider)
         {
             InstanceCreator instanceCreator = this.ConstructorDescriptor.GetInstanceCreator();
 
-            List<IObjectActivator> argumentActivators = this.CreateArgumentActivators(dbContext);
-            List<IMemberBinder> memberBinders = this.CreateMemberBinders(dbContext);
+            List<IObjectActivator> argumentActivators = this.CreateArgumentActivators(dbContextProvider);
+            List<IMemberBinder> memberBinders = this.CreateMemberBinders(dbContextProvider);
 
             IObjectActivator objectActivator;
-            if (dbContext != null)
-                objectActivator = new ObjectActivatorWithTracking(instanceCreator, argumentActivators, memberBinders, this.CheckNullOrdinal, dbContext);
+            if (dbContextProvider != null)
+                objectActivator = new ObjectActivatorWithTracking(instanceCreator, argumentActivators, memberBinders, this.CheckNullOrdinal, dbContextProvider);
             else
                 objectActivator = new ComplexObjectActivator(instanceCreator, argumentActivators, memberBinders, this.CheckNullOrdinal);
 
@@ -66,13 +66,13 @@ namespace Chloe.Query.Mapping
                 }
 
                 IEntityKey entityKey = new EntityKey(keys);
-                objectActivator = new RootEntityActivator(objectActivator, this.CreateFitter(dbContext), entityKey);
+                objectActivator = new RootEntityActivator(objectActivator, this.CreateFitter(dbContextProvider), entityKey);
             }
 
             return objectActivator;
         }
 
-        List<IMemberBinder> CreateMemberBinders(IDbContext dbContext)
+        List<IMemberBinder> CreateMemberBinders(IDbContextProvider dbContextProvider)
         {
             ObjectMemberMapper mapper = this.ConstructorDescriptor.GetEntityMemberMapper();
             List<IMemberBinder> memberBinders = new List<IMemberBinder>(this.PrimitiveMembers.Count + this.ComplexMembers.Count + this.CollectionMembers.Count);
@@ -86,7 +86,7 @@ namespace Chloe.Query.Mapping
             foreach (var kv in this.ComplexMembers)
             {
                 MemberSetter setter = mapper.GetMemberSetter(kv.Key);
-                IObjectActivator memberActivtor = kv.Value.CreateObjectActivator(dbContext);
+                IObjectActivator memberActivtor = kv.Value.CreateObjectActivator(dbContextProvider);
                 ComplexMemberBinder binder = new ComplexMemberBinder(setter, memberActivtor);
                 memberBinders.Add(binder);
             }
@@ -94,14 +94,14 @@ namespace Chloe.Query.Mapping
             foreach (var kv in this.CollectionMembers)
             {
                 MemberSetter setter = mapper.GetMemberSetter(kv.Key);
-                IObjectActivator memberActivtor = kv.Value.CreateObjectActivator(dbContext);
+                IObjectActivator memberActivtor = kv.Value.CreateObjectActivator(dbContextProvider);
                 CollectionMemberBinder binder = new CollectionMemberBinder(setter, memberActivtor);
                 memberBinders.Add(binder);
             }
 
             return memberBinders;
         }
-        List<IObjectActivator> CreateArgumentActivators(IDbContext dbContext)
+        List<IObjectActivator> CreateArgumentActivators(IDbContextProvider dbContextProvider)
         {
             ParameterInfo[] parameters = this.ConstructorDescriptor.ConstructorInfo.GetParameters();
             List<IObjectActivator> argumentActivators = new List<IObjectActivator>(parameters.Length);
@@ -116,7 +116,7 @@ namespace Chloe.Query.Mapping
                 }
                 else if (this.ConstructorComplexParameters.TryGetValue(parameter, out IObjectActivatorCreator argumentActivatorCreator))
                 {
-                    argumentActivator = argumentActivatorCreator.CreateObjectActivator(dbContext);
+                    argumentActivator = argumentActivatorCreator.CreateObjectActivator(dbContextProvider);
                 }
                 else
                 {
@@ -129,13 +129,13 @@ namespace Chloe.Query.Mapping
             return argumentActivators;
         }
 
-        public IFitter CreateFitter(IDbContext dbContext)
+        public IFitter CreateFitter(IDbContextProvider dbContextProvider)
         {
             List<Tuple<PropertyDescriptor, IFitter>> includings = new List<Tuple<PropertyDescriptor, IFitter>>();
             TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(this.ConstructorDescriptor.ConstructorInfo.DeclaringType);
             foreach (var item in this.ComplexMembers.Concat(this.CollectionMembers))
             {
-                IFitter propFitter = item.Value.CreateFitter(dbContext);
+                IFitter propFitter = item.Value.CreateFitter(dbContextProvider);
                 includings.Add(new Tuple<PropertyDescriptor, IFitter>(typeDescriptor.GetPropertyDescriptor(item.Key), propFitter));
             }
 

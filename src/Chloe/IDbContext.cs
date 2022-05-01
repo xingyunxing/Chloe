@@ -10,6 +10,8 @@ namespace Chloe
     {
         IDbSession Session { get; }
 
+        void TrackEntity(object entity);
+
         /// <summary>
         /// 针对当前上下文设置过滤器。
         /// </summary>
@@ -175,7 +177,5 @@ namespace Chloe
         void UseTransaction(Action action, IsolationLevel il);
         Task UseTransaction(Func<Task> func);
         Task UseTransaction(Func<Task> func, IsolationLevel il);
-
-        void TrackEntity(object entity);
     }
 }

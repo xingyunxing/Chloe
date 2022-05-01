@@ -15,12 +15,12 @@ namespace Chloe.Query.Internals
 {
     class InternalSqlQuery<T> : IEnumerable<T>, IAsyncEnumerable<T>
     {
-        DbContext _dbContext;
+        DbContextProvider _dbContext;
         string _sql;
         CommandType _cmdType;
         DbParam[] _parameters;
 
-        public InternalSqlQuery(DbContext dbContext, string sql, CommandType cmdType, DbParam[] parameters)
+        public InternalSqlQuery(DbContextProvider dbContext, string sql, CommandType cmdType, DbParam[] parameters)
         {
             this._dbContext = dbContext;
             this._sql = sql;

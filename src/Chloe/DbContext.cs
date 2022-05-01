@@ -1,678 +1,197 @@
-﻿using Chloe.Core;
-using Chloe.Core.Visitors;
-using Chloe.Data;
-using Chloe.DbExpressions;
-using Chloe.Descriptors;
-using Chloe.Exceptions;
-using Chloe.Infrastructure;
-using Chloe.Query;
-using Chloe.Query.Internals;
-using Chloe.Threading.Tasks;
-using Chloe.Utility;
+﻿using Chloe.Sharding;
 using System.Data;
 using System.Linq.Expressions;
-using System.Reflection;
 
 namespace Chloe
 {
-    public abstract partial class DbContext : IDbContext, IDbContextInternal, IDisposable
+    public class DbContext : DbContextBase, IDbContext
     {
-        bool _disposed = false;
-        InnerAdoSession _adoSession;
-        DbSession _session;
-        Dictionary<Type, List<LambdaExpression>> _queryFilters = new Dictionary<Type, List<LambdaExpression>>();
+        public const string DefaultProviderDataSourceName = "_default_";
 
-        TrackingEntityContainer _trackingEntityContainer;
-        TrackingEntityContainer TrackingEntityContainer
+        IDbSession _session;
+
+        public DbContext() : this(null)
         {
-            get
+
+        }
+
+        public DbContext(IDbContextProviderFactory dbContextProviderFactory)
+        {
+            this.DbContextProviderFactory = dbContextProviderFactory;
+            this.Butler = new DbContextButler(this);
+            this._session = new DbSessionImpl(this);
+        }
+
+        /// <summary>
+        /// 是否启用分片功能。
+        /// </summary>
+        public bool ShardingEnabled { get; set; } = true;
+        public ShardingOptions ShardingOptions { get; private set; } = new ShardingOptions();
+
+        public IDbContextProviderFactory DbContextProviderFactory { get; private set; }
+        internal DbContextButler Butler { get; private set; }
+        public override IDbSession Session { get { return this._session; } }
+        public IDbContextProvider DefaultDbContextProvider { get { return this.Butler.GetDefaultDbContextProvider(); } }
+        internal IDbContextProvider ShardingDbContextProvider { get { return this.Butler.GetShardingDbContextProvider(); } }
+
+        bool IsShardingType(Type entityType)
+        {
+            IShardingConfig shardingConfig = ShardingConfigContainer.Find(entityType);
+            return shardingConfig != null;
+        }
+        IDbContextProvider GetDbContextProvider(Type entityType)
+        {
+            if (!this.ShardingEnabled)
             {
-                if (this._trackingEntityContainer == null)
-                {
-                    this._trackingEntityContainer = new TrackingEntityContainer();
-                }
-
-                return this._trackingEntityContainer;
-            }
-        }
-
-        internal Dictionary<Type, List<LambdaExpression>> QueryFilters { get { return this._queryFilters; } }
-        internal InnerAdoSession AdoSession
-        {
-            get
-            {
-                this.CheckDisposed();
-                if (this._adoSession == null)
-                    this._adoSession = new InnerAdoSession(this.DatabaseProvider.CreateConnection());
-                return this._adoSession;
-            }
-        }
-        public abstract IDatabaseProvider DatabaseProvider { get; }
-
-        protected DbContext()
-        {
-            this._session = new DbSession(this);
-        }
-
-        public IDbSession Session { get { return this._session; } }
-
-        public void HasQueryFilter<TEntity>(Expression<Func<TEntity, bool>> filter)
-        {
-            Type entityType = typeof(TEntity);
-            this.HasQueryFilter(entityType, filter);
-        }
-        public void HasQueryFilter(Type entityType, LambdaExpression filter)
-        {
-            PublicHelper.CheckNull(filter, nameof(filter));
-            List<LambdaExpression> filters;
-            if (!this._queryFilters.TryGetValue(entityType, out filters))
-            {
-                filters = new List<LambdaExpression>(1);
-                this._queryFilters.Add(entityType, filters);
+                return this.DefaultDbContextProvider;
             }
 
-            filters.Add(filter);
+            bool isShardingType = this.IsShardingType(entityType);
+            if (!isShardingType)
+            {
+                return this.DefaultDbContextProvider;
+            }
+
+            return this.ShardingDbContextProvider;
+        }
+        IDbContextProvider GetDbContextProvider<TEntity>()
+        {
+            return this.GetDbContextProvider(typeof(TEntity));
         }
 
-        public virtual IQuery<TEntity> Query<TEntity>()
+
+        protected override void Dispose(bool disposing)
         {
-            return this.Query<TEntity>(null);
-        }
-        public virtual IQuery<TEntity> Query<TEntity>(string table)
-        {
-            return this.Query<TEntity>(table, LockType.Unspecified);
-        }
-        public virtual IQuery<TEntity> Query<TEntity>(LockType @lock)
-        {
-            return this.Query<TEntity>(null, @lock);
-        }
-        public virtual IQuery<TEntity> Query<TEntity>(string table, LockType @lock)
-        {
-            return new Query<TEntity>(this, table, @lock);
+            this.Butler.Dispose();
         }
 
-        public virtual TEntity QueryByKey<TEntity>(object key)
+        public override void TrackEntity(object entity)
         {
-            return this.QueryByKey<TEntity>(key, false);
-        }
-        public virtual TEntity QueryByKey<TEntity>(object key, bool tracking)
-        {
-            return this.QueryByKey<TEntity>(key, null, tracking);
-        }
-        public virtual TEntity QueryByKey<TEntity>(object key, string table)
-        {
-            return this.QueryByKey<TEntity>(key, table, false);
-        }
-        public virtual TEntity QueryByKey<TEntity>(object key, string table, bool tracking)
-        {
-            return this.QueryByKey<TEntity>(key, table, LockType.Unspecified, tracking);
-        }
-        public virtual TEntity QueryByKey<TEntity>(object key, string table, LockType @lock, bool tracking)
-        {
-            return this.QueryByKey<TEntity>(key, table, @lock, tracking, false).GetResult();
+            PublicHelper.CheckNull(entity);
+            var entityType = entity.GetType();
+            this.GetDbContextProvider(entityType).TrackEntity(entity);
         }
 
-        public virtual Task<TEntity> QueryByKeyAsync<TEntity>(object key)
+        public override void HasQueryFilter<TEntity>(Expression<Func<TEntity, bool>> filter)
         {
-            return this.QueryByKeyAsync<TEntity>(key, false);
+            this.HasQueryFilter(typeof(TEntity), filter);
         }
-        public virtual Task<TEntity> QueryByKeyAsync<TEntity>(object key, bool tracking)
+        public override void HasQueryFilter(Type entityType, LambdaExpression filter)
         {
-            return this.QueryByKeyAsync<TEntity>(key, null, tracking);
-        }
-        public virtual Task<TEntity> QueryByKeyAsync<TEntity>(object key, string table)
-        {
-            return this.QueryByKeyAsync<TEntity>(key, table, false);
-        }
-        public virtual Task<TEntity> QueryByKeyAsync<TEntity>(object key, string table, bool tracking)
-        {
-            return this.QueryByKeyAsync<TEntity>(key, table, LockType.Unspecified, tracking);
-        }
-        public virtual Task<TEntity> QueryByKeyAsync<TEntity>(object key, string table, LockType @lock, bool tracking)
-        {
-            return this.QueryByKey<TEntity>(key, table, @lock, tracking, true);
-        }
-        protected virtual Task<TEntity> QueryByKey<TEntity>(object key, string table, LockType @lock, bool tracking, bool @async)
-        {
-            return DbContextHelper.QueryByKey<TEntity>(this, key, table, @lock, tracking, @async);
+            this.Butler.HasQueryFilter(entityType, filter);
         }
 
-        public virtual IJoinQuery<T1, T2> JoinQuery<T1, T2>(Expression<Func<T1, T2, object[]>> joinInfo)
+        public override IQuery<TEntity> Query<TEntity>(string table, LockType @lock)
         {
-            KeyValuePairList<JoinType, Expression> joinInfos = ResolveJoinInfo(joinInfo);
-            var ret = this.Query<T1>()
-                .Join<T2>(joinInfos[0].Key, (Expression<Func<T1, T2, bool>>)joinInfos[0].Value);
-
-            return ret;
-        }
-        public virtual IJoinQuery<T1, T2, T3> JoinQuery<T1, T2, T3>(Expression<Func<T1, T2, T3, object[]>> joinInfo)
-        {
-            KeyValuePairList<JoinType, Expression> joinInfos = ResolveJoinInfo(joinInfo);
-            var ret = this.Query<T1>()
-                .Join<T2>(joinInfos[0].Key, (Expression<Func<T1, T2, bool>>)joinInfos[0].Value)
-                .Join<T3>(joinInfos[1].Key, (Expression<Func<T1, T2, T3, bool>>)joinInfos[1].Value);
-
-            return ret;
-        }
-        public virtual IJoinQuery<T1, T2, T3, T4> JoinQuery<T1, T2, T3, T4>(Expression<Func<T1, T2, T3, T4, object[]>> joinInfo)
-        {
-            KeyValuePairList<JoinType, Expression> joinInfos = ResolveJoinInfo(joinInfo);
-            var ret = this.Query<T1>()
-                .Join<T2>(joinInfos[0].Key, (Expression<Func<T1, T2, bool>>)joinInfos[0].Value)
-                .Join<T3>(joinInfos[1].Key, (Expression<Func<T1, T2, T3, bool>>)joinInfos[1].Value)
-                .Join<T4>(joinInfos[2].Key, (Expression<Func<T1, T2, T3, T4, bool>>)joinInfos[2].Value);
-
-            return ret;
-        }
-        public virtual IJoinQuery<T1, T2, T3, T4, T5> JoinQuery<T1, T2, T3, T4, T5>(Expression<Func<T1, T2, T3, T4, T5, object[]>> joinInfo)
-        {
-            KeyValuePairList<JoinType, Expression> joinInfos = ResolveJoinInfo(joinInfo);
-            var ret = this.Query<T1>()
-                .Join<T2>(joinInfos[0].Key, (Expression<Func<T1, T2, bool>>)joinInfos[0].Value)
-                .Join<T3>(joinInfos[1].Key, (Expression<Func<T1, T2, T3, bool>>)joinInfos[1].Value)
-                .Join<T4>(joinInfos[2].Key, (Expression<Func<T1, T2, T3, T4, bool>>)joinInfos[2].Value)
-                .Join<T5>(joinInfos[3].Key, (Expression<Func<T1, T2, T3, T4, T5, bool>>)joinInfos[3].Value);
-
-            return ret;
+            return this.GetDbContextProvider<TEntity>().Query<TEntity>(table, @lock);
         }
 
-        public virtual List<T> SqlQuery<T>(string sql, params DbParam[] parameters)
+        public override List<T> SqlQuery<T>(string sql, CommandType cmdType, params DbParam[] parameters)
         {
-            return this.SqlQuery<T>(sql, CommandType.Text, parameters);
+            return this.DefaultDbContextProvider.SqlQuery<T>(sql, cmdType, parameters);
         }
-        public virtual List<T> SqlQuery<T>(string sql, CommandType cmdType, params DbParam[] parameters)
-        {
-            PublicHelper.CheckNull(sql, "sql");
-            return new InternalSqlQuery<T>(this, sql, cmdType, parameters).AsIEnumerable().ToList();
-        }
-        public virtual Task<List<T>> SqlQueryAsync<T>(string sql, params DbParam[] parameters)
-        {
-            return this.SqlQueryAsync<T>(sql, CommandType.Text, parameters);
-        }
-        public virtual Task<List<T>> SqlQueryAsync<T>(string sql, CommandType cmdType, params DbParam[] parameters)
-        {
-            PublicHelper.CheckNull(sql, "sql");
-            return new InternalSqlQuery<T>(this, sql, cmdType, parameters).AsIAsyncEnumerable().ToListAsync().AsTask();
-        }
-
-        public List<T> SqlQuery<T>(string sql, object parameter)
-        {
-            /*
-             * Usage:
-             * dbContext.SqlQuery<User>("select * from Users where Id=@Id", new { Id = 1 });
-             */
-
-            return this.SqlQuery<T>(sql, PublicHelper.BuildParams(this, parameter));
-        }
-        public List<T> SqlQuery<T>(string sql, CommandType cmdType, object parameter)
+        public override List<T> SqlQuery<T>(string sql, CommandType cmdType, object parameter)
         {
             /*
              * Usage:
              * dbContext.SqlQuery<User>("select * from Users where Id=@Id", CommandType.Text, new { Id = 1 });
              */
 
-            return this.SqlQuery<T>(sql, cmdType, PublicHelper.BuildParams(this, parameter));
+            return this.DefaultDbContextProvider.SqlQuery<T>(sql, cmdType, parameter);
         }
-        public Task<List<T>> SqlQueryAsync<T>(string sql, object parameter)
+        public override Task<List<T>> SqlQueryAsync<T>(string sql, CommandType cmdType, params DbParam[] parameters)
         {
-            return this.SqlQueryAsync<T>(sql, PublicHelper.BuildParams(this, parameter));
+            return this.DefaultDbContextProvider.SqlQueryAsync<T>(sql, cmdType, parameters);
         }
-        public Task<List<T>> SqlQueryAsync<T>(string sql, CommandType cmdType, object parameter)
+        public override Task<List<T>> SqlQueryAsync<T>(string sql, CommandType cmdType, object parameter)
         {
-            return this.SqlQueryAsync<T>(sql, cmdType, PublicHelper.BuildParams(this, parameter));
-        }
-
-        public TEntity Save<TEntity>(TEntity entity)
-        {
-            return DbContextHelper.Save<TEntity>(this, entity, false).GetResult();
-        }
-        public Task<TEntity> SaveAsync<TEntity>(TEntity entity)
-        {
-            return DbContextHelper.Save<TEntity>(this, entity, true);
+            return this.DefaultDbContextProvider.SqlQueryAsync<T>(sql, cmdType, parameter);
         }
 
-        public virtual TEntity Insert<TEntity>(TEntity entity)
+        public override TEntity Save<TEntity>(TEntity entity)
         {
-            return this.Insert(entity, null);
+            return this.GetDbContextProvider<TEntity>().Save(entity);
         }
-        public virtual TEntity Insert<TEntity>(TEntity entity, string table)
+        public override Task<TEntity> SaveAsync<TEntity>(TEntity entity)
         {
-            return this.Insert(entity, table, false).GetResult();
+            return this.GetDbContextProvider<TEntity>().SaveAsync(entity);
         }
-        public virtual Task<TEntity> InsertAsync<TEntity>(TEntity entity)
-        {
-            return this.InsertAsync(entity, null);
-        }
-        public virtual Task<TEntity> InsertAsync<TEntity>(TEntity entity, string table)
-        {
-            return this.Insert(entity, table, true);
-        }
-        protected virtual async Task<TEntity> Insert<TEntity>(TEntity entity, string table, bool @async)
-        {
-            PublicHelper.CheckNull(entity);
 
-            TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(TEntity));
-
-            Dictionary<PrimitivePropertyDescriptor, object> keyValueMap = PrimaryKeyHelper.CreateKeyValueMap(typeDescriptor);
-
-            Dictionary<PrimitivePropertyDescriptor, DbExpression> insertColumns = new Dictionary<PrimitivePropertyDescriptor, DbExpression>();
-            foreach (PrimitivePropertyDescriptor propertyDescriptor in typeDescriptor.PrimitivePropertyDescriptors)
+        protected override Task<TEntity> Insert<TEntity>(TEntity entity, string table, bool @async)
+        {
+            var dbContextProvider = this.GetDbContextProvider<TEntity>();
+            if (@async)
             {
-                if (propertyDescriptor.IsAutoIncrement)
-                    continue;
-
-                object val = propertyDescriptor.GetValue(entity);
-
-                if (propertyDescriptor.IsPrimaryKey)
-                {
-                    keyValueMap[propertyDescriptor] = val;
-                }
-
-                PublicHelper.NotNullCheck(propertyDescriptor, val);
-
-                DbParameterExpression valExp = DbExpression.Parameter(val, propertyDescriptor.PropertyType, propertyDescriptor.Column.DbType);
-                insertColumns.Add(propertyDescriptor, valExp);
+                return dbContextProvider.InsertAsync(entity, table);
             }
 
-            PrimitivePropertyDescriptor nullValueKey = keyValueMap.Where(a => a.Value == null && !a.Key.IsAutoIncrement).Select(a => a.Key).FirstOrDefault();
-            if (nullValueKey != null)
+            return Task.FromResult(dbContextProvider.Insert(entity, table));
+        }
+        protected override Task<object> Insert<TEntity>(Expression<Func<TEntity>> content, string table, bool @async)
+        {
+            var dbContextProvider = this.GetDbContextProvider<TEntity>();
+            if (@async)
             {
-                /* 主键为空并且主键又不是自增列 */
-                throw new ChloeException(string.Format("The primary key '{0}' could not be null.", nullValueKey.Property.Name));
+                return dbContextProvider.InsertAsync(content, table);
             }
 
-            DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
-            DbInsertExpression e = new DbInsertExpression(dbTable);
-
-            foreach (var kv in insertColumns)
+            return Task.FromResult(dbContextProvider.Insert(content, table));
+        }
+        protected override Task InsertRange<TEntity>(List<TEntity> entities, string table, bool @async)
+        {
+            var dbContextProvider = this.GetDbContextProvider<TEntity>();
+            if (@async)
             {
-                e.InsertColumns.Add(kv.Key.Column, kv.Value);
+                return dbContextProvider.InsertRangeAsync(entities, table);
             }
 
-            PrimitivePropertyDescriptor autoIncrementPropertyDescriptor = typeDescriptor.AutoIncrement;
-            if (autoIncrementPropertyDescriptor == null)
+            dbContextProvider.InsertRange(entities, table);
+            return Task.CompletedTask;
+        }
+
+        protected override Task<int> Update<TEntity>(TEntity entity, string table, bool @async)
+        {
+            var dbContextProvider = this.GetDbContextProvider<TEntity>();
+            if (@async)
             {
-                await this.ExecuteNonQuery(e, @async);
-                return entity;
+                return dbContextProvider.UpdateAsync(entity, table);
             }
 
-            IDbExpressionTranslator translator = this.DatabaseProvider.CreateDbExpressionTranslator();
-            DbCommandInfo dbCommandInfo = translator.Translate(e);
-
-            dbCommandInfo.CommandText = string.Concat(dbCommandInfo.CommandText, ";", this.GetSelectLastInsertIdClause());
-
-            //SELECT @@IDENTITY 返回的是 decimal 类型
-            object retIdentity = await this.ExecuteScalar(dbCommandInfo, @async);
-
-            if (retIdentity == null || retIdentity == DBNull.Value)
+            return Task.FromResult(dbContextProvider.Update(entity, table));
+        }
+        protected override Task<int> Update<TEntity>(Expression<Func<TEntity, bool>> condition, Expression<Func<TEntity, TEntity>> content, string table, bool @async)
+        {
+            var dbContextProvider = this.GetDbContextProvider<TEntity>();
+            if (@async)
             {
-                throw new ChloeException("Unable to get the identity value.");
+                return dbContextProvider.UpdateAsync(condition, content, table);
             }
 
-            retIdentity = PublicHelper.ConvertObjectType(retIdentity, autoIncrementPropertyDescriptor.PropertyType);
-            autoIncrementPropertyDescriptor.SetValue(entity, retIdentity);
-            return entity;
+            return Task.FromResult(dbContextProvider.Update(condition, content, table));
         }
 
-        public virtual object Insert<TEntity>(Expression<Func<TEntity>> content)
+        protected override Task<int> Delete<TEntity>(TEntity entity, string table, bool @async)
         {
-            return this.Insert(content, null);
-        }
-        public virtual object Insert<TEntity>(Expression<Func<TEntity>> content, string table)
-        {
-            return this.Insert(content, table, false).GetResult();
-        }
-        public virtual Task<object> InsertAsync<TEntity>(Expression<Func<TEntity>> content)
-        {
-            return this.InsertAsync(content, null);
-        }
-        public virtual Task<object> InsertAsync<TEntity>(Expression<Func<TEntity>> content, string table)
-        {
-            return this.Insert(content, table, true);
-        }
-        protected virtual async Task<object> Insert<TEntity>(Expression<Func<TEntity>> content, string table, bool @async)
-        {
-            PublicHelper.CheckNull(content);
-
-            TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(TEntity));
-
-            if (typeDescriptor.PrimaryKeys.Count > 1)
+            var dbContextProvider = this.GetDbContextProvider<TEntity>();
+            if (@async)
             {
-                /* 对于多主键的实体，暂时不支持调用这个方法进行插入 */
-                throw new NotSupportedException(string.Format("Can not call this method because entity '{0}' has multiple keys.", typeDescriptor.Definition.Type.FullName));
+                return dbContextProvider.DeleteAsync(entity, table);
             }
 
-            PrimitivePropertyDescriptor keyPropertyDescriptor = typeDescriptor.PrimaryKeys.FirstOrDefault();
-
-            Dictionary<MemberInfo, Expression> insertColumns = InitMemberExtractor.Extract(content);
-
-            DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
-            DefaultExpressionParser expressionParser = typeDescriptor.GetExpressionParser(dbTable);
-            DbInsertExpression e = new DbInsertExpression(dbTable);
-
-            object keyVal = null;
-
-            foreach (var kv in insertColumns)
+            return Task.FromResult(dbContextProvider.Delete(entity, table));
+        }
+        protected override Task<int> Delete<TEntity>(Expression<Func<TEntity, bool>> condition, string table, bool @async)
+        {
+            var dbContextProvider = this.GetDbContextProvider<TEntity>();
+            if (@async)
             {
-                MemberInfo key = kv.Key;
-                PrimitivePropertyDescriptor propertyDescriptor = typeDescriptor.GetPrimitivePropertyDescriptor(key);
-
-                if (propertyDescriptor.IsAutoIncrement)
-                    throw new ChloeException(string.Format("Could not insert value into the identity column '{0}'.", propertyDescriptor.Column.Name));
-
-                if (propertyDescriptor.IsPrimaryKey)
-                {
-                    object val = ExpressionEvaluator.Evaluate(kv.Value);
-                    if (val == null)
-                        throw new ChloeException(string.Format("The primary key '{0}' could not be null.", propertyDescriptor.Property.Name));
-                    else
-                    {
-                        keyVal = val;
-                        e.InsertColumns.Add(propertyDescriptor.Column, DbExpression.Parameter(keyVal, propertyDescriptor.PropertyType, propertyDescriptor.Column.DbType));
-                        continue;
-                    }
-                }
-
-                e.InsertColumns.Add(propertyDescriptor.Column, expressionParser.Parse(kv.Value));
+                return dbContextProvider.DeleteAsync(condition, table);
             }
 
-            if (keyPropertyDescriptor != null)
-            {
-                //主键为空并且主键又不是自增列
-                if (keyVal == null && !keyPropertyDescriptor.IsAutoIncrement)
-                {
-                    throw new ChloeException(string.Format("The primary key '{0}' could not be null.", keyPropertyDescriptor.Property.Name));
-                }
-            }
-
-            if (keyPropertyDescriptor == null || !keyPropertyDescriptor.IsAutoIncrement)
-            {
-                await this.ExecuteNonQuery(e, @async);
-                return keyVal; /* It will return null if an entity does not define primary key. */
-            }
-
-            IDbExpressionTranslator translator = this.DatabaseProvider.CreateDbExpressionTranslator();
-            DbCommandInfo dbCommandInfo = translator.Translate(e);
-            dbCommandInfo.CommandText = string.Concat(dbCommandInfo.CommandText, ";", this.GetSelectLastInsertIdClause());
-
-            //SELECT @@IDENTITY 返回的是 decimal 类型
-            object retIdentity = await this.ExecuteScalar(dbCommandInfo, @async);
-            if (retIdentity == null || retIdentity == DBNull.Value)
-            {
-                throw new ChloeException("Unable to get the identity value.");
-            }
-
-            retIdentity = PublicHelper.ConvertObjectType(retIdentity, typeDescriptor.AutoIncrement.PropertyType);
-            return retIdentity;
+            return Task.FromResult(dbContextProvider.Delete(condition, table));
         }
 
-        public virtual void InsertRange<TEntity>(List<TEntity> entities)
-        {
-            this.InsertRange(entities, null);
-        }
-        public virtual void InsertRange<TEntity>(List<TEntity> entities, string table)
-        {
-            this.InsertRange(entities, table, false).GetResult();
-        }
-        public virtual Task InsertRangeAsync<TEntity>(List<TEntity> entities)
-        {
-            return this.InsertRangeAsync(entities, null);
-        }
-        public virtual Task InsertRangeAsync<TEntity>(List<TEntity> entities, string table)
-        {
-            return this.InsertRange(entities, table, true);
-        }
-        protected virtual Task InsertRange<TEntity>(List<TEntity> entities, string table, bool @async)
-        {
-            throw new NotImplementedException();
-        }
-
-        public virtual int Update<TEntity>(TEntity entity)
-        {
-            return this.Update(entity, null);
-        }
-        public virtual int Update<TEntity>(TEntity entity, string table)
-        {
-            return this.Update<TEntity>(entity, table, false).GetResult();
-        }
-        public virtual Task<int> UpdateAsync<TEntity>(TEntity entity)
-        {
-            return this.UpdateAsync(entity, null);
-        }
-        public virtual Task<int> UpdateAsync<TEntity>(TEntity entity, string table)
-        {
-            return this.Update<TEntity>(entity, table, true);
-        }
-        protected virtual async Task<int> Update<TEntity>(TEntity entity, string table, bool @async)
-        {
-            PublicHelper.CheckNull(entity);
-
-            TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(TEntity));
-            PublicHelper.EnsureHasPrimaryKey(typeDescriptor);
-
-            PairList<PrimitivePropertyDescriptor, object> keyValues = new PairList<PrimitivePropertyDescriptor, object>(typeDescriptor.PrimaryKeys.Count);
-
-            IEntityState entityState = this.TryGetTrackedEntityState(entity);
-            Dictionary<PrimitivePropertyDescriptor, DbExpression> updateColumns = new Dictionary<PrimitivePropertyDescriptor, DbExpression>();
-
-            foreach (PrimitivePropertyDescriptor propertyDescriptor in typeDescriptor.PrimitivePropertyDescriptors)
-            {
-                if (propertyDescriptor.IsPrimaryKey)
-                {
-                    var keyValue = propertyDescriptor.GetValue(entity);
-                    PrimaryKeyHelper.KeyValueNotNull(propertyDescriptor, keyValue);
-                    keyValues.Add(propertyDescriptor, keyValue);
-                    continue;
-                }
-
-                if (propertyDescriptor.CannotUpdate())
-                    continue;
-
-                object val = propertyDescriptor.GetValue(entity);
-                PublicHelper.NotNullCheck(propertyDescriptor, val);
-
-                if (entityState != null && !entityState.HasChanged(propertyDescriptor, val))
-                    continue;
-
-                DbExpression valExp = DbExpression.Parameter(val, propertyDescriptor.PropertyType, propertyDescriptor.Column.DbType);
-                updateColumns.Add(propertyDescriptor, valExp);
-            }
-
-            object rowVersionNewValue = null;
-            if (typeDescriptor.HasRowVersion())
-            {
-                var rowVersionDescriptor = typeDescriptor.RowVersion;
-                var rowVersionOldValue = rowVersionDescriptor.GetValue(entity);
-                rowVersionNewValue = PublicHelper.IncreaseRowVersionNumber(rowVersionOldValue);
-                updateColumns.Add(rowVersionDescriptor, DbExpression.Parameter(rowVersionNewValue, rowVersionDescriptor.PropertyType, rowVersionDescriptor.Column.DbType));
-                keyValues.Add(rowVersionDescriptor, rowVersionOldValue);
-            }
-
-            if (updateColumns.Count == 0)
-                return 0;
-
-            DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
-            DbExpression conditionExp = PublicHelper.MakeCondition(keyValues, dbTable);
-            DbUpdateExpression e = new DbUpdateExpression(dbTable, conditionExp);
-
-            foreach (var item in updateColumns)
-            {
-                e.UpdateColumns.Add(item.Key.Column, item.Value);
-            }
-
-            int rowsAffected = await this.ExecuteNonQuery(e, @async);
-
-            if (typeDescriptor.HasRowVersion())
-            {
-                PublicHelper.CauseErrorIfOptimisticUpdateFailed(rowsAffected);
-                typeDescriptor.RowVersion.SetValue(entity, rowVersionNewValue);
-            }
-
-            if (entityState != null)
-                entityState.Refresh();
-
-            return rowsAffected;
-        }
-
-        public virtual int Update<TEntity>(Expression<Func<TEntity, bool>> condition, Expression<Func<TEntity, TEntity>> content)
-        {
-            return this.Update(condition, content, null);
-        }
-        public virtual int Update<TEntity>(Expression<Func<TEntity, bool>> condition, Expression<Func<TEntity, TEntity>> content, string table)
-        {
-            return this.Update<TEntity>(condition, content, table, false).GetResult();
-        }
-        public virtual Task<int> UpdateAsync<TEntity>(Expression<Func<TEntity, bool>> condition, Expression<Func<TEntity, TEntity>> content)
-        {
-            return this.UpdateAsync(condition, content, null);
-        }
-        public virtual Task<int> UpdateAsync<TEntity>(Expression<Func<TEntity, bool>> condition, Expression<Func<TEntity, TEntity>> content, string table)
-        {
-            return this.Update<TEntity>(condition, content, table, true);
-        }
-        protected virtual async Task<int> Update<TEntity>(Expression<Func<TEntity, bool>> condition, Expression<Func<TEntity, TEntity>> content, string table, bool @async)
-        {
-            PublicHelper.CheckNull(condition);
-            PublicHelper.CheckNull(content);
-
-            TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(TEntity));
-
-            Dictionary<MemberInfo, Expression> updateColumns = InitMemberExtractor.Extract(content);
-
-            DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
-            DefaultExpressionParser expressionParser = typeDescriptor.GetExpressionParser(dbTable);
-
-            DbExpression conditionExp = expressionParser.ParseFilterPredicate(condition);
-
-            DbUpdateExpression e = new DbUpdateExpression(dbTable, conditionExp);
-
-            foreach (var kv in updateColumns)
-            {
-                MemberInfo key = kv.Key;
-                PrimitivePropertyDescriptor propertyDescriptor = typeDescriptor.GetPrimitivePropertyDescriptor(key);
-
-                if (propertyDescriptor.IsPrimaryKey)
-                    throw new ChloeException(string.Format("Could not update the primary key '{0}'.", propertyDescriptor.Column.Name));
-
-                if (propertyDescriptor.IsAutoIncrement || propertyDescriptor.HasSequence())
-                    throw new ChloeException(string.Format("Could not update the column '{0}', because it's mapping member is auto increment or has define a sequence.", propertyDescriptor.Column.Name));
-
-                e.UpdateColumns.Add(propertyDescriptor.Column, expressionParser.Parse(kv.Value));
-            }
-
-            if (e.UpdateColumns.Count == 0)
-                return 0;
-
-            return await this.ExecuteNonQuery(e, @async);
-        }
-
-        public virtual int Delete<TEntity>(TEntity entity)
-        {
-            return this.Delete(entity, null);
-        }
-        public virtual int Delete<TEntity>(TEntity entity, string table)
-        {
-            return this.Delete<TEntity>(entity, table, false).GetResult();
-        }
-        public virtual Task<int> DeleteAsync<TEntity>(TEntity entity)
-        {
-            return this.DeleteAsync(entity, null);
-        }
-        public virtual Task<int> DeleteAsync<TEntity>(TEntity entity, string table)
-        {
-            return this.Delete<TEntity>(entity, table, true);
-        }
-        protected virtual async Task<int> Delete<TEntity>(TEntity entity, string table, bool @async)
-        {
-            PublicHelper.CheckNull(entity);
-
-            TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(TEntity));
-            PublicHelper.EnsureHasPrimaryKey(typeDescriptor);
-
-            PairList<PrimitivePropertyDescriptor, object> keyValues = new PairList<PrimitivePropertyDescriptor, object>(typeDescriptor.PrimaryKeys.Count);
-
-            foreach (PrimitivePropertyDescriptor keyPropertyDescriptor in typeDescriptor.PrimaryKeys)
-            {
-                object keyValue = keyPropertyDescriptor.GetValue(entity);
-                PrimaryKeyHelper.KeyValueNotNull(keyPropertyDescriptor, keyValue);
-                keyValues.Add(keyPropertyDescriptor, keyValue);
-            }
-
-            if (typeDescriptor.HasRowVersion())
-            {
-                var rowVersionValue = typeDescriptor.RowVersion.GetValue(entity);
-                keyValues.Add(typeDescriptor.RowVersion, rowVersionValue);
-            }
-
-            DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
-            DbExpression conditionExp = PublicHelper.MakeCondition(keyValues, dbTable);
-            DbDeleteExpression e = new DbDeleteExpression(dbTable, conditionExp);
-
-            int rowsAffected = await this.ExecuteNonQuery(e, @async);
-
-            if (typeDescriptor.HasRowVersion())
-            {
-                PublicHelper.CauseErrorIfOptimisticUpdateFailed(rowsAffected);
-            }
-
-            return rowsAffected;
-        }
-
-        public virtual int Delete<TEntity>(Expression<Func<TEntity, bool>> condition)
-        {
-            return this.Delete(condition, null);
-        }
-        public virtual int Delete<TEntity>(Expression<Func<TEntity, bool>> condition, string table)
-        {
-            return this.Delete<TEntity>(condition, table, false).GetResult();
-        }
-        public virtual Task<int> DeleteAsync<TEntity>(Expression<Func<TEntity, bool>> condition)
-        {
-            return this.DeleteAsync(condition, null);
-        }
-        public virtual Task<int> DeleteAsync<TEntity>(Expression<Func<TEntity, bool>> condition, string table)
-        {
-            return this.Delete<TEntity>(condition, table, true);
-        }
-        protected virtual Task<int> Delete<TEntity>(Expression<Func<TEntity, bool>> condition, string table, bool @async)
-        {
-            PublicHelper.CheckNull(condition);
-
-            TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(TEntity));
-
-            DbTable dbTable = typeDescriptor.GenDbTable(table);
-            DefaultExpressionParser expressionParser = typeDescriptor.GetExpressionParser(dbTable);
-            DbExpression conditionExp = expressionParser.ParseFilterPredicate(condition);
-
-            DbDeleteExpression e = new DbDeleteExpression(dbTable, conditionExp);
-
-            return this.ExecuteNonQuery(e, @async);
-        }
-
-        public virtual int DeleteByKey<TEntity>(object key)
-        {
-            return this.DeleteByKey<TEntity>(key, null);
-        }
-        public virtual int DeleteByKey<TEntity>(object key, string table)
-        {
-            return this.DeleteByKey<TEntity>(key, table, false).GetResult();
-        }
-        public virtual Task<int> DeleteByKeyAsync<TEntity>(object key)
-        {
-            return this.DeleteByKeyAsync<TEntity>(key, null);
-        }
-        public virtual Task<int> DeleteByKeyAsync<TEntity>(object key, string table)
-        {
-            return this.DeleteByKey<TEntity>(key, table, true);
-        }
-        protected virtual Task<int> DeleteByKey<TEntity>(object key, string table, bool @async)
-        {
-            Expression<Func<TEntity, bool>> condition = PrimaryKeyHelper.BuildCondition<TEntity>(key);
-            return this.Delete<TEntity>(condition, table, @async);
-        }
-
-
-        public ITransientTransaction BeginTransaction()
+        public override ITransientTransaction BeginTransaction()
         {
             /*
              * using(ITransientTransaction tran = dbContext.BeginTransaction())
@@ -685,11 +204,11 @@ namespace Chloe
              */
             return new TransientTransaction(this);
         }
-        public ITransientTransaction BeginTransaction(IsolationLevel il)
+        public override ITransientTransaction BeginTransaction(IsolationLevel il)
         {
             return new TransientTransaction(this, il);
         }
-        public void UseTransaction(Action action)
+        public override void UseTransaction(Action action)
         {
             /*
              * dbContext.UseTransaction(() =>
@@ -707,7 +226,7 @@ namespace Chloe
                 tran.Commit();
             }
         }
-        public void UseTransaction(Action action, IsolationLevel il)
+        public override void UseTransaction(Action action, IsolationLevel il)
         {
             PublicHelper.CheckNull(action);
             using (ITransientTransaction tran = this.BeginTransaction(il))
@@ -716,7 +235,7 @@ namespace Chloe
                 tran.Commit();
             }
         }
-        public async Task UseTransaction(Func<Task> func)
+        public override async Task UseTransaction(Func<Task> func)
         {
             /*
              * await dbContext.UseTransaction(async () =>
@@ -734,50 +253,13 @@ namespace Chloe
                 tran.Commit();
             }
         }
-        public async Task UseTransaction(Func<Task> func, IsolationLevel il)
+        public override async Task UseTransaction(Func<Task> func, IsolationLevel il)
         {
             PublicHelper.CheckNull(func);
             using (ITransientTransaction tran = this.BeginTransaction(il))
             {
                 await func();
                 tran.Commit();
-            }
-        }
-
-        public virtual void TrackEntity(object entity)
-        {
-            this.TrackingEntityContainer.Add(entity);
-        }
-        protected virtual string GetSelectLastInsertIdClause()
-        {
-            return "SELECT @@IDENTITY";
-        }
-        protected virtual IEntityState TryGetTrackedEntityState(object entity)
-        {
-            IEntityState ret = this.TrackingEntityContainer.GetEntityState(entity);
-            return ret;
-        }
-
-
-        public void Dispose()
-        {
-            if (this._disposed)
-                return;
-
-            if (this._adoSession != null)
-                this._adoSession.Dispose();
-            this.Dispose(true);
-            this._disposed = true;
-        }
-        protected virtual void Dispose(bool disposing)
-        {
-
-        }
-        void CheckDisposed()
-        {
-            if (this._disposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
             }
         }
     }

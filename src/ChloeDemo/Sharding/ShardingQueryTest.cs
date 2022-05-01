@@ -28,21 +28,24 @@ namespace ChloeDemo.Sharding
             await this.Test6();
             await this.Test7();
             await this.Test8();
+            await this.ProjectionTest();
             await this.AnyQueryTest();
             await this.CountQueryTest();
             await this.SumQueryTest();
             await this.SumNullQueryTest();
             await this.AvgQueryTest();
             await this.AvgNullQueryTest();
+            await this.MaxMinQueryTest();
+            await this.GroupQueryTest();
 
             Console.WriteLine("query test over...");
             Console.ReadKey();
         }
 
-        ShardingDbContext CreateDbContext()
+        IDbContext CreateDbContext()
         {
-            ShardingDbContext dbContext = new ShardingDbContext(new ShardingOptions() { MaxConnectionsPerDataSource = 12 });
-
+            DbContext dbContext = new DbContext();
+            dbContext.ShardingOptions.MaxConnectionsPerDataSource = 6;
             return dbContext;
         }
 
@@ -51,7 +54,7 @@ namespace ChloeDemo.Sharding
             /*
              * 根据分片字段升序
              */
-            ShardingDbContext dbContext = this.CreateDbContext();
+            IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
             q = q.OrderBy(a => a.CreateTime);
 
@@ -95,7 +98,7 @@ namespace ChloeDemo.Sharding
             /*
              * 根据分片字段降序
              */
-            ShardingDbContext dbContext = this.CreateDbContext();
+            IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
             q = q.OrderByDesc(a => a.CreateTime);
 
@@ -138,7 +141,7 @@ namespace ChloeDemo.Sharding
             /*
              * 根据分片字段降序，单库内跨表
              */
-            ShardingDbContext dbContext = this.CreateDbContext();
+            IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             DateTime dt = new DateTime(2019, 12, 2);
@@ -167,7 +170,7 @@ namespace ChloeDemo.Sharding
              * 根据分片字段排序，并跨库测试
              */
 
-            ShardingDbContext dbContext = this.CreateDbContext();
+            IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             DateTime dt = new DateTime(2018, 12, 31);
@@ -199,7 +202,7 @@ namespace ChloeDemo.Sharding
             PagingResult<Order> result;
             List<Order> dataList;
 
-            ShardingDbContext dbContext = this.CreateDbContext();
+            IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             q = q.OrderBy(a => a.Amount).ThenBy(a => a.Id);
@@ -244,7 +247,7 @@ namespace ChloeDemo.Sharding
              * 根据主键查询
              */
 
-            ShardingDbContext dbContext = this.CreateDbContext();
+            IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             string id = "2019-12-01 10:00";
@@ -274,7 +277,7 @@ namespace ChloeDemo.Sharding
              * 根据非分片字段路由
              */
 
-            ShardingDbContext dbContext = this.CreateDbContext();
+            IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             //根据 CreateYear 查询
@@ -302,7 +305,7 @@ namespace ChloeDemo.Sharding
 
             List<Order> orders = new List<Order>();
 
-            ShardingDbContext dbContext = this.CreateDbContext();
+            IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             List<int> createDates = new List<int>() { 20180101, 20190201 };
@@ -323,11 +326,28 @@ namespace ChloeDemo.Sharding
             Helpers.PrintSplitLine();
         }
 
+        async Task ProjectionTest()
+        {
+            /*
+             * Select 查询
+             */
+
+            IDbContext dbContext = this.CreateDbContext();
+            var q = dbContext.Query<Order>();
+
+            var results = await q.Where(a => a.CreateMonth == 4 || a.CreateMonth == 6).OrderBy(a => a.CreateMonth).Select(a => new { Id = a.Id, CreateMonth = a.CreateMonth, Order = a }).ToListAsync();
+
+            Debug.Assert(results.Count == 2 * 30 * 4); //一天两条数据，一个月60条，总共4个月
+            Debug.Assert(results[0].Id == results[0].Order.Id);
+
+            Helpers.PrintSplitLine();
+        }
+
         async Task AnyQueryTest()
         {
             List<Order> orders = new List<Order>();
 
-            ShardingDbContext dbContext = this.CreateDbContext();
+            IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             bool hasData = false;
@@ -348,7 +368,7 @@ namespace ChloeDemo.Sharding
         }
         async Task CountQueryTest()
         {
-            ShardingDbContext dbContext = this.CreateDbContext();
+            IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             long count = await q.LongCountAsync();
@@ -359,7 +379,7 @@ namespace ChloeDemo.Sharding
         }
         async Task SumQueryTest()
         {
-            ShardingDbContext dbContext = this.CreateDbContext();
+            IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             decimal? sum = 0;
@@ -378,7 +398,7 @@ namespace ChloeDemo.Sharding
         }
         async Task SumNullQueryTest()
         {
-            ShardingDbContext dbContext = this.CreateDbContext();
+            IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             decimal? sum = 0;
@@ -393,10 +413,12 @@ namespace ChloeDemo.Sharding
 
         async Task AvgQueryTest()
         {
-            ShardingDbContext dbContext = this.CreateDbContext();
+            IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             decimal? avg = 0;
+
+            var avg1 = await q.AverageAsync(a => a.CreateMonth);
 
             avg = await q.AverageAsync(a => a.Amount);
 
@@ -410,7 +432,7 @@ namespace ChloeDemo.Sharding
         }
         async Task AvgNullQueryTest()
         {
-            ShardingDbContext dbContext = this.CreateDbContext();
+            IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             decimal? avg = 0;
@@ -418,6 +440,43 @@ namespace ChloeDemo.Sharding
             avg = await q.Where(a => a.Id == null).AverageAsync(a => a.Amount);
 
             Debug.Assert(avg == null);
+
+
+            Helpers.PrintSplitLine();
+        }
+
+        async Task MaxMinQueryTest()
+        {
+            IDbContext dbContext = this.CreateDbContext();
+            var q = dbContext.Query<Order>();
+
+            int maxMonth = await q.MaxAsync(a => a.CreateMonth);
+            int minMonth = await q.MinAsync(a => a.CreateMonth);
+
+            Debug.Assert(maxMonth == 12);
+            Debug.Assert(minMonth == 1);
+
+
+            Helpers.PrintSplitLine();
+        }
+
+        async Task GroupQueryTest()
+        {
+            IDbContext dbContext = this.CreateDbContext();
+            var q = dbContext.Query<Order>();
+
+            var results = await q.Where(a => a.Amount > 0).GroupBy(a => a.CreateMonth).Select(a => new { a.CreateMonth, Count = Sql.Count(), Sum = Sql.Sum(a.Amount), AmountCount = Sql.Count(a.Amount), Avg = Sql.Average(a.Amount), MaxAmount = Sql.Max(a.Amount), MinAmount = Sql.Min(a.Amount) }).ToListAsync();
+
+            Debug.Assert(results.Count == 12);
+
+            var result_6 = results.Where(a => a.CreateMonth == 6).First();
+
+            Debug.Assert(result_6.Count == 30 * 2 * 2); //每天有 2 条数据，一个月30天，两年则 30 * 2 * 2
+            Debug.Assert(result_6.Sum == (10 + 20) * 30 * 2); //每天有 2 条数据，一条 Amount=10，一条 Amount=20，两年数据则是 (10 + 20) * 30 * 2
+            Debug.Assert(result_6.AmountCount == 2 * 30 * 2); //每天有 2 条数据，一个月 30 天，两年数据则是 2 * 30 * 2
+            Debug.Assert(result_6.Avg == (10 + 20) / 2); //每天有 2 条数据，一条 Amount=10，一条 Amount=20，平均则是 (10 + 20) / 2
+            Debug.Assert(result_6.MaxAmount == 20);
+            Debug.Assert(result_6.MinAmount == 10);
 
 
             Helpers.PrintSplitLine();

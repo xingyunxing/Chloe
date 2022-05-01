@@ -1,5 +1,4 @@
-﻿using Chloe.Query;
-using Chloe.Query.QueryExpressions;
+﻿using Chloe.Query.QueryExpressions;
 using Chloe.Threading.Tasks;
 using System.Linq.Expressions;
 

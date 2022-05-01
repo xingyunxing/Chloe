@@ -38,15 +38,15 @@ namespace Chloe.Query
             return expressionSubstitutes;
         }
 
-        public static IDbContext GetRootDbContext(this QueryExpression queryExpression)
+        public static IDbContextProvider GetRootDbContextProvider(this QueryExpression queryExpression)
         {
             if (queryExpression.NodeType == QueryExpressionType.Root)
             {
                 RootQueryExpression rootQueryExpression = queryExpression as RootQueryExpression;
-                return (IDbContext)rootQueryExpression.Provider;
+                return (IDbContextProvider)rootQueryExpression.Provider;
             }
 
-            return GetRootDbContext(queryExpression.PrevExpression);
+            return GetRootDbContextProvider(queryExpression.PrevExpression);
         }
     }
 }

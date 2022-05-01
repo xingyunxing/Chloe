@@ -15,7 +15,8 @@ namespace Chloe.Oracle.DDL
         string SqlName(string name)
         {
             OracleContext dbContext = (this.DbContext as OracleContext);
-            if (dbContext.ConvertToUppercase)
+            OracleContextProvider dbContextProvider = (OracleContextProvider)dbContext.DefaultDbContextProvider;
+            if (dbContextProvider.ConvertToUppercase)
                 return name.ToUpper();
 
             return name;
@@ -23,7 +24,8 @@ namespace Chloe.Oracle.DDL
         string QuoteName(string name)
         {
             OracleContext dbContext = (this.DbContext as OracleContext);
-            return Utils.QuoteName(name, dbContext.ConvertToUppercase);
+            OracleContextProvider dbContextProvider = (OracleContextProvider)dbContext.DefaultDbContextProvider;
+            return Utils.QuoteName(name, dbContextProvider.ConvertToUppercase);
         }
 
         bool ExistsTable(string tableName)

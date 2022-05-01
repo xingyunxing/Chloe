@@ -3,7 +3,7 @@ using System.Data;
 
 namespace Chloe
 {
-    public interface IDbSession : IDisposable
+    public interface IDbSession
     {
         IDbContext DbContext { get; }
         IDbConnection CurrentConnection { get; }

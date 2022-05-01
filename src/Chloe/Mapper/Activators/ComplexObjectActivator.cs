@@ -98,11 +98,11 @@ namespace Chloe.Mapper.Activators
 
     public class ObjectActivatorWithTracking : ComplexObjectActivator
     {
-        IDbContext _dbContext;
-        public ObjectActivatorWithTracking(InstanceCreator instanceCreator, List<IObjectActivator> argumentActivators, List<IMemberBinder> memberBinders, int? checkNullOrdinal, IDbContext dbContext)
+        IDbContextProvider _dbContextProvider;
+        public ObjectActivatorWithTracking(InstanceCreator instanceCreator, List<IObjectActivator> argumentActivators, List<IMemberBinder> memberBinders, int? checkNullOrdinal, IDbContextProvider dbContextProvider)
             : base(instanceCreator, argumentActivators, memberBinders, checkNullOrdinal)
         {
-            this._dbContext = dbContext;
+            this._dbContextProvider = dbContextProvider;
         }
 
         public override async ObjectResultTask CreateInstance(IDataReader reader, bool @async)
@@ -110,7 +110,7 @@ namespace Chloe.Mapper.Activators
             object obj = await base.CreateInstance(reader, @async);
 
             if (obj != null)
-                this._dbContext.TrackEntity(obj);
+                this._dbContextProvider.TrackEntity(obj);
 
             return obj;
         }

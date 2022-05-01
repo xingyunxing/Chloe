@@ -6,7 +6,7 @@ using System.Data;
 
 namespace Chloe.SqlServer.Odbc
 {
-    public partial class MsSqlContext : DbContext
+    public partial class MsSqlContextProvider : DbContextProvider
     {
         static Action<TEntity, IDataReader> GetMapper<TEntity>(PrimitivePropertyDescriptor propertyDescriptor, int ordinal)
         {

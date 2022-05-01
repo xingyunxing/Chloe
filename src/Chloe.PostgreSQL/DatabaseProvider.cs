@@ -6,14 +6,14 @@ namespace Chloe.PostgreSQL
     class DatabaseProvider : IDatabaseProvider
     {
         IDbConnectionFactory _dbConnectionFactory;
-        PostgreSQLContext _postgreSQLContext;
+        PostgreSQLContextProvider _postgreSQLContextProvider;
 
         public string DatabaseType { get { return "PostgreSQL"; } }
 
-        public DatabaseProvider(IDbConnectionFactory dbConnectionFactory, PostgreSQLContext postgreSQLContext)
+        public DatabaseProvider(IDbConnectionFactory dbConnectionFactory, PostgreSQLContextProvider postgreSQLContextProvider)
         {
             this._dbConnectionFactory = dbConnectionFactory;
-            this._postgreSQLContext = postgreSQLContext;
+            this._postgreSQLContextProvider = postgreSQLContextProvider;
         }
         public IDbConnection CreateConnection()
         {
@@ -21,7 +21,7 @@ namespace Chloe.PostgreSQL
         }
         public IDbExpressionTranslator CreateDbExpressionTranslator()
         {
-            if (this._postgreSQLContext.ConvertToLowercase == true)
+            if (this._postgreSQLContextProvider.ConvertToLowercase == true)
             {
                 return DbExpressionTranslator_ConvertToLowercase.Instance;
             }

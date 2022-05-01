@@ -20,13 +20,13 @@ namespace Chloe.Query.Mapping
         {
             return this.CreateObjectActivator(null);
         }
-        public IObjectActivator CreateObjectActivator(IDbContext dbContext)
+        public IObjectActivator CreateObjectActivator(IDbContextProvider dbContextProvider)
         {
             PrimitiveObjectActivator activator = new PrimitiveObjectActivator(this.ObjectType, this.ReaderOrdinal);
             return activator;
         }
 
-        public IFitter CreateFitter(IDbContext dbContext)
+        public IFitter CreateFitter(IDbContextProvider dbContextProvider)
         {
             throw new NotSupportedException();
         }

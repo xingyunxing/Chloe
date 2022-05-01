@@ -28,14 +28,14 @@ namespace Chloe.Query.Internals
 
             IObjectActivator objectActivator;
             if (data.IsTrackingQuery)
-                objectActivator = data.ObjectActivatorCreator.CreateObjectActivator(data.Context.DbContext);
+                objectActivator = data.ObjectActivatorCreator.CreateObjectActivator(data.Context.DbContextProvider);
             else
                 objectActivator = data.ObjectActivatorCreator.CreateObjectActivator();
 
-            IDbExpressionTranslator translator = data.Context.DbContext.DatabaseProvider.CreateDbExpressionTranslator();
+            IDbExpressionTranslator translator = data.Context.DbContextProvider.DatabaseProvider.CreateDbExpressionTranslator();
             DbCommandInfo dbCommandInfo = translator.Translate(data.SqlQuery);
 
-            DbCommandFactor commandFactor = new DbCommandFactor(data.Context.DbContext, objectActivator, dbCommandInfo.CommandText, dbCommandInfo.GetParameters());
+            DbCommandFactor commandFactor = new DbCommandFactor(data.Context.DbContextProvider, objectActivator, dbCommandInfo.CommandText, dbCommandInfo.GetParameters());
             return commandFactor;
         }
 

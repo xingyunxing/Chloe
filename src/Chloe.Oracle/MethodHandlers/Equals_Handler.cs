@@ -1,6 +1,6 @@
 ﻿using Chloe.DbExpressions;
-using Chloe.RDBMS;
 using Chloe.InternalExtensions;
+using Chloe.RDBMS;
 using System.Reflection;
 
 namespace Chloe.Oracle.MethodHandlers

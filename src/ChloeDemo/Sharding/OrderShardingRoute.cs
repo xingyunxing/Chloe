@@ -1,6 +1,7 @@
 ﻿using Chloe;
 using Chloe.MySql;
 using Chloe.Sharding;
+using Chloe.Sharding.Routing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -57,8 +58,8 @@ namespace ChloeDemo.Sharding
         {
             for (int month = 1; month <= 12; month++)
             {
-                var dbContextFactory = new OrderRouteDbContextFactory(year);
-                RouteTable table = new OrderRouteTable(month) { DataSource = new OrderRouteDataSource(year) { DbContextFactory = dbContextFactory } };
+                var dbContextProviderFactory = new OrderDbContextProviderFactory(year);
+                RouteTable table = new OrderRouteTable(month) { DataSource = new OrderRouteDataSource(year) { DbContextProviderFactory = dbContextProviderFactory } };
 
                 yield return table;
             }
@@ -94,17 +95,26 @@ namespace ChloeDemo.Sharding
         {
             var firstOrdering = orderings.FirstOrDefault();
 
-            if (firstOrdering.Member != typeof(Order).GetProperty(nameof(Order.CreateTime)))
+            MemberInfo member = null;
+            if (firstOrdering.KeySelector.Body is System.Linq.Expressions.MemberExpression memberExp)
             {
-                return new SortResult() { IsOrdered = false, Tables = tables };
+                member = memberExp.Member;
             }
 
-            if (firstOrdering.Ascending)
+            if (member != null)
             {
-                return new SortResult() { IsOrdered = true, Tables = tables.OrderBy(a => (a.DataSource as OrderRouteDataSource).Year).ThenBy(a => (a as OrderRouteTable).Month).ToList() };
+                if (member == typeof(Order).GetProperty(nameof(Order.CreateTime)))
+                {
+                    if (firstOrdering.Ascending)
+                    {
+                        return new SortResult() { IsOrdered = true, Tables = tables.OrderBy(a => (a.DataSource as OrderRouteDataSource).Year).ThenBy(a => (a as OrderRouteTable).Month).ToList() };
+                    }
+
+                    return new SortResult() { IsOrdered = true, Tables = tables.OrderByDescending(a => (a.DataSource as OrderRouteDataSource).Year).ThenByDescending(a => (a as OrderRouteTable).Month).ToList() };
+                }
             }
 
-            return new SortResult() { IsOrdered = true, Tables = tables.OrderByDescending(a => (a.DataSource as OrderRouteDataSource).Year).ThenByDescending(a => (a as OrderRouteTable).Month).ToList() };
+            return new SortResult() { IsOrdered = false, Tables = tables };
         }
     }
 

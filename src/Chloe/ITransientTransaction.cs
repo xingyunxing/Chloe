@@ -17,14 +17,14 @@ namespace Chloe
         bool _disposed = false;
         bool _completed = false;
 
-        DbContextFacade _dbContext;
+        DbContext _dbContext;
 
-        public TransientTransaction(DbContextFacade dbContext) : this(dbContext, null)
+        public TransientTransaction(DbContext dbContext) : this(dbContext, null)
         {
 
         }
 
-        public TransientTransaction(DbContextFacade dbContext, IsolationLevel? il)
+        public TransientTransaction(DbContext dbContext, IsolationLevel? il)
         {
             this._dbContext = dbContext;
             this._dbContext.Butler.BeginTransaction(il);
@@ -51,7 +51,7 @@ namespace Chloe
         }
 
         public IDbContext DbContext { get; private set; }
-        public IDbContextFacade DbContextFacade { get; }
+        public IDbContext DbContextFacade { get; }
 
         public void Rollback()
         {

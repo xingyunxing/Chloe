@@ -1,0 +1,331 @@
+﻿using Chloe.Exceptions;
+using Chloe.Infrastructure.Interception;
+using Chloe.Sharding;
+using System.Data;
+using System.Linq.Expressions;
+
+namespace Chloe
+{
+    class DbContextButler : IDisposable
+    {
+        bool _disposed = false;
+
+        int _commandTimeout = 30;
+        IDbContextProvider _defaultDbContextProvider;
+        IDbContextProvider _shardingDbContextProvider;
+
+        public DbContextButler(DbContext dbContext)
+        {
+            this.DbContext = dbContext;
+        }
+
+        public DbContext DbContext { get; private set; }
+
+        public List<DataSourceDbContextProviderPair> PersistedDbContextProviders { get; set; } = new List<DataSourceDbContextProviderPair>();
+        public List<IDbCommandInterceptor> Interceptors { get; } = new List<IDbCommandInterceptor>();
+        public Dictionary<Type, List<LambdaExpression>> QueryFilters { get; } = new Dictionary<Type, List<LambdaExpression>>();
+
+        public IsolationLevel? IL { get; private set; }
+        public bool IsInTransaction { get; private set; }
+        public int CommandTimeout
+        {
+            get
+            {
+                return this._commandTimeout;
+            }
+            set
+            {
+                this.SetCommandTimeout(value);
+            }
+        }
+
+        public void Dispose()
+        {
+            if (this._disposed)
+                return;
+
+            if (this.IsInTransaction)
+            {
+                try
+                {
+                    this.RollbackTransactionImpl();
+                }
+                catch
+                {
+                }
+            }
+
+            foreach (var pair in PersistedDbContextProviders)
+            {
+                pair.DbContextProvider.Dispose();
+            }
+
+            this.PersistedDbContextProviders.Clear();
+
+            this._disposed = true;
+        }
+
+        void SetCommandTimeout(int commandTimeout)
+        {
+            this._commandTimeout = commandTimeout;
+
+            foreach (var pair in this.PersistedDbContextProviders)
+            {
+                pair.DbContextProvider.Session.CommandTimeout = commandTimeout;
+            }
+        }
+
+        public void AddInterceptor(IDbCommandInterceptor interceptor)
+        {
+            PublicHelper.CheckNull(interceptor, nameof(interceptor));
+            this.Interceptors.Add(interceptor);
+            foreach (var pair in this.PersistedDbContextProviders)
+            {
+                pair.DbContextProvider.Session.AddInterceptor(interceptor);
+            }
+        }
+        public void RemoveInterceptor(IDbCommandInterceptor interceptor)
+        {
+            PublicHelper.CheckNull(interceptor, nameof(interceptor));
+            this.Interceptors.Remove(interceptor);
+            foreach (var pair in this.PersistedDbContextProviders)
+            {
+                pair.DbContextProvider.Session.RemoveInterceptor(interceptor);
+            }
+        }
+
+        public void BeginTransaction(IsolationLevel? il)
+        {
+            if (this.IsInTransaction)
+            {
+                throw new ChloeException("The current session has opened a transaction.");
+            }
+
+            try
+            {
+                foreach (var pair in this.PersistedDbContextProviders)
+                {
+                    pair.DbContextProvider.Session.BeginTransaction(il);
+                }
+            }
+            catch
+            {
+                try
+                {
+                    this.RollbackTransactionImpl();
+                }
+                catch
+                {
+                }
+
+                throw;
+            }
+
+            this.IL = il;
+            this.IsInTransaction = true;
+        }
+
+        public void CommitTransaction()
+        {
+            if (!this.IsInTransaction)
+            {
+                throw new ChloeException("Current session does not open a transaction.");
+            }
+
+            foreach (var pair in this.PersistedDbContextProviders)
+            {
+                var dbContextProvider = pair.DbContextProvider;
+
+                if (!dbContextProvider.Session.IsInTransaction)
+                {
+                    continue;
+                }
+
+                dbContextProvider.Session.CommitTransaction();
+            }
+
+            this.IsInTransaction = false;
+        }
+        public void RollbackTransaction()
+        {
+            if (!this.IsInTransaction)
+            {
+                throw new ChloeException("Current session does not open a transaction.");
+            }
+
+            this.RollbackTransactionImpl();
+        }
+        void RollbackTransactionImpl()
+        {
+            List<Exception> exceptions = null;
+
+            foreach (var pair in this.PersistedDbContextProviders)
+            {
+                var dbContextProvider = pair.DbContextProvider;
+                if (!dbContextProvider.Session.IsInTransaction)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    dbContextProvider.Session.RollbackTransaction();
+                }
+                catch (Exception ex)
+                {
+                    if (exceptions == null)
+                    {
+                        exceptions = new List<Exception>();
+                    }
+
+                    exceptions.Add(ex);
+                }
+            }
+
+            this.IsInTransaction = false;
+
+            if (exceptions != null && exceptions.Count > 0)
+            {
+                AggregateException aggregateException = new AggregateException("One or more exceptions occurred when rolling back the transaction.", exceptions);
+                throw aggregateException;
+            }
+        }
+
+        public void UseTransaction(IDbTransaction dbTransaction)
+        {
+            foreach (var pair in this.PersistedDbContextProviders)
+            {
+                pair.DbContextProvider.Session.UseTransaction(dbTransaction);
+            }
+        }
+
+
+        public void HasQueryFilter<TEntity>(Expression<Func<TEntity, bool>> filter)
+        {
+            Type entityType = typeof(TEntity);
+            this.HasQueryFilter(entityType, filter);
+        }
+        public void HasQueryFilter(Type entityType, LambdaExpression filter)
+        {
+            PublicHelper.CheckNull(filter, nameof(filter));
+            List<LambdaExpression> filters;
+            if (!this.QueryFilters.TryGetValue(entityType, out filters))
+            {
+                filters = new List<LambdaExpression>(1);
+                this.QueryFilters.Add(entityType, filters);
+            }
+
+            filters.Add(filter);
+        }
+
+        public IDbContextProvider GetDefaultDbContextProvider()
+        {
+            if (this._defaultDbContextProvider == null)
+            {
+                if (this.DbContext.DbContextProviderFactory == null)
+                {
+                    throw new InvalidOperationException("No provider specified.");
+                }
+
+                var defaultDbContextProvider = this.DbContext.DbContextProviderFactory.CreateDbContextProvider();
+                this.AppendFeatures(defaultDbContextProvider);
+
+                var physicDataSource = new PhysicDataSource(DbContext.DefaultProviderDataSourceName, this.DbContext.DbContextProviderFactory);
+                var pair = new DataSourceDbContextProviderPair(physicDataSource, defaultDbContextProvider);
+                this.PersistedDbContextProviders.Add(pair);
+
+                this._defaultDbContextProvider = defaultDbContextProvider;
+            }
+
+            this.StartTransactionIfNeed(this._defaultDbContextProvider);
+            return this._defaultDbContextProvider;
+        }
+        public IDbContextProvider GetShardingDbContextProvider()
+        {
+            if (this._shardingDbContextProvider == null)
+            {
+                this._shardingDbContextProvider = new ShardingDbContextProvider(this.DbContext);
+            }
+
+            return this._shardingDbContextProvider;
+        }
+
+        public IDbContextProvider GetPersistedDbContextProvider(IPhysicDataSource dataSource)
+        {
+            DataSourceDbContextProviderPair pair = this.PersistedDbContextProviders.FirstOrDefault(a => a.DataSource.Name == dataSource.Name);
+            if (pair == null)
+            {
+                IDbContextProvider dbContextProvider = dataSource.DbContextProviderFactory.CreateDbContextProvider();
+                this.AppendFeatures(dbContextProvider);
+
+                pair = new DataSourceDbContextProviderPair(dataSource, dbContextProvider);
+                this.PersistedDbContextProviders.Add(pair);
+            }
+
+            this.StartTransactionIfNeed(pair.DbContextProvider);
+            return new PersistedDbContextProvider(pair.DbContextProvider);
+        }
+        public List<IDbContextProvider> CreateTransientDbContextProviders(IPhysicDataSource dataSource, int desiredCount)
+        {
+            int connectionCount = Math.Min(desiredCount, this.DbContext.ShardingOptions.MaxConnectionsPerDataSource);
+
+            List<IDbContextProvider> dbContextProviders = new List<IDbContextProvider>(connectionCount);
+
+            for (int i = 0; i < connectionCount; i++)
+            {
+                IDbContextProvider dbContextProvider = dataSource.DbContextProviderFactory.CreateDbContextProvider();
+                this.AppendFeatures(dbContextProvider);
+
+                dbContextProviders.Add(dbContextProvider);
+            }
+
+            return dbContextProviders;
+        }
+
+        void StartTransactionIfNeed(IDbContextProvider dbContextProvider)
+        {
+            if (this.IsInTransaction)
+            {
+                if (!dbContextProvider.Session.IsInTransaction)
+                {
+                    dbContextProvider.Session.BeginTransaction(this.IL);
+                }
+            }
+        }
+        void AppendFeatures(IDbContextProvider dbContextProvider)
+        {
+            dbContextProvider.Session.CommandTimeout = this.CommandTimeout;
+            this.AppendQueryFilters(dbContextProvider);
+            this.AppendSessionInterceptors(dbContextProvider);
+        }
+        void AppendQueryFilters(IDbContextProvider dbContextProvider)
+        {
+            foreach (var kv in this.DbContext.Butler.QueryFilters)
+            {
+                foreach (var filter in kv.Value)
+                {
+                    dbContextProvider.HasQueryFilter(kv.Key, filter);
+                }
+            }
+        }
+        void AppendSessionInterceptors(IDbContextProvider dbContextProvider)
+        {
+            foreach (var interceptor in this.DbContext.Butler.Interceptors)
+            {
+                dbContextProvider.Session.AddInterceptor(interceptor);
+            }
+        }
+
+        class PersistedDbContextProvider : DbContextProviderDecorator, IDbContextProvider
+        {
+            public PersistedDbContextProvider(IDbContextProvider dbContextProvider) : base(dbContextProvider)
+            {
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+
+            }
+        }
+    }
+}

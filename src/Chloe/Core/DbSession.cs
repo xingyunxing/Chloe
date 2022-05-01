@@ -3,20 +3,20 @@ using System.Data;
 
 namespace Chloe.Core
 {
-    class DbSession : IDbSession
+    class DbSession : IDbSessionProvider
     {
-        DbContext _dbContext;
-        internal DbSession(DbContext dbContext)
+        DbContextProvider _dbContextProvider;
+        internal DbSession(DbContextProvider dbContextProvider)
         {
-            this._dbContext = dbContext;
+            this._dbContextProvider = dbContextProvider;
         }
 
-        public IDbContext DbContext { get { return this._dbContext; } }
-        public IDbConnection CurrentConnection { get { return this._dbContext.AdoSession.DbConnection; } }
+        public IDbContextProvider DbContextProvider { get { return this._dbContextProvider; } }
+        public IDbConnection CurrentConnection { get { return this._dbContextProvider.AdoSession.DbConnection; } }
 
-        public IDbTransaction CurrentTransaction { get { return this._dbContext.AdoSession.DbTransaction; } }
-        public bool IsInTransaction { get { return this._dbContext.AdoSession.IsInTransaction; } }
-        public int CommandTimeout { get { return this._dbContext.AdoSession.CommandTimeout; } set { this._dbContext.AdoSession.CommandTimeout = value; } }
+        public IDbTransaction CurrentTransaction { get { return this._dbContextProvider.AdoSession.DbTransaction; } }
+        public bool IsInTransaction { get { return this._dbContextProvider.AdoSession.IsInTransaction; } }
+        public int CommandTimeout { get { return this._dbContextProvider.AdoSession.CommandTimeout; } set { this._dbContextProvider.AdoSession.CommandTimeout = value; } }
 
         public int ExecuteNonQuery(string cmdText, params DbParam[] parameters)
         {
@@ -25,15 +25,15 @@ namespace Chloe.Core
         public int ExecuteNonQuery(string cmdText, CommandType cmdType, params DbParam[] parameters)
         {
             PublicHelper.CheckNull(cmdText, nameof(cmdText));
-            return this._dbContext.AdoSession.ExecuteNonQuery(cmdText, parameters, cmdType);
+            return this._dbContextProvider.AdoSession.ExecuteNonQuery(cmdText, parameters, cmdType);
         }
         public int ExecuteNonQuery(string cmdText, object parameter)
         {
-            return this.ExecuteNonQuery(cmdText, PublicHelper.BuildParams(this._dbContext, parameter));
+            return this.ExecuteNonQuery(cmdText, PublicHelper.BuildParams(this._dbContextProvider, parameter));
         }
         public int ExecuteNonQuery(string cmdText, CommandType cmdType, object parameter)
         {
-            return this.ExecuteNonQuery(cmdText, cmdType, PublicHelper.BuildParams(this._dbContext, parameter));
+            return this.ExecuteNonQuery(cmdText, cmdType, PublicHelper.BuildParams(this._dbContextProvider, parameter));
         }
 
         public async Task<int> ExecuteNonQueryAsync(string cmdText, params DbParam[] parameters)
@@ -43,15 +43,15 @@ namespace Chloe.Core
         public async Task<int> ExecuteNonQueryAsync(string cmdText, CommandType cmdType, params DbParam[] parameters)
         {
             PublicHelper.CheckNull(cmdText, nameof(cmdText));
-            return await this._dbContext.AdoSession.ExecuteNonQueryAsync(cmdText, parameters, cmdType);
+            return await this._dbContextProvider.AdoSession.ExecuteNonQueryAsync(cmdText, parameters, cmdType);
         }
         public async Task<int> ExecuteNonQueryAsync(string cmdText, object parameter)
         {
-            return await this.ExecuteNonQueryAsync(cmdText, PublicHelper.BuildParams(this._dbContext, parameter));
+            return await this.ExecuteNonQueryAsync(cmdText, PublicHelper.BuildParams(this._dbContextProvider, parameter));
         }
         public async Task<int> ExecuteNonQueryAsync(string cmdText, CommandType cmdType, object parameter)
         {
-            return await this.ExecuteNonQueryAsync(cmdText, cmdType, PublicHelper.BuildParams(this._dbContext, parameter));
+            return await this.ExecuteNonQueryAsync(cmdText, cmdType, PublicHelper.BuildParams(this._dbContextProvider, parameter));
         }
 
         public object ExecuteScalar(string cmdText, params DbParam[] parameters)
@@ -61,15 +61,15 @@ namespace Chloe.Core
         public object ExecuteScalar(string cmdText, CommandType cmdType, params DbParam[] parameters)
         {
             PublicHelper.CheckNull(cmdText, nameof(cmdText));
-            return this._dbContext.AdoSession.ExecuteScalar(cmdText, parameters, cmdType);
+            return this._dbContextProvider.AdoSession.ExecuteScalar(cmdText, parameters, cmdType);
         }
         public object ExecuteScalar(string cmdText, object parameter)
         {
-            return this.ExecuteScalar(cmdText, PublicHelper.BuildParams(this._dbContext, parameter));
+            return this.ExecuteScalar(cmdText, PublicHelper.BuildParams(this._dbContextProvider, parameter));
         }
         public object ExecuteScalar(string cmdText, CommandType cmdType, object parameter)
         {
-            return this.ExecuteScalar(cmdText, cmdType, PublicHelper.BuildParams(this._dbContext, parameter));
+            return this.ExecuteScalar(cmdText, cmdType, PublicHelper.BuildParams(this._dbContextProvider, parameter));
         }
 
         public async Task<object> ExecuteScalarAsync(string cmdText, params DbParam[] parameters)
@@ -79,15 +79,15 @@ namespace Chloe.Core
         public async Task<object> ExecuteScalarAsync(string cmdText, CommandType cmdType, params DbParam[] parameters)
         {
             PublicHelper.CheckNull(cmdText, nameof(cmdText));
-            return await this._dbContext.AdoSession.ExecuteScalarAsync(cmdText, parameters, cmdType);
+            return await this._dbContextProvider.AdoSession.ExecuteScalarAsync(cmdText, parameters, cmdType);
         }
         public async Task<object> ExecuteScalarAsync(string cmdText, object parameter)
         {
-            return await this.ExecuteScalarAsync(cmdText, PublicHelper.BuildParams(this._dbContext, parameter));
+            return await this.ExecuteScalarAsync(cmdText, PublicHelper.BuildParams(this._dbContextProvider, parameter));
         }
         public async Task<object> ExecuteScalarAsync(string cmdText, CommandType cmdType, object parameter)
         {
-            return await this.ExecuteScalarAsync(cmdText, cmdType, PublicHelper.BuildParams(this._dbContext, parameter));
+            return await this.ExecuteScalarAsync(cmdText, cmdType, PublicHelper.BuildParams(this._dbContextProvider, parameter));
         }
 
         public IDataReader ExecuteReader(string cmdText, params DbParam[] parameters)
@@ -97,15 +97,15 @@ namespace Chloe.Core
         public IDataReader ExecuteReader(string cmdText, CommandType cmdType, params DbParam[] parameters)
         {
             PublicHelper.CheckNull(cmdText, nameof(cmdText));
-            return this._dbContext.AdoSession.ExecuteReader(cmdText, parameters, cmdType);
+            return this._dbContextProvider.AdoSession.ExecuteReader(cmdText, parameters, cmdType);
         }
         public IDataReader ExecuteReader(string cmdText, object parameter)
         {
-            return this.ExecuteReader(cmdText, PublicHelper.BuildParams(this._dbContext, parameter));
+            return this.ExecuteReader(cmdText, PublicHelper.BuildParams(this._dbContextProvider, parameter));
         }
         public IDataReader ExecuteReader(string cmdText, CommandType cmdType, object parameter)
         {
-            return this.ExecuteReader(cmdText, cmdType, PublicHelper.BuildParams(this._dbContext, parameter));
+            return this.ExecuteReader(cmdText, cmdType, PublicHelper.BuildParams(this._dbContextProvider, parameter));
         }
 
         public async Task<IDataReader> ExecuteReaderAsync(string cmdText, params DbParam[] parameters)
@@ -115,52 +115,52 @@ namespace Chloe.Core
         public async Task<IDataReader> ExecuteReaderAsync(string cmdText, CommandType cmdType, params DbParam[] parameters)
         {
             PublicHelper.CheckNull(cmdText, nameof(cmdText));
-            return await this._dbContext.AdoSession.ExecuteReaderAsync(cmdText, parameters, cmdType);
+            return await this._dbContextProvider.AdoSession.ExecuteReaderAsync(cmdText, parameters, cmdType);
         }
         public async Task<IDataReader> ExecuteReaderAsync(string cmdText, object parameter)
         {
-            return await this.ExecuteReaderAsync(cmdText, PublicHelper.BuildParams(this._dbContext, parameter));
+            return await this.ExecuteReaderAsync(cmdText, PublicHelper.BuildParams(this._dbContextProvider, parameter));
         }
         public async Task<IDataReader> ExecuteReaderAsync(string cmdText, CommandType cmdType, object parameter)
         {
-            return await this.ExecuteReaderAsync(cmdText, cmdType, PublicHelper.BuildParams(this._dbContext, parameter));
+            return await this.ExecuteReaderAsync(cmdText, cmdType, PublicHelper.BuildParams(this._dbContextProvider, parameter));
         }
 
         public void UseTransaction(IDbTransaction dbTransaction)
         {
-            this._dbContext.AdoSession.UseExternalTransaction(dbTransaction);
+            this._dbContextProvider.AdoSession.UseExternalTransaction(dbTransaction);
         }
         public void BeginTransaction()
         {
-            this._dbContext.AdoSession.BeginTransaction(null);
+            this._dbContextProvider.AdoSession.BeginTransaction(null);
         }
         public void BeginTransaction(IsolationLevel il)
         {
-            this._dbContext.AdoSession.BeginTransaction(il);
+            this._dbContextProvider.AdoSession.BeginTransaction(il);
         }
         public void CommitTransaction()
         {
-            this._dbContext.AdoSession.CommitTransaction();
+            this._dbContextProvider.AdoSession.CommitTransaction();
         }
         public void RollbackTransaction()
         {
-            this._dbContext.AdoSession.RollbackTransaction();
+            this._dbContextProvider.AdoSession.RollbackTransaction();
         }
 
         public void AddInterceptor(IDbCommandInterceptor interceptor)
         {
             PublicHelper.CheckNull(interceptor, nameof(interceptor));
-            this._dbContext.AdoSession.SessionInterceptors.Add(interceptor);
+            this._dbContextProvider.AdoSession.SessionInterceptors.Add(interceptor);
         }
         public void RemoveInterceptor(IDbCommandInterceptor interceptor)
         {
             PublicHelper.CheckNull(interceptor, nameof(interceptor));
-            this._dbContext.AdoSession.SessionInterceptors.Remove(interceptor);
+            this._dbContextProvider.AdoSession.SessionInterceptors.Remove(interceptor);
         }
 
         public void Dispose()
         {
-            this._dbContext.Dispose();
+            this._dbContextProvider.Dispose();
         }
     }
 }

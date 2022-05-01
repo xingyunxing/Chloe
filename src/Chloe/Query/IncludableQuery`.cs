@@ -47,8 +47,8 @@ namespace Chloe.Query
             {
                 PropertyInfo member = memberExps[i].Member as PropertyInfo;
 
-                DbContext dbContext = prevExpression.GetRootDbContext() as DbContext;
-                NavigationNode navigation = InitNavigationNode(member, dbContext);
+                DbContextProvider dbContextProvider = prevExpression.GetRootDbContextProvider() as DbContextProvider;
+                NavigationNode navigation = InitNavigationNode(member, dbContextProvider);
 
                 if (startNavigation == null)
                 {
@@ -65,7 +65,7 @@ namespace Chloe.Query
 
             return ret;
         }
-        static NavigationNode InitNavigationNode(PropertyInfo member, DbContext dbContext)
+        static NavigationNode InitNavigationNode(PropertyInfo member, DbContextProvider dbContextProvider)
         {
             NavigationNode navigation = new NavigationNode(member);
 
@@ -75,7 +75,7 @@ namespace Chloe.Query
                 elementType = member.PropertyType.GetGenericArguments()[0];
             }
 
-            List<LambdaExpression> filters = dbContext.QueryFilters.FindValue(elementType);
+            List<LambdaExpression> filters = dbContextProvider.QueryFilters.FindValue(elementType);
             if (filters != null)
                 navigation.ContextFilters.AppendRange(filters);
 
@@ -94,8 +94,8 @@ namespace Chloe.Query
             {
                 PropertyInfo member = memberExps[i].Member as PropertyInfo;
 
-                DbContext dbContext = this.QueryExpression.GetRootDbContext() as DbContext;
-                NavigationNode navigation = InitNavigationNode(member, dbContext);
+                DbContextProvider dbContextProvider = this.QueryExpression.GetRootDbContextProvider() as DbContextProvider;
+                NavigationNode navigation = InitNavigationNode(member, dbContextProvider);
 
                 lastNavigation.Next = navigation;
                 lastNavigation = navigation;

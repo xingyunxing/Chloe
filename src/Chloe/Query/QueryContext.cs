@@ -2,10 +2,10 @@
 {
     class QueryContext
     {
-        public QueryContext(DbContext dbContext)
+        public QueryContext(DbContextProvider dbContextProvider)
         {
-            this.DbContext = dbContext;
+            this.DbContextProvider = dbContextProvider;
         }
-        public DbContext DbContext { get; set; }
+        public DbContextProvider DbContextProvider { get; set; }
     }
 }

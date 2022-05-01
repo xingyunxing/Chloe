@@ -1,320 +1,160 @@
-﻿//using Chloe.Exceptions;
-//using Chloe.Infrastructure.Interception;
-//using Chloe.Routing;
-//using System.Data;
+﻿using Chloe.Infrastructure.Interception;
+using System.Data;
 
-//namespace Chloe.Sharding
-//{
-//    class DataSourceDbContextPair
-//    {
-//        public DataSourceDbContextPair(IPhysicDataSource dataSource, IDbContext dbContext)
-//        {
-//            this.DataSource = dataSource;
-//            this.DbContext = dbContext;
-//        }
+namespace Chloe.Sharding
+{
+    internal class ShardingDbSessionProvider : IDbSessionProvider
+    {
+        ShardingDbContextProvider _dbContextProvider;
 
-//        public IPhysicDataSource DataSource { get; set; }
-//        public IDbContext DbContext { get; set; }
-//    }
+        public ShardingDbSessionProvider(ShardingDbContextProvider dbContextProvider)
+        {
+            this._dbContextProvider = dbContextProvider;
+        }
 
-//    internal class ShardingDbSessionProvider : IDbSession
-//    {
-//        bool _disposed = false;
-//        ShardingDbContext _dbContext;
+        public IDbContextProvider DbContextProvider { get { return this._dbContextProvider; } }
 
-//        public ShardingDbSessionProvider(ShardingDbContext dbContext)
-//        {
-//            this._dbContext = dbContext;
-//        }
+        public IDbConnection CurrentConnection => throw new NotSupportedException();
+        public IDbTransaction CurrentTransaction => throw new NotSupportedException();
 
-//        public IsolationLevel? IL { get; private set; }
-//        public List<DataSourceDbContextPair> PersistedDbContexts { get; set; } = new List<DataSourceDbContextPair>();
+        public bool IsInTransaction => throw new NotSupportedException();
+        public int CommandTimeout { get; set; }
 
-//        List<IDbCommandInterceptor> _sessionInterceptors;
-//        public List<IDbCommandInterceptor> SessionInterceptors
-//        {
-//            get
-//            {
-//                if (this._sessionInterceptors == null)
-//                    this._sessionInterceptors = new List<IDbCommandInterceptor>(1);
+        public int ExecuteNonQuery(string cmdText, params DbParam[] parameters)
+        {
+            throw new NotSupportedException();
+        }
+        public int ExecuteNonQuery(string cmdText, CommandType cmdType, params DbParam[] parameters)
+        {
+            throw new NotSupportedException();
+        }
+        public int ExecuteNonQuery(string cmdText, object parameter)
+        {
+            throw new NotSupportedException();
+        }
+        public int ExecuteNonQuery(string cmdText, CommandType cmdType, object parameter)
+        {
+            throw new NotSupportedException();
+        }
 
-//                return this._sessionInterceptors;
-//            }
-//        }
+        public Task<int> ExecuteNonQueryAsync(string cmdText, params DbParam[] parameters)
+        {
+            throw new NotSupportedException();
+        }
+        public Task<int> ExecuteNonQueryAsync(string cmdText, CommandType cmdType, params DbParam[] parameters)
+        {
+            throw new NotSupportedException();
+        }
+        public Task<int> ExecuteNonQueryAsync(string cmdText, object parameter)
+        {
+            throw new NotSupportedException();
+        }
+        public async Task<int> ExecuteNonQueryAsync(string cmdText, CommandType cmdType, object parameter)
+        {
+            throw new NotSupportedException();
+        }
 
-//        public IDbContext DbContext => this._dbContext;
+        public object ExecuteScalar(string cmdText, params DbParam[] parameters)
+        {
+            throw new NotSupportedException();
+        }
+        public object ExecuteScalar(string cmdText, CommandType cmdType, params DbParam[] parameters)
+        {
+            throw new NotSupportedException();
+        }
+        public object ExecuteScalar(string cmdText, object parameter)
+        {
+            throw new NotSupportedException();
+        }
+        public object ExecuteScalar(string cmdText, CommandType cmdType, object parameter)
+        {
+            throw new NotSupportedException();
+        }
 
-//        public IDbConnection CurrentConnection => throw new NotSupportedException();
+        public Task<object> ExecuteScalarAsync(string cmdText, params DbParam[] parameters)
+        {
+            throw new NotSupportedException();
+        }
+        public Task<object> ExecuteScalarAsync(string cmdText, CommandType cmdType, params DbParam[] parameters)
+        {
+            throw new NotSupportedException();
+        }
+        public Task<object> ExecuteScalarAsync(string cmdText, object parameter)
+        {
+            throw new NotSupportedException();
+        }
+        public Task<object> ExecuteScalarAsync(string cmdText, CommandType cmdType, object parameter)
+        {
+            throw new NotSupportedException();
+        }
 
-//        public IDbTransaction CurrentTransaction => throw new NotSupportedException();
+        public IDataReader ExecuteReader(string cmdText, params DbParam[] parameters)
+        {
+            throw new NotSupportedException();
+        }
+        public IDataReader ExecuteReader(string cmdText, CommandType cmdType, params DbParam[] parameters)
+        {
+            throw new NotSupportedException();
+        }
+        public IDataReader ExecuteReader(string cmdText, object parameter)
+        {
+            throw new NotSupportedException();
+        }
+        public IDataReader ExecuteReader(string cmdText, CommandType cmdType, object parameter)
+        {
+            throw new NotSupportedException();
+        }
 
-//        public bool IsInTransaction { get; private set; }
+        public Task<IDataReader> ExecuteReaderAsync(string cmdText, params DbParam[] parameters)
+        {
+            throw new NotSupportedException();
+        }
+        public Task<IDataReader> ExecuteReaderAsync(string cmdText, CommandType cmdType, params DbParam[] parameters)
+        {
+            throw new NotSupportedException();
+        }
+        public Task<IDataReader> ExecuteReaderAsync(string cmdText, object parameter)
+        {
+            throw new NotSupportedException();
+        }
+        public Task<IDataReader> ExecuteReaderAsync(string cmdText, CommandType cmdType, object parameter)
+        {
+            throw new NotSupportedException();
+        }
 
-//        public int CommandTimeout { get; set; } = 30;
+        public void UseTransaction(IDbTransaction dbTransaction)
+        {
+            throw new NotSupportedException();
+        }
+        public void BeginTransaction()
+        {
+            throw new NotSupportedException();
+        }
+        public void BeginTransaction(IsolationLevel il)
+        {
+            throw new NotSupportedException();
+        }
+        public void CommitTransaction()
+        {
+            throw new NotSupportedException();
+        }
+        public void RollbackTransaction()
+        {
+            throw new NotSupportedException();
+        }
 
-//        public void Dispose()
-//        {
-//            if (this._disposed)
-//                return;
+        public void AddInterceptor(IDbCommandInterceptor interceptor)
+        {
+            throw new NotSupportedException();
+        }
+        public void RemoveInterceptor(IDbCommandInterceptor interceptor)
+        {
+            throw new NotSupportedException();
+        }
 
-//            this.Dispose(true);
-//            this._disposed = true;
-//        }
-//        protected virtual void Dispose(bool disposing)
-//        {
-//            if (this.IsInTransaction)
-//            {
-//                try
-//                {
-//                    this.RollbackTransactionImpl();
-//                }
-//                catch
-//                {
-//                }
-//            }
+        public void Dispose()
+        {
 
-//            this.PersistedDbContexts.Clear();
-//        }
-
-//        public void AddInterceptor(IDbCommandInterceptor interceptor)
-//        {
-//            PublicHelper.CheckNull(interceptor, nameof(interceptor));
-//            this.SessionInterceptors.Add(interceptor);
-//        }
-//        public void RemoveInterceptor(IDbCommandInterceptor interceptor)
-//        {
-//            PublicHelper.CheckNull(interceptor, nameof(interceptor));
-//            this.SessionInterceptors.Remove(interceptor);
-//        }
-
-//        public void BeginTransaction()
-//        {
-//            this.BeginTransaction(null);
-//        }
-//        public void BeginTransaction(IsolationLevel il)
-//        {
-//            this.BeginTransaction(il);
-//        }
-//        void BeginTransaction(IsolationLevel? il)
-//        {
-//            if (this.IsInTransaction)
-//            {
-//                throw new ChloeException("The current session has opened a transaction.");
-//            }
-
-//            try
-//            {
-//                foreach (var persistedDbContext in this.PersistedDbContexts)
-//                {
-//                    persistedDbContext.DbContext.Session.BeginTransaction(il);
-//                }
-//            }
-//            catch
-//            {
-//                try
-//                {
-//                    this.RollbackTransactionImpl();
-//                }
-//                catch
-//                {
-//                }
-
-//                throw;
-//            }
-
-//            this.IL = il;
-//            this.IsInTransaction = true;
-//        }
-
-//        public void CommitTransaction()
-//        {
-//            if (!this.IsInTransaction)
-//            {
-//                throw new ChloeException("Current session does not open a transaction.");
-//            }
-
-//            foreach (var pair in this.PersistedDbContexts)
-//            {
-//                var dbContext = pair.DbContext;
-
-//                if (!dbContext.Session.IsInTransaction)
-//                {
-//                    continue;
-//                }
-
-//                dbContext.Session.CommitTransaction();
-//            }
-
-//            this.IsInTransaction = false;
-//        }
-//        public void RollbackTransaction()
-//        {
-//            if (!this.IsInTransaction)
-//            {
-//                throw new ChloeException("Current session does not open a transaction.");
-//            }
-
-//            this.RollbackTransactionImpl();
-//        }
-//        void RollbackTransactionImpl()
-//        {
-//            List<Exception> exceptions = null;
-
-//            foreach (var pair in this.PersistedDbContexts)
-//            {
-//                var dbContext = pair.DbContext;
-//                if (!dbContext.Session.IsInTransaction)
-//                {
-//                    continue;
-//                }
-
-//                try
-//                {
-//                    dbContext.Session.RollbackTransaction();
-//                }
-//                catch (Exception ex)
-//                {
-//                    if (exceptions == null)
-//                    {
-//                        exceptions = new List<Exception>();
-//                    }
-
-//                    exceptions.Add(ex);
-//                }
-//            }
-
-//            this.IsInTransaction = false;
-
-//            if (exceptions != null && exceptions.Count > 0)
-//            {
-//                AggregateException aggregateException = new AggregateException("One or more exceptions occurred when rolling back the transaction.", exceptions);
-//                throw aggregateException;
-//            }
-//        }
-
-//        public void UseTransaction(IDbTransaction dbTransaction)
-//        {
-//            throw new NotSupportedException();
-//        }
-
-//        public int ExecuteNonQuery(string cmdText, params DbParam[] parameters)
-//        {
-//            throw new NotSupportedException();
-//        }
-
-//        public int ExecuteNonQuery(string cmdText, CommandType cmdType, params DbParam[] parameters)
-//        {
-//            throw new NotSupportedException();
-//        }
-
-//        public int ExecuteNonQuery(string cmdText, object parameter)
-//        {
-//            throw new NotSupportedException();
-//        }
-
-//        public int ExecuteNonQuery(string cmdText, CommandType cmdType, object parameter)
-//        {
-//            throw new NotSupportedException();
-//        }
-
-//        public Task<int> ExecuteNonQueryAsync(string cmdText, params DbParam[] parameters)
-//        {
-//            throw new NotSupportedException();
-//        }
-
-//        public Task<int> ExecuteNonQueryAsync(string cmdText, CommandType cmdType, params DbParam[] parameters)
-//        {
-//            throw new NotSupportedException();
-//        }
-
-//        public Task<int> ExecuteNonQueryAsync(string cmdText, object parameter)
-//        {
-//            throw new NotSupportedException();
-//        }
-
-//        public Task<int> ExecuteNonQueryAsync(string cmdText, CommandType cmdType, object parameter)
-//        {
-//            throw new NotSupportedException();
-//        }
-
-//        public IDataReader ExecuteReader(string cmdText, params DbParam[] parameters)
-//        {
-//            throw new NotSupportedException();
-//        }
-
-//        public IDataReader ExecuteReader(string cmdText, CommandType cmdType, params DbParam[] parameters)
-//        {
-//            throw new NotSupportedException();
-//        }
-
-//        public IDataReader ExecuteReader(string cmdText, object parameter)
-//        {
-//            throw new NotSupportedException();
-//        }
-
-//        public IDataReader ExecuteReader(string cmdText, CommandType cmdType, object parameter)
-//        {
-//            throw new NotSupportedException();
-//        }
-
-//        public Task<IDataReader> ExecuteReaderAsync(string cmdText, params DbParam[] parameters)
-//        {
-//            throw new NotSupportedException();
-//        }
-
-//        public Task<IDataReader> ExecuteReaderAsync(string cmdText, CommandType cmdType, params DbParam[] parameters)
-//        {
-//            throw new NotSupportedException();
-//        }
-
-//        public Task<IDataReader> ExecuteReaderAsync(string cmdText, object parameter)
-//        {
-//            throw new NotSupportedException();
-//        }
-
-//        public Task<IDataReader> ExecuteReaderAsync(string cmdText, CommandType cmdType, object parameter)
-//        {
-//            throw new NotSupportedException();
-//        }
-
-//        public object ExecuteScalar(string cmdText, params DbParam[] parameters)
-//        {
-//            throw new NotSupportedException();
-//        }
-
-//        public object ExecuteScalar(string cmdText, CommandType cmdType, params DbParam[] parameters)
-//        {
-//            throw new NotSupportedException();
-//        }
-
-//        public object ExecuteScalar(string cmdText, object parameter)
-//        {
-//            throw new NotSupportedException();
-//        }
-
-//        public object ExecuteScalar(string cmdText, CommandType cmdType, object parameter)
-//        {
-//            throw new NotSupportedException();
-//        }
-
-//        public Task<object> ExecuteScalarAsync(string cmdText, params DbParam[] parameters)
-//        {
-//            throw new NotSupportedException();
-//        }
-
-//        public Task<object> ExecuteScalarAsync(string cmdText, CommandType cmdType, params DbParam[] parameters)
-//        {
-//            throw new NotSupportedException();
-//        }
-
-//        public Task<object> ExecuteScalarAsync(string cmdText, object parameter)
-//        {
-//            throw new NotSupportedException();
-//        }
-
-//        public Task<object> ExecuteScalarAsync(string cmdText, CommandType cmdType, object parameter)
-//        {
-//            throw new NotSupportedException();
-//        }
-//    }
-//}
+        }
+    }
+}

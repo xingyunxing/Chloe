@@ -11,7 +11,8 @@ namespace Chloe.MySql
         public static int Update<TEntity>(this IDbContext dbContext, Expression<Func<TEntity, bool>> condition, Expression<Func<TEntity, TEntity>> content, string table, int limits)
         {
             MySqlContext mySqlContext = (MySqlContext)dbContext;
-            return mySqlContext.Update<TEntity>(condition, content, table, limits);
+            MySqlContextProvider mySqlContextProvider = (MySqlContextProvider)mySqlContext.DefaultDbContextProvider;
+            return mySqlContextProvider.Update<TEntity>(condition, content, table, limits);
         }
 
         public static int Delete<TEntity>(this IDbContext dbContext, Expression<Func<TEntity, bool>> condition, int limits)
@@ -21,7 +22,8 @@ namespace Chloe.MySql
         public static int Delete<TEntity>(this IDbContext dbContext, Expression<Func<TEntity, bool>> condition, string table, int limits)
         {
             MySqlContext mySqlContext = (MySqlContext)dbContext;
-            return mySqlContext.Delete<TEntity>(condition, table, limits);
+            MySqlContextProvider mySqlContextProvider = (MySqlContextProvider)mySqlContext.DefaultDbContextProvider;
+            return mySqlContextProvider.Delete<TEntity>(condition, table, limits);
         }
     }
 }

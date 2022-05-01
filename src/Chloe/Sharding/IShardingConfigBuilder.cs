@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using Chloe.Sharding.Routing;
+using System.Linq.Expressions;
 
 namespace Chloe.Sharding
 {
@@ -21,7 +22,7 @@ namespace Chloe.Sharding
         }
         public IShardingConfigBuilder<T> HasRouteFactory(Func<IShardingRoute> routeFactory)
         {
-            return this.HasRouteFactory(new ShardingRouteFactoryFacade(routeFactory));
+            return this.HasRouteFactory(new ShardingRouteFactory(routeFactory));
         }
         public IShardingConfigBuilder<T> HasRouteFactory(IShardingRouteFactory routeFactory)
         {
@@ -46,7 +47,7 @@ namespace Chloe.Sharding
         {
             var memberExp = this._shardingKey.Body as MemberExpression;
 
-            ShardingConfigFacade shardingConfig = new ShardingConfigFacade();
+            var shardingConfig = new ShardingConfig();
             shardingConfig.EntityType = typeof(T);
             shardingConfig.RouteFactory = this._routeFactory;
             shardingConfig.ShardingKey = memberExp.Member;

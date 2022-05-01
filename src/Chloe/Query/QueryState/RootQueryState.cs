@@ -16,7 +16,7 @@ namespace Chloe.Query.QueryState
         {
         }
         public RootQueryState(RootQueryExpression rootQueryExp, ScopeParameterDictionary scopeParameters, StringSet scopeTables, Func<string, string> tableAliasGenerator)
-          : base(new QueryContext((DbContext)rootQueryExp.Provider), CreateQueryModel(rootQueryExp, scopeParameters, scopeTables, tableAliasGenerator))
+          : base(new QueryContext((DbContextProvider)rootQueryExp.Provider), CreateQueryModel(rootQueryExp, scopeParameters, scopeTables, tableAliasGenerator))
         {
             this._rootQueryExp = rootQueryExp;
         }
@@ -75,7 +75,7 @@ namespace Chloe.Query.QueryState
 
         static QueryModel CreateQueryModel(RootQueryExpression rootQueryExp, ScopeParameterDictionary scopeParameters, StringSet scopeTables, Func<string, string> tableAliasGenerator)
         {
-            DbContext dbContext = (DbContext)rootQueryExp.Provider;
+            DbContextProvider dbContext = (DbContextProvider)rootQueryExp.Provider;
             Type entityType = rootQueryExp.ElementType;
 
             if (entityType.IsAbstract || entityType.IsInterface)

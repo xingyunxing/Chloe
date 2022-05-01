@@ -1,5 +1,4 @@
-﻿using Chloe.Routing;
-using Chloe.Sharding.Queries;
+﻿using Chloe.Sharding.Queries;
 using System.Threading;
 
 namespace Chloe.Sharding.Enumerables

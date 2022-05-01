@@ -1,7 +1,7 @@
 ﻿using Chloe.Query;
 using Chloe.Query.QueryExpressions;
-using Chloe.Routing;
 using Chloe.Sharding.Enumerables;
+using Chloe.Sharding.Routing;
 using Chloe.Sharding.Visitors;
 
 namespace Chloe.Sharding.QueryState
@@ -130,10 +130,10 @@ namespace Chloe.Sharding.QueryState
             List<Ordering> orderings = this.QueryModel.Orderings;
 
             //对物理表重排
-            SortResultFacade sortResult;
+            SortResult sortResult;
             if (orderings.Count == 0)
             {
-                sortResult = new SortResultFacade() { IsOrdered = true, Tables = routeTables };
+                sortResult = new SortResult() { IsOrdered = true, Tables = routeTables };
             }
             else
             {

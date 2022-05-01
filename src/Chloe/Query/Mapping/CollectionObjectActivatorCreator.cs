@@ -24,15 +24,15 @@ namespace Chloe.Query.Mapping
         {
             return this.CreateObjectActivator(null);
         }
-        public IObjectActivator CreateObjectActivator(IDbContext dbContext)
+        public IObjectActivator CreateObjectActivator(IDbContextProvider dbContextProvider)
         {
             CollectionObjectActivator ret = new CollectionObjectActivator(this.CollectionType);
             return ret;
         }
 
-        public IFitter CreateFitter(IDbContext dbContext)
+        public IFitter CreateFitter(IDbContextProvider dbContextProvider)
         {
-            IFitter elementFitter = this.ElementActivatorCreator.CreateFitter(dbContext);
+            IFitter elementFitter = this.ElementActivatorCreator.CreateFitter(dbContextProvider);
 
             ComplexObjectActivatorCreator elementActivatorCreator = (ComplexObjectActivatorCreator)this.ElementActivatorCreator;
             TypeDescriptor elementTypeDescriptor = EntityTypeContainer.GetDescriptor(elementActivatorCreator.ObjectType);
@@ -47,7 +47,7 @@ namespace Chloe.Query.Mapping
 
             PropertyDescriptor elementOwnerProperty = elementTypeDescriptor.ComplexPropertyDescriptors.Where(a => a.Definition.Property.PropertyType == this.OwnerType).First();
 
-            CollectionObjectFitter fitter = new CollectionObjectFitter(this.ElementActivatorCreator.CreateObjectActivator(dbContext), entityKey, elementFitter, elementOwnerProperty);
+            CollectionObjectFitter fitter = new CollectionObjectFitter(this.ElementActivatorCreator.CreateObjectActivator(dbContextProvider), entityKey, elementFitter, elementOwnerProperty);
             return fitter;
         }
     }

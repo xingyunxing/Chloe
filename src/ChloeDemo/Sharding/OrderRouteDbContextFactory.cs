@@ -7,20 +7,20 @@ using System.Text;
 
 namespace ChloeDemo.Sharding
 {
-    public class OrderRouteDbContextFactory : IRouteDbContextFactory
+    public class OrderDbContextProviderFactory : IDbContextProviderFactory
     {
         int _year;
-        public OrderRouteDbContextFactory(int year)
+        public OrderDbContextProviderFactory(int year)
         {
             this._year = year;
         }
 
-        public IDbContext CreateDbContext()
+        public IDbContextProvider CreateDbContextProvider()
         {
             string connString = $"Server=localhost;Port=3306;Database=order{this._year};Uid=root;Password=sasa;Charset=utf8; Pooling=True; Max Pool Size=200;Allow User Variables=True;SslMode=none;allowPublicKeyRetrieval=true";
 
-            MySqlContext dbContext = new MySqlContext(new MySqlConnectionFactory(connString));
-            return dbContext;
+            MySqlContextProvider dbContextProvider = new MySqlContextProvider(new MySqlConnectionFactory(connString));
+            return dbContextProvider;
         }
     }
 }

@@ -85,7 +85,7 @@ namespace Chloe
                 throw new ChloeException(string.Format("The entity type '{0}' does not define any primary key.", typeDescriptor.Definition.Type.FullName));
         }
 
-        public static DbParam[] BuildParams(DbContext dbContext, object parameter)
+        public static DbParam[] BuildParams(DbContextProvider dbContextProvider, object parameter)
         {
             if (parameter == null)
                 return new DbParam[0];
@@ -107,7 +107,7 @@ namespace Chloe
 
                 object value = ReflectionExtension.FastGetMemberValue(prop, parameter);
 
-                string paramName = dbContext.DatabaseProvider.CreateParameterName(prop.Name);
+                string paramName = dbContextProvider.DatabaseProvider.CreateParameterName(prop.Name);
 
                 DbParam p = new DbParam(paramName, value, prop.PropertyType);
                 parameters.Add(p);

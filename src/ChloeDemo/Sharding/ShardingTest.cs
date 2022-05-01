@@ -1,4 +1,5 @@
-﻿using Chloe.MySql;
+﻿using Chloe;
+using Chloe.MySql;
 using Chloe.Sharding;
 using System;
 using System.Collections.Generic;
@@ -33,6 +34,13 @@ namespace ChloeDemo.Sharding
             Console.ReadKey();
         }
 
+        IDbContext CreateDbContext()
+        {
+            DbContext dbContext = new DbContext();
+            dbContext.ShardingOptions.MaxConnectionsPerDataSource = 6;
+            return dbContext;
+        }
+
         public static async Task InitData()
         {
             await InitData(2018);
@@ -58,7 +66,7 @@ namespace ChloeDemo.Sharding
         public static async Task InitData(int year)
         {
             MySqlContext dbContext = new MySqlContext(new MySqlConnectionFactory($"Server=localhost;Port=3306;Database=order{year};Uid=root;Password=sasa;Charset=utf8; Pooling=True; Max Pool Size=200;Allow User Variables=True;SslMode=none;"));
-
+            dbContext.ShardingEnabled = false;
             for (int month = 1; month <= 12; month++)
             {
                 string table = BuildTableName(month);
@@ -100,7 +108,7 @@ namespace ChloeDemo.Sharding
             /*
              * 增删查改
              */
-            ShardingDbContext dbContext = new ShardingDbContext();
+            IDbContext dbContext = this.CreateDbContext();
 
             int rowsAffected = 0;
             DateTime createTime = new DateTime(2021, 1, 1, 1, 1, 1);
@@ -143,7 +151,7 @@ namespace ChloeDemo.Sharding
             /*
              * 按条件删除和更新
              */
-            ShardingDbContext dbContext = new ShardingDbContext();
+            IDbContext dbContext = this.CreateDbContext();
 
             int rowsAffected = 0;
 

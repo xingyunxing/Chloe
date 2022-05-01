@@ -124,15 +124,15 @@ namespace ChloeDemo
         public override void ExecuteCommandText()
         {
             List<Person> persons = this.DbContext.SqlQuery<Person>("select * from Person where Age > ?", DbParam.Create("@age", 1)).ToList();
-            
+
             int rowsAffected = this.DbContext.Session.ExecuteNonQuery("update Person set name=? where Id = 1", DbParam.Create("@name", "Chloe"));
-            
+
             /* 
              * 执行存储过程:
              * Person person = this.DbContext.SqlQuery<Person>("Proc_GetPerson", CommandType.StoredProcedure, DbParam.Create("@id", 1)).FirstOrDefault();
              * rowsAffected = this.DbContext.Session.ExecuteNonQuery("Proc_UpdatePersonName", CommandType.StoredProcedure, DbParam.Create("@name", "Chloe"));
              */
-            
+
             ConsoleHelper.WriteLineAndReadKey();
         }
     }

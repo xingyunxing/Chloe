@@ -1,6 +1,4 @@
-﻿using System.Linq.Expressions;
-
-namespace Chloe.Query.QueryExpressions
+﻿namespace Chloe.Query.QueryExpressions
 {
     class RootQueryExpression : QueryExpression
     {
