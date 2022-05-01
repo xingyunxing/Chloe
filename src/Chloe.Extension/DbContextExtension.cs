@@ -122,7 +122,7 @@ namespace Chloe
                 var propertyDescriptor = typeDescriptor.FindPrimitivePropertyDescriptor(memberInfo);
 
                 if (propertyDescriptor == null)
-                    throw new ArgumentException(string.Format("Could not find the member '{0}' from entity.", propertyDescriptor.Column.Name));
+                    throw new ArgumentException(string.Format("Could not find the mapping member '{0}' from entity.", memberInfo.Name));
 
                 Expression entityMemberAccess = Expression.MakeMemberAccess(entityConstantExp, memberInfo);
                 MemberAssignment bind = Expression.Bind(memberInfo, entityMemberAccess);
