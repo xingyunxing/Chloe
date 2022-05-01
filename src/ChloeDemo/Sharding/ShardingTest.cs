@@ -22,8 +22,8 @@ namespace ChloeDemo.Sharding
 
 
             ShardingConfigBuilder<Order> shardingConfigBuilder = new ShardingConfigBuilder<Order>();
-            shardingConfigBuilder.HasShardingKey(a => a.CreateTime);
-            shardingConfigBuilder.HasRoute(new OrderShardingRoute(new List<int>() { 2020, 2021 }));
+            shardingConfigBuilder.HasShardingKey(a => a.CreateTime);     //配置分片字段
+            shardingConfigBuilder.HasRoute(new OrderShardingRoute(new List<int>() { 2020, 2021 })); //设置分片路由
 
             ShardingConfigContainer.Add(shardingConfigBuilder.Build());
 

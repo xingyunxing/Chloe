@@ -45,6 +45,7 @@ namespace ChloeDemo.Sharding
             this._routingStrategies.Add(nameof(Order.CreateYear), new OrderCreateYearRoutingStrategy(this));
             this._routingStrategies.Add(nameof(Order.CreateMonth), new OrderCreateMonthRoutingStrategy(this));
 
+            //所有分表
             this.AllTables = years.SelectMany(a => GetTablesByYear(a)).Reverse().ToList();
 
             //this.AllTables = GetRouteTablesByYear(2020).ToList();
