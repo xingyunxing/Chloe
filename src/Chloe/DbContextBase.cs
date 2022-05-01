@@ -278,7 +278,7 @@ namespace Chloe
         {
             return this.Update<TEntity>(entity, table, true);
         }
-        protected virtual async Task<int> Update<TEntity>(TEntity entity, string table, bool @async)
+        protected virtual Task<int> Update<TEntity>(TEntity entity, string table, bool @async)
         {
             throw new NotImplementedException();
         }

@@ -7,7 +7,7 @@ namespace Chloe.Sharding
 {
     internal partial class ShardingQuery<T> : IQuery<T>
     {
-        static readonly List<Expression> EmptyArgumentList = new List<Expression>(0);
+        static readonly List<Expression> EmptyArgumentList = new List<Expression>();
 
         IFeatureEnumerable<T> GenerateIterator()
         {

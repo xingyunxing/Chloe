@@ -106,10 +106,10 @@ namespace Chloe.Sharding
             return orderedQuery;
         }
 
-        public static SharedDbContextProviderPool CreateDbContextProviderPool(IShardingContext shardingContext, IPhysicDataSource dataSource, int desiredContexts)
+        public static SharedDbContextProviderPool CreateDbContextProviderPool(IShardingContext shardingContext, IPhysicDataSource dataSource, int desiredContextProviders)
         {
-            List<IDbContextProvider> dbContexts = shardingContext.CreateDbContextProviders(dataSource, desiredContexts);
-            SharedDbContextProviderPool dbContextProviderPool = new SharedDbContextProviderPool(dbContexts);
+            List<IDbContextProvider> dbContextProviders = shardingContext.CreateDbContextProviders(dataSource, desiredContextProviders);
+            SharedDbContextProviderPool dbContextProviderPool = new SharedDbContextProviderPool(dbContextProviders);
 
             return dbContextProviderPool;
         }

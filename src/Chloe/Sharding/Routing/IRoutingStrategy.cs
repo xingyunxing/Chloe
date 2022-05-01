@@ -1,5 +1,8 @@
 ﻿namespace Chloe.Sharding.Routing
 {
+    /// <summary>
+    /// 路由规则
+    /// </summary>
     public interface IRoutingStrategy
     {
         IEnumerable<RouteTable> ForEqual(object value);
