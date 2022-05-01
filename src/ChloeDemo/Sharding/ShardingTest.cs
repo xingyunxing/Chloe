@@ -25,10 +25,11 @@ namespace ChloeDemo.Sharding
             shardingConfigBuilder.HasShardingKey(a => a.CreateTime);     //配置分片字段
             shardingConfigBuilder.HasRoute(new OrderShardingRoute(new List<int>() { 2020, 2021 })); //设置分片路由
 
-            ShardingConfigContainer.Add(shardingConfigBuilder.Build());
+            ShardingConfigContainer.Add(shardingConfigBuilder.Build());     //注册分片配置信息
 
-            await this.Test1();
-            await this.Test2();
+            await this.CrudTest();
+            await this.UpdateByLambdaTest();
+            await this.DeleteByLambdaTest();
 
             Console.WriteLine("over...");
             Console.ReadKey();
@@ -103,7 +104,7 @@ namespace ChloeDemo.Sharding
         }
 
 
-        async Task Test1()
+        async Task CrudTest()
         {
             /*
              * 增删查改
@@ -146,10 +147,42 @@ namespace ChloeDemo.Sharding
             Helpers.PrintSplitLine();
         }
 
-        async Task Test2()
+        async Task UpdateByLambdaTest()
         {
             /*
              * 按条件删除和更新
+             */
+            IDbContext dbContext = this.CreateDbContext();
+
+            await InitData(2021);
+
+            int rowsAffected = 0;
+
+            string newUserId = "chloe2021";
+            rowsAffected = await dbContext.UpdateAsync<Order>(a => a.CreateYear == 2021, a => new Order()
+            {
+                UserId = newUserId,
+            });
+
+            Debug.Assert(rowsAffected == 730);
+
+            List<Order> orders = await dbContext.Query<Order>().Where(a => a.CreateYear == 2021).ToListAsync();
+            Debug.Assert(orders.All(a => a.UserId == newUserId));
+
+            rowsAffected = await dbContext.UpdateAsync<Order>(a => a.CreateYear == 2021 && a.CreateMonth == 12, a => new Order()
+            {
+                UserId = "chloe2021",
+            });
+
+            Debug.Assert(rowsAffected == 62);
+
+            Helpers.PrintSplitLine();
+        }
+
+        async Task DeleteByLambdaTest()
+        {
+            /*
+             * 按条件删除
              */
             IDbContext dbContext = this.CreateDbContext();
 
@@ -160,26 +193,6 @@ namespace ChloeDemo.Sharding
             rowsAffected = await dbContext.DeleteAsync<Order>(a => a.CreateYear == 2021);
 
             Debug.Assert(rowsAffected == orders.Count);
-
-            await InitData(2021);
-
-            string newUserId = "chloe2021";
-            rowsAffected = await dbContext.UpdateAsync<Order>(a => a.CreateYear == 2021, a => new Order()
-            {
-                UserId = newUserId,
-            });
-
-            Debug.Assert(rowsAffected == 730);
-
-            orders = await dbContext.Query<Order>().Where(a => a.CreateYear == 2021).ToListAsync();
-            Debug.Assert(orders.All(a => a.UserId == newUserId));
-
-            rowsAffected = await dbContext.UpdateAsync<Order>(a => a.CreateYear == 2021 && a.CreateMonth == 12, a => new Order()
-            {
-                UserId = "chloe2021",
-            });
-
-            Debug.Assert(rowsAffected == 62);
 
             Helpers.PrintSplitLine();
         }

@@ -39,7 +39,7 @@ namespace ChloeDemo.Sharding
 
         public OrderShardingRoute(List<int> years)
         {
-            //多字段路由
+            //添加路由规则(支持多个字段)
             this._routingStrategies.Add(nameof(Order.CreateTime), new OrderCreateTimeRoutingStrategy(this));
             this._routingStrategies.Add(nameof(Order.CreateDate), new OrderCreateDateRoutingStrategy(this));
             this._routingStrategies.Add(nameof(Order.CreateYear), new OrderCreateYearRoutingStrategy(this));
@@ -55,6 +55,11 @@ namespace ChloeDemo.Sharding
         }
         List<RouteTable> AllTables { get; set; }
 
+        /// <summary>
+        /// 创建所有分表对象，并设置设置数据源
+        /// </summary>
+        /// <param name="year"></param>
+        /// <returns></returns>
         IEnumerable<RouteTable> GetTablesByYear(int year)
         {
             for (int month = 1; month <= 12; month++)
@@ -119,6 +124,9 @@ namespace ChloeDemo.Sharding
         }
     }
 
+    /// <summary>
+    /// CreateTime 字段路由规则
+    /// </summary>
     public class OrderCreateTimeRoutingStrategy : RoutingStrategy<DateTime>
     {
         public OrderCreateTimeRoutingStrategy(OrderShardingRoute route) : base(route)
@@ -156,6 +164,9 @@ namespace ChloeDemo.Sharding
             return this.ForLessThan(createTime);
         }
     }
+    /// <summary>
+    /// CreateDate 字段路由规则
+    /// </summary>
     public class OrderCreateDateRoutingStrategy : RoutingStrategy<int>
     {
         public OrderCreateDateRoutingStrategy(OrderShardingRoute route) : base(route)
@@ -204,6 +215,9 @@ namespace ChloeDemo.Sharding
             return this.Route.GetTables().Where(a => (a.DataSource as OrderRouteDataSource).Year <= this.GetCreateYear(createDate) && (a as OrderRouteTable).Month <= this.ParseCreateMonth(createDate));
         }
     }
+    /// <summary>
+    /// CreateYear 字段路由规则
+    /// </summary>
     public class OrderCreateYearRoutingStrategy : RoutingStrategy<int>
     {
         public OrderCreateYearRoutingStrategy(OrderShardingRoute route) : base(route)
@@ -241,6 +255,9 @@ namespace ChloeDemo.Sharding
             return this.Route.GetTables().Where(a => (a.DataSource as OrderRouteDataSource).Year <= createYear);
         }
     }
+    /// <summary>
+    /// CreateMonth 字段路由规则
+    /// </summary>
     public class OrderCreateMonthRoutingStrategy : RoutingStrategy<int>
     {
         public OrderCreateMonthRoutingStrategy(OrderShardingRoute route) : base(route)

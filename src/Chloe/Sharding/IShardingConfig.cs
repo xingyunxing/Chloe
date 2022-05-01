@@ -5,8 +5,17 @@ namespace Chloe.Sharding
 {
     public interface IShardingConfig
     {
+        /// <summary>
+        /// 实体类型
+        /// </summary>
         Type EntityType { get; }
+        /// <summary>
+        /// 分片字段
+        /// </summary>
         MemberInfo ShardingKey { get; }
+        /// <summary>
+        /// 路由工厂
+        /// </summary>
         IShardingRouteFactory RouteFactory { get; }
     }
 

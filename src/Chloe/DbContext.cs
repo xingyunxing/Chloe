@@ -19,7 +19,7 @@ namespace Chloe
         {
             this.DbContextProviderFactory = dbContextProviderFactory;
             this.Butler = new DbContextButler(this);
-            this._session = new DbSessionImpl(this);
+            this._session = new DbSession(this);
         }
 
         /// <summary>

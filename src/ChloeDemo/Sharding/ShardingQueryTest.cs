@@ -20,14 +20,15 @@ namespace ChloeDemo.Sharding
 
             ShardingConfigContainer.Add(shardingConfigBuilder.Build());
 
-            await this.Test1();
-            await this.Test2();
-            await this.Test3();
-            await this.Test4();
-            await this.Test5();
-            await this.Test6();
-            await this.Test7();
-            await this.Test8();
+            await this.PageQueryByShardingKeyOrderByAscTest();
+            await this.PageQueryByShardingKeyOrderByDescTest();
+            await this.PageQueryByShardingKeyInSingleDatabaseOrderByDescTest();
+            await this.QueryOrderByShardingKeyTest();
+            await this.PageQueryOrderByNonShardingKeyTest();
+            await this.QueryByPrimaryKeyTest();
+            await this.QueryByPrimaryKeyAndShardingKeyTest();
+            await this.RouteByNonShardingKeyTest();
+            await this.RouteBySomeCsSharpMethodTest();
             await this.ProjectionTest();
             await this.AnyQueryTest();
             await this.CountQueryTest();
@@ -49,11 +50,12 @@ namespace ChloeDemo.Sharding
             return dbContext;
         }
 
-        async Task Test1()
+        /// <summary>
+        /// 根据分片字段升序分页查询
+        /// </summary>
+        /// <returns></returns>
+        async Task PageQueryByShardingKeyOrderByAscTest()
         {
-            /*
-             * 根据分片字段升序
-             */
             IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
             q = q.OrderBy(a => a.CreateTime);
@@ -93,11 +95,12 @@ namespace ChloeDemo.Sharding
 
             Helpers.PrintSplitLine();
         }
-        async Task Test2()
+        /// <summary>
+        /// 根据分片字段降序分页查询
+        /// </summary>
+        /// <returns></returns>
+        async Task PageQueryByShardingKeyOrderByDescTest()
         {
-            /*
-             * 根据分片字段降序
-             */
             IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
             q = q.OrderByDesc(a => a.CreateTime);
@@ -136,11 +139,12 @@ namespace ChloeDemo.Sharding
 
             Helpers.PrintSplitLine();
         }
-        async Task Test3()
+        /// <summary>
+        /// 在单库内分页查询
+        /// </summary>
+        /// <returns></returns>
+        async Task PageQueryByShardingKeyInSingleDatabaseOrderByDescTest()
         {
-            /*
-             * 根据分片字段降序，单库内跨表
-             */
             IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
@@ -164,12 +168,12 @@ namespace ChloeDemo.Sharding
 
             Helpers.PrintSplitLine();
         }
-        async Task Test4()
+        /// <summary>
+        /// 根据分片字段排序查询
+        /// </summary>
+        /// <returns></returns>
+        async Task QueryOrderByShardingKeyTest()
         {
-            /*
-             * 根据分片字段排序，并跨库测试
-             */
-
             IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
@@ -193,12 +197,12 @@ namespace ChloeDemo.Sharding
 
             Helpers.PrintSplitLine();
         }
-        async Task Test5()
+        /// <summary>
+        /// 根据非分片字段排序分页
+        /// </summary>
+        /// <returns></returns>
+        async Task PageQueryOrderByNonShardingKeyTest()
         {
-            /*
-             * 根据非分片字段排序
-             */
-
             PagingResult<Order> result;
             List<Order> dataList;
 
@@ -241,12 +245,13 @@ namespace ChloeDemo.Sharding
 
             Helpers.PrintSplitLine();
         }
-        async Task Test6()
-        {
-            /*
-             * 根据主键查询
-             */
 
+        /// <summary>
+        /// 根据主键查询
+        /// </summary>
+        /// <returns></returns>
+        async Task QueryByPrimaryKeyTest()
+        {
             IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
@@ -259,19 +264,34 @@ namespace ChloeDemo.Sharding
             Debug.Assert(entity.Id == id);
 
             Helpers.PrintSplitLine();
+        }
+        /// <summary>
+        /// 根据主键和分片字段查询
+        /// </summary>
+        /// <returns></returns>
+        async Task QueryByPrimaryKeyAndShardingKeyTest()
+        {
+            IDbContext dbContext = this.CreateDbContext();
+            var q = dbContext.Query<Order>();
 
             /*
              * 主键 + 分片字段查询，会精确路由到所在的表
              */
 
+            string id = "2019-12-01 10:00";
             DateTime createTime = DateTime.Parse(id);
-            entity = await q.Where(a => a.Id == id && a.CreateTime == createTime).FirstOrDefaultAsync();
+
+            Order entity = await q.Where(a => a.Id == id && a.CreateTime == createTime).FirstOrDefaultAsync();
 
             Debug.Assert(entity.Id == id);
 
             Helpers.PrintSplitLine();
         }
-        async Task Test7()
+        /// <summary>
+        /// 根据非分片字段路由
+        /// </summary>
+        /// <returns></returns>
+        async Task RouteByNonShardingKeyTest()
         {
             /*
              * 根据非分片字段路由
@@ -280,7 +300,7 @@ namespace ChloeDemo.Sharding
             IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
-            //根据 CreateYear 查询
+            //根据 CreateYear 查询，虽然 CreateYear 不是分片字段，但是可以给 CreateYear 字段设置路由规则
             q = q.Where(a => a.CreateYear == 2018);
             q = q.Where(a => a.CreateMonth == 6);
 
@@ -297,12 +317,12 @@ namespace ChloeDemo.Sharding
             Helpers.PrintSplitLine();
         }
 
-        async Task Test8()
+        /// <summary>
+        /// In, Contains, Equals, Sql.Equals 等方法路由
+        /// </summary>
+        /// <returns></returns>
+        async Task RouteBySomeCsSharpMethodTest()
         {
-            /*
-             * In, Contains, Equals, Sql.Equals 等方法路由
-             */
-
             List<Order> orders = new List<Order>();
 
             IDbContext dbContext = this.CreateDbContext();
@@ -326,12 +346,12 @@ namespace ChloeDemo.Sharding
             Helpers.PrintSplitLine();
         }
 
+        /// <summary>
+        /// Select 查询
+        /// </summary>
+        /// <returns></returns>
         async Task ProjectionTest()
         {
-            /*
-             * Select 查询
-             */
-
             IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
@@ -343,6 +363,10 @@ namespace ChloeDemo.Sharding
             Helpers.PrintSplitLine();
         }
 
+        /// <summary>
+        /// Any 查询
+        /// </summary>
+        /// <returns></returns>
         async Task AnyQueryTest()
         {
             List<Order> orders = new List<Order>();
@@ -366,6 +390,11 @@ namespace ChloeDemo.Sharding
 
             Helpers.PrintSplitLine();
         }
+
+        /// <summary>
+        /// Count 查询
+        /// </summary>
+        /// <returns></returns>
         async Task CountQueryTest()
         {
             IDbContext dbContext = this.CreateDbContext();
@@ -377,6 +406,11 @@ namespace ChloeDemo.Sharding
 
             Helpers.PrintSplitLine();
         }
+
+        /// <summary>
+        /// Sum 查询
+        /// </summary>
+        /// <returns></returns>
         async Task SumQueryTest()
         {
             IDbContext dbContext = this.CreateDbContext();
@@ -396,6 +430,11 @@ namespace ChloeDemo.Sharding
 
             Helpers.PrintSplitLine();
         }
+
+        /// <summary>
+        /// 当 Sum 结果为 null 时查询
+        /// </summary>
+        /// <returns></returns>
         async Task SumNullQueryTest()
         {
             IDbContext dbContext = this.CreateDbContext();
@@ -411,6 +450,10 @@ namespace ChloeDemo.Sharding
             Helpers.PrintSplitLine();
         }
 
+        /// <summary>
+        /// 平均值查询
+        /// </summary>
+        /// <returns></returns>
         async Task AvgQueryTest()
         {
             IDbContext dbContext = this.CreateDbContext();
@@ -430,6 +473,11 @@ namespace ChloeDemo.Sharding
 
             Helpers.PrintSplitLine();
         }
+
+        /// <summary>
+        /// 平均值结果为 null 时查询
+        /// </summary>
+        /// <returns></returns>
         async Task AvgNullQueryTest()
         {
             IDbContext dbContext = this.CreateDbContext();
@@ -445,6 +493,10 @@ namespace ChloeDemo.Sharding
             Helpers.PrintSplitLine();
         }
 
+        /// <summary>
+        /// 最大或最小值查询
+        /// </summary>
+        /// <returns></returns>
         async Task MaxMinQueryTest()
         {
             IDbContext dbContext = this.CreateDbContext();
@@ -460,6 +512,10 @@ namespace ChloeDemo.Sharding
             Helpers.PrintSplitLine();
         }
 
+        /// <summary>
+        /// 分组聚合
+        /// </summary>
+        /// <returns></returns>
         async Task GroupQueryTest()
         {
             IDbContext dbContext = this.CreateDbContext();

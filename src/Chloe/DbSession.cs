@@ -3,29 +3,17 @@ using System.Data;
 
 namespace Chloe
 {
-    internal class DbSessionImpl : IDbSession
+    internal class DbSession : IDbSession
     {
         DbContext _dbContext;
 
-        public DbSessionImpl(DbContext dbContext)
+        public DbSession(DbContext dbContext)
         {
             this._dbContext = dbContext;
         }
 
-        IDbSessionProvider SessionProvider
-        {
-            get
-            {
-                return this._dbContext.DefaultDbContextProvider.Session;
-            }
-        }
-        DbContextButler DbContextButler
-        {
-            get
-            {
-                return this._dbContext.Butler;
-            }
-        }
+        IDbSessionProvider SessionProvider { get { return this._dbContext.DefaultDbContextProvider.Session; } }
+        DbContextButler DbContextButler { get { return this._dbContext.Butler; } }
 
         public IDbContext DbContext { get { return this._dbContext; } }
         public IDbConnection CurrentConnection { get { return this.SessionProvider.CurrentConnection; } }

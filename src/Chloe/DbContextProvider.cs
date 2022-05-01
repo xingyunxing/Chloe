@@ -19,7 +19,7 @@ namespace Chloe
     {
         bool _disposed = false;
         InnerAdoSession _adoSession;
-        DbSession _session;
+        Core.DbSession _session;
         Dictionary<Type, List<LambdaExpression>> _queryFilters = new Dictionary<Type, List<LambdaExpression>>();
 
         TrackingEntityContainer _trackingEntityContainer;
@@ -51,7 +51,7 @@ namespace Chloe
 
         protected DbContextProvider()
         {
-            this._session = new DbSession(this);
+            this._session = new Core.DbSession(this);
         }
 
         public IDbSessionProvider Session { get { return this._session; } }
