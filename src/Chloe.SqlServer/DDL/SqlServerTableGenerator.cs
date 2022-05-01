@@ -76,13 +76,16 @@ namespace Chloe.SqlServer.DDL
                 part += " IDENTITY(1,1)";
             }
 
-            if (!propertyDescriptor.IsNullable)
+            if (!propertyDescriptor.IsPrimaryKey)
             {
-                part += " NOT NULL";
-            }
-            else
-            {
-                part += " NULL";
+                if (!propertyDescriptor.IsNullable)
+                {
+                    part += " NOT NULL";
+                }
+                else
+                {
+                    part += " NULL";
+                }
             }
 
             return part;

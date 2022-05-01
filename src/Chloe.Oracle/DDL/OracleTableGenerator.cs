@@ -127,13 +127,16 @@ end;";
         {
             string part = $"{this.QuoteName(propertyDescriptor.Column.Name)} {GetDataTypeName(propertyDescriptor)}";
 
-            if (!propertyDescriptor.IsNullable)
+            if (!propertyDescriptor.IsPrimaryKey)
             {
-                part += " NOT NULL";
-            }
-            else
-            {
-                part += " NULL";
+                if (!propertyDescriptor.IsNullable)
+                {
+                    part += " NOT NULL";
+                }
+                else
+                {
+                    part += " NULL";
+                }
             }
 
             return part;

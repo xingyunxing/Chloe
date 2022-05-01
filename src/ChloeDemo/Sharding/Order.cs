@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Chloe.Annotations;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,6 +7,7 @@ namespace ChloeDemo.Sharding
 {
     public class Order
     {
+        [Column(IsPrimaryKey = true, Size = 50)]
         public string Id { get; set; } = Guid.NewGuid().ToString("N");
         public string UserId { get; set; } = "chloe";
         public decimal Amount { get; set; }

@@ -64,13 +64,16 @@ namespace Chloe.MySql.DDL
                 part += " AUTO_INCREMENT";
             }
 
-            if (!propertyDescriptor.IsNullable)
+            if (!propertyDescriptor.IsPrimaryKey)
             {
-                part += " NOT NULL";
-            }
-            else
-            {
-                part += " NULL";
+                if (!propertyDescriptor.IsNullable)
+                {
+                    part += " NOT NULL";
+                }
+                else
+                {
+                    part += " NULL";
+                }
             }
 
             string comment = FindComment(propertyDescriptor, commentDoc);

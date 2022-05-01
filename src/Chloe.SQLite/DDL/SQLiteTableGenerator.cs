@@ -59,13 +59,16 @@ namespace Chloe.SQLite.DDL
                 part += " AUTOINCREMENT";
             }
 
-            if (!propertyDescriptor.IsNullable)
+            if (!propertyDescriptor.IsPrimaryKey)
             {
-                part += " NOT NULL";
-            }
-            else
-            {
-                part += " NULL";
+                if (!propertyDescriptor.IsNullable)
+                {
+                    part += " NOT NULL";
+                }
+                else
+                {
+                    part += " NULL";
+                }
             }
 
             return part;
