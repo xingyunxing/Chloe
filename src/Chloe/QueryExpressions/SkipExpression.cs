@@ -1,6 +1,6 @@
-﻿namespace Chloe.Query.QueryExpressions
+﻿namespace Chloe.QueryExpressions
 {
-    class SkipExpression : QueryExpression
+    public class SkipExpression : QueryExpression
     {
         int _count;
         public SkipExpression(Type elementType, QueryExpression prevExpression, int count) : base(QueryExpressionType.Skip, elementType, prevExpression)

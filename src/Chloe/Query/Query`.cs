@@ -1,21 +1,18 @@
 ﻿using Chloe.Descriptors;
 using Chloe.Infrastructure;
-using Chloe.Query.Internals;
-using Chloe.Query.QueryExpressions;
+using Chloe.QueryExpressions;
 using Chloe.Reflection;
 using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Chloe.Query
 {
-    partial class Query<T> : QueryBase, IQuery<T>, IQuery
+    partial class Query<T> : IQuery<T>, IQuery
     {
-        static readonly List<Expression> EmptyArgumentList = new List<Expression>(0);
-
         QueryExpression _expression;
 
         Type IQuery.ElementType { get { return typeof(T); } }
-        public override QueryExpression QueryExpression { get { return this._expression; } }
+        public QueryExpression QueryExpression { get { return this._expression; } }
 
         static RootQueryExpression CreateRootQueryExpression(DbContextProvider dbContextProvider, string explicitTable, LockType @lock)
         {
@@ -29,6 +26,16 @@ namespace Chloe.Query
         public Query(QueryExpression exp)
         {
             this._expression = exp;
+        }
+
+        public IQuery<T> AsTracking()
+        {
+            TrackingExpression e = new TrackingExpression(typeof(T), this.QueryExpression);
+            return new Query<T>(e);
+        }
+        public IEnumerable<T> AsEnumerable()
+        {
+            return this.GenerateIterator();
         }
 
         public IQuery<TResult> Select<TResult>(Expression<Func<T, TResult>> selector)
@@ -336,49 +343,44 @@ namespace Chloe.Query
 
         public int? Sum(Expression<Func<T, int>> selector)
         {
-            return this.ExecuteSum<int?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, int>>))), selector);
+            return this.ExecuteAggregateQuery<int?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, int>>))), selector);
         }
         public int? Sum(Expression<Func<T, int?>> selector)
         {
-            return this.ExecuteSum<int?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, int?>>))), selector);
+            return this.ExecuteAggregateQuery<int?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, int?>>))), selector);
         }
         public long? Sum(Expression<Func<T, long>> selector)
         {
-            return this.ExecuteSum<long?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, long>>))), selector);
+            return this.ExecuteAggregateQuery<long?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, long>>))), selector);
         }
         public long? Sum(Expression<Func<T, long?>> selector)
         {
-            return this.ExecuteSum<long?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, long?>>))), selector);
+            return this.ExecuteAggregateQuery<long?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, long?>>))), selector);
         }
         public decimal? Sum(Expression<Func<T, decimal>> selector)
         {
-            return this.ExecuteSum<decimal?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, decimal>>))), selector);
+            return this.ExecuteAggregateQuery<decimal?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, decimal>>))), selector);
         }
         public decimal? Sum(Expression<Func<T, decimal?>> selector)
         {
-            return this.ExecuteSum<decimal?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, decimal?>>))), selector);
+            return this.ExecuteAggregateQuery<decimal?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, decimal?>>))), selector);
         }
         public double? Sum(Expression<Func<T, double>> selector)
         {
-            return this.ExecuteSum<double?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, double>>))), selector);
+            return this.ExecuteAggregateQuery<double?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, double>>))), selector);
         }
         public double? Sum(Expression<Func<T, double?>> selector)
         {
-            return this.ExecuteSum<double?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, double?>>))), selector);
+            return this.ExecuteAggregateQuery<double?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, double?>>))), selector);
         }
         public float? Sum(Expression<Func<T, float>> selector)
         {
-            return this.ExecuteSum<float?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, float>>))), selector);
+            return this.ExecuteAggregateQuery<float?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, float>>))), selector);
         }
         public float? Sum(Expression<Func<T, float?>> selector)
         {
-            return this.ExecuteSum<float?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, float?>>))), selector);
+            return this.ExecuteAggregateQuery<float?>(GetCalledMethod(() => default(IQuery<T>).Sum(default(Expression<Func<T, float?>>))), selector);
         }
-        TResult ExecuteSum<TResult>(MethodInfo method, Expression argument)
-        {
-            return this.ExecuteAggregateQuery<TResult>(method, argument);
-        }
-
 
         public double? Average(Expression<Func<T, int>> selector)
         {
@@ -419,71 +421,6 @@ namespace Chloe.Query
         public float? Average(Expression<Func<T, float?>> selector)
         {
             return this.ExecuteAggregateQuery<float?>(GetCalledMethod(() => default(IQuery<T>).Average(default(Expression<Func<T, float?>>))), selector);
-        }
-
-        public IQuery<T> AsTracking()
-        {
-            TrackingExpression e = new TrackingExpression(typeof(T), this.QueryExpression);
-            return new Query<T>(e);
-        }
-        public IEnumerable<T> AsEnumerable()
-        {
-            return this.GenerateIterator();
-        }
-
-        FeatureEnumerable<T> GenerateIterator()
-        {
-            InternalQuery<T> internalQuery = new InternalQuery<T>(this);
-            return internalQuery;
-        }
-
-
-        TResult ExecuteAggregateQuery<TResult>(MethodInfo method, Expression argument, bool checkArgument = true)
-        {
-            var q = this.CreateAggregateQuery<TResult>(method, argument, checkArgument);
-            IEnumerable<TResult> iterator = q.GenerateIterator();
-            return iterator.Single();
-        }
-        async Task<TResult> ExecuteAggregateQueryAsync<TResult>(MethodInfo method, Expression argument, bool checkArgument = true)
-        {
-            var q = this.CreateAggregateQuery<TResult>(method, argument, checkArgument);
-            var iterator = q.GenerateIterator();
-            return await iterator.SingleAsync();
-        }
-
-        Query<TResult> CreateAggregateQuery<TResult>(MethodInfo method, Expression argument, bool checkArgument)
-        {
-            if (checkArgument)
-                PublicHelper.CheckNull(argument);
-
-            List<Expression> arguments = argument == null ? EmptyArgumentList : new List<Expression>(1) { argument };
-            var q = this.CreateAggregateQueryCore<TResult>(method, arguments);
-            return q;
-        }
-        /// <summary>
-        /// 类<see cref="Chloe.Query.Visitors.GeneralExpressionParser"/>有引用该方法[反射]
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="method"></param>
-        /// <param name="arguments"></param>
-        /// <returns></returns>
-        internal Query<TResult> CreateAggregateQueryCore<TResult>(MethodInfo method, List<Expression> arguments)
-        {
-            AggregateQueryExpression e = new AggregateQueryExpression(this._expression, method, arguments);
-            var q = new Query<TResult>(e);
-            return q;
-        }
-        MethodInfo GetCalledMethod<TResult>(Expression<Func<TResult>> exp)
-        {
-            var body = (MethodCallExpression)exp.Body;
-            return body.Method;
-        }
-
-
-        public override string ToString()
-        {
-            IEnumerable<T> internalQuery = this.GenerateIterator();
-            return internalQuery.ToString();
         }
     }
 }

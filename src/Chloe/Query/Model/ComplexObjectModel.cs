@@ -5,7 +5,7 @@ using Chloe.Extensions;
 using Chloe.Infrastructure;
 using Chloe.InternalExtensions;
 using Chloe.Query.Mapping;
-using Chloe.Query.QueryExpressions;
+using Chloe.QueryExpressions;
 using Chloe.Query.Visitors;
 using Chloe.Reflection;
 using Chloe.Utility;

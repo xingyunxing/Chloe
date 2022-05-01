@@ -1,6 +1,6 @@
-﻿namespace Chloe.Query.QueryExpressions
+﻿namespace Chloe.QueryExpressions
 {
-    class IgnoreAllFiltersExpression : QueryExpression
+    public class IgnoreAllFiltersExpression : QueryExpression
     {
         public IgnoreAllFiltersExpression(Type elementType, QueryExpression prevExpression) : base(QueryExpressionType.IgnoreAllFilters, elementType, prevExpression)
         {

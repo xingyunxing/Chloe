@@ -1,6 +1,6 @@
-﻿namespace Chloe.Query.QueryExpressions
+﻿namespace Chloe.QueryExpressions
 {
-    abstract class QueryExpression
+    public abstract class QueryExpression
     {
         QueryExpression _prevExpression;
         QueryExpressionType _nodeType;

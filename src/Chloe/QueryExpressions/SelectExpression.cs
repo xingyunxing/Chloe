@@ -1,8 +1,8 @@
 ﻿using System.Linq.Expressions;
 
-namespace Chloe.Query.QueryExpressions
+namespace Chloe.QueryExpressions
 {
-    class SelectExpression : QueryExpression
+    public class SelectExpression : QueryExpression
     {
         LambdaExpression _selector;
         public SelectExpression(Type elementType, QueryExpression prevExpression, LambdaExpression selector) : base(QueryExpressionType.Select, elementType, prevExpression)

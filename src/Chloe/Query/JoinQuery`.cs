@@ -1,19 +1,19 @@
-﻿using Chloe.Query.QueryExpressions;
+﻿using Chloe.QueryExpressions;
 using System.Linq.Expressions;
 
 namespace Chloe.Query
 {
     class JoinQuery<T1, T2> : IJoinQuery<T1, T2>
     {
-        QueryBase _rootQuery;
+        Query<T1> _rootQuery;
         List<JoinQueryInfo> _joinedQueries;
         List<LambdaExpression> _filterPredicates;
 
-        public QueryBase RootQuery { get { return this._rootQuery; } }
+        public Query<T1> RootQuery { get { return this._rootQuery; } }
         public List<JoinQueryInfo> JoinedQueries { get { return this._joinedQueries; } }
         public List<LambdaExpression> FilterPredicates { get { return this._filterPredicates; } }
 
-        public JoinQuery(QueryBase q1, Query<T2> q2, JoinType joinType, Expression<Func<T1, T2, bool>> on)
+        public JoinQuery(Query<T1> q1, Query<T2> q2, JoinType joinType, Expression<Func<T1, T2, bool>> on)
         {
             this._rootQuery = q1;
             this._joinedQueries = new List<JoinQueryInfo>(1) { new JoinQueryInfo(q2, joinType, on) };
@@ -119,11 +119,11 @@ namespace Chloe.Query
 
     class JoinQuery<T1, T2, T3> : IJoinQuery<T1, T2, T3>
     {
-        QueryBase _rootQuery;
+        Query<T1> _rootQuery;
         List<JoinQueryInfo> _joinedQueries;
         List<LambdaExpression> _filterPredicates;
 
-        public QueryBase RootQuery { get { return this._rootQuery; } }
+        public Query<T1> RootQuery { get { return this._rootQuery; } }
         public List<JoinQueryInfo> JoinedQueries { get { return this._joinedQueries; } }
         public List<LambdaExpression> FilterPredicates { get { return this._filterPredicates; } }
 
@@ -225,11 +225,11 @@ namespace Chloe.Query
 
     class JoinQuery<T1, T2, T3, T4> : IJoinQuery<T1, T2, T3, T4>
     {
-        QueryBase _rootQuery;
+        Query<T1> _rootQuery;
         List<JoinQueryInfo> _joinedQueries;
         List<LambdaExpression> _filterPredicates;
 
-        public QueryBase RootQuery { get { return this._rootQuery; } }
+        public Query<T1> RootQuery { get { return this._rootQuery; } }
         public List<JoinQueryInfo> JoinedQueries { get { return this._joinedQueries; } }
         public List<LambdaExpression> FilterPredicates { get { return this._filterPredicates; } }
 
@@ -331,11 +331,11 @@ namespace Chloe.Query
 
     class JoinQuery<T1, T2, T3, T4, T5> : IJoinQuery<T1, T2, T3, T4, T5>
     {
-        QueryBase _rootQuery;
+        Query<T1> _rootQuery;
         List<JoinQueryInfo> _joinedQueries;
         List<LambdaExpression> _filterPredicates;
 
-        public QueryBase RootQuery { get { return this._rootQuery; } }
+        public Query<T1> RootQuery { get { return this._rootQuery; } }
         public List<JoinQueryInfo> JoinedQueries { get { return this._joinedQueries; } }
         public List<LambdaExpression> FilterPredicates { get { return this._filterPredicates; } }
 

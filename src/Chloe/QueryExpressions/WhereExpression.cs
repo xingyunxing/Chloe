@@ -1,8 +1,8 @@
 ﻿using System.Linq.Expressions;
 
-namespace Chloe.Query.QueryExpressions
+namespace Chloe.QueryExpressions
 {
-    class WhereExpression : QueryExpression
+    public class WhereExpression : QueryExpression
     {
         LambdaExpression _predicate;
         public WhereExpression(Type elementType, QueryExpression prevExpression, LambdaExpression predicate) : base(QueryExpressionType.Where, elementType, prevExpression)

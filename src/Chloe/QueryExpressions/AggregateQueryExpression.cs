@@ -2,9 +2,9 @@
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Chloe.Query.QueryExpressions
+namespace Chloe.QueryExpressions
 {
-    class AggregateQueryExpression : QueryExpression
+    public class AggregateQueryExpression : QueryExpression
     {
         MethodInfo _method;
         ReadOnlyCollection<Expression> _arguments;

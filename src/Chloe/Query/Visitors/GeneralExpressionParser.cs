@@ -233,7 +233,7 @@ namespace Chloe.Query.Visitors
                 throw new NotSupportedException(exp.ToString());
             }
 
-            QueryBase query = ExpressionEvaluator.Evaluate(exp) as QueryBase;
+            IQuery query = ExpressionEvaluator.Evaluate(exp) as IQuery;
             QueryStateBase qs = QueryExpressionResolver.Resolve(query.QueryExpression, this._scopeParameters, this._scopeTables);
             MappingData mappingData = qs.GenerateMappingData();
 

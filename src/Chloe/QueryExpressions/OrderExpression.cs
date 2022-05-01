@@ -1,8 +1,8 @@
 ﻿using System.Linq.Expressions;
 
-namespace Chloe.Query.QueryExpressions
+namespace Chloe.QueryExpressions
 {
-    class OrderExpression : QueryExpression
+    public class OrderExpression : QueryExpression
     {
         LambdaExpression _keySelector;
         public OrderExpression(Type elementType, QueryExpression prevExpression, QueryExpressionType expressionType, LambdaExpression keySelector) : base(expressionType, elementType, prevExpression)

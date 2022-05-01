@@ -1,6 +1,6 @@
-﻿namespace Chloe.Query.QueryExpressions
+﻿namespace Chloe.QueryExpressions
 {
-    abstract class QueryExpressionVisitor<T>
+    public abstract class QueryExpressionVisitor<T>
     {
         public virtual T Visit(RootQueryExpression exp)
         {

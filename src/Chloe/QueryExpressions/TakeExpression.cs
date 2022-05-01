@@ -1,6 +1,6 @@
-﻿namespace Chloe.Query.QueryExpressions
+﻿namespace Chloe.QueryExpressions
 {
-    class TakeExpression : QueryExpression
+    public class TakeExpression : QueryExpression
     {
         int _count;
         public TakeExpression(Type elementType, QueryExpression prevExpression, int count) : base(QueryExpressionType.Take, elementType, prevExpression)

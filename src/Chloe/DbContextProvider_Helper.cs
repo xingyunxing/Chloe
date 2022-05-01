@@ -1,11 +1,7 @@
 ﻿using Chloe.Core;
-using Chloe.Core.Visitors;
 using Chloe.DbExpressions;
-using Chloe.Extensions;
 using Chloe.Infrastructure;
-using Chloe.InternalExtensions;
 using System.Data;
-using System.Linq.Expressions;
 
 namespace Chloe
 {

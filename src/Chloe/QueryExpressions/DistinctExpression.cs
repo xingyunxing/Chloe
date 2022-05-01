@@ -1,6 +1,6 @@
-﻿namespace Chloe.Query.QueryExpressions
+﻿namespace Chloe.QueryExpressions
 {
-    class DistinctExpression : QueryExpression
+    public class DistinctExpression : QueryExpression
     {
         public DistinctExpression(Type elementType, QueryExpression prevExpression) : base(QueryExpressionType.Distinct, elementType, prevExpression)
         {

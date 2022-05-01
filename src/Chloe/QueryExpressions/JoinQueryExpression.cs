@@ -1,8 +1,8 @@
 ﻿using System.Linq.Expressions;
 
-namespace Chloe.Query.QueryExpressions
+namespace Chloe.QueryExpressions
 {
-    class JoinQueryExpression : QueryExpression
+    public class JoinQueryExpression : QueryExpression
     {
         List<JoinQueryInfo> _joinedQueries;
         LambdaExpression _selector;
@@ -20,5 +20,18 @@ namespace Chloe.Query.QueryExpressions
         {
             return visitor.Visit(this);
         }
+    }
+
+    public class JoinQueryInfo
+    {
+        public JoinQueryInfo(IQuery query, JoinType joinType, LambdaExpression condition)
+        {
+            this.Query = query;
+            this.JoinType = joinType;
+            this.Condition = condition;
+        }
+        public IQuery Query { get; set; }
+        public JoinType JoinType { get; set; }
+        public LambdaExpression Condition { get; set; }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Chloe.Query
 {
-    partial class Query<T> : QueryBase, IQuery<T>, IQuery
+    partial class Query<T> : IQuery<T>, IQuery
     {
         public async Task<T> FirstAsync()
         {

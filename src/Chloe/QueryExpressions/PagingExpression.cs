@@ -1,6 +1,6 @@
-﻿namespace Chloe.Query.QueryExpressions
+﻿namespace Chloe.QueryExpressions
 {
-    class PagingExpression : QueryExpression
+    public class PagingExpression : QueryExpression
     {
         public PagingExpression(Type elementType, QueryExpression prevExpression, int pageNumber, int pageSize) : base(QueryExpressionType.Paging, elementType, prevExpression)
         {

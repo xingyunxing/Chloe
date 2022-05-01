@@ -1,6 +1,6 @@
-﻿namespace Chloe.Query.QueryExpressions
+﻿namespace Chloe.QueryExpressions
 {
-    class TrackingExpression : QueryExpression
+    public class TrackingExpression : QueryExpression
     {
         public TrackingExpression(Type elementType, QueryExpression prevExpression) : base(QueryExpressionType.Tracking, elementType, prevExpression)
         {

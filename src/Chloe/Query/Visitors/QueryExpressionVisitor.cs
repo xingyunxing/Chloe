@@ -1,4 +1,4 @@
-﻿using Chloe.Query.QueryExpressions;
+﻿using Chloe.QueryExpressions;
 
 namespace Chloe.Query.Visitors
 {

@@ -1,6 +1,6 @@
-﻿namespace Chloe.Query.QueryExpressions
+﻿namespace Chloe.QueryExpressions
 {
-    class RootQueryExpression : QueryExpression
+    public class RootQueryExpression : QueryExpression
     {
         public RootQueryExpression(Type entityType, object provider, string explicitTable, LockType @lock) : base(QueryExpressionType.Root, entityType, null)
         {

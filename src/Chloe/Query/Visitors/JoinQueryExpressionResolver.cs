@@ -1,5 +1,5 @@
 ﻿using Chloe.DbExpressions;
-using Chloe.Query.QueryExpressions;
+using Chloe.QueryExpressions;
 using Chloe.Query.QueryState;
 using System.Linq.Expressions;
 

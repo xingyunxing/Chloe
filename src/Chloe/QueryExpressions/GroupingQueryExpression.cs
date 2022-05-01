@@ -1,9 +1,9 @@
 ﻿using Chloe.DbExpressions;
 using System.Linq.Expressions;
 
-namespace Chloe.Query.QueryExpressions
+namespace Chloe.QueryExpressions
 {
-    class GroupingQueryExpression : QueryExpression
+    public class GroupingQueryExpression : QueryExpression
     {
         List<LambdaExpression> _groupKeySelectors = new List<LambdaExpression>();
         List<LambdaExpression> _havingPredicates = new List<LambdaExpression>();
@@ -25,7 +25,7 @@ namespace Chloe.Query.QueryExpressions
         }
     }
 
-    class GroupingQueryOrdering
+    public class GroupingQueryOrdering
     {
         LambdaExpression _keySelector;
         DbOrderType _orderType;

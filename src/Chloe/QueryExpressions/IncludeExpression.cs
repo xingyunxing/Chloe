@@ -1,9 +1,9 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Chloe.Query.QueryExpressions
+namespace Chloe.QueryExpressions
 {
-    class IncludeExpression : QueryExpression
+    public class IncludeExpression : QueryExpression
     {
         public IncludeExpression(Type elementType, QueryExpression prevExpression, NavigationNode navigationNode) : base(QueryExpressionType.Include, elementType, prevExpression)
         {
