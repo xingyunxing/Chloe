@@ -127,23 +127,23 @@ namespace Chloe
 
         public void UseTransaction(IDbTransaction dbTransaction)
         {
-            this.SessionProvider.UseTransaction(dbTransaction);
+            this.DbContextButler.UseTransaction(dbTransaction);
         }
         public void BeginTransaction()
         {
-            this.SessionProvider.BeginTransaction();
+            this.DbContextButler.BeginTransaction(null);
         }
         public void BeginTransaction(IsolationLevel il)
         {
-            this.SessionProvider.BeginTransaction(il);
+            this.DbContextButler.BeginTransaction(il);
         }
         public void CommitTransaction()
         {
-            this.SessionProvider.CommitTransaction();
+            this.DbContextButler.CommitTransaction();
         }
         public void RollbackTransaction()
         {
-            this.SessionProvider.RollbackTransaction();
+            this.DbContextButler.RollbackTransaction();
         }
 
         public void AddInterceptor(IDbCommandInterceptor interceptor)

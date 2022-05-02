@@ -36,7 +36,7 @@ namespace Chloe
 
         public virtual void HasQueryFilter<TEntity>(Expression<Func<TEntity, bool>> filter)
         {
-            throw new NotImplementedException();
+            this.HasQueryFilter(typeof(TEntity), filter);
         }
         public virtual void HasQueryFilter(Type entityType, LambdaExpression filter)
         {
@@ -370,32 +370,74 @@ namespace Chloe
 
         public virtual ITransientTransaction BeginTransaction()
         {
-            throw new NotImplementedException();
+            /*
+             * using(ITransientTransaction tran = dbContext.BeginTransaction())
+             * {
+             *      dbContext.Insert()...
+             *      dbContext.Update()...
+             *      dbContext.Delete()...
+             *      tran.Commit();
+             * }
+             */
+            return new TransientTransaction(this);
         }
-
         public virtual ITransientTransaction BeginTransaction(IsolationLevel il)
         {
-            throw new NotImplementedException();
+            return new TransientTransaction(this, il);
         }
-
         public virtual void UseTransaction(Action action)
         {
-            throw new NotImplementedException();
-        }
+            /*
+             * dbContext.UseTransaction(() =>
+             * {
+             *     dbContext.Insert()...
+             *     dbContext.Update()...
+             *     dbContext.Delete()...
+             * });
+             */
 
+            PublicHelper.CheckNull(action);
+            using (ITransientTransaction tran = this.BeginTransaction())
+            {
+                action();
+                tran.Commit();
+            }
+        }
         public virtual void UseTransaction(Action action, IsolationLevel il)
         {
-            throw new NotImplementedException();
+            PublicHelper.CheckNull(action);
+            using (ITransientTransaction tran = this.BeginTransaction(il))
+            {
+                action();
+                tran.Commit();
+            }
         }
-
-        public virtual Task UseTransaction(Func<Task> func)
+        public virtual async Task UseTransaction(Func<Task> func)
         {
-            throw new NotImplementedException();
+            /*
+             * await dbContext.UseTransaction(async () =>
+             * {
+             *     await dbContext.InsertAsync()...
+             *     await dbContext.UpdateAsync()...
+             *     await dbContext.DeleteAsync()...
+             * });
+             */
+
+            PublicHelper.CheckNull(func);
+            using (ITransientTransaction tran = this.BeginTransaction())
+            {
+                await func();
+                tran.Commit();
+            }
         }
-
-        public virtual Task UseTransaction(Func<Task> func, IsolationLevel il)
+        public virtual async Task UseTransaction(Func<Task> func, IsolationLevel il)
         {
-            throw new NotImplementedException();
+            PublicHelper.CheckNull(func);
+            using (ITransientTransaction tran = this.BeginTransaction(il))
+            {
+                await func();
+                tran.Commit();
+            }
         }
     }
 }

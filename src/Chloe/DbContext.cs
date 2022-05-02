@@ -72,10 +72,6 @@ namespace Chloe
             this.GetDbContextProvider(entityType).TrackEntity(entity);
         }
 
-        public override void HasQueryFilter<TEntity>(Expression<Func<TEntity, bool>> filter)
-        {
-            this.HasQueryFilter(typeof(TEntity), filter);
-        }
         public override void HasQueryFilter(Type entityType, LambdaExpression filter)
         {
             this.Butler.HasQueryFilter(entityType, filter);
@@ -189,78 +185,6 @@ namespace Chloe
             }
 
             return Task.FromResult(dbContextProvider.Delete(condition, table));
-        }
-
-        public override ITransientTransaction BeginTransaction()
-        {
-            /*
-             * using(ITransientTransaction tran = dbContext.BeginTransaction())
-             * {
-             *      dbContext.Insert()...
-             *      dbContext.Update()...
-             *      dbContext.Delete()...
-             *      tran.Commit();
-             * }
-             */
-            return new TransientTransaction(this);
-        }
-        public override ITransientTransaction BeginTransaction(IsolationLevel il)
-        {
-            return new TransientTransaction(this, il);
-        }
-        public override void UseTransaction(Action action)
-        {
-            /*
-             * dbContext.UseTransaction(() =>
-             * {
-             *     dbContext.Insert()...
-             *     dbContext.Update()...
-             *     dbContext.Delete()...
-             * });
-             */
-
-            PublicHelper.CheckNull(action);
-            using (ITransientTransaction tran = this.BeginTransaction())
-            {
-                action();
-                tran.Commit();
-            }
-        }
-        public override void UseTransaction(Action action, IsolationLevel il)
-        {
-            PublicHelper.CheckNull(action);
-            using (ITransientTransaction tran = this.BeginTransaction(il))
-            {
-                action();
-                tran.Commit();
-            }
-        }
-        public override async Task UseTransaction(Func<Task> func)
-        {
-            /*
-             * await dbContext.UseTransaction(async () =>
-             * {
-             *     await dbContext.InsertAsync()...
-             *     await dbContext.UpdateAsync()...
-             *     await dbContext.DeleteAsync()...
-             * });
-             */
-
-            PublicHelper.CheckNull(func);
-            using (ITransientTransaction tran = this.BeginTransaction())
-            {
-                await func();
-                tran.Commit();
-            }
-        }
-        public override async Task UseTransaction(Func<Task> func, IsolationLevel il)
-        {
-            PublicHelper.CheckNull(func);
-            using (ITransientTransaction tran = this.BeginTransaction(il))
-            {
-                await func();
-                tran.Commit();
-            }
         }
     }
 }
