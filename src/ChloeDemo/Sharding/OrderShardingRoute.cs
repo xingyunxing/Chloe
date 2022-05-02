@@ -97,6 +97,12 @@ namespace ChloeDemo.Sharding
             return routingStrategy;
         }
 
+        /// <summary>
+        /// 根据排序字段对路由表重排。
+        /// </summary>
+        /// <param name="tables"></param>
+        /// <param name="orderings"></param>
+        /// <returns></returns>
         public SortResult SortTables(List<RouteTable> tables, List<Ordering> orderings)
         {
             var firstOrdering = orderings.FirstOrDefault();

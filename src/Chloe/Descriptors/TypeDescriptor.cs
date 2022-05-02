@@ -51,6 +51,7 @@ namespace Chloe.Descriptors
         public PrimitivePropertyDescriptor RowVersion { get; private set; }
 
         public DbTable Table { get { return this.Definition.Table; } }
+        public Type EntityType { get { return this.Definition.Type; } }
 
         public DefaultExpressionParser GetExpressionParser(DbTable explicitDbTable)
         {

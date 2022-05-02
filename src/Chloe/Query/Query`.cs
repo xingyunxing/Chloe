@@ -50,15 +50,16 @@ namespace Chloe.Query
             TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(T));
 
             object lastQuery = this;
+            List<Type> chains = new List<Type>(2) { typeof(T) }; //用于记录 Include 链路，避免循环依赖导致无限递归
             for (int i = 0; i < typeDescriptor.NavigationPropertyDescriptors.Count; i++)
             {
                 PropertyDescriptor propertyDescriptor = typeDescriptor.NavigationPropertyDescriptors[i];
-                lastQuery = this.Include(typeDescriptor, lastQuery, propertyDescriptor);
+                lastQuery = this.Include(typeDescriptor, lastQuery, propertyDescriptor, chains);
             }
 
             return (IQuery<T>)lastQuery;
         }
-        object Include(TypeDescriptor typeDescriptor, object lastQuery, PropertyDescriptor propertyDescriptor)
+        object Include(TypeDescriptor typeDescriptor, object lastQuery, PropertyDescriptor propertyDescriptor, List<Type> chains)
         {
             //entity.TOther or entity.List
             TypeDescriptor navTypeDescriptor = propertyDescriptor.GetPropertyTypeDescriptor();
@@ -68,11 +69,13 @@ namespace Chloe.Query
                 return this.CallIncludeMethod(query, propertyDescriptor);
             };
 
-            lastQuery = this.ThenInclude(navTypeDescriptor, queryBuilder(lastQuery), typeDescriptor, queryBuilder);
+            chains.Add(navTypeDescriptor.EntityType);
+            lastQuery = this.ThenInclude(navTypeDescriptor, queryBuilder(lastQuery), typeDescriptor, queryBuilder, chains);
+            chains.RemoveAt(chains.Count - 1);
 
             return lastQuery;
         }
-        object ThenInclude(TypeDescriptor typeDescriptor, object lastQuery, TypeDescriptor declaringTypeDescriptor, Func<object, object> queryBuilder)
+        object ThenInclude(TypeDescriptor typeDescriptor, object lastQuery, TypeDescriptor declaringTypeDescriptor, Func<object, object> queryBuilder, List<Type> chains)
         {
             int navCount = typeDescriptor.NavigationPropertyDescriptors.Count;
 
@@ -87,6 +90,12 @@ namespace Chloe.Query
                     continue;
                 }
 
+                //避免循环依赖导致无限递归
+                if (chains.Any(a => a == navTypeDescriptor.EntityType))
+                {
+                    continue;
+                }
+
                 Func<object, object> includableQueryBuilder = query =>
                 {
                     return this.CallThenIncludeMethod(queryBuilder(query), propertyDescriptor);
@@ -97,7 +106,10 @@ namespace Chloe.Query
 
                 //lastQuery = lastQuery.ThenInclude(a => a.propertyDescriptor);
                 lastQuery = this.CallThenIncludeMethod(lastQuery, propertyDescriptor);
-                lastQuery = this.ThenInclude(navTypeDescriptor, lastQuery, typeDescriptor, includableQueryBuilder);
+
+                chains.Add(navTypeDescriptor.EntityType);
+                lastQuery = this.ThenInclude(navTypeDescriptor, lastQuery, typeDescriptor, includableQueryBuilder, chains);
+                chains.RemoveAt(chains.Count - 1);
 
                 needRebuildQuery = true;
             }
