@@ -16,6 +16,20 @@ namespace Chloe.SQLite
 
             return UtilConstants.ParameterNamePrefix + ordinal.ToString();
         }
+
+        public static (DbExpression Left, DbExpression Right) AmendExpDbInfo(DbExpression left, DbExpression right)
+        {
+            left = DbExpressionExtension.StripInvalidConvert(left);
+            right = DbExpressionExtension.StripInvalidConvert(right);
+            SqlGenerator.AmendDbInfo(left, right);
+
+            return (left, right);
+        }
+        /// <summary>
+        /// 修正使用关系运算符时的 DbType，避免出现双边类型不一致时导致索引失效
+        /// </summary>
+        /// <param name="exp1"></param>
+        /// <param name="exp2"></param>
         public static void AmendDbInfo(DbExpression exp1, DbExpression exp2)
         {
             DbColumnAccessExpression datumPointExp = null;

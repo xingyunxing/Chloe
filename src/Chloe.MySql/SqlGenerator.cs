@@ -328,36 +328,44 @@ namespace Chloe.MySql
         // <
         public override DbExpression Visit(DbLessThanExpression exp)
         {
-            exp.Left.Accept(this);
+            var amendResult = AmendExpDbInfo(exp.Left, exp.Right);
+
+            amendResult.Left.Accept(this);
             this.SqlBuilder.Append(" < ");
-            exp.Right.Accept(this);
+            amendResult.Right.Accept(this);
 
             return exp;
         }
         // <=
         public override DbExpression Visit(DbLessThanOrEqualExpression exp)
         {
-            exp.Left.Accept(this);
+            var amendResult = AmendExpDbInfo(exp.Left, exp.Right);
+
+            amendResult.Left.Accept(this);
             this.SqlBuilder.Append(" <= ");
-            exp.Right.Accept(this);
+            amendResult.Right.Accept(this);
 
             return exp;
         }
         // >
         public override DbExpression Visit(DbGreaterThanExpression exp)
         {
-            exp.Left.Accept(this);
+            var amendResult = AmendExpDbInfo(exp.Left, exp.Right);
+
+            amendResult.Left.Accept(this);
             this.SqlBuilder.Append(" > ");
-            exp.Right.Accept(this);
+            amendResult.Right.Accept(this);
 
             return exp;
         }
         // >=
         public override DbExpression Visit(DbGreaterThanOrEqualExpression exp)
         {
-            exp.Left.Accept(this);
+            var amendResult = AmendExpDbInfo(exp.Left, exp.Right);
+
+            amendResult.Left.Accept(this);
             this.SqlBuilder.Append(" >= ");
-            exp.Right.Accept(this);
+            amendResult.Right.Accept(this);
 
             return exp;
         }
