@@ -103,8 +103,9 @@ namespace Chloe
 
             try
             {
-                foreach (var pair in this.PersistedDbContextProviders)
+                for (int i = 0; i < this.PersistedDbContextProviders.Count; i++)
                 {
+                    DataSourceDbContextProviderPair pair = this.PersistedDbContextProviders[i];
                     pair.DbContextProvider.Session.BeginTransaction(il);
                 }
             }
@@ -132,8 +133,9 @@ namespace Chloe
                 throw new ChloeException("Current session does not open a transaction.");
             }
 
-            foreach (var pair in this.PersistedDbContextProviders)
+            for (int i = 0; i < this.PersistedDbContextProviders.Count; i++)
             {
+                DataSourceDbContextProviderPair pair = this.PersistedDbContextProviders[i];
                 var dbContextProvider = pair.DbContextProvider;
 
                 if (!dbContextProvider.Session.IsInTransaction)
@@ -159,8 +161,9 @@ namespace Chloe
         {
             List<Exception> exceptions = null;
 
-            foreach (var pair in this.PersistedDbContextProviders)
+            for (int i = 0; i < this.PersistedDbContextProviders.Count; i++)
             {
+                DataSourceDbContextProviderPair pair = this.PersistedDbContextProviders[i];
                 var dbContextProvider = pair.DbContextProvider;
                 if (!dbContextProvider.Session.IsInTransaction)
                 {
@@ -193,8 +196,9 @@ namespace Chloe
 
         public void UseTransaction(IDbTransaction dbTransaction)
         {
-            foreach (var pair in this.PersistedDbContextProviders)
+            for (int i = 0; i < this.PersistedDbContextProviders.Count; i++)
             {
+                DataSourceDbContextProviderPair pair = this.PersistedDbContextProviders[i];
                 pair.DbContextProvider.Session.UseTransaction(dbTransaction);
             }
         }
