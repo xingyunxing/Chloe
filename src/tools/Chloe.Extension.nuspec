@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Chloe.Extension</id>
-    <version>4.12.0</version>
+    <version>5.0.0</version>
     <title>Chloe.Extension</title>
     <authors>Shuxin Qin</authors>
     <owners>Shuxin Qin</owners>
@@ -11,20 +11,20 @@
     <iconUrl>http://images.cnblogs.com/cnblogs_com/so9527/860154/o_ORMicon.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Extension for Chloe.ORM</description>
-    <copyright>Copyright 2016-2021</copyright>
+    <copyright>Copyright 2016-2022</copyright>
     <tags>Chloe,ORM,Data</tags>
 
 	<dependencies>
       <group targetFramework="net45">
-        <dependency id="Chloe" version="4.12.0" />	  
+        <dependency id="Chloe" version="5.0.0" />	  
       </group>	
 	  
       <group targetFramework="netstandard2.0">
-        <dependency id="Chloe" version="4.12.0" />
+        <dependency id="Chloe" version="5.0.0" />
       </group> 
 	  
 	  <group targetFramework="net5.0">
-        <dependency id="Chloe" version="4.12.0" />
+        <dependency id="Chloe" version="5.0.0" />
       </group>
     </dependencies>
 

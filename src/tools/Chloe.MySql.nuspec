@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Chloe.MySql</id>
-    <version>4.19.0</version>
+    <version>5.0.0</version>
     <title>Chloe.MySql</title>
     <authors>Shuxin Qin</authors>
     <owners>Shuxin Qin</owners>
@@ -13,20 +13,20 @@
     <description>
 A lightweight and high-performance Object/Relational Mapping(ORM) library.
     </description>
-    <copyright>Copyright 2016-2021</copyright>
+    <copyright>Copyright 2016-2022</copyright>
     <tags>Chloe,ORM,Data,MySql,.NET Core</tags>
 
     <dependencies>
 	  <group targetFramework="net45">
-        <dependency id="Chloe" version="4.19.0" />	  
+        <dependency id="Chloe" version="5.0.0" />	  
       </group>
 	  
       <group targetFramework="netstandard2.0">
-        <dependency id="Chloe" version="4.19.0" />
+        <dependency id="Chloe" version="5.0.0" />
       </group> 
 	  
 	  <group targetFramework="net5.0">
-        <dependency id="Chloe" version="4.19.0" />
+        <dependency id="Chloe" version="5.0.0" />
       </group>
     </dependencies>
     

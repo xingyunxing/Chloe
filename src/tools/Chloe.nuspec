@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Chloe</id>
-    <version>4.19.0</version>
+    <version>5.0.0</version>
     <title>Chloe</title>
     <authors>Shuxin Qin</authors>
     <owners>Shuxin Qin</owners>
@@ -13,7 +13,7 @@
     <description>
 A lightweight and high-performance Object/Relational Mapping(ORM) library.
     </description>
-    <copyright>Copyright 2016-2021</copyright>
+    <copyright>Copyright 2016-2022</copyright>
     <tags>Chloe,ORM,Data,.NET Core</tags>
    
    <dependencies>
