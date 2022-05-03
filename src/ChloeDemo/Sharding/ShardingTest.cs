@@ -48,7 +48,7 @@ namespace ChloeDemo.Sharding
              * 初始化测试数据：
              * 按年分库，按月分表
              * 每天两条数据
-             * 注：需要手动建库
+             * 注：需要手动建库建表
              */
 
             await InitData(2018);
@@ -77,7 +77,7 @@ namespace ChloeDemo.Sharding
              * 初始化测试数据：
              * 按月分表
              * 每天两条数据
-             * 注：需要手动建库
+             * 注：需要手动建库建表
              */
             MySqlContext dbContext = new MySqlContext(new MySqlConnectionFactory($"Server=localhost;Port=3306;Database=order{year};Uid=root;Password=sasa;Charset=utf8; Pooling=True; Max Pool Size=200;Allow User Variables=True;SslMode=none;"));
             dbContext.ShardingEnabled = false;
