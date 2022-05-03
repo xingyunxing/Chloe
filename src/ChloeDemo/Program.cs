@@ -47,9 +47,21 @@ namespace ChloeDemo
             DbConfiguration.UseTypeBuilders(typeof(ProvinceMap));
             DbConfiguration.UseTypeBuilders(typeof(TestEntityMap));
 
-            ShardingTest shardingTest = new ShardingTest();
+            //sqlserver 分库分表测试
+            MsSqlShardingTest msSqlShardingTest = new MsSqlShardingTest();
+            msSqlShardingTest.Run().GetAwaiter().GetResult();
 
-            //shardingTest.Run().GetAwaiter().GetResult();
+            //mysql 分库分表测试
+            MySqlShardingTest mySqlShardingTest = new MySqlShardingTest();
+            mySqlShardingTest.Run().GetAwaiter().GetResult();
+
+            //oracle 分库分表测试
+            OracleShardingTest oracleShardingTest = new OracleShardingTest();
+            oracleShardingTest.Run().GetAwaiter().GetResult();
+
+            //postgreSQL 分库分表测试
+            PostgreSQLShardingTest postgreSQLShardingTest = new PostgreSQLShardingTest();
+            postgreSQLShardingTest.Run().GetAwaiter().GetResult();
 
             RunDemo<SQLiteDemo>();
             RunDemo<MsSqlDemo>();

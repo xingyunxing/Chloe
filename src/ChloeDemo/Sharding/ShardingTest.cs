@@ -1,6 +1,8 @@
 ﻿using Chloe;
 using Chloe.MySql;
+using Chloe.MySql.DDL;
 using Chloe.Sharding;
+using Chloe.SqlServer;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,20 +12,23 @@ using System.Threading.Tasks;
 
 namespace ChloeDemo.Sharding
 {
-    internal class ShardingTest
+    public abstract class ShardingTest
     {
+        protected ShardingTest()
+        {
+
+        }
+
         public async Task Run()
         {
-            //await InitData();
-            //Console.ReadKey();
+            await InitData();
 
-            ShardingQueryTest queryTest = new ShardingQueryTest();
+            ShardingQueryTest queryTest = new ShardingQueryTest(this);
             await queryTest.Run();
-
 
             ShardingConfigBuilder<Order> shardingConfigBuilder = new ShardingConfigBuilder<Order>();
             shardingConfigBuilder.HasShardingKey(a => a.CreateTime);     //配置分片字段
-            shardingConfigBuilder.HasRoute(new OrderShardingRoute(new List<int>() { 2020, 2021 })); //设置分片路由
+            shardingConfigBuilder.HasRoute(new OrderShardingRoute(this, new List<int>() { 2020, 2021 })); //设置分片路由
 
             ShardingConfigContainer.Add(shardingConfigBuilder.Build());     //注册分片配置信息
 
@@ -35,6 +40,10 @@ namespace ChloeDemo.Sharding
             Console.ReadKey();
         }
 
+        public abstract DbContext CreateInitDataDbContext(int year);
+        public abstract IDbContextProvider CreateDbContextProvider(int year);
+        public abstract void CreateTable<TEntity>(DbContext dbContext, string table);
+
         IDbContext CreateDbContext()
         {
             DbContext dbContext = new DbContext();
@@ -42,13 +51,13 @@ namespace ChloeDemo.Sharding
             return dbContext;
         }
 
-        public static async Task InitData()
+        public async Task InitData()
         {
             /*
              * 初始化测试数据：
              * 按年分库，按月分表
              * 每天两条数据
-             * 注：需要手动建库建表
+             * 注：需要手动建库
              */
 
             await InitData(2018);
@@ -57,35 +66,31 @@ namespace ChloeDemo.Sharding
             await InitData(2021);
             Console.WriteLine("InitData over");
         }
-
-        public static string BuildTableName(int month)
-        {
-            string suffix = month.ToString();
-            if (suffix.Length == 1)
-            {
-                suffix = $"0{suffix}";
-            }
-
-            string table = $"order{suffix}";
-
-            return table;
-        }
-
-        public static async Task InitData(int year)
+        public async Task InitData(int year)
         {
             /*
              * 初始化测试数据：
              * 按月分表
              * 每天两条数据
-             * 注：需要手动建库建表
+             * 注：需要手动建库
              */
-            MySqlContext dbContext = new MySqlContext(new MySqlConnectionFactory($"Server=localhost;Port=3306;Database=order{year};Uid=root;Password=sasa;Charset=utf8; Pooling=True; Max Pool Size=200;Allow User Variables=True;SslMode=none;"));
+            DbContext dbContext = this.CreateInitDataDbContext(year);
             dbContext.ShardingEnabled = false;
+
+
             for (int month = 1; month <= 12; month++)
             {
                 string table = BuildTableName(month);
-                dbContext.Delete<Order>(a => true, table);
 
+                this.CreateTable<Order>(dbContext, table);
+
+                bool hasData = dbContext.Query<Order>(table).Any();
+                if (hasData)
+                {
+                    continue;
+                }
+                //Console.WriteLine($"insert year:{year} table:{table}");
+                //Console.ReadKey();
                 DateTime firstDate = new DateTime(year, month, 1);
 
                 int day = 0;
@@ -115,6 +120,20 @@ namespace ChloeDemo.Sharding
                 }
             }
         }
+
+        public static string BuildTableName(int month)
+        {
+            string suffix = month.ToString();
+            if (suffix.Length == 1)
+            {
+                suffix = $"0{suffix}";
+            }
+
+            string table = $"order{suffix}";
+
+            return table;
+        }
+
 
 
         async Task CrudTest()

@@ -35,10 +35,13 @@ namespace ChloeDemo.Sharding
 
     public class OrderShardingRoute : IShardingRoute
     {
+        ShardingTest _shardingTest;
         Dictionary<string, IRoutingStrategy> _routingStrategies = new Dictionary<string, IRoutingStrategy>();
 
-        public OrderShardingRoute(List<int> years)
+        public OrderShardingRoute(ShardingTest shardingTest, List<int> years)
         {
+            this._shardingTest = shardingTest;
+
             //添加路由规则(支持多个字段)
             this._routingStrategies.Add(nameof(Order.CreateTime), new OrderCreateTimeRoutingStrategy(this));
             this._routingStrategies.Add(nameof(Order.CreateDate), new OrderCreateDateRoutingStrategy(this));
@@ -64,7 +67,7 @@ namespace ChloeDemo.Sharding
         {
             for (int month = 1; month <= 12; month++)
             {
-                var dbContextProviderFactory = new OrderDbContextProviderFactory(year);
+                var dbContextProviderFactory = new OrderDbContextProviderFactory(this._shardingTest, year);
                 RouteTable table = new OrderRouteTable(month) { DataSource = new OrderRouteDataSource(year) { DbContextProviderFactory = dbContextProviderFactory } };
 
                 yield return table;

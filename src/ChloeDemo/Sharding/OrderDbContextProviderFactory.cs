@@ -1,6 +1,7 @@
 ﻿using Chloe;
 using Chloe.MySql;
 using Chloe.Sharding;
+using Chloe.SqlServer;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,18 +10,17 @@ namespace ChloeDemo.Sharding
 {
     public class OrderDbContextProviderFactory : IDbContextProviderFactory
     {
+        ShardingTest _shardingTest;
         int _year;
-        public OrderDbContextProviderFactory(int year)
+        public OrderDbContextProviderFactory(ShardingTest shardingTest, int year)
         {
+            this._shardingTest = shardingTest;
             this._year = year;
         }
 
         public IDbContextProvider CreateDbContextProvider()
         {
-            string connString = $"Server=localhost;Port=3306;Database=order{this._year};Uid=root;Password=sasa;Charset=utf8; Pooling=True; Max Pool Size=200;Allow User Variables=True;SslMode=none;allowPublicKeyRetrieval=true";
-
-            MySqlContextProvider dbContextProvider = new MySqlContextProvider(new MySqlConnectionFactory(connString));
-            return dbContextProvider;
+            return this._shardingTest.CreateDbContextProvider(this._year);
         }
     }
 }

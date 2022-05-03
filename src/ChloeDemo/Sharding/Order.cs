@@ -9,6 +9,7 @@ namespace ChloeDemo.Sharding
     {
         [Column(IsPrimaryKey = true, Size = 50)]
         public string Id { get; set; } = Guid.NewGuid().ToString("N");
+        [Column(Size = 50)]
         public string UserId { get; set; } = "chloe";
         public decimal Amount { get; set; }
         public int CreateMonth { get; set; }

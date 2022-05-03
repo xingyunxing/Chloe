@@ -10,10 +10,13 @@ namespace Chloe.SQLite.DDL
         {
 
         }
-
-        public override List<string> GenCreateTableScript(TypeDescriptor typeDescriptor, TableCreateMode createMode = TableCreateMode.CreateIfNotExists)
+        public SQLiteTableGenerator(IDbContext dbContext, TableGenerateOptions options) : base(dbContext, options)
         {
-            string tableName = typeDescriptor.Table.Name;
+        }
+
+        public override List<string> GenCreateTableScript(TypeDescriptor typeDescriptor, string tableName, TableCreateMode createMode = TableCreateMode.CreateIfNotExists)
+        {
+            tableName = string.IsNullOrEmpty(tableName) ? typeDescriptor.Table.Name : tableName;
 
             StringBuilder sb = new StringBuilder();
 
@@ -47,7 +50,7 @@ namespace Chloe.SQLite.DDL
 
         string BuildColumnPart(PrimitivePropertyDescriptor propertyDescriptor)
         {
-            string part = $"{Utils.QuoteName(propertyDescriptor.Column.Name)} {GetDataTypeName(propertyDescriptor)}";
+            string part = $"{Utils.QuoteName(propertyDescriptor.Column.Name)} {this.GetDataTypeName(propertyDescriptor)}";
 
             if (propertyDescriptor.IsPrimaryKey)
             {
@@ -73,7 +76,7 @@ namespace Chloe.SQLite.DDL
 
             return part;
         }
-        static string GetDataTypeName(PrimitivePropertyDescriptor propertyDescriptor)
+        string GetDataTypeName(PrimitivePropertyDescriptor propertyDescriptor)
         {
             if (propertyDescriptor.TryGetAnnotation(typeof(DataTypeAttribute), out var annotation))
             {
@@ -88,7 +91,16 @@ namespace Chloe.SQLite.DDL
 
             if (type == typeof(string))
             {
-                int stringLength = propertyDescriptor.Column.Size ?? 4000;
+                int stringLength;
+                if (propertyDescriptor.IsPrimaryKey)
+                {
+                    stringLength = propertyDescriptor.Column.Size ?? this.Options.DefaultStringKeyLength;
+                }
+                else
+                {
+                    stringLength = propertyDescriptor.Column.Size ?? this.Options.DefaultStringLength;
+                }
+
                 return $"NVARCHAR({stringLength})";
             }
 

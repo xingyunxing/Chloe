@@ -11,6 +11,9 @@ namespace Chloe.PostgreSQL.DDL
         {
 
         }
+        public PostgreSQLTableGenerator(IDbContext dbContext, TableGenerateOptions options) : base(dbContext, options)
+        {
+        }
 
         string QuoteName(string name)
         {
@@ -19,9 +22,9 @@ namespace Chloe.PostgreSQL.DDL
             return Utils.QuoteName(name, dbContextProvider.ConvertToLowercase);
         }
 
-        public override List<string> GenCreateTableScript(TypeDescriptor typeDescriptor, TableCreateMode createMode = TableCreateMode.CreateIfNotExists)
+        public override List<string> GenCreateTableScript(TypeDescriptor typeDescriptor, string tableName, TableCreateMode createMode = TableCreateMode.CreateIfNotExists)
         {
-            string tableName = typeDescriptor.Table.Name;
+            tableName = string.IsNullOrEmpty(tableName) ? typeDescriptor.Table.Name : tableName;
             string schema = typeDescriptor.Table.Schema ?? "public";
 
             StringBuilder sb = new StringBuilder();
@@ -70,7 +73,7 @@ namespace Chloe.PostgreSQL.DDL
 
         string BuildColumnPart(PrimitivePropertyDescriptor propertyDescriptor)
         {
-            string part = $"{this.QuoteName(propertyDescriptor.Column.Name)} {GetDataTypeName(propertyDescriptor)}";
+            string part = $"{this.QuoteName(propertyDescriptor.Column.Name)} {this.GetDataTypeName(propertyDescriptor)}";
 
             if (!propertyDescriptor.IsPrimaryKey)
             {
@@ -86,7 +89,7 @@ namespace Chloe.PostgreSQL.DDL
 
             return part;
         }
-        static string GetDataTypeName(PrimitivePropertyDescriptor propertyDescriptor)
+        string GetDataTypeName(PrimitivePropertyDescriptor propertyDescriptor)
         {
             if (propertyDescriptor.TryGetAnnotation(typeof(DataTypeAttribute), out var annotation))
             {
@@ -101,7 +104,16 @@ namespace Chloe.PostgreSQL.DDL
 
             if (type == typeof(string))
             {
-                int stringLength = propertyDescriptor.Column.Size ?? 4000;
+                int stringLength;
+                if (propertyDescriptor.IsPrimaryKey)
+                {
+                    stringLength = propertyDescriptor.Column.Size ?? this.Options.DefaultStringKeyLength;
+                }
+                else
+                {
+                    stringLength = propertyDescriptor.Column.Size ?? this.Options.DefaultStringLength;
+                }
+
                 return $"varchar({stringLength})";
             }
 

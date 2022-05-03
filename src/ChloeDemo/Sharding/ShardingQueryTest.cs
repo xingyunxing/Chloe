@@ -12,11 +12,17 @@ namespace ChloeDemo.Sharding
 {
     internal class ShardingQueryTest
     {
+        ShardingTest _shardingTest;
+        public ShardingQueryTest(ShardingTest shardingTest)
+        {
+            this._shardingTest = shardingTest;
+        }
+
         public async Task Run()
         {
             ShardingConfigBuilder<Order> shardingConfigBuilder = new ShardingConfigBuilder<Order>();
             shardingConfigBuilder.HasShardingKey(a => a.CreateTime);
-            shardingConfigBuilder.HasRoute(new OrderShardingRoute(new List<int>() { 2018, 2019 }));
+            shardingConfigBuilder.HasRoute(new OrderShardingRoute(this._shardingTest, new List<int>() { 2018, 2019 }));
 
             ShardingConfigContainer.Add(shardingConfigBuilder.Build());
 

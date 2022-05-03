@@ -7,19 +7,39 @@ namespace Chloe.DDL
 {
     public abstract class TableGenerator
     {
-        public TableGenerator(IDbContext dbContext)
+        protected TableGenerator(IDbContext dbContext) : this(dbContext, new TableGenerateOptions())
+        {
+
+        }
+        protected TableGenerator(IDbContext dbContext, TableGenerateOptions options)
         {
             this.DbContext = dbContext;
+            this.Options = options;
         }
 
         public IDbContext DbContext { get; }
+        public TableGenerateOptions Options { get; }
+
+        public void CreateTable(Type entityType, string tableName, TableCreateMode createMode = TableCreateMode.CreateIfNotExists)
+        {
+            TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(entityType);
+            this.CreateTable(typeDescriptor, tableName, createMode);
+        }
+        void CreateTable(TypeDescriptor typeDescriptor, string tableName, TableCreateMode createMode = TableCreateMode.CreateIfNotExists)
+        {
+            List<string> createTableScripts = this.GenCreateTableScript(typeDescriptor, tableName, createMode);
+            foreach (var createTableScript in createTableScripts)
+            {
+                this.DbContext.Session.ExecuteNonQuery(createTableScript);
+            }
+        }
 
         public void CreateTables(TableCreateMode createMode = TableCreateMode.CreateIfNotExists)
         {
             TypeDescriptor[] typeDescriptors = EntityTypeContainer.GetRegisteredTypeDescriptors();
             this.CreateTables(typeDescriptors, createMode);
         }
-        public void CreateTables(IDbContext dbContext, Type[] entityTypes, TableCreateMode createMode = TableCreateMode.CreateIfNotExists)
+        public void CreateTables(Type[] entityTypes, TableCreateMode createMode = TableCreateMode.CreateIfNotExists)
         {
             var typeDescriptors = entityTypes.Select(a => EntityTypeContainer.GetDescriptor(a));
             CreateTables(typeDescriptors);
@@ -34,10 +54,10 @@ namespace Chloe.DDL
         }
         List<string> GenCreateTableScripts(IEnumerable<TypeDescriptor> typeDescriptors, TableCreateMode createMode = TableCreateMode.CreateIfNotExists)
         {
-            return typeDescriptors.SelectMany(a => this.GenCreateTableScript(a, createMode)).ToList();
+            return typeDescriptors.SelectMany(a => this.GenCreateTableScript(a, null, createMode)).ToList();
         }
 
-        public abstract List<string> GenCreateTableScript(TypeDescriptor typeDescriptor, TableCreateMode createMode = TableCreateMode.CreateIfNotExists);
+        public abstract List<string> GenCreateTableScript(TypeDescriptor typeDescriptor, string tableName, TableCreateMode createMode = TableCreateMode.CreateIfNotExists);
 
         public static XDocument GetAssemblyCommentDoc(Assembly assembly)
         {
