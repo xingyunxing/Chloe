@@ -48,7 +48,7 @@ namespace Chloe.Sharding.Enumerables
                     dataList = await ordinaryQuery.ToListAsync(this._cancellationToken);
                 }
 
-                return new ScalarFeatureEnumerator<PagingResult>(new PagingResult() { Count = totals, DataList = dataList });
+                return new ScalarFeatureEnumerator<PagingResult>(new PagingResult() { Totals = totals, DataList = dataList });
             }
 
             AggregateQuery<long> GetCountQuery(ShardingQueryPlan queryPlan)

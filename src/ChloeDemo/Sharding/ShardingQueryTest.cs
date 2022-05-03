@@ -65,7 +65,7 @@ namespace ChloeDemo.Sharding
 
             var dataList = result.DataList;
 
-            Debug.Assert(result.Count == 1460);
+            Debug.Assert(result.Totals == 1460);
             Debug.Assert(result.DataList.Count == 20);
 
             Debug.Assert(dataList[0].CreateTime == DateTime.Parse("2018-01-01 10:00"));
@@ -84,7 +84,7 @@ namespace ChloeDemo.Sharding
 
             dataList = result.DataList;
 
-            Debug.Assert(result.Count == 1460);
+            Debug.Assert(result.Totals == 1460);
             Debug.Assert(result.DataList.Count == 20);
 
             Debug.Assert(dataList[0].CreateTime == DateTime.Parse("2018-01-11 10:00"));
@@ -110,7 +110,7 @@ namespace ChloeDemo.Sharding
 
             var dataList = result.DataList;
 
-            Debug.Assert(result.Count == 1460);
+            Debug.Assert(result.Totals == 1460);
             Debug.Assert(result.DataList.Count == 20);
 
             Debug.Assert(dataList[0].CreateTime == DateTime.Parse("2019-12-31 12:00"));
@@ -128,7 +128,7 @@ namespace ChloeDemo.Sharding
             dataList = result.DataList;
             Helpers.PrintResult(result);
 
-            Debug.Assert(result.Count == 1460);
+            Debug.Assert(result.Totals == 1460);
             Debug.Assert(result.DataList.Count == 20);
 
             Debug.Assert(dataList[0].CreateTime == DateTime.Parse("2019-12-21 12:00"));
@@ -157,7 +157,7 @@ namespace ChloeDemo.Sharding
             var dataList = result.DataList;
             Helpers.PrintResult(result);
 
-            Debug.Assert(result.Count == 1400);
+            Debug.Assert(result.Totals == 1400);
             Debug.Assert(result.DataList.Count == 20);
 
             Debug.Assert(dataList[0].CreateTime == DateTime.Parse("2019-12-01 12:00"));
@@ -186,7 +186,7 @@ namespace ChloeDemo.Sharding
             var dataList = result.DataList;
             Helpers.PrintResult(result);
 
-            Debug.Assert(result.Count == 732);
+            Debug.Assert(result.Totals == 732);
             Debug.Assert(result.DataList.Count == 20);
 
             Debug.Assert(dataList[0].CreateTime == DateTime.Parse("2018-12-31 10:00"));
@@ -215,7 +215,7 @@ namespace ChloeDemo.Sharding
             dataList = result.DataList;
             Helpers.PrintResult(result);
 
-            Debug.Assert(result.Count == 1460);
+            Debug.Assert(result.Totals == 1460);
             Debug.Assert(result.DataList.Count == 20);
 
             Debug.Assert(dataList[0].CreateTime == DateTime.Parse("2018-01-01 10:00"));
@@ -234,7 +234,7 @@ namespace ChloeDemo.Sharding
 
             dataList = result.DataList;
 
-            Debug.Assert(result.Count == 1460);
+            Debug.Assert(result.Totals == 1460);
             Debug.Assert(result.DataList.Count == 20);
 
             Debug.Assert(dataList[0].CreateTime == DateTime.Parse("2018-01-21 10:00"));

@@ -15,7 +15,7 @@ namespace ChloeDemo.Sharding
         {
             var dataList = result.DataList;
 
-            Console.WriteLine($"Totals: {result.Count} Takens: {result.DataList.Count}");
+            Console.WriteLine($"Totals: {result.Totals} Takens: {result.DataList.Count}");
 
             Console.WriteLine(dataList[0].CreateTime.ToString("yyyy-MM-dd HH:mm"));
             Console.WriteLine(dataList[1].CreateTime.ToString("yyyy-MM-dd HH:mm"));

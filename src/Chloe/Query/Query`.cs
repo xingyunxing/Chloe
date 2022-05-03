@@ -217,7 +217,7 @@ namespace Chloe.Query
         public PagingResult<T> Paging(int pageNumber, int pageSize)
         {
             PagingResult<T> result = new PagingResult<T>();
-            result.Count = this.Count();
+            result.Totals = this.Count();
             result.DataList = this.TakePage(pageNumber, pageSize).ToList();
 
             return result;
@@ -225,7 +225,7 @@ namespace Chloe.Query
         public async Task<PagingResult<T>> PagingAsync(int pageNumber, int pageSize)
         {
             PagingResult<T> result = new PagingResult<T>();
-            result.Count = await this.CountAsync();
+            result.Totals = await this.CountAsync();
             result.DataList = await this.TakePage(pageNumber, pageSize).ToListAsync();
 
             return result;

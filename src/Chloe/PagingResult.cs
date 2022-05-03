@@ -13,7 +13,7 @@ namespace Chloe
             MakeTypePagingResultMethod = typeof(PagingResult).GetMethod(nameof(PagingResult.MakeTypedPagingResult), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
         }
 
-        public long Count { get; set; }
+        public long Totals { get; set; }
         public IList DataList { get; set; }
 
         internal object MakeTypedPagingResultObject(Type elementType)
@@ -24,7 +24,7 @@ namespace Chloe
         internal PagingResult<T> MakeTypedPagingResult<T>()
         {
             PagingResult<T> pagingResult = new PagingResult<T>();
-            pagingResult.Count = Count;
+            pagingResult.Totals = this.Totals;
 
             if (this.DataList is List<T> dataList)
             {
@@ -45,7 +45,7 @@ namespace Chloe
 
     public class PagingResult<T>
     {
-        public long Count { get; set; }
+        public long Totals { get; set; }
         public List<T> DataList { get; set; } = new List<T>();
     }
 }

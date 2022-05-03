@@ -44,6 +44,13 @@ namespace ChloeDemo.Sharding
 
         public static async Task InitData()
         {
+            /*
+             * 初始化测试数据：
+             * 按年分库，按月分表
+             * 每天两条数据
+             * 注：需要手动建库
+             */
+
             await InitData(2018);
             await InitData(2019);
             await InitData(2020);
@@ -66,6 +73,12 @@ namespace ChloeDemo.Sharding
 
         public static async Task InitData(int year)
         {
+            /*
+             * 初始化测试数据：
+             * 按月分表
+             * 每天两条数据
+             * 注：需要手动建库
+             */
             MySqlContext dbContext = new MySqlContext(new MySqlConnectionFactory($"Server=localhost;Port=3306;Database=order{year};Uid=root;Password=sasa;Charset=utf8; Pooling=True; Max Pool Size=200;Allow User Variables=True;SslMode=none;"));
             dbContext.ShardingEnabled = false;
             for (int month = 1; month <= 12; month++)
