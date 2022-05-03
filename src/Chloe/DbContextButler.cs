@@ -176,6 +176,11 @@ namespace Chloe
                 }
                 catch (Exception ex)
                 {
+                    if (this.PersistedDbContextProviders.Count == 1 && pair.DbContextProvider == this._defaultDbContextProvider)
+                    {
+                        throw;
+                    }
+
                     if (exceptions == null)
                     {
                         exceptions = new List<Exception>();
