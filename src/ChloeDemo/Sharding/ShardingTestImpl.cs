@@ -17,7 +17,7 @@ namespace ChloeDemo.Sharding
     {
         string GetConnString(int year)
         {
-            string connString = connString = $"Data Source =.;Initial Catalog = order{year};Integrated Security = SSPI;";
+            string connString = $"Data Source =.;Initial Catalog = order{year};Integrated Security = SSPI;";
             return connString;
         }
 

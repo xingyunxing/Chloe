@@ -21,6 +21,12 @@ namespace ChloeDemo.Sharding
 
         public async Task Run()
         {
+            /*
+             * 注：
+             * Chloe.ORM 不负责自动创建数据库和表，
+             * 运行此测试前请手动创建好四个数据库（order2018、order2019、order2020、order2021），然后修改 ShardingTestImpl.cs 里的数据库连接字符串
+             */
+
             await InitData();
 
             ShardingQueryTest queryTest = new ShardingQueryTest(this);
@@ -41,6 +47,12 @@ namespace ChloeDemo.Sharding
         }
 
         public abstract DbContext CreateInitDataDbContext(int year);
+
+        /// <summary>
+        /// 创建数据源
+        /// </summary>
+        /// <param name="year"></param>
+        /// <returns></returns>
         public abstract IDbContextProvider CreateDbContextProvider(int year);
         public abstract void CreateTable<TEntity>(DbContext dbContext, string table);
 
@@ -57,7 +69,7 @@ namespace ChloeDemo.Sharding
              * 初始化测试数据：
              * 按年分库，按月分表
              * 每天两条数据
-             * 注：需要手动建库
+             * 注：运行程序前请手动创建好四个数据库（order2018、order2019、order2020、order2021），然后修改 ShardingTestImpl.cs 里的数据库连接字符串
              */
 
             await InitData(2018);

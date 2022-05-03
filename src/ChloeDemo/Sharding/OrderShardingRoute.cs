@@ -59,7 +59,7 @@ namespace ChloeDemo.Sharding
         List<RouteTable> AllTables { get; set; }
 
         /// <summary>
-        /// 创建所有分表对象，并设置设置数据源
+        /// 创建所有分表对象，并设置数据源
         /// </summary>
         /// <param name="year"></param>
         /// <returns></returns>
