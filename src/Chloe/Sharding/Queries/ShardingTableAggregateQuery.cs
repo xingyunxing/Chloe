@@ -34,7 +34,8 @@ namespace Chloe.Sharding.Queries
             protected override async Task<(IFeatureEnumerable<TResult> Query, bool IsLazyQuery)> CreateQuery(IQuery query, bool async)
             {
                 var queryContext = this._enumerable._queryContext;
-                bool canceled = queryContext.BeforeExecuteCommand();
+                bool canceled = queryContext.Canceled;
+                ParallelQueryContext.LogQueryCanceled(canceled);
                 if (canceled)
                 {
                     return (NullFeatureEnumerable<TResult>.Instance, false);

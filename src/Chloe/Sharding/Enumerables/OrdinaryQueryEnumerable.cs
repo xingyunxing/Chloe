@@ -39,7 +39,7 @@ namespace Chloe.Sharding.Enumerables
                 QueryProjection queryProjection = ShardingHelpers.MakeQueryProjection(this.QueryModel);
 
                 List<KeyQueryResult> keyResult = await this.GetKeys();
-                ParallelQueryContext queryContext = new ParallelQueryContext();
+                ParallelQueryContext queryContext = new ParallelQueryContext(this.QueryPlan.ShardingContext);
 
                 try
                 {
@@ -81,9 +81,7 @@ namespace Chloe.Sharding.Enumerables
                 {
                     int count = group.Count();
 
-                    SharedDbContextProviderPool dbContextProviderPool = ShardingHelpers.CreateDbContextProviderPool(this.ShardingContext, group.First().QueryModel.Table.DataSource, count);
-                    queryContext.AddManagedResource(dbContextProviderPool);
-
+                    ISharedDbContextProviderPool dbContextProviderPool = queryContext.GetDbContextProviderPool(group.First().QueryModel.Table.DataSource);
                     bool lazyQuery = dbContextProviderPool.Size >= count;
 
                     foreach (var dataQueryPlan in group)

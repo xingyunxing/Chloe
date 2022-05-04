@@ -39,7 +39,8 @@ namespace Chloe.Sharding.Enumerables
                     return result;
                 };
 
-                AggregateQuery<bool> aggQuery = new AggregateQuery<bool>(queryState.CreateQueryPlan(), executor, AnyQueryParallelQueryContext.AnyQueryParallelQueryContextFactory);
+                ShardingQueryPlan queryPlan = queryState.CreateQueryPlan();
+                AggregateQuery<bool> aggQuery = new AggregateQuery<bool>(queryPlan, executor, () => { return new AnyQueryParallelQueryContext(queryPlan.ShardingContext); });
 
                 var hasData = await aggQuery.AsAsyncEnumerable().Where(a => a.Result == true).AnyAsync(this._cancellationToken);
 

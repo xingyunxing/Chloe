@@ -45,7 +45,8 @@ namespace Chloe.Sharding.Queries
             {
                 var queryContext = this._enumerable.QueryContext;
 
-                bool canceled = queryContext.BeforeExecuteCommand();
+                bool canceled = queryContext.Canceled;
+                ParallelQueryContext.LogQueryCanceled(canceled);
                 if (canceled)
                 {
                     return (NullFeatureEnumerable<object>.Instance, false);

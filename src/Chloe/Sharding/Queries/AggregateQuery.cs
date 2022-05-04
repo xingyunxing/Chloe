@@ -17,7 +17,7 @@ namespace Chloe.Sharding.Queries
         Func<IQuery, bool, Task<TResult>> _executor;
         Func<ParallelQueryContext> _parallelQueryContextFactory;
 
-        public AggregateQuery(ShardingQueryPlan queryPlan, Func<IQuery, bool, Task<TResult>> executor) : this(queryPlan, executor, ParallelQueryContext.ParallelQueryContextFactory)
+        public AggregateQuery(ShardingQueryPlan queryPlan, Func<IQuery, bool, Task<TResult>> executor) : this(queryPlan, executor, () => { return new ParallelQueryContext(queryPlan.ShardingContext); })
         {
             this._queryPlan = queryPlan;
             this._tables = queryPlan.Tables;
@@ -109,8 +109,7 @@ namespace Chloe.Sharding.Queries
                     {
                         int count = group.Count();
 
-                        SharedDbContextProviderPool dbContextProviderPool = ShardingHelpers.CreateDbContextProviderPool(this._enumerable._queryPlan.ShardingContext, group.First().QueryModel.Table.DataSource, count);
-                        queryContext.AddManagedResource(dbContextProviderPool);
+                        ISharedDbContextProviderPool dbContextProviderPool = queryContext.GetDbContextProviderPool(group.First().QueryModel.Table.DataSource);
 
                         foreach (AggregateQueryPlan<TResult> aggQueryPlan in group)
                         {

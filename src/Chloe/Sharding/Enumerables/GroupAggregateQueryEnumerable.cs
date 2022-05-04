@@ -146,7 +146,7 @@ namespace Chloe.Sharding.Enumerables
             }
             ParallelConcatEnumerable<object> MakeQueryEnumerable(List<GroupAggregateQueryModel> queryModels)
             {
-                ParallelQueryContext queryContext = new ParallelQueryContext();
+                ParallelQueryContext queryContext = new ParallelQueryContext(this.QueryPlan.ShardingContext);
                 List<ShardingTableGroupAggregateQuery> shardingQueries = new List<ShardingTableGroupAggregateQuery>(this.QueryPlan.Tables.Count);
 
                 try
@@ -155,9 +155,7 @@ namespace Chloe.Sharding.Enumerables
                     {
                         int count = group.Count();
 
-                        SharedDbContextProviderPool dbContextProviderPool = ShardingHelpers.CreateDbContextProviderPool(this.QueryPlan.ShardingContext, group.First().Table.DataSource, count);
-                        queryContext.AddManagedResource(dbContextProviderPool);
-
+                        ISharedDbContextProviderPool dbContextProviderPool = queryContext.GetDbContextProviderPool(group.First().Table.DataSource);
                         bool lazyQuery = dbContextProviderPool.Size >= count;
 
                         foreach (var queryModel in group)

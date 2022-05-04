@@ -30,7 +30,7 @@ namespace Chloe.Sharding.Enumerables
 
             protected override async Task<IFeatureEnumerator<object>> CreateEnumerator(bool @async)
             {
-                UniqueDataParallelQueryContext queryContext = new UniqueDataParallelQueryContext();
+                UniqueDataParallelQueryContext queryContext = new UniqueDataParallelQueryContext(this._enumerable._queryPlan.ShardingContext);
 
                 try
                 {
@@ -67,8 +67,7 @@ namespace Chloe.Sharding.Enumerables
                 {
                     int count = group.Count();
 
-                    SharedDbContextProviderPool dbContextProviderPool = ShardingHelpers.CreateDbContextProviderPool(this.ShardingContext, group.First().QueryModel.Table.DataSource, count);
-                    queryContext.AddManagedResource(dbContextProviderPool);
+                    ISharedDbContextProviderPool dbContextProviderPool = queryContext.GetDbContextProviderPool(group.First().QueryModel.Table.DataSource);
 
                     //因为是根据主键查询了，所以返回的数据肯定是一条，因此直接把数据加载进内存即可
                     bool lazyQuery = false;

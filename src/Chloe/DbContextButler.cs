@@ -55,8 +55,9 @@ namespace Chloe
                 }
             }
 
-            foreach (var pair in PersistedDbContextProviders)
+            for (int i = 0; i < this.PersistedDbContextProviders.Count; i++)
             {
+                DataSourceDbContextProviderPair pair = this.PersistedDbContextProviders[i];
                 pair.DbContextProvider.Dispose();
             }
 
@@ -274,21 +275,17 @@ namespace Chloe
             this.StartTransactionIfNeed(pair.DbContextProvider);
             return new PersistedDbContextProvider(pair.DbContextProvider);
         }
-        public List<IDbContextProvider> CreateTransientDbContextProviders(IPhysicDataSource dataSource, int desiredCount)
+        public ISharedDbContextProviderPool GetDbContextProviderPool(IPhysicDataSource dataSource)
         {
-            int connectionCount = Math.Min(desiredCount, this.DbContext.ShardingOptions.MaxConnectionsPerDataSource);
-
-            List<IDbContextProvider> dbContextProviders = new List<IDbContextProvider>(connectionCount);
-
-            for (int i = 0; i < connectionCount; i++)
+            SharedDbContextProviderPool pool;
+            if (this.DbContext.Butler.IsInTransaction)
             {
-                IDbContextProvider dbContextProvider = dataSource.DbContextProviderFactory.CreateDbContextProvider();
-                this.AppendFeatures(dbContextProvider);
-
-                dbContextProviders.Add(dbContextProvider);
+                pool = new SharedDbContextProviderPool(1, () => this.GetPersistedDbContextProvider(dataSource));
+                return pool;
             }
 
-            return dbContextProviders;
+            pool = new SharedDbContextProviderPool(this.DbContext.ShardingOptions.MaxConnectionsPerDataSource, dataSource.DbContextProviderFactory.CreateDbContextProvider);
+            return pool;
         }
 
         void StartTransactionIfNeed(IDbContextProvider dbContextProvider)

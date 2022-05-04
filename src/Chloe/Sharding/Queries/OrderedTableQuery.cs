@@ -34,7 +34,7 @@ namespace Chloe.Sharding.Queries
 
             protected override async Task<IFeatureEnumerator<object>> CreateEnumerator(bool @async)
             {
-                ParallelQueryContext queryContext = new ParallelQueryContext();
+                ParallelQueryContext queryContext = new ParallelQueryContext(this.QueryPlan.ShardingContext);
 
                 try
                 {
@@ -92,9 +92,7 @@ namespace Chloe.Sharding.Queries
                 {
                     int count = group.Count();
 
-                    SharedDbContextProviderPool dbContextProviderPool = ShardingHelpers.CreateDbContextProviderPool(this.ShardingContext, group.First().QueryModel.Table.DataSource, count);
-                    queryContext.AddManagedResource(dbContextProviderPool);
-
+                    ISharedDbContextProviderPool dbContextProviderPool = queryContext.GetDbContextProviderPool(group.First().QueryModel.Table.DataSource);
                     bool lazyQuery = dbContextProviderPool.Size >= count;
 
                     foreach (var dataQueryPlan in group)

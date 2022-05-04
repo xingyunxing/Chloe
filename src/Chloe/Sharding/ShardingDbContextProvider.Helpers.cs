@@ -40,20 +40,6 @@ namespace Chloe.Sharding
             return this.DbContext.Butler.GetPersistedDbContextProvider(dataSource);
         }
 
-        internal List<IDbContextProvider> CreateDbContextProviders(IPhysicDataSource dataSource, int desiredCount)
-        {
-            if (this.DbContext.Butler.IsInTransaction)
-            {
-                return new List<IDbContextProvider>(1) { this.GetPersistedDbContextProvider(dataSource) };
-            }
-
-            return this.CreateTransientDbContextProviders(dataSource, desiredCount);
-        }
-        internal List<IDbContextProvider> CreateTransientDbContextProviders(IPhysicDataSource dataSource, int desiredCount)
-        {
-            return this.DbContext.Butler.CreateTransientDbContextProviders(dataSource, desiredCount);
-        }
-
         async Task<int> ExecuteUpdate<TEntity>(IEnumerable<(IPhysicDataSource DataSource, List<IPhysicTable> Tables)> groups, Expression<Func<TEntity, bool>> condition, Expression<Func<TEntity, TEntity>> content, int rowsAffectedLimit, bool @async)
         {
             int totalRowsAffected = 0;

@@ -4,38 +4,37 @@ namespace Chloe.Sharding
 {
     internal interface IParallelQueryContext : IDisposable
     {
-        /// <summary>
-        /// 返回结果是否可停止查询
-        /// </summary>
-        /// <returns></returns>
-        bool BeforeExecuteCommand();
+        bool Canceled { get; }
+
+        ISharedDbContextProviderPool GetDbContextProviderPool(IPhysicDataSource dataSource);
+        void Cancel();
         void AfterExecuteCommand(object result);
     }
 
     internal class ParallelQueryContext : IParallelQueryContext
     {
+        int _canceled;
+        IShardingContext _shardingContext;
+        List<ISharedDbContextProviderPool> _pools = new List<ISharedDbContextProviderPool>();
 
-        public static readonly Func<ParallelQueryContext> ParallelQueryContextFactory = () =>
+        public ParallelQueryContext(IShardingContext shardingContext)
         {
-            return new ParallelQueryContext();
-        };
-
-        List<IDisposable> _managedResourceList = new List<IDisposable>();
-
-        public ParallelQueryContext()
-        {
-
+            this._shardingContext = shardingContext;
         }
 
-        public void AddManagedResource(IDisposable disposable)
+        public ISharedDbContextProviderPool GetDbContextProviderPool(IPhysicDataSource dataSource)
         {
-            this._managedResourceList.Add(disposable);
+            var pool = this._shardingContext.GetDbContextProviderPool(dataSource);
+            this._pools.Add(pool);
+            return pool;
+        }
+        public bool Canceled { get { return this._canceled != 0; } }
+
+        public void Cancel()
+        {
+            System.Threading.Interlocked.Increment(ref this._canceled);
         }
 
-        public virtual bool BeforeExecuteCommand()
-        {
-            return false;
-        }
         public virtual void AfterExecuteCommand(object result)
         {
 
@@ -43,9 +42,9 @@ namespace Chloe.Sharding
 
         public void Dispose()
         {
-            for (int i = 0; i < this._managedResourceList.Count; i++)
+            for (int i = 0; i < this._pools.Count; i++)
             {
-                this._managedResourceList[i].Dispose();
+                this._pools[i].Dispose();
             }
         }
 
@@ -55,7 +54,7 @@ namespace Chloe.Sharding
             if (canCancel)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("query canceled.");
+                Console.WriteLine("-----------------------------------query canceled-----------------------------------");
                 Console.ForegroundColor = ConsoleColor.Gray;
             }
 #endif
@@ -64,55 +63,26 @@ namespace Chloe.Sharding
 
     internal class UniqueDataParallelQueryContext : ParallelQueryContext
     {
-        public static readonly Func<ParallelQueryContext> UniqueDataParallelQueryContextFactory = () =>
+        public UniqueDataParallelQueryContext(IShardingContext shardingContext) : base(shardingContext)
         {
-            return new UniqueDataParallelQueryContext();
-        };
-
-        int _countHasQuery;
-
-        public UniqueDataParallelQueryContext()
-        {
-        }
-
-        public override bool BeforeExecuteCommand()
-        {
-            bool canCancel = this._countHasQuery >= 1;
-
-            ParallelQueryContext.LogQueryCanceled(canCancel);
-
-            return canCancel;
         }
 
         public override void AfterExecuteCommand(object result)
         {
             if (result is IList list)
             {
-                System.Threading.Interlocked.Add(ref this._countHasQuery, list.Count);
+                if (list.Count > 0)
+                {
+                    this.Cancel();
+                }
             }
         }
     }
 
     internal class AnyQueryParallelQueryContext : ParallelQueryContext
     {
-        public static readonly Func<ParallelQueryContext> AnyQueryParallelQueryContextFactory = () =>
+        public AnyQueryParallelQueryContext(IShardingContext shardingContext) : base(shardingContext)
         {
-            return new AnyQueryParallelQueryContext();
-        };
-
-        bool _hasData;
-
-        public AnyQueryParallelQueryContext()
-        {
-        }
-
-        public override bool BeforeExecuteCommand()
-        {
-            bool canCancel = this._hasData;
-
-            ParallelQueryContext.LogQueryCanceled(canCancel);
-
-            return canCancel;
         }
 
         public override void AfterExecuteCommand(object result)
@@ -120,7 +90,7 @@ namespace Chloe.Sharding
             bool hasData = (bool)result;
             if (hasData)
             {
-                this._hasData = hasData;
+                this.Cancel();
             }
         }
     }

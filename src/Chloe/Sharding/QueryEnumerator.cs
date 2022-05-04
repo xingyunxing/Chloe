@@ -71,7 +71,17 @@ namespace Chloe.Sharding
 
             var dbContextProvider = poolResource.Resource;
 
-            var result = await this.CreateQuery(dbContextProvider, @async);
+            (IFeatureEnumerable<TResult> Query, bool IsLazyQuery) result;
+            try
+            {
+                result = await this.CreateQuery(dbContextProvider, @async);
+            }
+            catch
+            {
+                this._poolResource.Dispose();
+                this._poolResource = null;
+                throw;
+            }
 
             if (!result.IsLazyQuery)
             {

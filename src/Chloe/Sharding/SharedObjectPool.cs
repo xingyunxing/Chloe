@@ -34,18 +34,25 @@
     class SharedObjectPool<T> : ISharedObjectPool<T>
     {
         bool _disposed;
+
+        int _size;
+        Func<T> _resourceFactory;
+
         List<T> All;
         Queue<T> Stocks;
         Queue<TaskCompletionSource<T>> Waitings;
 
-        public SharedObjectPool(List<T> objects)
+        public SharedObjectPool(int size, Func<T> resourceFactory)
         {
-            this.All = objects;
-            this.Stocks = new Queue<T>(objects);
+            this._size = size;
+            this._resourceFactory = resourceFactory;
+
+            this.All = new List<T>();
+            this.Stocks = new Queue<T>();
             this.Waitings = new Queue<TaskCompletionSource<T>>();
         }
 
-        public int Size { get { return this.All.Count; } }
+        public int Size { get { return this._size; } }
 
         public void Dispose()
         {
@@ -106,9 +113,22 @@
             if (this._disposed)
                 return;
 
-            if (!(this.Stocks.Count > 0 && this.Waitings.Count > 0))
+            if (this.Waitings.Count == 0)
             {
                 return;
+            }
+            if (this.Stocks.Count == 0)
+            {
+                if (this.All.Count < this._size)
+                {
+                    var resource = this._resourceFactory();
+                    this.All.Add(resource);
+                    this.Stocks.Enqueue(resource);
+                }
+                else
+                {
+                    return;
+                }
             }
 
             T obj = this.Stocks.Dequeue();
@@ -142,7 +162,7 @@
 
     class SharedDbContextProviderPool : SharedObjectPool<IDbContextProvider>, ISharedDbContextProviderPool
     {
-        public SharedDbContextProviderPool(List<IDbContextProvider> dbContextProviders) : base(dbContextProviders)
+        public SharedDbContextProviderPool(int size, Func<IDbContextProvider> dbContextProviderFactory) : base(size, dbContextProviderFactory)
         {
 
         }

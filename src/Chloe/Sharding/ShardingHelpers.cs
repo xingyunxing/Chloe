@@ -105,14 +105,6 @@ namespace Chloe.Sharding
             return orderedQuery;
         }
 
-        public static SharedDbContextProviderPool CreateDbContextProviderPool(IShardingContext shardingContext, IPhysicDataSource dataSource, int desiredContextProviders)
-        {
-            List<IDbContextProvider> dbContextProviders = shardingContext.CreateDbContextProviders(dataSource, desiredContextProviders);
-            SharedDbContextProviderPool dbContextProviderPool = new SharedDbContextProviderPool(dbContextProviders);
-
-            return dbContextProviderPool;
-        }
-
         public static LambdaExpression MakeDynamicSelector(ShardingQueryPlan queryPlan, DynamicType dynamicType, TypeDescriptor entityTypeDescriptor, int tableIndex)
         {
             // a => new Dynamic() { P1 = a.Id, P2 = tableIndex, P3 = orderKeySelector1, P4 = orderKeySelector2... }

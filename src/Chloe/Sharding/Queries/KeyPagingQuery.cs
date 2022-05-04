@@ -52,7 +52,7 @@ namespace Chloe.Sharding.Queries
             {
                 DynamicType dynamicType = this.GetDynamicType();
                 List<DynamicDataQueryPlan> dataQueryPlans;
-                ParallelQueryContext queryContext = new ParallelQueryContext();
+                ParallelQueryContext queryContext = new ParallelQueryContext(this.ShardingContext);
                 try
                 {
                     dataQueryPlans = this.MakeDynamicDataQueryPlans(queryContext, dynamicType);
@@ -104,9 +104,7 @@ namespace Chloe.Sharding.Queries
                 {
                     int count = group.Count();
 
-                    SharedDbContextProviderPool dbContextProviderPool = ShardingHelpers.CreateDbContextProviderPool(this.QueryPlan.ShardingContext, group.First().QueryModel.Table.DataSource, count);
-                    queryContext.AddManagedResource(dbContextProviderPool);
-
+                    ISharedDbContextProviderPool dbContextProviderPool = queryContext.GetDbContextProviderPool(group.First().QueryModel.Table.DataSource);
                     bool lazyQuery = dbContextProviderPool.Size >= count;
 
                     foreach (var dataQuery in group)
