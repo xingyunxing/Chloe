@@ -1,12 +1,12 @@
 ﻿using Chloe.Infrastructure.Interception;
 using System.Data;
 
-namespace Chloe.Core
+namespace Chloe
 {
-    class DbSession : IDbSessionProvider
+    class DbSessionProvider : IDbSessionProvider
     {
         DbContextProvider _dbContextProvider;
-        internal DbSession(DbContextProvider dbContextProvider)
+        internal DbSessionProvider(DbContextProvider dbContextProvider)
         {
             this._dbContextProvider = dbContextProvider;
         }
