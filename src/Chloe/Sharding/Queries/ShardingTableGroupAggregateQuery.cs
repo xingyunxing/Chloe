@@ -1,4 +1,5 @@
 ﻿using Chloe.Reflection;
+using Chloe.Sharding.Models;
 using System.Collections;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -6,19 +7,6 @@ using System.Threading;
 
 namespace Chloe.Sharding.Queries
 {
-    class GroupAggregateQueryModel
-    {
-        public GroupAggregateQueryModel(Type rootEntityType)
-        {
-            this.RootEntityType = rootEntityType;
-        }
-        public Type RootEntityType { get; set; }
-        public IPhysicTable Table { get; set; }
-        public List<LambdaExpression> Conditions { get; set; } = new List<LambdaExpression>();
-        public List<LambdaExpression> GroupKeySelectors { get; set; } = new List<LambdaExpression>();
-        public LambdaExpression Selector { get; set; }
-    }
-
     internal class ShardingTableGroupAggregateQuery : FeatureEnumerable<object>
     {
         ISharedDbContextProviderPool DbContextProviderPool;
@@ -81,7 +69,7 @@ namespace Chloe.Sharding.Queries
 
             static IQuery MakeTypedGroupAggregateQuery<T>(IDbContextProvider dbContextProvider, GroupAggregateQueryModel queryModel)
             {
-                var query = dbContextProvider.Query<T>(queryModel.Table.Name, LockType.Unspecified);
+                var query = dbContextProvider.Query<T>(queryModel.Table.Name, queryModel.Lock);
 
                 foreach (var condition in queryModel.Conditions)
                 {

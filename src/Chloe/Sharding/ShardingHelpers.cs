@@ -139,6 +139,7 @@ namespace Chloe.Sharding
         public static QueryProjection MakeQueryProjection(ShardingQueryModel queryModel)
         {
             QueryProjection queryProjection = new QueryProjection(queryModel.RootEntityType);
+            queryProjection.Lock = queryModel.Lock;
             queryProjection.IgnoreAllFilters = queryModel.IgnoreAllFilters;
 
             queryProjection.Conditions.Capacity = queryModel.Conditions.Count;
@@ -253,6 +254,7 @@ namespace Chloe.Sharding
 
                     DataQueryModel dataQueryModel = new DataQueryModel(queryProjection.RootEntityType);
                     dataQueryModel.Table = keyResult.Table;
+                    dataQueryModel.Lock = queryProjection.Lock;
                     dataQueryModel.IgnoreAllFilters = true;
 
                     dataQueryModel.Orderings.Capacity = queryProjection.Orderings.Count;
@@ -286,6 +288,7 @@ namespace Chloe.Sharding
         {
             DataQueryModel dataQueryModel = new DataQueryModel(queryModel.RootEntityType);
             dataQueryModel.Table = table;
+            dataQueryModel.Lock = queryModel.Lock;
             dataQueryModel.IgnoreAllFilters = queryModel.IgnoreAllFilters;
 
             dataQueryModel.Conditions.AppendRange(queryModel.Conditions);
@@ -320,7 +323,7 @@ namespace Chloe.Sharding
         }
         static IQuery<T> MakeTypedQueryCore<T>(IDbContextProvider dbContextProvider, DataQueryModel queryModel, bool ignoreSkipAndTake)
         {
-            var q = dbContextProvider.Query<T>(queryModel.Table.Name, LockType.Unspecified);
+            var q = dbContextProvider.Query<T>(queryModel.Table.Name, queryModel.Lock);
 
             foreach (var condition in queryModel.Conditions)
             {

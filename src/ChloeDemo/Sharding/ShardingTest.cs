@@ -232,9 +232,9 @@ namespace ChloeDemo.Sharding
 
             int rowsAffected = 0;
 
-            List<Order> orders = await dbContext.Query<Order>().Where(a => a.CreateYear == 2021).ToListAsync();
+            List<Order> orders = await dbContext.Query<Order>().Where(a => a.CreateMonth == 1 || a.CreateMonth == 2).ToListAsync();
 
-            rowsAffected = await dbContext.DeleteAsync<Order>(a => a.CreateYear == 2021);
+            rowsAffected = await dbContext.DeleteAsync<Order>(a => a.CreateMonth == 1 || a.CreateMonth == 2);
 
             Debug.Assert(rowsAffected == orders.Count);
 

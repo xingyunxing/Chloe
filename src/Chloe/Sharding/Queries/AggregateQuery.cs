@@ -92,6 +92,7 @@ namespace Chloe.Sharding.Queries
 
                     DataQueryModel dataQueryModel = new DataQueryModel(queryPlan.QueryModel.RootEntityType);
                     dataQueryModel.Table = table;
+                    dataQueryModel.Lock = queryPlan.QueryModel.Lock;
                     dataQueryModel.IgnoreAllFilters = queryPlan.QueryModel.IgnoreAllFilters;
 
                     dataQueryModel.Conditions.AppendRange(queryPlan.QueryModel.Conditions);

@@ -14,6 +14,7 @@ namespace Chloe.Sharding
 
         public IPhysicTable Table { get; set; }
 
+        public LockType Lock { get; set; }
         public int? Skip { get; set; }
         public int? Take { get; set; }
 
@@ -34,6 +35,7 @@ namespace Chloe.Sharding
 
         public Type RootEntityType { get; set; }
 
+        public LockType Lock { get; set; }
         public int? Skip { get; set; }
         public int? Take { get; set; }
 
@@ -50,6 +52,7 @@ namespace Chloe.Sharding
         {
             DataQueryModel queryModel = new DataQueryModel(this.RootEntityType);
             queryModel.Table = table;
+            queryModel.Lock = this.Lock;
             queryModel.Skip = this.Skip;
             queryModel.Take = this.Take;
             queryModel.IgnoreAllFilters = this.IgnoreAllFilters;

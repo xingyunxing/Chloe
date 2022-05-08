@@ -11,6 +11,8 @@ namespace Chloe.Sharding
 
         public Type RootEntityType { get; set; }
 
+        public LockType Lock { get; set; }
+
         public int? Skip { get; set; }
         public int? Take { get; set; }
 

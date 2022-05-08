@@ -19,6 +19,7 @@ namespace Chloe.Sharding.QueryState
         static ShardingQueryModel CreateQueryModel(RootQueryExpression exp)
         {
             ShardingQueryModel queryModel = new ShardingQueryModel(exp.ElementType);
+            queryModel.Lock = exp.Lock;
             return queryModel;
         }
 
