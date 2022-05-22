@@ -17,7 +17,7 @@ A lightweight and high-performance Object/Relational Mapping(ORM) library.
     <tags>Chloe,ORM,Data,SqlServer,.NET Core</tags>
 
     <dependencies>
-	  <group targetFramework="net45">
+	  <group targetFramework="net46">
         <dependency id="Chloe" version="5.0.0" />	  
       </group>
 	  
@@ -35,8 +35,8 @@ A lightweight and high-performance Object/Relational Mapping(ORM) library.
   </metadata>
 
   <files>
-	<file src="..\Chloe.SqlServer\bin\Release\net45\Chloe.SqlServer.dll" target="lib\net45" />
-    <file src="..\Chloe.SqlServer\bin\Release\net45\Chloe.SqlServer.xml" target="lib\net45" />
+	<file src="..\Chloe.SqlServer\bin\Release\net46\Chloe.SqlServer.dll" target="lib\net46" />
+    <file src="..\Chloe.SqlServer\bin\Release\net46\Chloe.SqlServer.xml" target="lib\net46" />
 	<file src="..\Chloe.SqlServer\bin\Release\netstandard2.0\Chloe.SqlServer.dll" target="lib\netstandard2.0"></file>
     <file src="..\Chloe.SqlServer\bin\Release\netstandard2.0\Chloe.SqlServer.xml" target="lib\netstandard2.0"></file>
 	<file src="..\Chloe.SqlServer\bin\Release\net5.0\Chloe.SqlServer.dll" target="lib\net5.0"></file>

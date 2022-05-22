@@ -17,7 +17,7 @@ A lightweight and high-performance Object/Relational Mapping(ORM) library.
     <tags>Chloe,ORM,Data,SQLite,.NET Core</tags>
 
     <dependencies>
-	  <group targetFramework="net45">
+	  <group targetFramework="net46">
         <dependency id="Chloe" version="5.0.0" />	  
       </group>
 	  
@@ -33,8 +33,8 @@ A lightweight and high-performance Object/Relational Mapping(ORM) library.
   </metadata>
 
   <files>
-	<file src="..\Chloe.SQLite\bin\Release\net45\Chloe.SQLite.dll" target="lib\net45" />
-    <file src="..\Chloe.SQLite\bin\Release\net45\Chloe.SQLite.xml" target="lib\net45" />
+	<file src="..\Chloe.SQLite\bin\Release\net46\Chloe.SQLite.dll" target="lib\net46" />
+    <file src="..\Chloe.SQLite\bin\Release\net46\Chloe.SQLite.xml" target="lib\net46" />
 	<file src="..\Chloe.SQLite\bin\Release\netstandard2.0\Chloe.SQLite.dll" target="lib\netstandard2.0"></file>
     <file src="..\Chloe.SQLite\bin\Release\netstandard2.0\Chloe.SQLite.xml" target="lib\netstandard2.0"></file>
 	<file src="..\Chloe.SQLite\bin\Release\net5.0\Chloe.SQLite.dll" target="lib\net5.0"></file>

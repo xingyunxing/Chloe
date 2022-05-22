@@ -17,7 +17,7 @@ A lightweight and high-performance Object/Relational Mapping(ORM) library.
     <tags>Chloe,ORM,Data,Oracle,.NET Core</tags>
 
     <dependencies>
-      <group targetFramework="net45">
+      <group targetFramework="net46">
         <dependency id="Chloe" version="5.0.0" />	  
       </group>	
 	  
@@ -33,8 +33,8 @@ A lightweight and high-performance Object/Relational Mapping(ORM) library.
   </metadata>
 
   <files>
-	<file src="..\Chloe.Oracle\bin\Release\net45\Chloe.Oracle.dll" target="lib\net45" />
-    <file src="..\Chloe.Oracle\bin\Release\net45\Chloe.Oracle.xml" target="lib\net45" />
+	<file src="..\Chloe.Oracle\bin\Release\net46\Chloe.Oracle.dll" target="lib\net46" />
+    <file src="..\Chloe.Oracle\bin\Release\net46\Chloe.Oracle.xml" target="lib\net46" />
 	<file src="..\Chloe.Oracle\bin\Release\netstandard2.0\Chloe.Oracle.dll" target="lib\netstandard2.0"></file>
     <file src="..\Chloe.Oracle\bin\Release\netstandard2.0\Chloe.Oracle.xml" target="lib\netstandard2.0"></file>
 	<file src="..\Chloe.Oracle\bin\Release\net5.0\Chloe.Oracle.dll" target="lib\net5.0"></file>

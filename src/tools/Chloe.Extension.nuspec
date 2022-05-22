@@ -15,7 +15,7 @@
     <tags>Chloe,ORM,Data</tags>
 
 	<dependencies>
-      <group targetFramework="net45">
+      <group targetFramework="net46">
         <dependency id="Chloe" version="5.0.0" />	  
       </group>	
 	  
@@ -32,8 +32,8 @@
 
   
   <files>
-    <file src="..\Chloe.Extension\bin\Release\net45\Chloe.Extension.dll" target="lib\net45" />
-    <file src="..\Chloe.Extension\bin\Release\net45\Chloe.Extension.xml" target="lib\net45" />
+    <file src="..\Chloe.Extension\bin\Release\net46\Chloe.Extension.dll" target="lib\net46" />
+    <file src="..\Chloe.Extension\bin\Release\net46\Chloe.Extension.xml" target="lib\net46" />
 	<file src="..\Chloe.Extension\bin\Release\netstandard2.0\Chloe.Extension.dll" target="lib\netstandard2.0"></file>
     <file src="..\Chloe.Extension\bin\Release\netstandard2.0\Chloe.Extension.xml" target="lib\netstandard2.0"></file>
 	<file src="..\Chloe.Extension\bin\Release\net5.0\Chloe.Extension.dll" target="lib\net5.0"></file>
