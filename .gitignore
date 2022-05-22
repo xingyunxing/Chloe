@@ -192,3 +192,4 @@ ModelManifest.xml
 /src/DotNetCore/ChloeTest
 /src/DotNet/ChloeTest
 /src/ChloeTest
+.vs/*

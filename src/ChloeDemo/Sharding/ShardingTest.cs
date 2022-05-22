@@ -194,7 +194,7 @@ namespace ChloeDemo.Sharding
         async Task UpdateByLambdaTest()
         {
             /*
-             * 按条件删除和更新
+             * 按条件更新
              */
             IDbContext dbContext = this.CreateDbContext();
 
@@ -233,6 +233,8 @@ namespace ChloeDemo.Sharding
             int rowsAffected = 0;
 
             List<Order> orders = await dbContext.Query<Order>().Where(a => a.CreateMonth == 1 || a.CreateMonth == 2).ToListAsync();
+
+            Debug.Assert(orders.Count > 0);
 
             rowsAffected = await dbContext.DeleteAsync<Order>(a => a.CreateMonth == 1 || a.CreateMonth == 2);
 
