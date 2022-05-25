@@ -3,6 +3,9 @@ using System.Threading;
 
 namespace Chloe.Sharding.Enumerables
 {
+    /// <summary>
+    /// 唯一数据查询。只要查询到了数据，其它等待执行的查询则不会被执行
+    /// </summary>
     internal class UniqueDataQueryEnumerable : FeatureEnumerable<object>
     {
         ShardingQueryPlan _queryPlan;

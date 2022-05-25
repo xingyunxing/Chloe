@@ -42,5 +42,10 @@ namespace Chloe.Sharding.QueryState
 
             return this;
         }
+
+        public override IFeatureEnumerable<object> CreateQuery()
+        {
+            return this.CreateNoPagingQuery();
+        }
     }
 }

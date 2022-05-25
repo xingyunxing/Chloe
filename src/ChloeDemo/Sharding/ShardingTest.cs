@@ -169,9 +169,13 @@ namespace ChloeDemo.Sharding
             await dbContext.InsertAsync(order);
 
             var q = dbContext.Query<Order>();
-            q = q.Where(a => a.Id == order.Id);
 
-            Order entity = await q.FirstOrDefaultAsync();
+            Order entity = null;
+            entity = await q.Where(a => a.Id == order.Id).FirstOrDefaultAsync();
+            Debug.Assert(entity.Id == order.Id);
+
+            //加上分片字段，则会精准定位到所在的表
+            entity = await q.Where(a => a.Id == order.Id && a.CreateTime == order.CreateTime).FirstOrDefaultAsync();
             Debug.Assert(entity.Id == order.Id);
 
             entity.Amount = 100;
@@ -179,13 +183,13 @@ namespace ChloeDemo.Sharding
 
             Debug.Assert(rowsAffected == 1);
 
-            entity = await q.FirstOrDefaultAsync();
+            entity = await q.Where(a => a.Id == entity.Id).FirstOrDefaultAsync();
             Debug.Assert(entity.Amount == 100);
 
-            rowsAffected = await dbContext.DeleteAsync(order);
+            rowsAffected = await dbContext.DeleteAsync(entity);
             Debug.Assert(rowsAffected == 1);
 
-            entity = await q.FirstOrDefaultAsync();
+            entity = await q.Where(a => a.Id == entity.Id).FirstOrDefaultAsync();
             Debug.Assert(entity == null);
 
             Helpers.PrintSplitLine();
