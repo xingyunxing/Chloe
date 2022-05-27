@@ -92,6 +92,11 @@ namespace Chloe.Sharding.QueryState
         {
             ShardingQueryPlan queryPlan = this.CreateQueryPlan();
 
+            if (queryPlan.Tables.Count == 1)
+            {
+                return new SingleTableQueryEnumerable(queryPlan);
+            }
+
             if (queryPlan.IsOrderedTables)
             {
                 //走分页逻辑，对程序性能有可能好点？
@@ -107,6 +112,11 @@ namespace Chloe.Sharding.QueryState
         protected virtual IFeatureEnumerable<object> CreateNoPagingQuery()
         {
             ShardingQueryPlan queryPlan = this.CreateQueryPlan();
+
+            if (queryPlan.Tables.Count == 1)
+            {
+                return new SingleTableQueryEnumerable(queryPlan);
+            }
 
             if (queryPlan.Tables.Count > 1)
             {

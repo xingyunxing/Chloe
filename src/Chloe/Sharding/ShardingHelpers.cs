@@ -300,6 +300,18 @@ namespace Chloe.Sharding
             return dataQueryModel;
         }
 
+        public static AggregateQuery<long> GetCountQuery(ShardingQueryPlan queryPlan)
+        {
+            Func<IQuery, bool, Task<long>> executor = async (query, @async) =>
+            {
+                long result = @async ? await query.LongCountAsync() : query.LongCount();
+                return result;
+            };
+
+            var aggQuery = new AggregateQuery<long>(queryPlan, executor);
+            return aggQuery;
+        }
+
         public static IQuery MakeQuery(IDbContextProvider dbContextProvider, DataQueryModel queryModel)
         {
             Type entityType = queryModel.RootEntityType;

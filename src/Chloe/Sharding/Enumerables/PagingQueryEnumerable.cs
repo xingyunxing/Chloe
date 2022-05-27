@@ -30,9 +30,9 @@ namespace Chloe.Sharding.Enumerables
             protected override async Task<IFeatureEnumerator<PagingResult>> CreateEnumerator(bool @async)
             {
                 ShardingQueryPlan queryPlan = this._enumerable._queryPlan;
-                var countQuery = this.GetCountQuery(queryPlan);
+                var countQuery = ShardingHelpers.GetCountQuery(queryPlan);
 
-                List<QueryResult<long>> routeTableCounts = await countQuery.ToListAsync();
+                List<QueryResult<long>> routeTableCounts = @async ? await countQuery.ToListAsync() : countQuery.ToList();
                 long totals = routeTableCounts.Select(a => a.Result).Sum();
 
                 List<object> dataList = null;
@@ -40,27 +40,15 @@ namespace Chloe.Sharding.Enumerables
                 if (queryPlan.IsOrderedTables)
                 {
                     OrderedTableQuery orderedTableQuery = new OrderedTableQuery(queryPlan, routeTableCounts);
-                    dataList = await orderedTableQuery.ToListAsync(this._cancellationToken);
+                    dataList = @async ? await orderedTableQuery.ToListAsync(this._cancellationToken) : orderedTableQuery.ToList();
                 }
                 else
                 {
                     OrdinaryQueryEnumerable ordinaryQuery = new OrdinaryQueryEnumerable(queryPlan);
-                    dataList = await ordinaryQuery.ToListAsync(this._cancellationToken);
+                    dataList = @async ? await ordinaryQuery.ToListAsync(this._cancellationToken) : ordinaryQuery.ToList();
                 }
 
                 return new ScalarFeatureEnumerator<PagingResult>(new PagingResult() { Totals = totals, DataList = dataList });
-            }
-
-            AggregateQuery<long> GetCountQuery(ShardingQueryPlan queryPlan)
-            {
-                Func<IQuery, bool, Task<long>> executor = async (query, @async) =>
-                {
-                    long result = @async ? await query.LongCountAsync() : query.LongCount();
-                    return result;
-                };
-
-                var aggQuery = new AggregateQuery<long>(queryPlan, executor);
-                return aggQuery;
             }
         }
     }

@@ -28,6 +28,7 @@ namespace ChloeDemo.Sharding
 
             await this.PageQueryByShardingKeyOrderByAscTest();
             await this.PageQueryByShardingKeyOrderByDescTest();
+            await this.PageQueryInSingleTableTest();
             await this.PageQueryByShardingKeyInSingleDatabaseOrderByDescTest();
             await this.QueryOrderByShardingKeyTest();
             await this.PageQueryOrderByNonShardingKeyTest();
@@ -142,6 +143,35 @@ namespace ChloeDemo.Sharding
 
             Debug.Assert(dataList[dataList.Count - 2].CreateTime == DateTime.Parse("2019-12-12 12:00"));
             Debug.Assert(dataList.Last().CreateTime == DateTime.Parse("2019-12-12 10:00"));
+
+            Helpers.PrintSplitLine();
+        }
+        /// <summary>
+        /// 在单表内分页查询，不会重写 sql
+        /// </summary>
+        /// <returns></returns>
+        async Task PageQueryInSingleTableTest()
+        {
+            IDbContext dbContext = this.CreateDbContext();
+            var q = dbContext.Query<Order>();
+
+            int pageSize = 10;
+
+            var orders = await q.Where(a => a.CreateYear == 2018 && a.CreateMonth == 1).OrderBy(a => a.CreateDate).TakePage(2, pageSize).ToListAsync();
+
+            Debug.Assert(orders.Count == pageSize);
+            Debug.Assert(orders[0].CreateYear == 2018 && orders[0].CreateMonth == 1);
+            Debug.Assert(orders[0].CreateTime == DateTime.Parse("2018-01-06 10:00"));
+
+            var result = await q.Where(a => a.CreateYear == 2018 && a.CreateMonth == 1).OrderBy(a => a.CreateDate).PagingAsync(2, pageSize);
+
+            orders = result.DataList;
+            Helpers.PrintResult(result);
+
+            Debug.Assert(result.Totals == 31 * 2);
+            Debug.Assert(orders.Count == pageSize);
+            Debug.Assert(orders[0].CreateYear == 2018 && orders[0].CreateMonth == 1);
+            Debug.Assert(orders[0].CreateTime == DateTime.Parse("2018-01-06 10:00"));
 
             Helpers.PrintSplitLine();
         }
