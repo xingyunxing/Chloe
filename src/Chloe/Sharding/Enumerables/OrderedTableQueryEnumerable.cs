@@ -1,16 +1,17 @@
-﻿using System.Threading;
+﻿using Chloe.Sharding.Queries;
+using System.Threading;
 
-namespace Chloe.Sharding.Queries
+namespace Chloe.Sharding.Enumerables
 {
     /// <summary>
     /// 有序的表数据查询
     /// </summary>
-    internal class OrderedTableQuery : FeatureEnumerable<object>
+    internal class OrderedTableQueryEnumerable : FeatureEnumerable<object>
     {
         ShardingQueryPlan _queryPlan;
         List<QueryResult<long>> _countQueryResults;
 
-        public OrderedTableQuery(ShardingQueryPlan queryPlan, List<QueryResult<long>> countQueryResults)
+        public OrderedTableQueryEnumerable(ShardingQueryPlan queryPlan, List<QueryResult<long>> countQueryResults)
         {
             this._queryPlan = queryPlan;
             this._countQueryResults = countQueryResults;
@@ -23,10 +24,10 @@ namespace Chloe.Sharding.Queries
 
         class Enumerator : QueryFeatureEnumerator<object>
         {
-            OrderedTableQuery _enumerable;
+            OrderedTableQueryEnumerable _enumerable;
             CancellationToken _cancellationToken;
 
-            public Enumerator(OrderedTableQuery enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryPlan)
+            public Enumerator(OrderedTableQueryEnumerable enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryPlan)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;

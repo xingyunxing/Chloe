@@ -39,7 +39,7 @@ namespace Chloe.Sharding.Enumerables
 
                 if (queryPlan.IsOrderedTables)
                 {
-                    OrderedTableQuery orderedTableQuery = new OrderedTableQuery(queryPlan, routeTableCounts);
+                    OrderedTableQueryEnumerable orderedTableQuery = new OrderedTableQueryEnumerable(queryPlan, routeTableCounts);
                     dataList = @async ? await orderedTableQuery.ToListAsync(this._cancellationToken) : orderedTableQuery.ToList();
                 }
                 else
