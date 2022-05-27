@@ -4,9 +4,9 @@
 		<TargetFrameworks>netstandard2.0;net46;net5.0</TargetFrameworks>
 		<LangVersion>10.0</LangVersion>
 
-		<Version>5.0.1</Version>
-		<AssemblyVersion>5.0.1.0</AssemblyVersion>
-		<FileVersion>5.0.1.0</FileVersion>
+		<Version>5.0.2</Version>
+		<AssemblyVersion>5.0.2.0</AssemblyVersion>
+		<FileVersion>5.0.2.0</FileVersion>
 		<Description>A lightweight and high-performance Object/Relational Mapping(ORM) library.</Description>
 		<PackageId>Chloe.SqlServer</PackageId>
 		<Product>Chloe.ORM</Product>
