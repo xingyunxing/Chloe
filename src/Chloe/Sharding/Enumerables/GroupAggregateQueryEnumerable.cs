@@ -164,7 +164,7 @@ namespace Chloe.Sharding.Enumerables
 
                         foreach (var queryModel in group)
                         {
-                            ShardingTableGroupAggregateQuery shardingQuery = new ShardingTableGroupAggregateQuery(dbContextProviderPool, queryModel, lazyQuery);
+                            ShardingTableGroupAggregateQuery shardingQuery = new ShardingTableGroupAggregateQuery(queryContext, dbContextProviderPool, queryModel, lazyQuery);
                             shardingQueries.Add(shardingQuery);
                         }
                     }

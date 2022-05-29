@@ -78,7 +78,16 @@ namespace Chloe.Sharding
             async Task StartEnumeratorAsync(PreloadableFeatureEnumerator<T> enumerator)
             {
                 await Task.Yield();
-                await enumerator.Initialize();
+
+                try
+                {
+                    await enumerator.Initialize();
+                }
+                catch
+                {
+                    this._enumerable._queryContext.Cancel();
+                    throw;
+                }
             }
             async ValueTask LazyInit(bool @async)
             {
@@ -101,7 +110,6 @@ namespace Chloe.Sharding
 
                 try
                 {
-                    //TODO 处理异常
                     await Task.WhenAll(tasks);
                 }
                 catch

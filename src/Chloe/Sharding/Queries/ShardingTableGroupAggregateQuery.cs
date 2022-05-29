@@ -9,12 +9,14 @@ namespace Chloe.Sharding.Queries
 {
     internal class ShardingTableGroupAggregateQuery : FeatureEnumerable<object>
     {
+        IParallelQueryContext QueryContext;
         ISharedDbContextProviderPool DbContextProviderPool;
         GroupAggregateQueryModel QueryModel;
         bool LazyQuery;
 
-        public ShardingTableGroupAggregateQuery(ISharedDbContextProviderPool dbContextProviderPool, GroupAggregateQueryModel queryModel, bool lazyQuery)
+        public ShardingTableGroupAggregateQuery(IParallelQueryContext queryContext, ISharedDbContextProviderPool dbContextProviderPool, GroupAggregateQueryModel queryModel, bool lazyQuery)
         {
+            this.QueryContext = queryContext;
             this.DbContextProviderPool = dbContextProviderPool;
             this.QueryModel = queryModel;
             this.LazyQuery = lazyQuery;
@@ -30,7 +32,7 @@ namespace Chloe.Sharding.Queries
             ShardingTableGroupAggregateQuery _enumerable;
             CancellationToken _cancellationToken;
 
-            public Enumerator(ShardingTableGroupAggregateQuery enumerable, CancellationToken cancellationToken = default) : base(enumerable.DbContextProviderPool)
+            public Enumerator(ShardingTableGroupAggregateQuery enumerable, CancellationToken cancellationToken = default) : base(enumerable.QueryContext, enumerable.DbContextProviderPool)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;

@@ -36,7 +36,7 @@ namespace Chloe.Sharding.Queries
         {
             ShardingTableDataQuery _enumerable;
 
-            public Enumerator(ShardingTableDataQuery enumerable, CancellationToken cancellationToken) : base(enumerable.DbContextProviderPool, enumerable.QueryModel, cancellationToken)
+            public Enumerator(ShardingTableDataQuery enumerable, CancellationToken cancellationToken) : base(enumerable.QueryContext, enumerable.DbContextProviderPool, enumerable.QueryModel, cancellationToken)
             {
                 this._enumerable = enumerable;
             }
@@ -55,7 +55,6 @@ namespace Chloe.Sharding.Queries
                 if (!this._enumerable.LazyQuery)
                 {
                     var dataList = @async ? await query.ToListAsync() : query.ToList();
-
                     queryContext.AfterExecuteCommand(dataList);
 
                     return (new FeatureEnumerableAdapter<object>(dataList), false);

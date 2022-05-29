@@ -26,7 +26,7 @@ namespace Chloe.Sharding.Queries
         {
             ShardingTableAggregateQuery<TResult> _enumerable;
 
-            public Enumerator(ShardingTableAggregateQuery<TResult> enumerable, CancellationToken cancellationToken = default) : base(enumerable._dbContextProviderPool, enumerable._queryModel, cancellationToken)
+            public Enumerator(ShardingTableAggregateQuery<TResult> enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryContext, enumerable._dbContextProviderPool, enumerable._queryModel, cancellationToken)
             {
                 this._enumerable = enumerable;
             }
