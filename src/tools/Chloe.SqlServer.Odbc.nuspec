@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>Chloe.SqlServer</id>
+    <id>Chloe.SqlServer.Odbc</id>
     <version>5.0.3</version>
     <title>Chloe.SqlServer</title>
     <authors>Shuxin Qin</authors>
@@ -14,7 +14,7 @@
 A lightweight and high-performance Object/Relational Mapping(ORM) library.
     </description>
     <copyright>Copyright 2016-2022</copyright>
-    <tags>Chloe,ORM,Data,SqlServer,.NET Core</tags>
+    <tags>Chloe,ORM,Data,SqlServer.Odbc,.NET Core</tags>
 
     <dependencies>
 	  <group targetFramework="net46">
@@ -35,11 +35,11 @@ A lightweight and high-performance Object/Relational Mapping(ORM) library.
   </metadata>
 
   <files>
-	<file src="..\Chloe.SqlServer\bin\Release\net46\Chloe.SqlServer.dll" target="lib\net46" />
-    <file src="..\Chloe.SqlServer\bin\Release\net46\Chloe.SqlServer.xml" target="lib\net46" />
-	<file src="..\Chloe.SqlServer\bin\Release\netstandard2.0\Chloe.SqlServer.dll" target="lib\netstandard2.0"></file>
-    <file src="..\Chloe.SqlServer\bin\Release\netstandard2.0\Chloe.SqlServer.xml" target="lib\netstandard2.0"></file>
-	<file src="..\Chloe.SqlServer\bin\Release\net5.0\Chloe.SqlServer.dll" target="lib\net5.0"></file>
-    <file src="..\Chloe.SqlServer\bin\Release\net5.0\Chloe.SqlServer.xml" target="lib\net5.0"></file>
+	<file src="..\Chloe.SqlServer.Odbc\bin\Release\net46\Chloe.SqlServer.Odbc.dll" target="lib\net46" />
+    <file src="..\Chloe.SqlServer.Odbc\bin\Release\net46\Chloe.SqlServer.Odbc.xml" target="lib\net46" />
+	<file src="..\Chloe.SqlServer.Odbc\bin\Release\netstandard2.0\Chloe.SqlServer.Odbc.dll" target="lib\netstandard2.0"></file>
+    <file src="..\Chloe.SqlServer.Odbc\bin\Release\netstandard2.0\Chloe.SqlServer.Odbc.xml" target="lib\netstandard2.0"></file>
+	<file src="..\Chloe.SqlServer.Odbc\bin\Release\net5.0\Chloe.SqlServer.Odbc.dll" target="lib\net5.0"></file>
+    <file src="..\Chloe.SqlServer.Odbc\bin\Release\net5.0\Chloe.SqlServer.Odbc.xml" target="lib\net5.0"></file>
   </files>
 </package>
