@@ -6,10 +6,11 @@ namespace System.Collections.Generic
     {
         public static async ValueTask ForEach<T>(this IAsyncEnumerable<T> source, Action<T> action, CancellationToken cancellationToken = default(CancellationToken))
         {
-            await source.ForEach(async (item, idx) =>
-            {
-                action(item);
-            }, cancellationToken);
+            await source.ForEach((item, idx) =>
+          {
+              action(item);
+              return Task.CompletedTask;
+          }, cancellationToken);
         }
         public static async ValueTask ForEach<T>(this IAsyncEnumerable<T> source, Func<T, ValueTask> func, CancellationToken cancellationToken = default(CancellationToken))
         {

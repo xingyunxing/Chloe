@@ -20,7 +20,7 @@ namespace Chloe.Sharding.Enumerables
             return new Enumerator(this, cancellationToken);
         }
 
-        class Enumerator : QueryFeatureEnumerator<object>
+        class Enumerator : TrackableFeatureEnumerator<object>
         {
             NonPagingQueryEnumerable _enumerable;
             CancellationToken _cancellationToken;
@@ -31,7 +31,7 @@ namespace Chloe.Sharding.Enumerables
                 this._cancellationToken = cancellationToken;
             }
 
-            protected override async Task<IFeatureEnumerator<object>> CreateEnumerator(bool @async)
+            protected override Task<IFeatureEnumerator<object>> CreateEnumerator(bool @async)
             {
                 QueryProjection queryProjection = ShardingHelpers.MakeQueryProjection(this.QueryModel);
                 ParallelQueryContext queryContext = new ParallelQueryContext(this.ShardingContext);
@@ -40,7 +40,7 @@ namespace Chloe.Sharding.Enumerables
                 {
                     List<TableDataQueryPlan> dataQueryPlans = this.MakeQueryPlans(queryContext, queryProjection);
                     IFeatureEnumerator<object> enumerator = this.CreateQueryEntityEnumerator(queryContext, queryProjection, dataQueryPlans);
-                    return enumerator;
+                    return Task.FromResult(enumerator);
                 }
                 catch
                 {

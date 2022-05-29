@@ -22,16 +22,19 @@ namespace Chloe.Sharding.Enumerables
             return new Enumerator(this, cancellationToken);
         }
 
-        class Enumerator : QueryFeatureEnumerator<object>
+        class Enumerator : FeatureEnumerator<object>
         {
             GroupAggregateQueryEnumerable _enumerable;
             CancellationToken _cancellationToken;
 
-            public Enumerator(GroupAggregateQueryEnumerable enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryPlan)
+            public Enumerator(GroupAggregateQueryEnumerable enumerable, CancellationToken cancellationToken = default)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;
             }
+
+            ShardingQueryPlan QueryPlan { get { return this._enumerable._queryPlan; } }
+            ShardingQueryModel QueryModel { get { return this.QueryPlan.QueryModel; } }
 
             protected override async Task<IFeatureEnumerator<object>> CreateEnumerator(bool @async)
             {

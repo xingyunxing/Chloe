@@ -115,10 +115,11 @@ namespace Chloe
 
         public static async ValueTask ForEachAsync<T>(this IFeatureEnumerable<T> source, Action<T, int> action, CancellationToken cancellationToken = default(CancellationToken))
         {
-            await source.ForEachAsync(async (item, idx) =>
-            {
-                action(item, idx);
-            }, cancellationToken);
+            await source.ForEachAsync((item, idx) =>
+          {
+              action(item, idx);
+              return Task.CompletedTask;
+          }, cancellationToken);
         }
 
         public static async ValueTask ForEachAsync<T>(this IFeatureEnumerable<T> source, Func<T, int, Task> func, CancellationToken cancellationToken = default(CancellationToken))

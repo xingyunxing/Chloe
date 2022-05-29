@@ -21,7 +21,7 @@ namespace Chloe.Sharding.Enumerables
             return new Enumerator(this, cancellationToken);
         }
 
-        class Enumerator : QueryFeatureEnumerator<object>
+        class Enumerator : TrackableFeatureEnumerator<object>
         {
             OrdinaryQueryEnumerable _enumerable;
             CancellationToken _cancellationToken;

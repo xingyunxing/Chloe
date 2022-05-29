@@ -22,7 +22,7 @@ namespace Chloe.Sharding.Enumerables
             return new Enumerator(this, cancellationToken);
         }
 
-        class Enumerator : QueryFeatureEnumerator<object>
+        class Enumerator : TrackableFeatureEnumerator<object>
         {
             OrderedTableQueryEnumerable _enumerable;
             CancellationToken _cancellationToken;
@@ -33,7 +33,7 @@ namespace Chloe.Sharding.Enumerables
                 this._cancellationToken = cancellationToken;
             }
 
-            protected override async Task<IFeatureEnumerator<object>> CreateEnumerator(bool @async)
+            protected override Task<IFeatureEnumerator<object>> CreateEnumerator(bool @async)
             {
                 ParallelQueryContext queryContext = new ParallelQueryContext(this.QueryPlan.ShardingContext);
 
@@ -43,7 +43,7 @@ namespace Chloe.Sharding.Enumerables
 
                     ParallelConcatEnumerable<object> concatEnumerable = new ParallelConcatEnumerable<object>(queryContext, dataQueryPlans.Select(a => a.Query));
                     var enumerator = concatEnumerable.GetFeatureEnumerator(this._cancellationToken);
-                    return enumerator;
+                    return Task.FromResult(enumerator);
                 }
                 catch
                 {

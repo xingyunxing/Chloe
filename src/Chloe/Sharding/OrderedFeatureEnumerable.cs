@@ -112,9 +112,9 @@ namespace Chloe.Sharding
                 return value.CompareTo(other);
             }
 
-            protected override async Task<IFeatureEnumerator<T>> CreateEnumerator(bool async)
+            protected override Task<IFeatureEnumerator<T>> CreateEnumerator(bool async)
             {
-                return this._enumerable._source.GetFeatureEnumerator(this._cancellationToken);
+                return Task.FromResult(this._enumerable._source.GetFeatureEnumerator(this._cancellationToken));
             }
 
             protected override async BoolResultTask MoveNext(bool @async)

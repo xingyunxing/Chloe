@@ -49,7 +49,7 @@ namespace Chloe.Sharding
         {
             throw new NotSupportedException();
         }
-        public async Task<int> ExecuteNonQueryAsync(string cmdText, CommandType cmdType, object parameter)
+        public Task<int> ExecuteNonQueryAsync(string cmdText, CommandType cmdType, object parameter)
         {
             throw new NotSupportedException();
         }

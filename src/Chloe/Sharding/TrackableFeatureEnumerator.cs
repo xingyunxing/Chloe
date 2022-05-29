@@ -1,8 +1,8 @@
 ﻿namespace Chloe.Sharding
 {
-    internal class QueryFeatureEnumerator<T> : FeatureEnumerator<T>
+    internal class TrackableFeatureEnumerator<T> : FeatureEnumerator<T>
     {
-        public QueryFeatureEnumerator(ShardingQueryPlan queryPlan)
+        public TrackableFeatureEnumerator(ShardingQueryPlan queryPlan)
         {
             this.QueryPlan = queryPlan;
         }
