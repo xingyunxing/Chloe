@@ -241,7 +241,7 @@ namespace Chloe.SqlServer
             string targetDbType = null;
 
             Type underlyingType = ReflectionExtension.GetUnderlyingType(retType);
-            if (underlyingType != exp.Type.GetUnderlyingType())
+            if (underlyingType != PublicConstants.TypeOfDecimal/* We don't know the precision and scale,so,we can not cast exp to decimal,otherwise maybe cause problems. */ && underlyingType != exp.Type.GetUnderlyingType())
             {
                 CastTypeMap.TryGetValue(underlyingType, out targetDbType);
             }
@@ -267,7 +267,7 @@ namespace Chloe.SqlServer
             if (withCast == true)
             {
                 Type underlyingType = ReflectionExtension.GetUnderlyingType(retType);
-                if (underlyingType != PublicConstants.TypeOfDecimal/* We don't know the precision and scale,so,we can not cast exp to decimal,otherwise maybe cause problems. */ && CastTypeMap.TryGetValue(underlyingType, out targetDbType))
+                if (underlyingType != PublicConstants.TypeOfDecimal /* We don't know the precision and scale,so,we can not cast exp to decimal,otherwise maybe cause problems. */ && CastTypeMap.TryGetValue(underlyingType, out targetDbType))
                 {
                     generator.SqlBuilder.Append("CAST(");
                 }
