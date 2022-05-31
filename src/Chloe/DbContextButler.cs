@@ -202,11 +202,8 @@ namespace Chloe
 
         public void UseTransaction(IDbTransaction dbTransaction)
         {
-            for (int i = 0; i < this.PersistedDbContextProviders.Count; i++)
-            {
-                DataSourceDbContextProviderPair pair = this.PersistedDbContextProviders[i];
-                pair.DbContextProvider.Session.UseTransaction(dbTransaction);
-            }
+            IDbContextProvider defaultDbContextProvider = this.GetDefaultDbContextProvider();
+            defaultDbContextProvider.Session.UseTransaction(dbTransaction);
         }
 
 
