@@ -223,6 +223,10 @@ namespace Chloe
             }
 
             filters.Add(filter);
+            foreach (var pair in this.PersistedDbContextProviders)
+            {
+                pair.DbContextProvider.HasQueryFilter(entityType, filter);
+            }
         }
 
         public IDbContextProvider GetDefaultDbContextProvider()
