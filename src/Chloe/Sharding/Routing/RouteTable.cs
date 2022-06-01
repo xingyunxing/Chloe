@@ -3,7 +3,7 @@
     public class RouteTable
     {
         /// <summary>
-        /// 表名
+        /// 实表表名
         /// </summary>
         public string Name { get; set; }
         public string Schema { get; set; }

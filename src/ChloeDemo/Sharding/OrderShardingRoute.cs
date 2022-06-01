@@ -42,7 +42,7 @@ namespace ChloeDemo.Sharding
         {
             this._shardingTest = shardingTest;
 
-            //添加路由规则(支持多个字段)
+            //添加路由规则(支持多个字段)。ps：框架只支持单个分片字段，但是查询路由支持多个字段。
             this._routingStrategies.Add(nameof(Order.CreateTime), new OrderCreateTimeRoutingStrategy(this));
             this._routingStrategies.Add(nameof(Order.CreateDate), new OrderCreateDateRoutingStrategy(this));
             this._routingStrategies.Add(nameof(Order.CreateYear), new OrderCreateYearRoutingStrategy(this));
@@ -120,6 +120,7 @@ namespace ChloeDemo.Sharding
             {
                 if (member == typeof(Order).GetProperty(nameof(Order.CreateTime)))
                 {
+                    //因为按照日期分表，在根据日期排序的情况下，我们对路由到的表进行一个排序，对分页有查询优化。
                     if (firstOrdering.Ascending)
                     {
                         return new SortResult() { IsOrdered = true, Tables = tables.OrderBy(a => (a.DataSource as OrderRouteDataSource).Year).ThenBy(a => (a as OrderRouteTable).Month).ToList() };
