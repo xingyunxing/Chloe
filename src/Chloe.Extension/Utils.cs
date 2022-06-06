@@ -4,23 +4,27 @@
     {
         public static DbParam[] BuildParams(IDbContext dbContext, object parameter)
         {
-            var dbContextProvider = (dbContext as DbContext).DefaultDbContextProvider;
-            return BuildParams(dbContextProvider, parameter);
-        }
-        public static DbParam[] BuildParams(IDbContextProvider dbContextProvider, object parameter)
-        {
-            DbContextProvider contextProvider = dbContextProvider as DbContextProvider;
-            if (contextProvider == null)
+            DbContext dbContext1 = dbContext as DbContext;
+            if (dbContext1 == null)
             {
-                var holdDbContextProp = dbContextProvider.GetType().GetProperty("HoldDbContext");
+                DbContextDecorator dbContextDecorator = dbContext as DbContextDecorator;
+
+                if (dbContextDecorator != null)
+                {
+                    dbContext = dbContextDecorator.PersistedDbContext;
+                    return BuildParams(dbContext, parameter);
+                }
+
+                var holdDbContextProp = dbContext.GetType().GetProperty("PersistedDbContext");
                 if (holdDbContextProp != null)
                 {
-                    dbContextProvider = Chloe.Reflection.ReflectionExtension.FastGetMemberValue(holdDbContextProp, dbContextProvider) as IDbContextProvider;
-                    return BuildParams(dbContextProvider, parameter);
+                    dbContext = Chloe.Reflection.ReflectionExtension.FastGetMemberValue(holdDbContextProp, dbContext) as IDbContext;
+                    return BuildParams(dbContext, parameter);
                 }
             }
 
-            return PublicHelper.BuildParams(contextProvider, parameter);
+            DbContextProvider dbContextProvider = dbContext1.DefaultDbContextProvider as DbContextProvider;
+            return PublicHelper.BuildParams(dbContextProvider, parameter);
         }
     }
 }

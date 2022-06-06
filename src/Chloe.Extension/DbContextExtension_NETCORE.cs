@@ -76,7 +76,8 @@ namespace Chloe
             List<string> formatArgs = new List<string>(sql.ArgumentCount);
             List<DbParam> parameters = new List<DbParam>(sql.ArgumentCount);
 
-            IDatabaseProvider databaseProvider = ((DbContextProvider)dbContext).DatabaseProvider;
+            DbContext dbContext1 = dbContext as DbContext;
+            IDatabaseProvider databaseProvider = (dbContext1.DefaultDbContextProvider as DbContextProvider).DatabaseProvider;
             string parameterPrefix = "P_";
 
             foreach (var arg in sql.GetArguments())
