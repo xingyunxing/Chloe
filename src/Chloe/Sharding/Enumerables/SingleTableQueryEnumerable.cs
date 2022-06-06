@@ -56,8 +56,8 @@ namespace Chloe.Sharding.Enumerables
 
                 ISharedDbContextProviderPool dbContextProviderPool = queryContext.GetDbContextProviderPool(table.DataSource);
 
-                ShardingTableDataQuery shardingQuery = new ShardingTableDataQuery(queryContext, dbContextProviderPool, queryPlan.QueryModel, false);
-                queryPlan.Query = shardingQuery;
+                ShardTableDataQuery shardTableQuery = new ShardTableDataQuery(queryContext, dbContextProviderPool, queryPlan.QueryModel, false);
+                queryPlan.Query = shardTableQuery;
 
                 return queryPlan;
             }

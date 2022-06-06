@@ -151,7 +151,7 @@ namespace Chloe.Sharding.Enumerables
             ParallelConcatEnumerable<object> MakeQueryEnumerable(List<GroupAggregateQueryModel> queryModels)
             {
                 ParallelQueryContext queryContext = new ParallelQueryContext(this.QueryPlan.ShardingContext);
-                List<ShardingTableGroupAggregateQuery> shardingQueries = new List<ShardingTableGroupAggregateQuery>(this.QueryPlan.Tables.Count);
+                List<ShardTableGroupAggregateQuery> shardTableQueries = new List<ShardTableGroupAggregateQuery>(this.QueryPlan.Tables.Count);
 
                 try
                 {
@@ -164,12 +164,12 @@ namespace Chloe.Sharding.Enumerables
 
                         foreach (var queryModel in group)
                         {
-                            ShardingTableGroupAggregateQuery shardingQuery = new ShardingTableGroupAggregateQuery(queryContext, dbContextProviderPool, queryModel, lazyQuery);
-                            shardingQueries.Add(shardingQuery);
+                            ShardTableGroupAggregateQuery shardTableQuery = new ShardTableGroupAggregateQuery(queryContext, dbContextProviderPool, queryModel, lazyQuery);
+                            shardTableQueries.Add(shardTableQuery);
                         }
                     }
 
-                    ParallelConcatEnumerable<object> parallelConcatEnumerable = new ParallelConcatEnumerable<object>(queryContext, shardingQueries);
+                    ParallelConcatEnumerable<object> parallelConcatEnumerable = new ParallelConcatEnumerable<object>(queryContext, shardTableQueries);
 
                     return parallelConcatEnumerable;
                 }

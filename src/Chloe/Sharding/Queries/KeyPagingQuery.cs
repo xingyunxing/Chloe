@@ -9,7 +9,7 @@ namespace Chloe.Sharding.Queries
     {
         public DataQueryModel QueryModel { get; set; }
 
-        public ShardingTableDataQuery Query { get; set; }
+        public ShardTableDataQuery Query { get; set; }
 
         public List<object> Keys { get; set; } = new List<object>();
     }
@@ -109,8 +109,8 @@ namespace Chloe.Sharding.Queries
 
                     foreach (var dataQuery in group)
                     {
-                        ShardingTableDataQuery shardingQuery = new ShardingTableDataQuery(queryContext, dbContextProviderPool, dataQuery.QueryModel, lazyQuery);
-                        dataQuery.Query = shardingQuery;
+                        ShardTableDataQuery shardTableQuery = new ShardTableDataQuery(queryContext, dbContextProviderPool, dataQuery.QueryModel, lazyQuery);
+                        dataQuery.Query = shardTableQuery;
                     }
                 }
 

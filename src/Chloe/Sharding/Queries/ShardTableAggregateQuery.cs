@@ -2,14 +2,14 @@
 
 namespace Chloe.Sharding.Queries
 {
-    class ShardingTableAggregateQuery<TResult> : FeatureEnumerable<TResult>
+    class ShardTableAggregateQuery<TResult> : FeatureEnumerable<TResult>
     {
         IParallelQueryContext _queryContext;
         ISharedDbContextProviderPool _dbContextProviderPool;
         DataQueryModel _queryModel;
         Func<IQuery, bool, Task<TResult>> _executor;
 
-        public ShardingTableAggregateQuery(IParallelQueryContext queryContext, ISharedDbContextProviderPool dbContextProviderPool, DataQueryModel queryModel, Func<IQuery, bool, Task<TResult>> executor)
+        public ShardTableAggregateQuery(IParallelQueryContext queryContext, ISharedDbContextProviderPool dbContextProviderPool, DataQueryModel queryModel, Func<IQuery, bool, Task<TResult>> executor)
         {
             this._queryContext = queryContext;
             this._dbContextProviderPool = dbContextProviderPool;
@@ -24,9 +24,9 @@ namespace Chloe.Sharding.Queries
 
         class Enumerator : TableQueryEnumerator<TResult>
         {
-            ShardingTableAggregateQuery<TResult> _enumerable;
+            ShardTableAggregateQuery<TResult> _enumerable;
 
-            public Enumerator(ShardingTableAggregateQuery<TResult> enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryContext, enumerable._dbContextProviderPool, enumerable._queryModel, cancellationToken)
+            public Enumerator(ShardTableAggregateQuery<TResult> enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryContext, enumerable._dbContextProviderPool, enumerable._queryModel, cancellationToken)
             {
                 this._enumerable = enumerable;
             }
