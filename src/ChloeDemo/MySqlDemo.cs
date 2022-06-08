@@ -23,7 +23,7 @@ namespace ChloeDemo
 
         protected override IDbContext CreateDbContext()
         {
-            MySqlContext dbContext = new MySqlContext(new MySqlConnectionFactory("Server=localhost;Port=3306;Database=Chloe;Uid=root;Password=sasa;Charset=utf8; Pooling=True; Max Pool Size=200;Allow User Variables=True;SslMode=none;"));
+            MySqlContext dbContext = new MySqlContext(new MySqlConnectionFactory("Server=localhost;Port=3306;Database=Chloe;Uid=root;Password=sasa;Charset=utf8; Pooling=True; Max Pool Size=200;Allow User Variables=True;SslMode=none;AllowPublicKeyRetrieval=True"));
 
             return dbContext;
         }
