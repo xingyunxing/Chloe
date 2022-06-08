@@ -24,15 +24,19 @@ namespace Chloe.Sharding
         public List<LambdaExpression> GroupKeySelectors { get; private set; } = new List<LambdaExpression>();
         public LambdaExpression Selector { get; set; }
 
-        public List<LambdaExpression> GlobalFilters { get; set; } = new List<LambdaExpression>();
-        public List<LambdaExpression> ContextFilters { get; set; } = new List<LambdaExpression>();
-
-        public IEnumerable<LambdaExpression> GetFinalConditions()
+        public IEnumerable<LambdaExpression> GetFinalConditions(IShardingContext shardingContext)
         {
             IEnumerable<LambdaExpression> conditions = this.Conditions;
             if (!this.IgnoreAllFilters)
             {
-                conditions = conditions.Concat(this.GlobalFilters).Concat(this.ContextFilters);
+                IEnumerable<LambdaExpression> globalFilters = shardingContext.TypeDescriptor.Definition.Filters;
+                List<LambdaExpression> contextFilters = shardingContext.DbContextProvider.DbContext.Butler.QueryFilters.FindValue(shardingContext.TypeDescriptor.EntityType);
+
+                conditions = conditions.Concat(globalFilters);
+                if (contextFilters != null)
+                {
+                    conditions = conditions.Concat(contextFilters);
+                }
             }
 
             return conditions;

@@ -121,7 +121,7 @@ namespace Chloe.Sharding.QueryState
             if (queryPlan.Tables.Count > 1)
             {
                 //主键或唯一索引查询
-                bool isUniqueDataQuery = UniqueDataQueryAuthenticator.IsUniqueDataQuery(queryPlan.ShardingContext, queryPlan.QueryModel.GetFinalConditions());
+                bool isUniqueDataQuery = UniqueDataQueryAuthenticator.IsUniqueDataQuery(queryPlan.ShardingContext, queryPlan.QueryModel.GetFinalConditions(queryPlan.ShardingContext));
 
                 if (isUniqueDataQuery)
                 {
@@ -136,7 +136,8 @@ namespace Chloe.Sharding.QueryState
         public ShardingQueryPlan CreateQueryPlan()
         {
             IShardingContext shardingContext = this.Context.DbContextProvider.CreateShardingContext(this.QueryModel.RootEntityType);
-            List<RouteTable> routeTables = ShardingTableDiscoverer.GetRouteTables(this.QueryModel.GetFinalConditions(), shardingContext).ToList();
+
+            List<RouteTable> routeTables = ShardingTableDiscoverer.GetRouteTables(this.QueryModel.GetFinalConditions(shardingContext), shardingContext).ToList();
             List<Ordering> orderings = this.QueryModel.Orderings;
 
             //对物理表重排
