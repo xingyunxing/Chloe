@@ -12,7 +12,7 @@ namespace Chloe.Threading.Tasks
 
         public static TResult GetResult<TResult>(this Task<TResult> task)
         {
-            if (task.IsCompleted)
+            if (task.IsCompleted && !task.IsFaulted)
             {
                 return task.Result;
             }
@@ -21,18 +21,13 @@ namespace Chloe.Threading.Tasks
         }
         public static void GetResult(this Task task)
         {
-            if (task.IsCompleted)
-            {
-                return;
-            }
-
             task.GetAwaiter().GetResult();
         }
 
 #if !netfx
         public static TResult GetResult<TResult>(this ValueTask<TResult> task)
         {
-            if (task.IsCompleted)
+            if (task.IsCompleted && !task.IsFaulted)
             {
                 return task.Result;
             }
@@ -42,11 +37,6 @@ namespace Chloe.Threading.Tasks
 
         public static void GetResult(this ValueTask task)
         {
-            if (task.IsCompleted)
-            {
-                return;
-            }
-
             task.GetAwaiter().GetResult();
         }
 #endif
