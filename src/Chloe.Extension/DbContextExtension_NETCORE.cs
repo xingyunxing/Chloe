@@ -48,29 +48,6 @@ namespace Chloe
             return await dbContext.SqlQueryAsync<T>(r.Sql, cmdType, r.Parameters);
         }
 
-        [Obsolete("This method will be removed in future versions. Instead of using `SqlQueryFmt` method.")]
-        public static List<T> FormatSqlQuery<T>(this IDbContext dbContext, FormattableString sql)
-        {
-            return dbContext.SqlQueryFmt<T>(sql);
-        }
-        [Obsolete("This method will be removed in future versions. Instead of using `SqlQueryFmt` method.")]
-        public static List<T> FormatSqlQuery<T>(this IDbContext dbContext, FormattableString sql, CommandType cmdType)
-        {
-            return dbContext.SqlQueryFmt<T>(sql, cmdType);
-        }
-        [Obsolete("This method will be removed in future versions. Instead of using `SqlQueryFmtAsync` method.")]
-        public static async Task<List<T>> FormatSqlQueryAsync<T>(this IDbContext dbContext, FormattableString sql)
-        {
-            return await dbContext.SqlQueryFmtAsync<T>(sql);
-        }
-        [Obsolete("This method will be removed in future versions. Instead of using `SqlQueryFmtAsync` method.")]
-        public static async Task<List<T>> FormatSqlQueryAsync<T>(this IDbContext dbContext, FormattableString sql, CommandType cmdType)
-        {
-            return await dbContext.SqlQueryFmtAsync<T>(sql, cmdType);
-        }
-
-
-
         static (string Sql, DbParam[] Parameters) BuildSqlAndParameters(IDbContext dbContext, FormattableString sql)
         {
             List<string> formatArgs = new List<string>(sql.ArgumentCount);
