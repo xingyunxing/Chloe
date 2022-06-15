@@ -48,7 +48,7 @@ namespace ChloeDemo
         [Column(DbType = DbType.Int32)]
         public Gender? Gender { get; set; }
         public int? Age { get; set; }
-        public int? CityId { get; set; }
+        public int CityId { get; set; }
 
         /// <summary>
         /// 更新实体时不更新此字段

@@ -157,7 +157,8 @@
             DbJoinTableExpression ret = new DbJoinTableExpression(exp.JoinType, new DbTableSegment(this.MakeNewExpression(exp.Table.Body), exp.Table.Alias, exp.Table.Lock), this.MakeNewExpression(exp.Condition));
             foreach (var item in exp.JoinTables)
             {
-                ret.JoinTables.Add((DbJoinTableExpression)this.MakeNewExpression(item));
+                DbJoinTableExpression dbJoinTable = (DbJoinTableExpression)this.MakeNewExpression(item);
+                dbJoinTable.AppendTo(ret);
             }
             return ret;
         }

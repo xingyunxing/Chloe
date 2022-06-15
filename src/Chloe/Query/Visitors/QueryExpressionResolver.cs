@@ -69,7 +69,7 @@ namespace Chloe.Query.Visitors
                     }
                 }
 
-                queryModel.FromTable.JoinTables.Add(joinQueryResult.JoinTable);
+                joinQueryResult.JoinTable.AppendTo(queryModel.FromTable);
                 modelList.Add(joinQueryResult.ResultModel);
             }
 

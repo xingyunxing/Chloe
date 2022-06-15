@@ -14,8 +14,15 @@ namespace Chloe.Mapper
         List<Tuple<PropertyDescriptor, int, IDbValueReader>> _keys;
         object _entity;
         object[] _keyValues;
-        public EntityKey(List<Tuple<PropertyDescriptor, int>> keys)
+
+        public EntityKey(TypeDescriptor entityTypeDescriptor, List<Tuple<PropertyDescriptor, int>> keys)
         {
+            if (keys.Count > 1)
+                throw new NotSupportedException($"Entity '{entityTypeDescriptor.EntityType.FullName}' has multiple primary keys defined.");
+
+            if (keys.Count == 0)
+                throw new ArgumentException($"Entity '{entityTypeDescriptor.EntityType.FullName}' has no primary key defined.");
+
             List<Tuple<PropertyDescriptor, int, IDbValueReader>> keyList = new List<Tuple<PropertyDescriptor, int, IDbValueReader>>(keys.Count);
             for (int i = 0; i < keys.Count; i++)
             {
@@ -31,9 +38,6 @@ namespace Chloe.Mapper
 
         public object GetKeyValue(IDataReader reader)
         {
-            if (this._keys.Count > 1)
-                throw new NotSupportedException();
-
             var tuple = this._keys[0];
             int ordinal = tuple.Item2;
             var dbValueReader = tuple.Item3;

@@ -19,6 +19,15 @@ namespace Chloe.DbExpressions
 
         public DbJoinType JoinType { get { return this._joinType; } }
         public DbExpression Condition { get; set; }
+
+        public DbMainTableExpression PrevTable { get; set; }
+
+        internal void AppendTo(DbMainTableExpression table)
+        {
+            table.JoinTables.Add(this);
+            this.PrevTable = table;
+        }
+
         public override T Accept<T>(DbExpressionVisitor<T> visitor)
         {
             return visitor.Visit(this);

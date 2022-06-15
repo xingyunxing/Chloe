@@ -490,8 +490,26 @@ namespace Chloe.Query
             PrimitivePropertyDescriptor foreignKeyPropertyDescriptor = navigationDescriptor.ForeignKeyProperty;
             DbExpression foreignKeyColumn = this.GetPrimitiveMember(foreignKeyPropertyDescriptor.Property);
             DbExpression joinCondition = DbExpression.Equal(foreignKeyColumn, navigationObjectModel.PrimaryKey);
-            DbJoinTableExpression joinTableExp = new DbJoinTableExpression(foreignKeyPropertyDescriptor.IsNullable ? DbJoinType.LeftJoin : DbJoinType.InnerJoin, joinTableSeg, joinCondition);
-            this.DependentTable.JoinTables.Add(joinTableExp);
+
+            DbJoinType joinType = DbJoinType.LeftJoin;
+            if (!foreignKeyPropertyDescriptor.IsNullable)
+            {
+                if (this.DependentTable is DbFromTableExpression)
+                {
+                    joinType = DbJoinType.InnerJoin;
+                }
+                else
+                {
+                    DbJoinTableExpression prevJoinTable = (DbJoinTableExpression)this.DependentTable;
+                    if (prevJoinTable.JoinType == DbJoinType.InnerJoin)
+                    {
+                        joinType = DbJoinType.InnerJoin;
+                    }
+                }
+            }
+
+            DbJoinTableExpression joinTableExp = new DbJoinTableExpression(joinType, joinTableSeg, joinCondition);
+            joinTableExp.AppendTo(this.DependentTable);
 
             navigationObjectModel.DependentTable = joinTableExp;
 
@@ -524,7 +542,7 @@ namespace Chloe.Query
             DbExpression elementForeignKeyColumn = elementObjectModel.GetPrimitiveMember(navigationDescriptor.ForeignKeyProperty.Property);
             DbExpression joinCondition = DbExpression.Equal(this.PrimaryKey, elementForeignKeyColumn);
             DbJoinTableExpression joinTableExp = new DbJoinTableExpression(DbJoinType.LeftJoin, joinTableSeg, joinCondition);
-            this.DependentTable.JoinTables.Add(joinTableExp);
+            joinTableExp.AppendTo(this.DependentTable);
 
             elementObjectModel.DependentTable = joinTableExp;
             var condition = this.ParseCondition(navigationNode.Condition, elementObjectModel, queryModel.ScopeTables);

@@ -43,7 +43,7 @@ namespace Chloe.Query.Mapping
                 keys.Add(new Tuple<PropertyDescriptor, int>(primaryKey, elementActivatorCreator.PrimitiveMembers[primaryKey.Definition.Property]));
             }
 
-            IEntityKey entityKey = new EntityKey(keys);
+            IEntityKey entityKey = new EntityKey(elementTypeDescriptor, keys);
 
             PropertyDescriptor elementOwnerProperty = elementTypeDescriptor.ComplexPropertyDescriptors.Where(a => a.Definition.Property.PropertyType == this.OwnerType).First();
 

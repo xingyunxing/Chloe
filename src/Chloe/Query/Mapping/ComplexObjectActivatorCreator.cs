@@ -65,7 +65,7 @@ namespace Chloe.Query.Mapping
                     keys.Add(new Tuple<PropertyDescriptor, int>(primaryKey, this.PrimitiveMembers[primaryKey.Definition.Property]));
                 }
 
-                IEntityKey entityKey = new EntityKey(keys);
+                IEntityKey entityKey = new EntityKey(entityTypeDescriptor, keys);
                 objectActivator = new RootEntityActivator(objectActivator, this.CreateFitter(dbContextProvider), entityKey);
             }
 
