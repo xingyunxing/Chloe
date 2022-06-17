@@ -7,9 +7,9 @@
 		<TargetFrameworks>netstandard2.0;net46;net5.0</TargetFrameworks>
 		<LangVersion>10.0</LangVersion>
 
-		<Version>5.0.10</Version>
-		<AssemblyVersion>5.0.10.0</AssemblyVersion>
-		<FileVersion>5.0.10.0</FileVersion>
+		<Version>5.0.11</Version>
+		<AssemblyVersion>5.0.11.0</AssemblyVersion>
+		<FileVersion>5.0.11.0</FileVersion>
 		<Description>A lightweight and high-performance Object/Relational Mapping(ORM) library.</Description>
 		<PackageId>Chloe</PackageId>
 		<Product>Chloe.ORM</Product>
