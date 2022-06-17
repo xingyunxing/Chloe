@@ -485,12 +485,12 @@ namespace ChloeDemo
             object result = null;
             result = this.DbContext.Query<Person>().Include(a => a.City).ThenInclude(a => a.Province).ToList();
             result = this.DbContext.Query<Person>().IgnoreAllFilters().Include(a => a.City).ThenInclude(a => a.Province).ToList();
-            result = this.DbContext.Query<City>().Include(a => a.Province).IncludeMany(a => a.Persons).AndWhere(a => a.Age >= 18).ToList();
+            result = this.DbContext.Query<City>().Include(a => a.Province).IncludeMany(a => a.Persons).Filter(a => a.Age >= 18).ToList();
             result = this.DbContext.Query<Province>().IncludeMany(a => a.Cities).ThenIncludeMany(a => a.Persons).ToList();
 
             result = this.DbContext.Query<Province>().IncludeMany(a => a.Cities).ThenIncludeMany(a => a.Persons).Where(a => a.Id > 0).TakePage(1, 20).ToList();
 
-            result = this.DbContext.Query<City>().IncludeMany(a => a.Persons).AndWhere(a => a.Age > 18).ToList();
+            result = this.DbContext.Query<City>().IncludeMany(a => a.Persons).Filter(a => a.Age > 18).ToList();
 
             ConsoleHelper.WriteLineAndReadKey();
         }

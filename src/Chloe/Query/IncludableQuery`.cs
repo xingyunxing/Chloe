@@ -117,7 +117,7 @@ namespace Chloe.Query
             return new IncludableQuery<TEntity, TCollectionItem>(includeExpression);
         }
 
-        public IIncludableQuery<TEntity, TNavigation> AndWhere(Expression<Func<TNavigation, bool>> predicate)
+        public IIncludableQuery<TEntity, TNavigation> Filter(Expression<Func<TNavigation, bool>> predicate)
         {
             IncludeExpression prevIncludeExpression = this.QueryExpression as IncludeExpression;
             NavigationNode startNavigation = prevIncludeExpression.NavigationNode.Clone();
@@ -127,6 +127,11 @@ namespace Chloe.Query
             IncludeExpression includeExpression = new IncludeExpression(typeof(TEntity), prevIncludeExpression.PrevExpression, startNavigation);
 
             return new IncludableQuery<TEntity, TNavigation>(includeExpression);
+        }
+
+        public IIncludableQuery<TEntity, TNavigation> AndWhere(Expression<Func<TNavigation, bool>> predicate)
+        {
+            return this.Filter(predicate);
         }
     }
 }
