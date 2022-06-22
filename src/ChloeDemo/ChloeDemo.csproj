@@ -22,7 +22,6 @@
 		<DefineConstants>netfx</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="StackExchange.Redis" Version="2.5.61" />
 		<PackageReference Include="System.Data.Odbc" Version="6.0.0" />
 		<PackageReference Include="System.Diagnostics.DiagnosticSource" Version="5.0.1" />
 	</ItemGroup>
