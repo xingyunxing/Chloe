@@ -22,6 +22,7 @@
 		<DefineConstants>netfx</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
+		<PackageReference Include="StackExchange.Redis" Version="2.5.61" />
 		<PackageReference Include="System.Data.Odbc" Version="6.0.0" />
 		<PackageReference Include="System.Diagnostics.DiagnosticSource" Version="5.0.1" />
 	</ItemGroup>
@@ -50,7 +51,7 @@
 		<!--MySql.Data 在一定并发下会卡，慢，不建议使用-->
 		<!--<PackageReference Include="MySql.Data" Version="8.0.28" />-->
 		<PackageReference Include="MySqlConnector" Version="2.1.7" />
-		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.12.0-beta2" />
+		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.61" />
 		<PackageReference Include="Npgsql" Version="4.0.0" />
 	</ItemGroup>
 

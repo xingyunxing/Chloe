@@ -35,19 +35,67 @@ namespace ChloeDemo
     /// <summary>
     /// 该装饰器主要修改参数绑定方式。
     /// </summary>
-    class OracleConnectionDecorator : DbConnectionDecorator, IDbConnection, IDisposable
+    internal class OracleConnectionDecorator : DbConnectionDecorator, IDbConnection, IDisposable
     {
-        OracleConnection _oracleConnection;
+        private readonly OracleConnection _oracleConnection;
+
         public OracleConnectionDecorator(OracleConnection oracleConnection) : base(oracleConnection)
         {
-            this._oracleConnection = oracleConnection;
+            _oracleConnection = oracleConnection;
         }
 
         public override IDbCommand CreateCommand()
         {
-            var cmd = this._oracleConnection.CreateCommand();
-            cmd.BindByName = true;
-            return cmd;
+            return new OracleCommandDecorator(_oracleConnection);
         }
+    }
+
+    internal class OracleCommandDecorator : IDbCommand
+    {
+        private readonly OracleCommand _oracleCommand;
+
+        public OracleCommandDecorator(OracleConnection oracleConnection)
+        {
+            _oracleCommand = oracleConnection.CreateCommand();
+            _oracleCommand.BindByName = true;
+            _oracleCommand.InitialLONGFetchSize = -1;//立即查询LONG和LONG RAW
+            _oracleCommand.InitialLOBFetchSize = -1;//立即查询CLOB
+        }
+
+        public string CommandText { get => _oracleCommand.CommandText; set => _oracleCommand.CommandText = value; }
+        public int CommandTimeout { get => _oracleCommand.CommandTimeout; set => _oracleCommand.CommandTimeout = value; }
+        public CommandType CommandType { get => _oracleCommand.CommandType; set => _oracleCommand.CommandType = value; }
+        public IDbConnection? Connection { get => _oracleCommand.Connection; set => _oracleCommand.Connection = value as OracleConnection; }
+
+        public IDataParameterCollection Parameters => _oracleCommand.Parameters;
+
+        public IDbTransaction? Transaction { get => _oracleCommand.Transaction; set => _oracleCommand.Transaction = value as OracleTransaction; }
+        public UpdateRowSource UpdatedRowSource { get => _oracleCommand.UpdatedRowSource; set => _oracleCommand.UpdatedRowSource = value; }
+
+        public void Cancel() => _oracleCommand.Cancel();
+
+        public IDbDataParameter CreateParameter() => _oracleCommand.CreateParameter();
+
+        public void Dispose() => _oracleCommand.Dispose();
+
+        public int ExecuteNonQuery() => _oracleCommand.ExecuteNonQuery();
+
+        public IDataReader ExecuteReader()
+        {
+            var reader = _oracleCommand.ExecuteReader();
+            reader.SuppressGetDecimalInvalidCastException = true;
+            return reader;
+        }
+
+        public IDataReader ExecuteReader(CommandBehavior behavior)
+        {
+            var reader = _oracleCommand.ExecuteReader();
+            reader.SuppressGetDecimalInvalidCastException = true;
+            return reader;
+        }
+
+        public object? ExecuteScalar() => _oracleCommand.ExecuteScalar();
+
+        public void Prepare() => _oracleCommand.Prepare();
     }
 }
