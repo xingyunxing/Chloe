@@ -45,7 +45,7 @@ namespace ChloeDemo.Sharding
         {
             this._shardingTest = shardingTest;
 
-            //添加路由规则(支持多个字段)。ps：分片字段的路由规则必须要添加以外，也可以添加非分片字段路由规则作为辅助，以便缩小表范围，提高查询效率。
+            //添加路由规则(支持一个或多个字段联合分片)。ps：分片字段的路由规则必须要添加以外，也可以添加非分片字段路由规则作为辅助，以便缩小表范围，提高查询效率。
 
             //CreateTime 是分片字段，分片字段的路由规则必须要添加
             this._routingStrategies.Add(nameof(Order.CreateTime), new OrderCreateTimeRoutingStrategy(this));
