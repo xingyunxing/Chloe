@@ -95,7 +95,7 @@ namespace Chloe.Sharding
         {
             PublicHelper.CheckNull(entity);
 
-            RouteTable routeTable = this.GetRouteTable(entity, true);
+            RouteTable routeTable = this.GetRouteTable(entity);
             IDbContextProvider dbContextProvider = this.GetPersistedDbContextProvider(routeTable);
             if (@async)
             {
@@ -121,20 +121,9 @@ namespace Chloe.Sharding
 
             Dictionary<MemberInfo, Expression> insertColumns = InitMemberExtractor.Extract(content);
 
-            var shardingKeyExp = insertColumns.FindValue(shardingContext.ShardingConfig.ShardingKey);
-            if (shardingKeyExp == null)
-            {
-                throw new ArgumentException($"Sharding key not found from content.");
-            }
+            List<ShardingKey> shardingKeys = this.GetShardingKeys(shardingContext.ShardingConfig, insertColumns);
 
-            if (shardingKeyExp.IsEvaluable())
-            {
-                throw new ArgumentException($"Unable to get sharding key value from expression '{shardingKeyExp.ToString()}'.");
-            }
-
-            var shardingKeyValue = shardingKeyExp.Evaluate();
-
-            RouteTable routeTable = shardingContext.GetTable(shardingKeyValue, true);
+            RouteTable routeTable = shardingContext.GetTable(shardingKeys);
             IDbContextProvider persistedDbContextProvider = this.GetPersistedDbContextProvider(routeTable);
 
             if (@async)
@@ -143,6 +132,38 @@ namespace Chloe.Sharding
             }
 
             return persistedDbContextProvider.Insert<TEntity>(content, routeTable.Name);
+        }
+        List<ShardingKey> GetShardingKeys(IShardingConfig shardingConfig, Dictionary<MemberInfo, Expression> insertColumns)
+        {
+            List<ShardingKey> shardingKeys = new List<ShardingKey>(shardingConfig.ShardingKeys.Count);
+
+            for (int i = 0; i < shardingConfig.ShardingKeys.Count; i++)
+            {
+                MemberInfo shardingKeyMember = shardingConfig.ShardingKeys[i];
+
+                var shardingKeyExp = insertColumns.FindValue(shardingKeyMember);
+                if (shardingKeyExp == null)
+                {
+                    throw new ArgumentException($"Sharding key not found from content.");
+                }
+
+                if (shardingKeyExp.IsEvaluable())
+                {
+                    throw new ArgumentException($"Unable to get sharding key value from expression '{shardingKeyExp.ToString()}'.");
+                }
+
+                var shardingKeyValue = shardingKeyExp.Evaluate();
+
+                if (shardingKeyValue == null)
+                {
+                    throw new ArgumentException($"The sharding key '{shardingKeyExp.ToString()}' value can not be null.");
+                }
+
+                ShardingKey shardingKey = new ShardingKey() { Member = shardingKeyMember, Value = shardingKeyValue };
+                shardingKeys.Add(shardingKey);
+            }
+
+            return shardingKeys;
         }
 
         public void InsertRange<TEntity>(List<TEntity> entities, string table)
@@ -180,9 +201,7 @@ namespace Chloe.Sharding
 
             foreach (var entity in entities)
             {
-                var shardingPropertyDescriptor = shardingContext.TypeDescriptor.GetPrimitivePropertyDescriptor(shardingContext.ShardingConfig.ShardingKey);
-                var shardingKeyValue = shardingPropertyDescriptor.GetValue(entity);
-                RouteTable routeTable = shardingContext.GetTable(shardingKeyValue, true);
+                RouteTable routeTable = shardingContext.GetEntityTable(entity);
                 entityMap.Add((entity, new PhysicTable(routeTable)));
             }
 
@@ -229,7 +248,7 @@ namespace Chloe.Sharding
         {
             PublicHelper.CheckNull(entity);
 
-            RouteTable routeTable = this.GetRouteTable(entity, true);
+            RouteTable routeTable = this.GetRouteTable(entity);
             IDbContextProvider dbContextProvider = this.GetPersistedDbContextProvider(routeTable);
             if (@async)
             {
@@ -300,7 +319,7 @@ namespace Chloe.Sharding
         {
             PublicHelper.CheckNull(entity);
 
-            RouteTable routeTable = this.GetRouteTable(entity, true);
+            RouteTable routeTable = this.GetRouteTable(entity);
             IDbContextProvider dbContextProvider = this.GetPersistedDbContextProvider(routeTable);
             if (@async)
             {

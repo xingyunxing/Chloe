@@ -33,6 +33,9 @@ namespace ChloeDemo.Sharding
         public int Year { get; set; }
     }
 
+    /// <summary>
+    /// Order 表路由
+    /// </summary>
     public class OrderShardingRoute : IShardingRoute
     {
         ShardingTest _shardingTest;
@@ -42,8 +45,12 @@ namespace ChloeDemo.Sharding
         {
             this._shardingTest = shardingTest;
 
-            //添加路由规则(支持多个字段)。ps：框架只支持单个分片字段，但是查询路由支持多个字段。
+            //添加路由规则(支持多个字段)。ps：分片字段的路由规则必须要添加以外，也可以添加非分片字段路由规则作为辅助，以便缩小表范围，提高查询效率。
+
+            //CreateTime 是分片字段，分片字段的路由规则必须要添加
             this._routingStrategies.Add(nameof(Order.CreateTime), new OrderCreateTimeRoutingStrategy(this));
+
+            //非分片字段路由规则，根据实际情况可选择性添加
             this._routingStrategies.Add(nameof(Order.CreateDate), new OrderCreateDateRoutingStrategy(this));
             this._routingStrategies.Add(nameof(Order.CreateYear), new OrderCreateYearRoutingStrategy(this));
             this._routingStrategies.Add(nameof(Order.CreateMonth), new OrderCreateMonthRoutingStrategy(this));

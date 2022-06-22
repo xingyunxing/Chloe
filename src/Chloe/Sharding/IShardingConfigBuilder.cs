@@ -14,7 +14,7 @@ namespace Chloe.Sharding
     public class ShardingConfigBuilder<T> : IShardingConfigBuilder<T>
     {
         IShardingRouteFactory _routeFactory;
-        LambdaExpression _shardingKey;
+        List<LambdaExpression> _shardingKeys = new List<LambdaExpression>();
 
         public IShardingConfigBuilder<T> HasRoute(IShardingRoute route)
         {
@@ -39,18 +39,16 @@ namespace Chloe.Sharding
                 throw new ArgumentException();
             }
 
-            this._shardingKey = keySelector;
+            this._shardingKeys.Add(keySelector);
             return this;
         }
 
         public IShardingConfig Build()
         {
-            var memberExp = this._shardingKey.Body as MemberExpression;
-
             var shardingConfig = new ShardingConfig();
             shardingConfig.EntityType = typeof(T);
             shardingConfig.RouteFactory = this._routeFactory;
-            shardingConfig.ShardingKey = memberExp.Member;
+            shardingConfig.ShardingKeys = this._shardingKeys.Select(a => (a.Body as MemberExpression).Member).ToList().AsReadOnly();
 
             return shardingConfig;
         }

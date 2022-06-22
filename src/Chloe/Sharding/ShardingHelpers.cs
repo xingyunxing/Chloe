@@ -3,6 +3,7 @@ using Chloe.Descriptors;
 using Chloe.Reflection;
 using Chloe.Sharding.Models;
 using Chloe.Sharding.Queries;
+using Chloe.Sharding.Routing;
 using System.Collections;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -11,6 +12,15 @@ namespace Chloe.Sharding
 {
     internal static class ShardingHelpers
     {
+        public static IEnumerable<RouteTable> Intersect(IEnumerable<RouteTable> source1, IEnumerable<RouteTable> source2)
+        {
+            return source1.Intersect(source2, RouteTableEqualityComparer.Instance);
+        }
+        public static IEnumerable<RouteTable> Union(IEnumerable<RouteTable> source1, IEnumerable<RouteTable> source2)
+        {
+            return source1.Union(source2, RouteTableEqualityComparer.Instance);
+        }
+
         public static bool IsParameterMemberAccess(IEnumerable<LambdaExpression> selectors)
         {
             foreach (var selector in selectors)

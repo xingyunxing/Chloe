@@ -12,7 +12,7 @@ namespace Chloe.Sharding
         /// <summary>
         /// 分片字段
         /// </summary>
-        MemberInfo ShardingKey { get; }
+        IList<MemberInfo> ShardingKeys { get; }
         /// <summary>
         /// 路由工厂
         /// </summary>
@@ -27,7 +27,7 @@ namespace Chloe.Sharding
         }
 
         public Type EntityType { get; set; }
-        public MemberInfo ShardingKey { get; set; }
+        public IList<MemberInfo> ShardingKeys { get; set; }
         public IShardingRouteFactory RouteFactory { get; set; }
     }
 }

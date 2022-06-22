@@ -38,7 +38,7 @@ namespace Chloe.Sharding
 
         public bool IsShardingMember(MemberInfo member)
         {
-            return this.ShardingConfig.ShardingKey == member;
+            return this.ShardingConfig.ShardingKeys.Contains(member);
         }
 
         public bool IsPrimaryKey(MemberInfo member)
@@ -59,53 +59,72 @@ namespace Chloe.Sharding
 
     static class ShardingContextExtensionFacade
     {
-        public static RouteTable GetEntityTable(this IShardingContext shardingContext, object entity, bool throwExceptionIfNotFound = false)
+        public static RouteTable GetEntityTable(this IShardingContext shardingContext, object entity, bool throwExceptionIfThereIsNotOnlyOneMatched = true)
         {
-            var shardingPropertyDescriptor = shardingContext.TypeDescriptor.GetPrimitivePropertyDescriptor(shardingContext.ShardingConfig.ShardingKey);
-
-            var shardingKeyValue = shardingPropertyDescriptor.GetValue(entity);
-
-            RouteTable routeTable = shardingContext.GetTable(shardingKeyValue, throwExceptionIfNotFound);
+            List<ShardingKey> shardingKeys = GetEntityShardingKeys(shardingContext, entity);
+            RouteTable routeTable = shardingContext.GetTable(shardingKeys, throwExceptionIfThereIsNotOnlyOneMatched);
             return routeTable;
         }
+        static List<ShardingKey> GetEntityShardingKeys(this IShardingContext shardingContext, object entity)
+        {
+            List<ShardingKey> shardingKeys = new List<ShardingKey>(shardingContext.ShardingConfig.ShardingKeys.Count);
+
+            for (int i = 0; i < shardingContext.ShardingConfig.ShardingKeys.Count; i++)
+            {
+                MemberInfo shardingKeyMember = shardingContext.ShardingConfig.ShardingKeys[i];
+                var shardingPropertyDescriptor = shardingContext.TypeDescriptor.GetPrimitivePropertyDescriptor(shardingKeyMember);
+                var shardingKeyValue = shardingPropertyDescriptor.GetValue(entity);
+
+                if (shardingKeyValue == null)
+                {
+                    throw new ArgumentException($"The sharding key '{shardingPropertyDescriptor.Property.Name.ToString()}' value can not be null.");
+                }
+
+                ShardingKey shardingKey = new ShardingKey() { Member = shardingKeyMember, Value = shardingKeyValue };
+                shardingKeys.Add(shardingKey);
+            }
+
+            return shardingKeys;
+        }
+
         public static IEnumerable<RouteTable> GetTables(this IShardingContext shardingContext)
         {
             return shardingContext.Route.GetTables();
         }
 
-        public static RouteTable GetTable(this IShardingContext shardingContext, object shardingValue, bool throwExceptionIfNotFound = false)
+        public static RouteTable GetTable(this IShardingContext shardingContext, List<ShardingKey> shardingKeys, bool throwExceptionIfThereIsNotOnlyOneMatched = true)
         {
-            IRoutingStrategy routingStrategy = shardingContext.Route.GetStrategy(shardingContext.ShardingConfig.ShardingKey);
-
-            RouteTable routeTable = null;
-
-            if (routingStrategy == null)
+            IEnumerable<RouteTable> routeTables = null;
+            for (int i = 0; i < shardingKeys.Count; i++)
             {
-                routeTable = null;
-            }
-            else
-            {
-                routeTable = routingStrategy.ForEqual(shardingValue).FirstOrDefault();
+                ShardingKey shardingKey = shardingKeys[i];
+                IRoutingStrategy routingStrategy = shardingContext.Route.GetStrategy(shardingKey.Member);
+
+                object shardingValue = shardingKey.Value;
+
+                var keyRouteTables = routingStrategy.ForEqual(shardingValue);
+
+                if (routeTables == null)
+                {
+                    routeTables = keyRouteTables;
+                }
+                else
+                {
+                    routeTables = ShardingHelpers.Intersect(routeTables, keyRouteTables);
+                }
             }
 
-            if (routeTable == null && throwExceptionIfNotFound)
+            if (throwExceptionIfThereIsNotOnlyOneMatched)
             {
-                throw new ChloeException($"Corresponding table not found for sharding key '{shardingValue}'.");
+                if (routeTables.Count() != 1)
+                {
+                    throw new ChloeException($"There is not only one table matched for entity '{shardingContext.ShardingConfig.EntityType.FullName}'.");
+                }
             }
 
-            return routeTable;
+            return routeTables.FirstOrDefault();
         }
-        public static IEnumerable<RouteTable> GetTablesByKey(this IShardingContext shardingContext, object keyValue)
-        {
-            IRoutingStrategy routingStrategy = shardingContext.Route.GetStrategy(shardingContext.TypeDescriptor.PrimaryKeys.First().Definition.Property);
 
-            if (routingStrategy == null)
-            {
-                return shardingContext.Route.GetTables();
-            }
-
-            return routingStrategy.ForEqual(keyValue);
-        }
         public static SortResult SortTables(this IShardingContext shardingContext, List<RouteTable> tables, List<Ordering> orderings)
         {
             return shardingContext.Route.SortTables(tables, orderings);

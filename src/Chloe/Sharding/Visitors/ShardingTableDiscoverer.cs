@@ -38,7 +38,7 @@ namespace Chloe.Sharding.Visitors
                     continue;
                 }
 
-                retRouteTables = Intersect(retRouteTables, routeTables);
+                retRouteTables = ShardingHelpers.Intersect(retRouteTables, routeTables);
             }
 
             if (retRouteTables == null)
@@ -126,11 +126,11 @@ namespace Chloe.Sharding.Visitors
 
         protected override IEnumerable<RouteTable> VisitBinary_AndAlso(BinaryExpression exp)
         {
-            return Intersect(this.Visit(exp.Left), this.Visit(exp.Right));
+            return ShardingHelpers.Intersect(this.Visit(exp.Left), this.Visit(exp.Right));
         }
         protected override IEnumerable<RouteTable> VisitBinary_OrElse(BinaryExpression exp)
         {
-            return Union(this.Visit(exp.Left), this.Visit(exp.Right));
+            return ShardingHelpers.Union(this.Visit(exp.Left), this.Visit(exp.Right));
         }
 
         protected override IEnumerable<RouteTable> VisitMethodCall(MethodCallExpression exp)
@@ -201,7 +201,7 @@ namespace Chloe.Sharding.Visitors
                     continue;
                 }
 
-                ret = Union(ret, routeTables);
+                ret = ShardingHelpers.Union(ret, routeTables);
             }
 
             return ret;
@@ -227,15 +227,6 @@ namespace Chloe.Sharding.Visitors
             }
 
             return null;
-        }
-
-        static IEnumerable<RouteTable> Intersect(IEnumerable<RouteTable> source1, IEnumerable<RouteTable> source2)
-        {
-            return source1.Intersect(source2, RouteTableEqualityComparer.Instance);
-        }
-        static IEnumerable<RouteTable> Union(IEnumerable<RouteTable> source1, IEnumerable<RouteTable> source2)
-        {
-            return source1.Union(source2, RouteTableEqualityComparer.Instance);
         }
 
         IEnumerable<RouteTable> Handle_List_Contains_MethodCall(MethodCallExpression exp)
