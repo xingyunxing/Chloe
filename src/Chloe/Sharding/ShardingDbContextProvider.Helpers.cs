@@ -9,10 +9,10 @@ namespace Chloe.Sharding
     {
         Dictionary<Type, IShardingContext> _shardingContextMap = new Dictionary<Type, IShardingContext>();
 
-        RouteTable GetRouteTable<TEntity>(TEntity entity, bool throwExceptionIfThereIsNotOnlyOneMatched = true)
+        RouteTable GetRouteTable<TEntity>(TEntity entity)
         {
             IShardingContext shardingContext = this.CreateShardingContext(entity.GetType());
-            RouteTable routeTable = shardingContext.GetEntityTable(entity, throwExceptionIfThereIsNotOnlyOneMatched);
+            RouteTable routeTable = shardingContext.GetEntityTable(entity);
             return routeTable;
         }
 

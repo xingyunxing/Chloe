@@ -59,10 +59,10 @@ namespace Chloe.Sharding
 
     static class ShardingContextExtensionFacade
     {
-        public static RouteTable GetEntityTable(this IShardingContext shardingContext, object entity, bool throwExceptionIfThereIsNotOnlyOneMatched = true)
+        public static RouteTable GetEntityTable(this IShardingContext shardingContext, object entity)
         {
             List<ShardingKey> shardingKeys = GetEntityShardingKeys(shardingContext, entity);
-            RouteTable routeTable = shardingContext.GetTable(shardingKeys, throwExceptionIfThereIsNotOnlyOneMatched);
+            RouteTable routeTable = shardingContext.GetTable(shardingKeys);
             return routeTable;
         }
         static List<ShardingKey> GetEntityShardingKeys(this IShardingContext shardingContext, object entity)
@@ -92,7 +92,7 @@ namespace Chloe.Sharding
             return shardingContext.Route.GetTables();
         }
 
-        public static RouteTable GetTable(this IShardingContext shardingContext, List<ShardingKey> shardingKeys, bool throwExceptionIfThereIsNotOnlyOneMatched = true)
+        public static RouteTable GetTable(this IShardingContext shardingContext, List<ShardingKey> shardingKeys)
         {
             IEnumerable<RouteTable> routeTables = null;
             for (int i = 0; i < shardingKeys.Count; i++)
@@ -114,15 +114,27 @@ namespace Chloe.Sharding
                 }
             }
 
-            if (throwExceptionIfThereIsNotOnlyOneMatched)
+            RouteTable matchedTable = null;
+            foreach (RouteTable routeTable in routeTables)
             {
-                if (routeTables.Count() != 1)
+                if (matchedTable == null)
                 {
-                    throw new ChloeException($"There is not only one table matched for entity '{shardingContext.ShardingConfig.EntityType.FullName}'.");
+                    matchedTable = routeTable;
+                    continue;
                 }
+
+                goto ThrowException;
             }
 
-            return routeTables.FirstOrDefault();
+            if (matchedTable == null)
+            {
+                goto ThrowException;
+            }
+
+            return matchedTable;
+
+        ThrowException:
+            throw new ChloeException($"There is not only one table matched for entity '{shardingContext.ShardingConfig.EntityType.FullName}'.");
         }
 
         public static SortResult SortTables(this IShardingContext shardingContext, List<RouteTable> tables, List<Ordering> orderings)
