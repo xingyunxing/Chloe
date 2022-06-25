@@ -33,7 +33,7 @@ namespace Chloe.Mapper
 
             mrmTuple.StrongMRM = new Lazy<IMRM>(() =>
             {
-                return new MRM(member);
+                return new StrongMRM(member);
                 //Type type = ClassGenerator.CreateMRMType(member);
                 //IMRM strongMrm = (IMRM)type.GetDefaultConstructor().Invoke(null);
                 //return strongMrm;
@@ -47,7 +47,7 @@ namespace Chloe.Mapper
             {
                 mrmTuple.SafeMRM = new Lazy<IMRM>(() =>
                 {
-                    return new MRM2(member, mappingType);
+                    return new SafeMRM(member, mappingType);
                 }, LazyThreadSafetyMode.ExecutionAndPublication);
             }
 
@@ -55,10 +55,10 @@ namespace Chloe.Mapper
         }
     }
 
-    class MRM : IMRM
+    class StrongMRM : IMRM
     {
         MemberMapper _mapper;
-        public MRM(MemberInfo member)
+        public StrongMRM(MemberInfo member)
         {
             this._mapper = MemberMapperContainer.Get(member);
         }
@@ -69,11 +69,11 @@ namespace Chloe.Mapper
         }
     }
 
-    class MRM2 : IMRM
+    class SafeMRM : IMRM
     {
         MemberSetter _valueSetter;
         MappingType _mappingType;
-        public MRM2(MemberInfo member, MappingType mappingType)
+        public SafeMRM(MemberInfo member, MappingType mappingType)
         {
             this._mappingType = mappingType;
             this._valueSetter = MemberSetterContainer.Get(member);
