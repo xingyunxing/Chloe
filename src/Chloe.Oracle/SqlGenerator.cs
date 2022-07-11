@@ -29,12 +29,12 @@ namespace Chloe.Oracle
             //castTypeMap.Add(typeof(string), "NVARCHAR2"); // instead of using to_char(exp) 
             castTypeMap.Add(typeof(byte), "NUMBER(3,0)");
             castTypeMap.Add(typeof(Int16), "NUMBER(4,0)");
-            castTypeMap.Add(typeof(int), "NUMBER(9,0)");
-            castTypeMap.Add(typeof(long), "NUMBER(18,0)");
+            castTypeMap.Add(typeof(int), "NUMBER(10,0)");
+            castTypeMap.Add(typeof(long), "NUMBER(19,0)");
             castTypeMap.Add(typeof(float), "BINARY_FLOAT");
             castTypeMap.Add(typeof(double), "BINARY_DOUBLE");
             castTypeMap.Add(typeof(decimal), "NUMBER");
-            castTypeMap.Add(typeof(bool), "NUMBER(9,0)");
+            castTypeMap.Add(typeof(bool), "NUMBER(10,0)");
             //castTypeMap.Add(typeof(DateTime), "DATE"); // instead of using TO_TIMESTAMP(exp) 
             //castTypeMap.Add(typeof(Guid), "BLOB");
             CastTypeMap = PublicHelper.Clone(castTypeMap);

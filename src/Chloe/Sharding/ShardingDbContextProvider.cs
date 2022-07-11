@@ -147,7 +147,7 @@ namespace Chloe.Sharding
                     throw new ArgumentException($"Sharding key not found from content.");
                 }
 
-                if (shardingKeyExp.IsEvaluable())
+                if (!shardingKeyExp.IsEvaluable())
                 {
                     throw new ArgumentException($"Unable to get sharding key value from expression '{shardingKeyExp.ToString()}'.");
                 }
