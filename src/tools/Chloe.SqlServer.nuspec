@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Chloe.SqlServer</id>
-    <version>5.1.0</version>
+    <version>5.1.1</version>
     <title>Chloe.SqlServer</title>
     <authors>Shuxin Qin</authors>
     <owners>Shuxin Qin</owners>
@@ -18,16 +18,16 @@ A lightweight and high-performance Object/Relational Mapping(ORM) library.
 
     <dependencies>
 	  <group targetFramework="net46">
-        <dependency id="Chloe" version="5.1.0" />	  
+        <dependency id="Chloe" version="5.1.1" />	  
       </group>
 	  
       <group targetFramework="netstandard2.0">
-        <dependency id="Chloe" version="5.1.0" />
+        <dependency id="Chloe" version="5.1.1" />
 		<dependency id="System.Data.SqlClient" version="4.7.0" />
       </group> 
 	  
 	  <group targetFramework="net5.0">
-        <dependency id="Chloe" version="5.1.0" />
+        <dependency id="Chloe" version="5.1.1" />
 		<dependency id="Microsoft.Data.SqlClient" version="2.1.3" />
       </group>
     </dependencies>
