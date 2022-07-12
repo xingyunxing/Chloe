@@ -28,7 +28,7 @@ namespace Chloe.Oracle
             Dictionary<Type, string> castTypeMap = new Dictionary<Type, string>();
             //castTypeMap.Add(typeof(string), "NVARCHAR2"); // instead of using to_char(exp) 
             castTypeMap.Add(typeof(byte), "NUMBER(3,0)");
-            castTypeMap.Add(typeof(Int16), "NUMBER(4,0)");
+            castTypeMap.Add(typeof(Int16), "NUMBER(5,0)");
             castTypeMap.Add(typeof(int), "NUMBER(10,0)");
             castTypeMap.Add(typeof(long), "NUMBER(19,0)");
             castTypeMap.Add(typeof(float), "BINARY_FLOAT");
