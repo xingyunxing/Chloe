@@ -171,10 +171,6 @@ end;";
                 return $"NVARCHAR2({stringLength})";
             }
 
-            if (type == typeof(int))
-            {
-                return "NUMBER(9,0)";
-            }
 
             if (type == typeof(byte))
             {
@@ -183,12 +179,17 @@ end;";
 
             if (type == typeof(Int16))
             {
-                return "NUMBER(4,0)";
+                return "NUMBER(5,0)";
+            }
+
+            if (type == typeof(int))
+            {
+                return "NUMBER(10,0)";
             }
 
             if (type == typeof(long))
             {
-                return "NUMBER(18,0)";
+                return "NUMBER(19,0)";
             }
 
             if (type == typeof(float))
@@ -208,7 +209,7 @@ end;";
 
             if (type == typeof(bool))
             {
-                return "NUMBER(9,0)";
+                return "NUMBER(10,0)";
             }
 
             if (type == typeof(DateTime))
