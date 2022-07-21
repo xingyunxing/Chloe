@@ -147,11 +147,11 @@ namespace Chloe.SQLite
 
         public static void DbFunction_DATEADD(SqlGeneratorBase generator, string interval, DbMethodCallExpression exp)
         {
-            /* DATETIME(@P_0,'+' || 1 || ' years') */
+            /* DATETIME(@P_0, 1 || ' years') */
 
             generator.SqlBuilder.Append("DATETIME(");
             exp.Object.Accept(generator);
-            generator.SqlBuilder.Append(",'+' || ");
+            generator.SqlBuilder.Append(", ");
             exp.Arguments[0].Accept(generator);
             generator.SqlBuilder.Append(" || ' ", interval, "'");
             generator.SqlBuilder.Append(")");
