@@ -20,7 +20,7 @@ namespace Chloe.Reflection.Emit
             else
                 throw new NotSupportedException();
         }
-#if netcore
+#if NETCORE
         public static Type CreateType(this TypeBuilder typeBuilder)
         {
             return typeBuilder.CreateTypeInfo().AsType();

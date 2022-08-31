@@ -37,7 +37,7 @@ namespace Chloe.Data
             return ret;
         }
 
-#if netfx
+#if NETFX
         public override async Task<bool> ReadAsync()
 #else
         public override async ValueTask<bool> ReadAsync()

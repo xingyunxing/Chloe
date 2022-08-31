@@ -41,7 +41,7 @@ namespace System.Collections.Generic
     }
 }
 
-#if netfx
+#if NETFX
 
 namespace System.Collections.Generic
 {

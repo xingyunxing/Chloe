@@ -28,9 +28,9 @@ namespace Chloe.Reflection.Emit
                         assemblyName.Version = new Version(1, 0, 0, 0);
 
                         AssemblyBuilder assemblyBuilder;
-#if netcore
+#if NETCORE
                         assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
-#elif netfx
+#elif NETFX
                         assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
 #endif
                         moduleBuilder = assemblyBuilder.DefineDynamicModule("ChloeMRMModule");
@@ -86,9 +86,9 @@ namespace Chloe.Reflection.Emit
 
                         AssemblyBuilder assemblyBuilder;
                         assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
-#if netcore
+#if NETCORE
                         assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
-#elif netfx
+#elif NETFX
                         assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
 #endif
                         moduleBuilder = assemblyBuilder.DefineDynamicModule("ChloeMRMModule");

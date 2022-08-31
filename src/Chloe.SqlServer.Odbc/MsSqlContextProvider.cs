@@ -13,7 +13,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Chloe.RDBMS;
 
-#if net5
+#if NET5
 using Microsoft.Data.SqlClient;
 #else
 using System.Data.SqlClient;

@@ -5,7 +5,7 @@ global using System.IO;
 global using System.Collections.Generic;
 global using System.Threading.Tasks;
 
-#if netfx
+#if NETFX
 global using BoolResultTask = System.Threading.Tasks.Task<bool>;
 global using ObjectResultTask = System.Threading.Tasks.Task<object>;
 global using ValueTask = System.Threading.Tasks.Task;

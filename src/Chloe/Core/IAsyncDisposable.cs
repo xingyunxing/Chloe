@@ -1,4 +1,4 @@
-﻿#if netfx
+﻿#if NETFX
 using System;
 
 namespace System

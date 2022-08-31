@@ -37,7 +37,7 @@ namespace Chloe.Data
             return this._reader.Read();
         }
 
-#if netfx
+#if NETFX
         public virtual async Task<bool> ReadAsync()
 #else
         public virtual async ValueTask<bool> ReadAsync()

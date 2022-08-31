@@ -24,7 +24,7 @@ namespace Chloe.Threading.Tasks
             task.GetAwaiter().GetResult();
         }
 
-#if !netfx
+#if !NETFX
         public static TResult GetResult<TResult>(this ValueTask<TResult> task)
         {
             if (task.IsCompletedSuccessfully)
@@ -45,7 +45,7 @@ namespace Chloe.Threading.Tasks
 
 namespace System.Threading.Tasks
 {
-#if netfx
+#if NETFX
     internal static class TaskExtension
     {
         public static Task<TResult> AsTask<TResult>(this Task<TResult> task)
