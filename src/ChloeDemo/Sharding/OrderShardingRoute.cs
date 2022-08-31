@@ -96,11 +96,20 @@ namespace ChloeDemo.Sharding
             }
         }
 
+        /// <summary>
+        /// 获取所有的分片表
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<RouteTable> GetTables()
         {
             return this.AllTables;
         }
 
+        /// <summary>
+        /// 根据实体属性获取相应的路由规则
+        /// </summary>
+        /// <param name="member"></param>
+        /// <returns></returns>
         public IRoutingStrategy GetStrategy(MemberInfo member)
         {
             this._routingStrategies.TryGetValue(member.Name, out var routingStrategy);
