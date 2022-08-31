@@ -20,13 +20,13 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-		<DefineConstants>netcore;NETCORE</DefineConstants>
+		<DefineConstants>NETCORE</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net5.0'">
-		<DefineConstants>netcore;net5;NETCORE;NET5</DefineConstants>
+		<DefineConstants>NETCORE;NET5</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net46'">
-		<DefineConstants>netfx;net46;NETFX;NET46</DefineConstants>
+		<DefineConstants>NETFX;NET46</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup>
