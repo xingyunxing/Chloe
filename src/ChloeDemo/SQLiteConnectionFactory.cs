@@ -26,11 +26,11 @@ namespace ChloeDemo
              */
 
             IDbConnection conn = null;
-#if netcore
+#if NETCORE
             conn = new Microsoft.Data.Sqlite.SqliteConnection(this._connString);
 #endif
 
-#if netfx
+#if NETFX
             conn = new System.Data.SQLite.SQLiteConnection(this._connString);
 #endif
 

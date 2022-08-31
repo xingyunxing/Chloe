@@ -83,14 +83,21 @@ namespace ChloeDemo
         public IDataReader ExecuteReader()
         {
             var reader = _oracleCommand.ExecuteReader();
+
+#if NETCORE
+
             reader.SuppressGetDecimalInvalidCastException = true;
+#endif
             return reader;
         }
 
         public IDataReader ExecuteReader(CommandBehavior behavior)
         {
             var reader = _oracleCommand.ExecuteReader();
+#if NETCORE
+
             reader.SuppressGetDecimalInvalidCastException = true;
+#endif
             return reader;
         }
 

@@ -76,7 +76,13 @@ namespace Chloe.Query.Internals
         public ValueTask DisposeAsync()
         {
             this.Dispose();
+#if NETCORE
             return default;
+#endif
+
+#if NETFX
+            return Task.CompletedTask;
+#endif
         }
 
         public void Reset()

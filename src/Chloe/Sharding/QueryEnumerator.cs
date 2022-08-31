@@ -43,7 +43,13 @@ namespace Chloe.Sharding
         protected virtual ValueTask Dispose(bool @async)
         {
             this._poolResource?.Dispose();
+#if NETCORE
             return default;
+#endif
+
+#if NETFX
+            return Task.CompletedTask;
+#endif
         }
 
         public bool MoveNext()
