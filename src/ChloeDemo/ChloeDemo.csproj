@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>netcoreapp3.1</TargetFramework>
+		<!--<TargetFramework>netcoreapp3.1</TargetFramework>-->
 		<!--<TargetFramework>net462</TargetFramework>-->
-		<!--<TargetFrameworks>netcoreapp3.1;net462</TargetFrameworks>-->
+		<TargetFrameworks>netcoreapp3.1;net462</TargetFrameworks>
 
 		<LangVersion>10.0</LangVersion>
 
