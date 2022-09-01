@@ -126,6 +126,11 @@ namespace Chloe.SQLite.DDL
 
             if (type == typeof(long))
             {
+                if (propertyDescriptor.IsAutoIncrement)
+                {
+                    return "INTEGER";
+                }
+
                 return "INT64";
             }
 
