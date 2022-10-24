@@ -36,9 +36,18 @@ namespace Chloe
 
         bool IsShardingType(Type entityType)
         {
-            IShardingConfig shardingConfig = ShardingConfigContainer.Find(entityType);
+            IShardingConfig shardingConfig = this.GetShardingConfig(entityType);
             return shardingConfig != null;
         }
+        internal IShardingConfig GetShardingConfig(Type entityType)
+        {
+            IShardingConfig shardingConfig = this.Butler.FindShardingConfig(entityType);
+            if (shardingConfig == null)
+                shardingConfig = ShardingConfigContainer.Find(entityType);
+
+            return shardingConfig;
+        }
+
         IDbContextProvider GetDbContextProvider(Type entityType)
         {
             if (!this.ShardingEnabled)
@@ -75,6 +84,11 @@ namespace Chloe
         public override void HasQueryFilter(Type entityType, LambdaExpression filter)
         {
             this.Butler.HasQueryFilter(entityType, filter);
+        }
+
+        public override void HasShardingConfig(Type entityType, IShardingConfig shardingConfig)
+        {
+            this.Butler.HasShardingConfig(entityType, shardingConfig);
         }
 
         public override IQuery<TEntity> Query<TEntity>(string table, LockType @lock)

@@ -35,7 +35,7 @@ namespace ChloeDemo.Sharding
             await this.QueryByPrimaryKeyTest();
             await this.QueryByPrimaryKeyAndShardingKeyTest();
             await this.RouteByNonShardingKeyTest();
-            await this.RouteBySomeCsSharpMethodTest();
+            await this.RouteBySomeCSharpMethodTest();
             await this.ProjectionTest();
             await this.AnyQueryTest();
             await this.CountQueryTest();
@@ -357,7 +357,7 @@ namespace ChloeDemo.Sharding
         /// In, Contains, Equals, Sql.Equals 等方法路由
         /// </summary>
         /// <returns></returns>
-        async Task RouteBySomeCsSharpMethodTest()
+        async Task RouteBySomeCSharpMethodTest()
         {
             List<Order> orders = new List<Order>();
 

@@ -1,4 +1,5 @@
-﻿using Chloe.Threading.Tasks;
+﻿using Chloe.Sharding;
+using Chloe.Threading.Tasks;
 using Chloe.Utility;
 using System.Data;
 using System.Linq.Expressions;
@@ -39,6 +40,11 @@ namespace Chloe
             this.HasQueryFilter(typeof(TEntity), filter);
         }
         public virtual void HasQueryFilter(Type entityType, LambdaExpression filter)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual void HasShardingConfig(Type entityType, IShardingConfig shardingConfig)
         {
             throw new NotImplementedException();
         }

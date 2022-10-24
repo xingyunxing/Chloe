@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using Chloe.Sharding;
+using System.Data;
 using System.Linq.Expressions;
 
 namespace Chloe
@@ -19,6 +20,13 @@ namespace Chloe
         /// <param name="filter"></param>
         void HasQueryFilter<TEntity>(Expression<Func<TEntity, bool>> filter);
         void HasQueryFilter(Type entityType, LambdaExpression filter);
+
+        /// <summary>
+        /// 设置分片配置（仅当前上下文有效）。
+        /// </summary>
+        /// <param name="entityType"></param>
+        /// <param name="shardingConfig"></param>
+        void HasShardingConfig(Type entityType, IShardingConfig shardingConfig);
 
         IQuery<TEntity> Query<TEntity>();
         IQuery<TEntity> Query<TEntity>(string table);

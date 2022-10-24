@@ -13,6 +13,7 @@ namespace Chloe
         int _commandTimeout = 30;
         IDbContextProvider _defaultDbContextProvider;
         IDbContextProvider _shardingDbContextProvider;
+        Dictionary<Type, IShardingConfig> _contextShardingConfigs;
 
         public DbContextButler(DbContext dbContext)
         {
@@ -24,6 +25,19 @@ namespace Chloe
         public List<DataSourceDbContextProviderPair> PersistedDbContextProviders { get; set; } = new List<DataSourceDbContextProviderPair>();
         public List<IDbCommandInterceptor> Interceptors { get; } = new List<IDbCommandInterceptor>();
         public Dictionary<Type, List<LambdaExpression>> QueryFilters { get; } = new Dictionary<Type, List<LambdaExpression>>();
+
+        Dictionary<Type, IShardingConfig> ContextShardingConfigs
+        {
+            get
+            {
+                if (this._contextShardingConfigs == null)
+                {
+                    this._contextShardingConfigs = new Dictionary<Type, IShardingConfig>();
+                }
+
+                return this._contextShardingConfigs;
+            }
+        }
 
         public IsolationLevel? IL { get; private set; }
         public bool IsInTransaction { get; private set; }
@@ -227,6 +241,20 @@ namespace Chloe
             {
                 pair.DbContextProvider.HasQueryFilter(entityType, filter);
             }
+        }
+
+        public void HasShardingConfig(Type entityType, IShardingConfig shardingConfig)
+        {
+            this.ContextShardingConfigs[entityType] = shardingConfig;
+        }
+        public IShardingConfig FindShardingConfig(Type entityType)
+        {
+            if (this._contextShardingConfigs == null)
+            {
+                return null;
+            }
+
+            return this._contextShardingConfigs.FindValue(entityType);
         }
 
         public IDbContextProvider GetDefaultDbContextProvider()

@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using Chloe.Sharding;
+using System.Data;
 using System.Linq.Expressions;
 
 namespace Chloe
@@ -27,6 +28,11 @@ namespace Chloe
         public override void HasQueryFilter(Type entityType, LambdaExpression filter)
         {
             this.PersistedDbContext.HasQueryFilter(entityType, filter);
+        }
+
+        public override void HasShardingConfig(Type entityType, IShardingConfig shardingConfig)
+        {
+            this.PersistedDbContext.HasShardingConfig(entityType, shardingConfig);
         }
 
         public override IQuery<TEntity> Query<TEntity>(string table, LockType @lock)

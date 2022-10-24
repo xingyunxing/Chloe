@@ -22,7 +22,7 @@ namespace Chloe.Sharding
             if (shardingContext == null)
             {
                 TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(entityType);
-                IShardingConfig shardingConfig = ShardingConfigContainer.Get(entityType);
+                IShardingConfig shardingConfig = this.DbContext.GetShardingConfig(entityType);
                 shardingContext = new ShardingContextFacade(this, shardingConfig, typeDescriptor);
 
                 this._shardingContextMap.Add(entityType, shardingContext);

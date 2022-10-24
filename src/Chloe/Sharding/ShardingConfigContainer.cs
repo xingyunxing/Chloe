@@ -11,6 +11,9 @@
 
         public static IShardingConfig Find(Type entityType)
         {
+            if (InstanceCache.Count == 0)
+                return null;
+
             InstanceCache.TryGetValue(entityType, out var value);
             return value;
         }
