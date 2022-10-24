@@ -23,20 +23,20 @@ namespace Chloe.Oracle.MethodHandlers
             {
                 case CompareType.eq:
                     {
-                        MethodInfo method_Sql_Equals = PublicConstants.MethodInfo_Sql_Equals.MakeGenericMethod(left.Type);
+                        MethodInfo method_Sql_IsEqual = PublicConstants.MethodInfo_Sql_IsEqual.MakeGenericMethod(left.Type);
 
-                        /* Sql.Equals(left, right) */
-                        DbMethodCallExpression left_equals_right = DbExpression.MethodCall(null, method_Sql_Equals, new List<DbExpression>(2) { left, right });
+                        /* Sql.IsEqual(left, right) */
+                        DbMethodCallExpression left_equals_right = DbExpression.MethodCall(null, method_Sql_IsEqual, new List<DbExpression>(2) { left, right });
 
                         newExp = left_equals_right;
                     }
                     break;
                 case CompareType.neq:
                     {
-                        MethodInfo method_Sql_NotEquals = PublicConstants.MethodInfo_Sql_NotEquals.MakeGenericMethod(left.Type);
+                        MethodInfo method_Sql_IsNotEqual = PublicConstants.MethodInfo_Sql_IsNotEqual.MakeGenericMethod(left.Type);
 
-                        /* Sql.NotEquals(left, right) */
-                        DbMethodCallExpression left_not_equals_right = DbExpression.MethodCall(null, method_Sql_NotEquals, new List<DbExpression>(2) { left, right });
+                        /* Sql.IsNotEqual(left, right) */
+                        DbMethodCallExpression left_not_equals_right = DbExpression.MethodCall(null, method_Sql_IsNotEqual, new List<DbExpression>(2) { left, right });
 
                         newExp = left_not_equals_right;
                     }

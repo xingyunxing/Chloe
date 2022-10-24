@@ -3,21 +3,21 @@ using Chloe.InternalExtensions;
 using Chloe.RDBMS;
 using System.Reflection;
 
-namespace Chloe.SQLite.MethodHandlers
+namespace Chloe.SqlServer.MethodHandlers
 {
-    class NotEquals_Handler : IMethodHandler
+    class IsEqual_Handler : IMethodHandler
     {
         public bool CanProcess(DbMethodCallExpression exp)
         {
             MethodInfo method = exp.Method;
-            if (method.DeclaringType != PublicConstants.TypeOfSql)
-            {
-                return false;
-            }
-
-            return true;
+            return PublicHelper.Is_Sql_IsEqual_Method(method);
         }
         public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
+        {
+            Method_Sql_Equals(exp, generator);
+        }
+
+        static void Method_Sql_Equals(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
             DbExpression left = exp.Arguments[0];
             DbExpression right = exp.Arguments[1];
@@ -29,21 +29,21 @@ namespace Chloe.SQLite.MethodHandlers
             if (DbExpressionExtension.AffirmExpressionRetValueIsNull(right))
             {
                 left.Accept(generator);
-                generator.SqlBuilder.Append(" IS NOT NULL");
+                generator.SqlBuilder.Append(" IS NULL");
                 return;
             }
 
             if (DbExpressionExtension.AffirmExpressionRetValueIsNull(left))
             {
                 right.Accept(generator);
-                generator.SqlBuilder.Append(" IS NOT NULL");
+                generator.SqlBuilder.Append(" IS NULL");
                 return;
             }
 
             SqlGenerator.AmendDbInfo(left, right);
 
             left.Accept(generator);
-            generator.SqlBuilder.Append(" <> ");
+            generator.SqlBuilder.Append(" = ");
             right.Accept(generator);
         }
     }

@@ -3,24 +3,22 @@ using Chloe.InternalExtensions;
 using Chloe.RDBMS;
 using System.Reflection;
 
-namespace Chloe.PostgreSQL.MethodHandlers
+namespace Chloe.Oracle.MethodHandlers
 {
-    class NotEquals_Handler : IMethodHandler
+    class IsEqual_Handler : IMethodHandler
     {
         public bool CanProcess(DbMethodCallExpression exp)
         {
             MethodInfo method = exp.Method;
-            if (method.DeclaringType != PublicConstants.TypeOfSql)
-            {
-                return false;
-            }
-
-            return true;
+            return PublicHelper.Is_Sql_IsEqual_Method(method);
         }
         public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
-            MethodInfo method = exp.Method;
+            Method_Sql_Equals(exp, generator);
+        }
 
+        static void Method_Sql_Equals(DbMethodCallExpression exp, SqlGeneratorBase generator)
+        {
             DbExpression left = exp.Arguments[0];
             DbExpression right = exp.Arguments[1];
 
@@ -28,24 +26,24 @@ namespace Chloe.PostgreSQL.MethodHandlers
             right = DbExpressionExtension.StripInvalidConvert(right);
 
             //明确 left right 其中一边一定为 null
-            if (DbExpressionExtension.AffirmExpressionRetValueIsNull(right))
+            if (DbExpressionHelper.AffirmExpressionRetValueIsNullOrEmpty(right))
             {
                 left.Accept(generator);
-                generator.SqlBuilder.Append(" IS NOT NULL");
+                generator.SqlBuilder.Append(" IS NULL");
                 return;
             }
 
-            if (DbExpressionExtension.AffirmExpressionRetValueIsNull(left))
+            if (DbExpressionHelper.AffirmExpressionRetValueIsNullOrEmpty(left))
             {
                 right.Accept(generator);
-                generator.SqlBuilder.Append(" IS NOT NULL");
+                generator.SqlBuilder.Append(" IS NULL");
                 return;
             }
 
             SqlGenerator.AmendDbInfo(left, right);
 
             left.Accept(generator);
-            generator.SqlBuilder.Append(" <> ");
+            generator.SqlBuilder.Append(" = ");
             right.Accept(generator);
         }
     }

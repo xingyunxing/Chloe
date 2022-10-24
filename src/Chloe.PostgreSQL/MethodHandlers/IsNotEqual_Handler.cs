@@ -3,24 +3,17 @@ using Chloe.InternalExtensions;
 using Chloe.RDBMS;
 using System.Reflection;
 
-namespace Chloe.SqlServer.Odbc.MethodHandlers
+namespace Chloe.PostgreSQL.MethodHandlers
 {
-    class NotEquals_Handler : IMethodHandler
+    class IsNotEqual_Handler : IMethodHandler
     {
         public bool CanProcess(DbMethodCallExpression exp)
         {
             MethodInfo method = exp.Method;
-            if (method.DeclaringType != PublicConstants.TypeOfSql)
-            {
-                return false;
-            }
-
-            return true;
+            return PublicHelper.Is_Sql_IsNotEqual_Method(method);
         }
         public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
-            MethodInfo method = exp.Method;
-
             DbExpression left = exp.Arguments[0];
             DbExpression right = exp.Arguments[1];
 

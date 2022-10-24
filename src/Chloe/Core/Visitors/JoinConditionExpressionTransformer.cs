@@ -5,9 +5,6 @@ namespace Chloe.Core.Visitors
 {
     public class JoinConditionExpressionTransformer : DbExpressionVisitor
     {
-        public static readonly MethodInfo MethodInfo_Sql_Equals = typeof(Sql).GetMethods().Where(a => a.Name == "Equals" && a.IsStatic && a.IsGenericMethod).First();
-        public static readonly MethodInfo MethodInfo_Sql_NotEquals = typeof(Sql).GetMethod("NotEquals");
-
         static readonly JoinConditionExpressionTransformer _joinConditionExpressionParser = new JoinConditionExpressionTransformer();
 
         public static DbExpression Transform(DbExpression exp)
@@ -23,10 +20,10 @@ namespace Chloe.Core.Visitors
             DbExpression left = exp.Left;
             DbExpression right = exp.Right;
 
-            MethodInfo method_Sql_Equals = MethodInfo_Sql_Equals.MakeGenericMethod(left.Type);
+            MethodInfo method_Sql_IsEqual = PublicConstants.MethodInfo_Sql_IsEqual.MakeGenericMethod(left.Type);
 
-            /* Sql.Equals(left, right) */
-            DbMethodCallExpression left_equals_right = DbExpression.MethodCall(null, method_Sql_Equals, new List<DbExpression>(2) { left.Accept(this), right.Accept(this) });
+            /* Sql.IsEqual(left, right) */
+            DbMethodCallExpression left_equals_right = DbExpression.MethodCall(null, method_Sql_IsEqual, new List<DbExpression>(2) { left.Accept(this), right.Accept(this) });
 
             return left_equals_right;
         }
@@ -39,10 +36,10 @@ namespace Chloe.Core.Visitors
             DbExpression left = exp.Left;
             DbExpression right = exp.Right;
 
-            MethodInfo method_Sql_NotEquals = MethodInfo_Sql_NotEquals.MakeGenericMethod(left.Type);
+            MethodInfo method_Sql_IsNotEqual = PublicConstants.MethodInfo_Sql_IsNotEqual.MakeGenericMethod(left.Type);
 
-            /* Sql.NotEquals(left, right) */
-            DbMethodCallExpression left_not_equals_right = DbExpression.MethodCall(null, method_Sql_NotEquals, new List<DbExpression>(2) { left.Accept(this), right.Accept(this) });
+            /* Sql.IsNotEqual(left, right) */
+            DbMethodCallExpression left_not_equals_right = DbExpression.MethodCall(null, method_Sql_IsNotEqual, new List<DbExpression>(2) { left.Accept(this), right.Accept(this) });
 
             return left_not_equals_right;
         }

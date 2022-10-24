@@ -5,17 +5,12 @@ using System.Reflection;
 
 namespace Chloe.SqlServer.MethodHandlers
 {
-    class NotEquals_Handler : IMethodHandler
+    class IsNotEqual_Handler : IMethodHandler
     {
         public bool CanProcess(DbMethodCallExpression exp)
         {
             MethodInfo method = exp.Method;
-            if (method.DeclaringType != PublicConstants.TypeOfSql)
-            {
-                return false;
-            }
-
-            return true;
+            return PublicHelper.Is_Sql_IsNotEqual_Method(method);
         }
         public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {

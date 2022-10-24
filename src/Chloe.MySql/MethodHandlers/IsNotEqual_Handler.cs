@@ -3,19 +3,14 @@ using Chloe.InternalExtensions;
 using Chloe.RDBMS;
 using System.Reflection;
 
-namespace Chloe.Oracle.MethodHandlers
+namespace Chloe.MySql.MethodHandlers
 {
-    class NotEquals_Handler : IMethodHandler
+    class IsNotEqual_Handler : IMethodHandler
     {
         public bool CanProcess(DbMethodCallExpression exp)
         {
             MethodInfo method = exp.Method;
-            if (method.DeclaringType != PublicConstants.TypeOfSql)
-            {
-                return false;
-            }
-
-            return true;
+            return PublicHelper.Is_Sql_IsNotEqual_Method(method);
         }
         public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
@@ -26,14 +21,14 @@ namespace Chloe.Oracle.MethodHandlers
             right = DbExpressionExtension.StripInvalidConvert(right);
 
             //明确 left right 其中一边一定为 null
-            if (DbExpressionHelper.AffirmExpressionRetValueIsNullOrEmpty(right))
+            if (DbExpressionExtension.AffirmExpressionRetValueIsNull(right))
             {
                 left.Accept(generator);
                 generator.SqlBuilder.Append(" IS NOT NULL");
                 return;
             }
 
-            if (DbExpressionHelper.AffirmExpressionRetValueIsNullOrEmpty(left))
+            if (DbExpressionExtension.AffirmExpressionRetValueIsNull(left))
             {
                 right.Accept(generator);
                 generator.SqlBuilder.Append(" IS NOT NULL");

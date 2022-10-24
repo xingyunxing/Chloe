@@ -147,16 +147,16 @@ namespace Chloe.Sharding.Visitors
                 return this.Handle_Enumerable_Contains_MethodCall(exp);
             }
 
-            // Sql.Equals(a.CreateTime, dt)
-            if (PublicHelper.Is_Sql_Equals_MethodCall(exp))
+            // Sql.IsEqual(a.CreateTime, dt)
+            if (PublicHelper.Is_Sql_IsEqual_MethodCall(exp))
             {
-                return this.Handle_Sql_Equals_MethodCall(exp);
+                return this.Handle_Sql_IsEqual_MethodCall(exp);
             }
 
-            // Sql.NotEquals(a.CreateTime, dt)
-            if (PublicHelper.Is_Sql_NotEquals_MethodCall(exp))
+            // Sql.IsNotEqual(a.CreateTime, dt)
+            if (PublicHelper.Is_Sql_IsNotEqual_MethodCall(exp))
             {
-                return this.Handle_Sql_NotEquals_MethodCall(exp);
+                return this.Handle_Sql_IsNotEqual_MethodCall(exp);
             }
 
             // Sql.Compare(a.CreateTime, compareType, dt)
@@ -265,12 +265,12 @@ namespace Chloe.Sharding.Visitors
             IEnumerable<RouteTable> routeTables = this.GetRouteTables(list, routingStrategy);
             return routeTables;
         }
-        IEnumerable<RouteTable> Handle_Sql_Equals_MethodCall(MethodCallExpression exp)
+        IEnumerable<RouteTable> Handle_Sql_IsEqual_MethodCall(MethodCallExpression exp)
         {
             var equalExp = Expression.MakeBinary(ExpressionType.Equal, exp.Arguments[0], exp.Arguments[1]);
             return this.VisitBinary(equalExp);
         }
-        IEnumerable<RouteTable> Handle_Sql_NotEquals_MethodCall(MethodCallExpression exp)
+        IEnumerable<RouteTable> Handle_Sql_IsNotEqual_MethodCall(MethodCallExpression exp)
         {
             var notEqualExp = Expression.MakeBinary(ExpressionType.NotEqual, exp.Arguments[0], exp.Arguments[1]);
             return this.VisitBinary(notEqualExp);

@@ -162,6 +162,25 @@ namespace Chloe
             return typeDescriptor.GenDbTable(table);
         }
 
+        public static bool Is_Sql_IsEqual_Method(MethodInfo method)
+        {
+            if (method.DeclaringType == PublicConstants.TypeOfSql && method.Name == nameof(Sql.IsEqual))
+            {
+                return true;
+            }
+
+            return false;
+        }
+        public static bool Is_Sql_IsNotEqual_Method(MethodInfo method)
+        {
+            if (method.DeclaringType == PublicConstants.TypeOfSql && method.Name == nameof(Sql.IsNotEqual))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         public static bool Is_Contains_MethodCall(MethodCallExpression exp)
         {
             MethodInfo method = exp.Method;
@@ -208,33 +227,21 @@ namespace Chloe
             return false;
         }
 
-        public static bool Is_Sql_Equals_MethodCall(MethodCallExpression exp)
+        public static bool Is_Sql_IsEqual_MethodCall(MethodCallExpression exp)
         {
             MethodInfo method = exp.Method;
-
-            if (method.DeclaringType == PublicConstants.TypeOfSql)
-            {
-                return true;
-            }
-
-            return false;
+            return Is_Sql_IsEqual_Method(method);
         }
-        public static bool Is_Sql_NotEquals_MethodCall(MethodCallExpression exp)
+        public static bool Is_Sql_IsNotEqual_MethodCall(MethodCallExpression exp)
         {
             MethodInfo method = exp.Method;
-
-            if (method.DeclaringType == PublicConstants.TypeOfSql)
-            {
-                return true;
-            }
-
-            return false;
+            return Is_Sql_IsNotEqual_Method(method);
         }
         public static bool Is_Sql_Compare_MethodCall(MethodCallExpression exp)
         {
             MethodInfo method = exp.Method;
 
-            if (method.DeclaringType == PublicConstants.TypeOfSql)
+            if (method.DeclaringType == PublicConstants.TypeOfSql && method.Name == nameof(Sql.Compare))
             {
                 return true;
             }

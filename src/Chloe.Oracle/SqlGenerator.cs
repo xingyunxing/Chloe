@@ -80,10 +80,10 @@ namespace Chloe.Oracle
             left = DbExpressionExtension.StripInvalidConvert(left);
             right = DbExpressionExtension.StripInvalidConvert(right);
 
-            MethodInfo method_Sql_Equals = PublicConstants.MethodInfo_Sql_Equals.MakeGenericMethod(left.Type);
+            MethodInfo method_Sql_IsEqual = PublicConstants.MethodInfo_Sql_IsEqual.MakeGenericMethod(left.Type);
 
-            /* Sql.Equals(left, right) */
-            DbMethodCallExpression left_equals_right = DbExpression.MethodCall(null, method_Sql_Equals, new List<DbExpression>(2) { left, right });
+            /* Sql.IsEqual(left, right) */
+            DbMethodCallExpression left_equals_right = DbExpression.MethodCall(null, method_Sql_IsEqual, new List<DbExpression>(2) { left, right });
 
             if (right.NodeType == DbExpressionType.Parameter || right.NodeType == DbExpressionType.Constant || left.NodeType == DbExpressionType.Parameter || left.NodeType == DbExpressionType.Constant || right.NodeType == DbExpressionType.SubQuery || left.NodeType == DbExpressionType.SubQuery || !left.Type.CanNull() || !right.Type.CanNull())
             {
@@ -102,16 +102,16 @@ namespace Chloe.Oracle
              * a.Name == a.XName --> a.Name == a.XName or (a.Name is null and a.XName is null)
              */
 
-            /* Sql.Equals(left, null) */
-            var left_is_null = DbExpression.MethodCall(null, method_Sql_Equals, new List<DbExpression>(2) { left, DbExpression.Constant(null, left.Type) });
+            /* Sql.IsEqual(left, null) */
+            var left_is_null = DbExpression.MethodCall(null, method_Sql_IsEqual, new List<DbExpression>(2) { left, DbExpression.Constant(null, left.Type) });
 
-            /* Sql.Equals(right, null) */
-            var right_is_null = DbExpression.MethodCall(null, method_Sql_Equals, new List<DbExpression>(2) { right, DbExpression.Constant(null, right.Type) });
+            /* Sql.IsEqual(right, null) */
+            var right_is_null = DbExpression.MethodCall(null, method_Sql_IsEqual, new List<DbExpression>(2) { right, DbExpression.Constant(null, right.Type) });
 
-            /* Sql.Equals(left, null) && Sql.Equals(right, null) */
+            /* Sql.IsEqual(left, null) && Sql.IsEqual(right, null) */
             var left_is_null_and_right_is_null = DbExpression.And(left_is_null, right_is_null);
 
-            /* Sql.Equals(left, right) || (Sql.Equals(left, null) && Sql.Equals(right, null)) */
+            /* Sql.IsEqual(left, right) || (Sql.IsEqual(left, null) && Sql.IsEqual(right, null)) */
             var left_equals_right_or_left_is_null_and_right_is_null = DbExpression.Or(left_equals_right, left_is_null_and_right_is_null);
 
             left_equals_right_or_left_is_null_and_right_is_null.Accept(this);
@@ -126,10 +126,10 @@ namespace Chloe.Oracle
             left = DbExpressionExtension.StripInvalidConvert(left);
             right = DbExpressionExtension.StripInvalidConvert(right);
 
-            MethodInfo method_Sql_NotEquals = PublicConstants.MethodInfo_Sql_NotEquals.MakeGenericMethod(left.Type);
+            MethodInfo method_Sql_IsNotEqual = PublicConstants.MethodInfo_Sql_IsNotEqual.MakeGenericMethod(left.Type);
 
-            /* Sql.NotEquals(left, right) */
-            DbMethodCallExpression left_not_equals_right = DbExpression.MethodCall(null, method_Sql_NotEquals, new List<DbExpression>(2) { left, right });
+            /* Sql.IsNotEqual(left, right) */
+            DbMethodCallExpression left_not_equals_right = DbExpression.MethodCall(null, method_Sql_IsNotEqual, new List<DbExpression>(2) { left, right });
 
             //明确 left right 其中一边一定为 null
             if (DbExpressionHelper.AffirmExpressionRetValueIsNullOrEmpty(right) || DbExpressionHelper.AffirmExpressionRetValueIsNullOrEmpty(left))
@@ -152,7 +152,7 @@ namespace Chloe.Oracle
                 return exp;
             }
 
-            MethodInfo method_Sql_Equals = PublicConstants.MethodInfo_Sql_Equals.MakeGenericMethod(left.Type);
+            MethodInfo method_Sql_IsEqual = PublicConstants.MethodInfo_Sql_IsEqual.MakeGenericMethod(left.Type);
 
             if (left.NodeType == DbExpressionType.Parameter || left.NodeType == DbExpressionType.Constant)
             {
@@ -173,10 +173,10 @@ namespace Chloe.Oracle
                      * a.Name != name --> a.Name <> name or a.Name is null
                      */
 
-                    /* Sql.Equals(left, null) */
-                    var left_is_null1 = DbExpression.MethodCall(null, method_Sql_Equals, new List<DbExpression>(2) { left, DbExpression.Constant(null, left.Type) });
+                    /* Sql.IsEqual(left, null) */
+                    var left_is_null1 = DbExpression.MethodCall(null, method_Sql_IsEqual, new List<DbExpression>(2) { left, DbExpression.Constant(null, left.Type) });
 
-                    /* Sql.NotEquals(left, right) || Sql.Equals(left, null) */
+                    /* Sql.IsNotEqual(left, right) || Sql.IsEqual(left, null) */
                     var left_not_equals_right_or_left_is_null = DbExpression.Or(left_not_equals_right, left_is_null1);
                     left_not_equals_right_or_left_is_null.Accept(this);
                 }
@@ -201,26 +201,26 @@ namespace Chloe.Oracle
 
             DbConstantExpression null_Constant = DbExpression.Constant(null, left.Type);
 
-            /* Sql.Equals(left, null) */
-            var left_is_null = DbExpression.MethodCall(null, method_Sql_Equals, new List<DbExpression>(2) { left, null_Constant });
-            /* Sql.NotEquals(left, null) */
-            var left_is_not_null = DbExpression.MethodCall(null, method_Sql_NotEquals, new List<DbExpression>(2) { left, null_Constant });
+            /* Sql.IsEqual(left, null) */
+            var left_is_null = DbExpression.MethodCall(null, method_Sql_IsEqual, new List<DbExpression>(2) { left, null_Constant });
+            /* Sql.IsNotEqual(left, null) */
+            var left_is_not_null = DbExpression.MethodCall(null, method_Sql_IsNotEqual, new List<DbExpression>(2) { left, null_Constant });
 
-            /* Sql.Equals(right, null) */
-            var right_is_null = DbExpression.MethodCall(null, method_Sql_Equals, new List<DbExpression>(2) { right, null_Constant });
-            /* Sql.NotEquals(right, null) */
-            var right_is_not_null = DbExpression.MethodCall(null, method_Sql_NotEquals, new List<DbExpression>(2) { right, null_Constant });
+            /* Sql.IsEqual(right, null) */
+            var right_is_null = DbExpression.MethodCall(null, method_Sql_IsEqual, new List<DbExpression>(2) { right, null_Constant });
+            /* Sql.IsNotEqual(right, null) */
+            var right_is_not_null = DbExpression.MethodCall(null, method_Sql_IsNotEqual, new List<DbExpression>(2) { right, null_Constant });
 
-            /* Sql.Equals(left, null) && Sql.NotEquals(right, null) */
+            /* Sql.IsEqual(left, null) && Sql.IsNotEqual(right, null) */
             var left_is_null_and_right_is_not_null = DbExpression.And(left_is_null, right_is_not_null);
 
-            /* Sql.NotEquals(left, null) && Sql.Equals(right, null) */
+            /* Sql.IsNotEqual(left, null) && Sql.IsEqual(right, null) */
             var left_is_not_null_and_right_is_null = DbExpression.And(left_is_not_null, right_is_null);
 
-            /* (Sql.Equals(left, null) && Sql.NotEquals(right, null)) || (Sql.NotEquals(left, null) && Sql.Equals(right, null)) */
+            /* (Sql.IsEqual(left, null) && Sql.IsNotEqual(right, null)) || (Sql.IsNotEqual(left, null) && Sql.IsEqual(right, null)) */
             var left_is_null_and_right_is_not_null_or_left_is_not_null_and_right_is_null = DbExpression.Or(left_is_null_and_right_is_not_null, left_is_not_null_and_right_is_null);
 
-            /* Sql.NotEquals(left, right) || (Sql.Equals(left, null) && Sql.NotEquals(right, null)) || (Sql.NotEquals(left, null) && Sql.Equals(right, null)) */
+            /* Sql.IsNotEqual(left, right) || (Sql.IsEqual(left, null) && Sql.IsNotEqual(right, null)) || (Sql.IsNotEqual(left, null) && Sql.IsEqual(right, null)) */
             var e = DbExpression.Or(left_not_equals_right, left_is_null_and_right_is_not_null_or_left_is_not_null_and_right_is_null);
 
             e.Accept(this);
