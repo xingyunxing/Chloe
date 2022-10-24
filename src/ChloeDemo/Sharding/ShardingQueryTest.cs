@@ -354,7 +354,7 @@ namespace ChloeDemo.Sharding
         }
 
         /// <summary>
-        /// In, Contains, Equals, Sql.Equals 等方法路由
+        /// In, Contains, Equals, Sql.IsEqual 等方法路由
         /// </summary>
         /// <returns></returns>
         async Task RouteBySomeCSharpMethodTest()
