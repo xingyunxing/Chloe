@@ -14,11 +14,6 @@ namespace Chloe.Oracle.MethodHandlers
         }
         public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
-            Method_Sql_Equals(exp, generator);
-        }
-
-        static void Method_Sql_Equals(DbMethodCallExpression exp, SqlGeneratorBase generator)
-        {
             DbExpression left = exp.Arguments[0];
             DbExpression right = exp.Arguments[1];
 
