@@ -20,6 +20,10 @@ namespace Chloe.DDL
         public IDbContext DbContext { get; }
         public TableGenerateOptions Options { get; }
 
+        public void CreateTable(Type entityType, TableCreateMode createMode = TableCreateMode.CreateIfNotExists)
+        {
+            this.CreateTable(entityType, null, createMode);
+        }
         public void CreateTable(Type entityType, string tableName, TableCreateMode createMode = TableCreateMode.CreateIfNotExists)
         {
             TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(entityType);

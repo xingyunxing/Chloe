@@ -193,7 +193,7 @@ namespace Chloe.Reflection
             return type.GetConstructor(Type.EmptyTypes);
         }
 
-#if net40
+#if NET40
         public static IEnumerable<Attribute> GetCustomAttributes(this MemberInfo member)
         {
             return member.GetCustomAttributes<Attribute>();
