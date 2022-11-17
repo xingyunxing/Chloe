@@ -80,6 +80,8 @@ namespace Chloe.Query.QueryState
             queryModel.ResultModel = resultModel;
             queryModel.FromTable = this._queryModel.FromTable;
             queryModel.AppendCondition(this._queryModel.Condition);
+            queryModel.GlobalFilters.AppendRange(this._queryModel.GlobalFilters);
+            queryModel.ContextFilters.AppendRange(this._queryModel.ContextFilters);
 
             AggregateQueryState state = new AggregateQueryState(this.Context, queryModel);
             return state;
