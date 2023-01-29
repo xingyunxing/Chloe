@@ -339,14 +339,15 @@ namespace ChloeDemo
         {
             IQuery<Person> q = this.DbContext.Query<Person>();
 
-            q.Select(a => Sql.Count()).First();
+            //注：一定要 ToList()
+            q.Select(a => Sql.Count()).ToList().First();
             /*
-             * SELECT COUNT(1) AS [C] FROM [Person] AS [Person] LIMIT 1 OFFSET 0
+             * SELECT COUNT(1) AS [C] FROM [Person] AS [Person]
              */
 
-            q.Select(a => new { Count = Sql.Count(), LongCount = Sql.LongCount(), Sum = Sql.Sum(a.Age), Max = Sql.Max(a.Age), Min = Sql.Min(a.Age), Average = Sql.Average(a.Age) }).First();
+            q.Select(a => new { Count = Sql.Count(), LongCount = Sql.LongCount(), Sum = Sql.Sum(a.Age), Max = Sql.Max(a.Age), Min = Sql.Min(a.Age), Average = Sql.Average(a.Age) }).ToList().First();
             /*
-             * SELECT COUNT(1) AS [Count],COUNT(1) AS [LongCount],CAST(SUM([Person].[Age]) AS INTEGER) AS [Sum],MAX([Person].[Age]) AS [Max],MIN([Person].[Age]) AS [Min],CAST(AVG([Person].[Age]) AS REAL) AS [Average] FROM [Person] AS [Person] LIMIT 1 OFFSET 0
+             * SELECT COUNT(1) AS [Count],COUNT(1) AS [LongCount],CAST(SUM([Person].[Age]) AS INTEGER) AS [Sum],MAX([Person].[Age]) AS [Max],MIN([Person].[Age]) AS [Min],CAST(AVG([Person].[Age]) AS REAL) AS [Average] FROM [Person] AS [Person]
              */
 
             var count = q.Count();
