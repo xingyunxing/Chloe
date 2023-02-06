@@ -1,5 +1,8 @@
 ﻿namespace Chloe.Sharding.Routing
 {
+    /// <summary>
+    /// 表示一个表
+    /// </summary>
     public class RouteTable
     {
         /// <summary>

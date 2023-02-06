@@ -16,6 +16,8 @@ namespace ChloeDemo.Sharding
         public OrderRouteTable(int month)
         {
             this.Month = month;
+
+            //根据月份构造表名
             this.Name = ShardingTest.BuildTableName(month);
         }
 
@@ -27,6 +29,8 @@ namespace ChloeDemo.Sharding
         public OrderRouteDataSource(int year)
         {
             this.Year = year;
+
+            //设置数据源唯一标识
             this.Name = year.ToString();
         }
 
@@ -63,6 +67,10 @@ namespace ChloeDemo.Sharding
             //this.AllTables = GetTablesByYear(2020).Concat(GetTablesByYear(2021)).Reverse().ToList();
             //this.AllTables = this.AllTables.Take(2).ToList();
         }
+
+        /// <summary>
+        /// 所有分片表
+        /// </summary>
         List<RouteTable> AllTables { get; set; }
 
         /// <summary>
@@ -72,10 +80,22 @@ namespace ChloeDemo.Sharding
         /// <returns></returns>
         IEnumerable<RouteTable> GetTablesByYear(int year)
         {
+            /*
+             * 根据年分库
+             * 根据月份分表
+             */
+
             for (int month = 1; month <= 12; month++)
             {
-                var dbContextProviderFactory = new OrderDbContextProviderFactory(this._shardingTest, year);
-                RouteTable table = new OrderRouteTable(month) { DataSource = new OrderRouteDataSource(year) { DbContextProviderFactory = dbContextProviderFactory } };
+                var dbContextProviderFactory = new OrderDbContextProviderFactory(this._shardingTest, year);  //根据年份创建连接数据库对象
+                RouteTable table = new OrderRouteTable(month)
+                {
+                    /* 设置 RouteTable 所在的数据库 */
+                    DataSource = new OrderRouteDataSource(year)
+                    {
+                        DbContextProviderFactory = dbContextProviderFactory
+                    }
+                };
 
                 yield return table;
             }

@@ -133,6 +133,11 @@ namespace ChloeDemo.Sharding
             }
         }
 
+        /// <summary>
+        /// 根据月份构造表名
+        /// </summary>
+        /// <param name="month"></param>
+        /// <returns></returns>
         public static string BuildTableName(int month)
         {
             string suffix = month.ToString();

@@ -80,7 +80,6 @@ namespace Chloe.Sharding
             //TODO 对表排序
             var groupedTables = tables.GroupBy(a => a.DataSource.Name).Select(a => (a.First().DataSource, a.ToList()));
             return groupedTables;
-
         }
         public static IOrderedQuery<T> InnerOrderBy<T>(this IQuery<T> q, Ordering ordering)
         {
