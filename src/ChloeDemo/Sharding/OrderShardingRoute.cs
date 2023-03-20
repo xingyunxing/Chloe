@@ -180,34 +180,64 @@ namespace ChloeDemo.Sharding
 
         }
 
+        /// <summary>
+        /// 当查询如 query.Where(a => a.CreateTime == createTime) 时，从所有分表中筛选出满足条件的分表
+        /// </summary>
+        /// <param name="createTime"></param>
+        /// <returns></returns>
         public override IEnumerable<RouteTable> ForEqual(DateTime createTime)
         {
             return this.Route.GetTables().Where(a => (a.DataSource as OrderRouteDataSource).Year == createTime.Year && (a as OrderRouteTable).Month == createTime.Month);
         }
 
+        /// <summary>
+        /// 当查询如 query.Where(a => a.CreateTime != createTime) 时，从所有分表中筛选出满足条件的分表
+        /// </summary>
+        /// <param name="createTime"></param>
+        /// <returns></returns>
         public override IEnumerable<RouteTable> ForNotEqual(DateTime createTime)
         {
-            return base.ForNotEqual(createTime);
+            return this.Route.GetTables();
         }
 
+        /// <summary>
+        /// 当查询如 query.Where(a => a.CreateTime > createTime) 时，从所有分表中筛选出满足条件的分表
+        /// </summary>
+        /// <param name="createTime"></param>
+        /// <returns></returns>
         public override IEnumerable<RouteTable> ForGreaterThan(DateTime createTime)
         {
             return this.Route.GetTables().Where(a => (a.DataSource as OrderRouteDataSource).Year > createTime.Year || ((a.DataSource as OrderRouteDataSource).Year == createTime.Year && (a as OrderRouteTable).Month >= createTime.Month));
         }
 
+        /// <summary>
+        /// 当查询如 query.Where(a => a.CreateTime >= createTime) 时，从所有分表中筛选出满足条件的分表
+        /// </summary>
+        /// <param name="createTime"></param>
+        /// <returns></returns>
         public override IEnumerable<RouteTable> ForGreaterThanOrEqual(DateTime createTime)
         {
-            return this.ForGreaterThan(createTime);
+            return this.Route.GetTables().Where(a => (a.DataSource as OrderRouteDataSource).Year > createTime.Year || ((a.DataSource as OrderRouteDataSource).Year == createTime.Year && (a as OrderRouteTable).Month >= createTime.Month));
         }
 
+        /// <summary>
+        /// 当查询如 query.Where(a => a.CreateTime &lt; createTime) 时，从所有分表中筛选出满足条件的分表
+        /// </summary>
+        /// <param name="createTime"></param>
+        /// <returns></returns>
         public override IEnumerable<RouteTable> ForLessThan(DateTime createTime)
         {
             return this.Route.GetTables().Where(a => (a.DataSource as OrderRouteDataSource).Year < createTime.Year || ((a.DataSource as OrderRouteDataSource).Year == createTime.Year && (a as OrderRouteTable).Month <= createTime.Month));
         }
 
+        /// <summary>
+        /// 当查询如 query.Where(a => a.CreateTime &lt;= createTime) 时，从所有分表中筛选出满足条件的分表
+        /// </summary>
+        /// <param name="createTime"></param>
+        /// <returns></returns>
         public override IEnumerable<RouteTable> ForLessThanOrEqual(DateTime createTime)
         {
-            return this.ForLessThan(createTime);
+            return this.Route.GetTables().Where(a => (a.DataSource as OrderRouteDataSource).Year < createTime.Year || ((a.DataSource as OrderRouteDataSource).Year == createTime.Year && (a as OrderRouteTable).Month <= createTime.Month));
         }
     }
     /// <summary>
