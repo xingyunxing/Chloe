@@ -5,6 +5,7 @@ namespace Chloe
     public class DbParam
     {
         object _value;
+
         public DbParam()
         {
         }

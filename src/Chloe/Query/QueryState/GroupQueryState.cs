@@ -16,7 +16,14 @@ namespace Chloe.Query.QueryState
         }
         public override IQueryState Accept(AggregateQueryExpression exp)
         {
-            IQueryState state = this.AsSubQueryState();
+            if (this.QueryModel.Orderings.Count > 0)
+            {
+                QueryModel queryModel = this.QueryModel.Clone(false);
+                GroupQueryState groupQueryState = new GroupQueryState(this.Context, queryModel);
+                return groupQueryState.Accept(exp);
+            }
+
+            GeneralQueryState state = this.AsSubQueryState();
             return state.Accept(exp);
         }
         public override IQueryState Accept(GroupingQueryExpression exp)

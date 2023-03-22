@@ -78,14 +78,19 @@ namespace Chloe.Query
 
             return sqlQuery;
         }
-        public QueryModel Clone()
+        public QueryModel Clone(bool includeOrderings = true)
         {
             QueryModel newQueryModel = new QueryModel(this.ScopeParameters, this.ScopeTables, this.IgnoreFilters);
             newQueryModel.FromTable = this.FromTable;
 
             newQueryModel.IsTracking = this.IsTracking;
             newQueryModel.ResultModel = this.ResultModel;
-            newQueryModel.Orderings.AppendRange(this.Orderings);
+
+            if (includeOrderings)
+            {
+                newQueryModel.Orderings.AppendRange(this.Orderings);
+            }
+
             newQueryModel.Condition = this.Condition;
 
             newQueryModel.GlobalFilters.AppendRange(this.GlobalFilters);
