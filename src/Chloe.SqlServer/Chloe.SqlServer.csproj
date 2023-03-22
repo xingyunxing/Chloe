@@ -4,14 +4,14 @@
 		<TargetFrameworks>netstandard2.0;net46;net5.0</TargetFrameworks>
 		<LangVersion>10.0</LangVersion>
 
-		<Version>5.3.0</Version>
-		<AssemblyVersion>5.3.0.0</AssemblyVersion>
-		<FileVersion>5.3.0.0</FileVersion>
+		<Version>5.3.1</Version>
+		<AssemblyVersion>5.3.1.0</AssemblyVersion>
+		<FileVersion>5.3.1.0</FileVersion>
 		<Description>A lightweight and high-performance Object/Relational Mapping(ORM) library.</Description>
 		<PackageId>Chloe.SqlServer</PackageId>
 		<Product>Chloe.ORM</Product>
 		<Authors>Shuxin Qin</Authors>
-		<Copyright>Copyright 2016-2022.</Copyright>
+		<Copyright>Copyright 2016-2023.</Copyright>
 		<GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
 	</PropertyGroup>
 

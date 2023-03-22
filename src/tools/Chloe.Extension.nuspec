@@ -11,7 +11,7 @@
     <iconUrl>http://images.cnblogs.com/cnblogs_com/so9527/860154/o_ORMicon.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Extension for Chloe.ORM</description>
-    <copyright>Copyright 2016-2022</copyright>
+    <copyright>Copyright 2016-2023</copyright>
     <tags>Chloe,ORM,Data</tags>
 
 	<dependencies>
