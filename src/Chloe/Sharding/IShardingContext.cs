@@ -123,18 +123,15 @@ namespace Chloe.Sharding
                     continue;
                 }
 
-                goto ThrowException;
+                throw new ChloeException($"There is not only one table matched for entity '{shardingContext.ShardingConfig.EntityType.FullName}'.");
             }
 
             if (matchedTable == null)
             {
-                goto ThrowException;
+                throw new ChloeException($"There is not table matched for entity '{shardingContext.ShardingConfig.EntityType.FullName}'.");
             }
 
             return matchedTable;
-
-        ThrowException:
-            throw new ChloeException($"There is not only one table matched for entity '{shardingContext.ShardingConfig.EntityType.FullName}'.");
         }
 
         public static SortResult SortTables(this IShardingContext shardingContext, List<RouteTable> tables, List<Ordering> orderings)

@@ -13,7 +13,7 @@ namespace Chloe.Sharding.Routing
         /// <returns></returns>
         IEnumerable<RouteTable> GetTables();
         /// <summary>
-        /// 根据实体属性获取相应的路由规则
+        /// 根据实体属性获取相应的路由规则，如果传入的 member 没有路由规则，返回 null 即可。
         /// </summary>
         /// <param name="member"></param>
         /// <returns></returns>
