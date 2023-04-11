@@ -4,10 +4,8 @@ namespace Chloe
 {
     public interface IIncludableQuery<TEntity, TNavigation> : IQuery<TEntity>
     {
-        [Obsolete("This method will be removed in future versions. Instead of using `Filter` method.")]
-        IIncludableQuery<TEntity, TNavigation> AndWhere(Expression<Func<TNavigation, bool>> predicate);
         /// <summary>
-        /// 对导航属性过滤：dbContext.Query&lt;City&gt;().IncludeMany(a =&gt; a.Users).AndWhere(a =&gt; a.Age &gt;= 18) --&gt; select ... from City left join User on City.Id=User.CityId and User.Age &gt;= 18
+        /// 对导航属性过滤：dbContext.Query&lt;City&gt;().IncludeMany(a =&gt; a.Users).Filter(a =&gt; a.Age &gt;= 18) --&gt; select ... from City left join User on City.Id=User.CityId and User.Age &gt;= 18
         /// </summary>
         /// <param name="predicate"></param>
         /// <returns></returns>

@@ -128,10 +128,5 @@ namespace Chloe.Query
 
             return new IncludableQuery<TEntity, TNavigation>(includeExpression);
         }
-
-        public IIncludableQuery<TEntity, TNavigation> AndWhere(Expression<Func<TNavigation, bool>> predicate)
-        {
-            return this.Filter(predicate);
-        }
     }
 }

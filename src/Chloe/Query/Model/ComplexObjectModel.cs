@@ -514,7 +514,7 @@ namespace Chloe.Query
             navigationObjectModel.DependentTable = joinTableExp;
 
             DbExpression condition = this.ParseCondition(navigationNode.Condition, navigationObjectModel, queryModel.ScopeTables);
-            //AndWhere的条件放到join条件里去
+            //Filter 的条件放到 join 条件里去
             joinTableExp.AppendCondition(condition);
 
             navigationObjectModel.Filters.AddRange(navigationNode.ContextFilters.Concat(navigationTypeDescriptor.Definition.Filters).Select(a => this.ParseCondition(a, navigationObjectModel, queryModel.ScopeTables)));
@@ -546,7 +546,7 @@ namespace Chloe.Query
 
             elementObjectModel.DependentTable = joinTableExp;
             var condition = this.ParseCondition(navigationNode.Condition, elementObjectModel, queryModel.ScopeTables);
-            //AndWhere的条件放到join条件里去
+            //Filter 的条件放到 join 条件里去
             joinTableExp.AppendCondition(condition);
 
             elementObjectModel.Filters.AddRange(navigationNode.ContextFilters.Concat(elementTypeDescriptor.Definition.Filters).Select(a => this.ParseCondition(a, elementObjectModel, queryModel.ScopeTables)));
