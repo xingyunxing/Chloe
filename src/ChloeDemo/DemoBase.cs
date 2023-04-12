@@ -586,6 +586,13 @@ namespace ChloeDemo
              * DELETE FROM [Person] WHERE [Person].[Id] < 0
              */
 
+
+            //复杂条件删除
+            this.DbContext.Delete<Person>(a => !this.DbContext.Query<City>().IgnoreAllFilters().Select(a => a.Id).ToList().Contains(a.CityId));
+            /*
+             * DELETE FROM [Person] WHERE NOT ([Person].[CityId] IN (SELECT [City].[Id] AS [C] FROM [City] AS [City]))
+             */
+
             Person person = new Person();
             person.Id = 1;
             this.DbContext.Delete(person);

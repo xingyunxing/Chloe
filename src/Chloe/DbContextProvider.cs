@@ -7,6 +7,7 @@ using Chloe.Exceptions;
 using Chloe.Infrastructure;
 using Chloe.Query;
 using Chloe.Query.Internals;
+using Chloe.Query.Visitors;
 using Chloe.Threading.Tasks;
 using Chloe.Utility;
 using System.Data;
@@ -394,12 +395,11 @@ namespace Chloe
             Dictionary<MemberInfo, Expression> updateColumns = InitMemberExtractor.Extract(content);
 
             DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
-            DefaultExpressionParser expressionParser = typeDescriptor.GetExpressionParser(dbTable);
-
-            DbExpression conditionExp = expressionParser.ParseFilterPredicate(condition);
+            DbExpression conditionExp = FilterPredicateParser.Parse(condition, typeDescriptor, dbTable);
 
             DbUpdateExpression e = new DbUpdateExpression(dbTable, conditionExp);
 
+            DefaultExpressionParser expressionParser = typeDescriptor.GetExpressionParser(dbTable);
             foreach (var kv in updateColumns)
             {
                 MemberInfo key = kv.Key;
@@ -479,8 +479,7 @@ namespace Chloe
             TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(TEntity));
 
             DbTable dbTable = typeDescriptor.GenDbTable(table);
-            DefaultExpressionParser expressionParser = typeDescriptor.GetExpressionParser(dbTable);
-            DbExpression conditionExp = expressionParser.ParseFilterPredicate(condition);
+            DbExpression conditionExp = FilterPredicateParser.Parse(condition, typeDescriptor, dbTable);
 
             DbDeleteExpression e = new DbDeleteExpression(dbTable, conditionExp);
 

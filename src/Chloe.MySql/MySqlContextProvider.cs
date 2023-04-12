@@ -3,6 +3,7 @@ using Chloe.DbExpressions;
 using Chloe.Descriptors;
 using Chloe.Exceptions;
 using Chloe.Infrastructure;
+using Chloe.Query.Visitors;
 using Chloe.RDBMS;
 using Chloe.Threading.Tasks;
 using System.Data;
@@ -217,12 +218,11 @@ namespace Chloe.MySql
             Dictionary<MemberInfo, Expression> updateColumns = InitMemberExtractor.Extract(content);
 
             DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
-            DefaultExpressionParser expressionParser = typeDescriptor.GetExpressionParser(dbTable);
-
-            DbExpression conditionExp = expressionParser.ParseFilterPredicate(condition);
+            DbExpression conditionExp = FilterPredicateParser.Parse(condition, typeDescriptor, dbTable);
 
             MySqlDbUpdateExpression e = new MySqlDbUpdateExpression(dbTable, conditionExp);
 
+            DefaultExpressionParser expressionParser = typeDescriptor.GetExpressionParser(dbTable);
             foreach (var kv in updateColumns)
             {
                 MemberInfo key = kv.Key;
@@ -268,8 +268,7 @@ namespace Chloe.MySql
             TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(TEntity));
 
             DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
-            DefaultExpressionParser expressionParser = typeDescriptor.GetExpressionParser(dbTable);
-            DbExpression conditionExp = expressionParser.ParseFilterPredicate(condition);
+            DbExpression conditionExp = FilterPredicateParser.Parse(condition, typeDescriptor, dbTable);
 
             MySqlDbDeleteExpression e = new MySqlDbDeleteExpression(dbTable, conditionExp);
             e.Limits = limits;
