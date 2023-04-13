@@ -69,11 +69,11 @@ namespace Chloe.Data
 
             if (this._adoSession == this._internalAdoSession && this._internalAdoSession.IsInTransaction)
             {
-                throw new NotSupportedException("当前回话已经开启事务，已开启的事务未提交或回滚前无法使用外部事务。");
+                throw new NotSupportedException("当前会话已经开启事务，已开启的事务未提交或回滚前无法使用外部事务。");
             }
             if (this._externalAdoSession != null)
             {
-                throw new NotSupportedException("当前回话已经使用了一个外部事务，无法再次使用另一个外部事务。");
+                throw new NotSupportedException("当前会话已经使用了一个外部事务，无法再次使用另一个外部事务。");
             }
 
             ExternalAdoSession externalAdoSession = new ExternalAdoSession(dbTransaction);

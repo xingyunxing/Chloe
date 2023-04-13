@@ -114,36 +114,36 @@ namespace Chloe.Data
 
 
         #region
-        internal static readonly MethodInfo Reader_GetInt16 = typeof(DataReaderExtension).GetMethod("GetInt16");
-        internal static readonly MethodInfo Reader_GetInt16_Nullable = typeof(DataReaderExtension).GetMethod("GetInt16_Nullable");
-        internal static readonly MethodInfo Reader_GetInt32 = typeof(DataReaderExtension).GetMethod("GetInt32");
-        internal static readonly MethodInfo Reader_GetInt32_Nullable = typeof(DataReaderExtension).GetMethod("GetInt32_Nullable");
-        internal static readonly MethodInfo Reader_GetInt64 = typeof(DataReaderExtension).GetMethod("GetInt64");
-        internal static readonly MethodInfo Reader_GetInt64_Nullable = typeof(DataReaderExtension).GetMethod("GetInt64_Nullable");
-        internal static readonly MethodInfo Reader_GetDecimal = typeof(DataReaderExtension).GetMethod("GetDecimal");
-        internal static readonly MethodInfo Reader_GetDecimal_Nullable = typeof(DataReaderExtension).GetMethod("GetDecimal_Nullable");
-        internal static readonly MethodInfo Reader_GetDouble = typeof(DataReaderExtension).GetMethod("GetDouble");
-        internal static readonly MethodInfo Reader_GetDouble_Nullable = typeof(DataReaderExtension).GetMethod("GetDouble_Nullable");
-        internal static readonly MethodInfo Reader_GetFloat = typeof(DataReaderExtension).GetMethod("GetFloat");
-        internal static readonly MethodInfo Reader_GetFloat_Nullable = typeof(DataReaderExtension).GetMethod("GetFloat_Nullable");
-        internal static readonly MethodInfo Reader_GetBoolean = typeof(DataReaderExtension).GetMethod("GetBoolean");
-        internal static readonly MethodInfo Reader_GetBoolean_Nullable = typeof(DataReaderExtension).GetMethod("GetBoolean_Nullable");
-        internal static readonly MethodInfo Reader_GetDateTime = typeof(DataReaderExtension).GetMethod("GetDateTime");
-        internal static readonly MethodInfo Reader_GetDateTime_Nullable = typeof(DataReaderExtension).GetMethod("GetDateTime_Nullable");
-        internal static readonly MethodInfo Reader_GetGuid = typeof(DataReaderExtension).GetMethod("GetGuid");
-        internal static readonly MethodInfo Reader_GetGuid_Nullable = typeof(DataReaderExtension).GetMethod("GetGuid_Nullable");
-        internal static readonly MethodInfo Reader_GetByte = typeof(DataReaderExtension).GetMethod("GetByte");
-        internal static readonly MethodInfo Reader_GetByte_Nullable = typeof(DataReaderExtension).GetMethod("GetByte_Nullable");
-        internal static readonly MethodInfo Reader_GetChar = typeof(DataReaderExtension).GetMethod("GetChar");
-        internal static readonly MethodInfo Reader_GetChar_Nullable = typeof(DataReaderExtension).GetMethod("GetChar_Nullable");
-        internal static readonly MethodInfo Reader_GetString = typeof(DataReaderExtension).GetMethod("GetString");
-        internal static readonly MethodInfo Reader_GetValue = typeof(DataReaderExtension).GetMethod("GetValue");
+        internal static readonly MethodInfo Reader_GetInt16 = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetInt16));
+        internal static readonly MethodInfo Reader_GetInt16_Nullable = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetInt16_Nullable));
+        internal static readonly MethodInfo Reader_GetInt32 = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetInt32));
+        internal static readonly MethodInfo Reader_GetInt32_Nullable = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetInt32_Nullable));
+        internal static readonly MethodInfo Reader_GetInt64 = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetInt64));
+        internal static readonly MethodInfo Reader_GetInt64_Nullable = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetInt64_Nullable));
+        internal static readonly MethodInfo Reader_GetDecimal = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetDecimal));
+        internal static readonly MethodInfo Reader_GetDecimal_Nullable = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetDecimal_Nullable));
+        internal static readonly MethodInfo Reader_GetDouble = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetDouble));
+        internal static readonly MethodInfo Reader_GetDouble_Nullable = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetDouble_Nullable));
+        internal static readonly MethodInfo Reader_GetFloat = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetFloat));
+        internal static readonly MethodInfo Reader_GetFloat_Nullable = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetFloat_Nullable));
+        internal static readonly MethodInfo Reader_GetBoolean = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetBoolean));
+        internal static readonly MethodInfo Reader_GetBoolean_Nullable = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetBoolean_Nullable));
+        internal static readonly MethodInfo Reader_GetDateTime = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetDateTime));
+        internal static readonly MethodInfo Reader_GetDateTime_Nullable = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetDateTime_Nullable));
+        internal static readonly MethodInfo Reader_GetGuid = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetGuid));
+        internal static readonly MethodInfo Reader_GetGuid_Nullable = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetGuid_Nullable));
+        internal static readonly MethodInfo Reader_GetByte = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetByte));
+        internal static readonly MethodInfo Reader_GetByte_Nullable = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetByte_Nullable));
+        internal static readonly MethodInfo Reader_GetChar = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetChar));
+        internal static readonly MethodInfo Reader_GetChar_Nullable = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetChar_Nullable));
+        internal static readonly MethodInfo Reader_GetString = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetString));
+        internal static readonly MethodInfo Reader_GetValue = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetValue));
 
-        internal static readonly MethodInfo Reader_GetEnum = typeof(DataReaderExtension).GetMethod("GetEnum", new Type[] { typeof(IDataReader), typeof(int) });
-        internal static readonly MethodInfo Reader_GetEnum_Nullable = typeof(DataReaderExtension).GetMethod("GetEnum_Nullable");
+        internal static readonly MethodInfo Reader_GetEnum = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetEnum), new Type[] { typeof(IDataReader), typeof(int) });
+        internal static readonly MethodInfo Reader_GetEnum_Nullable = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetEnum_Nullable));
 
-        internal static readonly MethodInfo Reader_GetTValue = typeof(DataReaderExtension).GetMethod("GetTValue");
-        internal static readonly MethodInfo Reader_GetTValue_Nullable = typeof(DataReaderExtension).GetMethod("GetTValue_Nullable");
+        internal static readonly MethodInfo Reader_GetTValue = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetTValue));
+        internal static readonly MethodInfo Reader_GetTValue_Nullable = typeof(DataReaderExtension).GetMethod(nameof(DataReaderExtension.GetTValue_Nullable));
         #endregion
     }
 }
