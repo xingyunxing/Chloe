@@ -24,7 +24,6 @@ namespace ChloeDemo
         /* documentation：https://github.com/shuxinqin/Chloe/wiki */
         public static void Main(string[] args)
         {
-            Test();
             /*
              * Q: 查询如 q.Where(a=> a.Name == "Chloe") 为什么生成的不是参数化 sql ？
              * A: 因为框架内部解析 lambda 时对于常量（ConstantExpression）不做参数化处理（刻意的，不要问为什么，问我也不告诉你），如需参数化，请使用变量，如：
@@ -58,20 +57,20 @@ namespace ChloeDemo
             MySqlShardingTest mySqlShardingTest = new MySqlShardingTest();
             mySqlShardingTest.Run().GetAwaiter().GetResult();
 
-            ////oracle 分库分表测试
-            //OracleShardingTest oracleShardingTest = new OracleShardingTest();
-            //oracleShardingTest.Run().GetAwaiter().GetResult();
+            //oracle 分库分表测试
+            OracleShardingTest oracleShardingTest = new OracleShardingTest();
+            oracleShardingTest.Run().GetAwaiter().GetResult();
 
-            ////postgreSQL 分库分表测试
-            //PostgreSQLShardingTest postgreSQLShardingTest = new PostgreSQLShardingTest();
-            //postgreSQLShardingTest.Run().GetAwaiter().GetResult();
+            //postgreSQL 分库分表测试
+            PostgreSQLShardingTest postgreSQLShardingTest = new PostgreSQLShardingTest();
+            postgreSQLShardingTest.Run().GetAwaiter().GetResult();
 
             RunDemo<SQLiteDemo>();
             RunDemo<MsSqlDemo>();
-            //RunDemo<MsSqlOdbcDemo>();
+            RunDemo<MsSqlOdbcDemo>();
             RunDemo<MySqlDemo>();
-            //RunDemo<PostgreSQLDemo>();
-            //RunDemo<OracleDemo>();
+            RunDemo<PostgreSQLDemo>();
+            RunDemo<OracleDemo>();
         }
 
         static void RunDemo<TDemo>() where TDemo : DemoBase, new()
@@ -102,24 +101,6 @@ namespace ChloeDemo
         static void ConfigureMethodHandler()
         {
             PostgreSQLContext.SetMethodHandler("StringLike", new PostgreSQL_StringLike_MethodHandler());
-        }
-
-        public static void Test()
-        {
-            var prop = typeof(Model).GetProperty("Value");
-
-            var getter = DelegateGenerator.CreateGetter(prop);
-            Model model = new Model();
-            model.Value = new StringValues("123");
-
-            var xx = getter(model);
-        }
-
-        public class Model
-        {
-
-            public StringValues Value { get; set; }
-
         }
     }
 }

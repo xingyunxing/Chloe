@@ -32,24 +32,24 @@ namespace ChloeDemo
 
         public virtual void Run()
         {
-            //this.InitDatabase();
-            //this.InitData();
+            this.InitDatabase();
+            this.InitData();
 
-            //Crud();
-            //CrudAsync().GetAwaiter().GetResult();
+            Crud();
+            CrudAsync().GetAwaiter().GetResult();
 
-            //BasicQuery();
-            //JoinQuery();
-            //AggregateQuery();
-            //GroupQuery();
-            //ComplexQuery();
-            //QueryWithNavigation();
-            //Insert();
+            BasicQuery();
+            JoinQuery();
+            AggregateQuery();
+            GroupQuery();
+            ComplexQuery();
+            QueryWithNavigation();
+            Insert();
             Update();
-            //Delete();
-            //Method();
-            //ExecuteCommandText();
-            //DoWithTransaction();
+            Delete();
+            Method();
+            ExecuteCommandText();
+            DoWithTransaction();
 
             ConsoleHelper.WriteLineAndReadKey();
         }
