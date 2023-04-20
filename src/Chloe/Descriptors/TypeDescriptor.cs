@@ -6,6 +6,7 @@ using Chloe.Query;
 using Chloe.Reflection;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Linq.Expressions;
 
 namespace Chloe.Descriptors
 {
@@ -66,6 +67,11 @@ namespace Chloe.Descriptors
             }
 
             return new DefaultExpressionParser(this, dbTable);
+        }
+
+        public UpdateColumnExpressionParser GetUpdateColumnExpressionParser(DbTable dbTable, ParameterExpression parameterExp)
+        {
+            return new UpdateColumnExpressionParser(this, dbTable, parameterExp);
         }
 
         public bool HasPrimaryKey()

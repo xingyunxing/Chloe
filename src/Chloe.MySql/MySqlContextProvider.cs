@@ -222,7 +222,7 @@ namespace Chloe.MySql
 
             MySqlDbUpdateExpression e = new MySqlDbUpdateExpression(dbTable, conditionExp);
 
-            DefaultExpressionParser expressionParser = typeDescriptor.GetExpressionParser(dbTable);
+            UpdateColumnExpressionParser expressionParser = typeDescriptor.GetUpdateColumnExpressionParser(dbTable, content.Parameters[0]);
             foreach (var kv in updateColumns)
             {
                 MemberInfo key = kv.Key;

@@ -499,12 +499,14 @@ namespace ChloeDemo
 
         public virtual void Insert()
         {
+            //lambda 插入
             //返回主键 Id
             int id = (int)this.DbContext.Insert<Person>(() => new Person() { Name = "Chloe", Age = 18, Gender = Gender.Female, CityId = 1, CreateTime = DateTime.Now });
             /*
              * INSERT INTO [Person]([Name],[Age],[Gender],[CityId],[CreateTime]) VALUES('Chloe',18,2,1,DATETIME('NOW','LOCALTIME'));SELECT LAST_INSERT_ROWID()
              */
 
+            //实体插入
             Person person = new Person();
             person.Name = "Chloe";
             person.Age = 18;
@@ -526,6 +528,7 @@ namespace ChloeDemo
         }
         public virtual void Update()
         {
+            //lambda 更新
             this.DbContext.Update<Person>(a => a.Id == 1, a => new Person() { Name = a.Name, Age = a.Age + 1, Gender = Gender.Female, EditTime = DateTime.Now });
             /*
              * UPDATE [Person] SET [Name]=[Person].[Name],[Age]=([Person].[Age] + 1),[Gender]=1,[EditTime]=DATETIME('NOW','LOCALTIME') WHERE [Person].[Id] = 1
@@ -538,6 +541,13 @@ namespace ChloeDemo
              * UPDATE [Person] SET [Age]=([Person].[Age] - 1),[EditTime]=DATETIME('NOW','LOCALTIME') WHERE [Person].[Gender] = 2
              */
 
+            //复杂更新
+            this.DbContext.Update<Person>(a => a.Id == 1, a => new Person() { Name = this.DbContext.Query<City>().IgnoreAllFilters().Where(p => p.Id == a.Id).First().Name });
+            /*
+             * UPDATE [Person] SET [Name]=(SELECT [City].[Name] AS [C] FROM [City] AS [City] WHERE [City].[Id] = [Person].[Id] LIMIT 1 OFFSET 0) WHERE [Person].[Id] = 1
+             */
+
+            //实体更新
             Person person = new Person();
             person.Id = 1;
             person.Name = "Chloe";
@@ -593,6 +603,7 @@ namespace ChloeDemo
              * DELETE FROM [Person] WHERE NOT ([Person].[CityId] IN (SELECT [City].[Id] AS [C] FROM [City] AS [City]))
              */
 
+            //实体删除
             Person person = new Person();
             person.Id = 1;
             this.DbContext.Delete(person);
