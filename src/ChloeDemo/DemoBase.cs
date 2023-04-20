@@ -542,7 +542,10 @@ namespace ChloeDemo
              */
 
             //复杂条件以及复杂 set 更新
-            this.DbContext.Update<Person>(a => a.Id == 1 && a.Id == this.DbContext.Query<City>().IgnoreAllFilters().Where(p => p.Id == a.Id).First().Id, a => new Person() { Name = this.DbContext.Query<City>().IgnoreAllFilters().Where(p => p.Id == a.Id).First().Name });
+            this.DbContext.Update<Person>(a => a.Id == 1 && a.Id == this.DbContext.Query<City>().IgnoreAllFilters().Where(city => city.Id == a.Id).First().Id, a => new Person()
+            {
+                Name = this.DbContext.Query<City>().IgnoreAllFilters().Where(city => city.Id == a.Id).First().Name
+            });
             /*
              * UPDATE [Person] 
                SET [Name]=(SELECT [City].[Name] AS [C] FROM [City] AS [City] WHERE [City].[Id] = [Person].[Id] LIMIT 1 OFFSET 0) 
