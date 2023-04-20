@@ -3,7 +3,7 @@ using Chloe.DbExpressions;
 using Chloe.InternalExtensions;
 using System.Reflection;
 
-namespace Chloe.Core.Visitors
+namespace Chloe.Visitors
 {
     /// <summary>
     /// 将 DbExpression 中可求值的表达式计算出来，转换成 DbParameterExpression

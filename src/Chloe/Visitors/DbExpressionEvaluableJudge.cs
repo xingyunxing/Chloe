@@ -1,6 +1,6 @@
 ﻿using Chloe.DbExpressions;
 
-namespace Chloe.Core.Visitors
+namespace Chloe.Visitors
 {
     public class DbExpressionEvaluableJudge : DbExpressionVisitor<bool>
     {

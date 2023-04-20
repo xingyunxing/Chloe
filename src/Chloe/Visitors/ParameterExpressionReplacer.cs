@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace Chloe.Core.Visitors
+namespace Chloe.Visitors
 {
     public class ParameterExpressionReplacer : ExpressionVisitor
     {
@@ -21,5 +21,4 @@ namespace Chloe.Core.Visitors
             return this._replaceWith;
         }
     }
-
 }

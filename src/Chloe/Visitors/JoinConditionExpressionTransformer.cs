@@ -1,7 +1,7 @@
 ﻿using Chloe.DbExpressions;
 using System.Reflection;
 
-namespace Chloe.Core.Visitors
+namespace Chloe.Visitors
 {
     public class JoinConditionExpressionTransformer : DbExpressionVisitor
     {

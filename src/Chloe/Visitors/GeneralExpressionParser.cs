@@ -1,13 +1,14 @@
-﻿using Chloe.Core.Visitors;
-using Chloe.DbExpressions;
+﻿using Chloe.DbExpressions;
 using Chloe.Extensions;
 using Chloe.Infrastructure;
+using Chloe.Query;
 using Chloe.Query.QueryState;
+using Chloe.Query.Visitors;
 using Chloe.Utility;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Chloe.Query.Visitors
+namespace Chloe.Visitors
 {
     internal class GeneralExpressionParser : ExpressionVisitorBase
     {

@@ -1,7 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 
-namespace Chloe.Core.Visitors
+namespace Chloe.Visitors
 {
     class BooleanResultExpressionTransformer : ExpressionVisitor<Expression>
     {

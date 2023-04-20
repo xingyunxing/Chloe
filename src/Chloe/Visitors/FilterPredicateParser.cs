@@ -1,10 +1,10 @@
-﻿using Chloe.Core.Visitors;
-using Chloe.DbExpressions;
+﻿using Chloe.DbExpressions;
 using Chloe.Descriptors;
+using Chloe.Query;
 using Chloe.Utility;
 using System.Linq.Expressions;
 
-namespace Chloe.Query.Visitors
+namespace Chloe.Visitors
 {
     public class FilterPredicateParser : ExpressionVisitor<DbExpression>
     {

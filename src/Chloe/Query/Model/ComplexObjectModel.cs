@@ -11,6 +11,7 @@ using Chloe.Reflection;
 using Chloe.Utility;
 using System.Linq.Expressions;
 using System.Reflection;
+using Chloe.Visitors;
 
 namespace Chloe.Query
 {

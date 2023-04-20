@@ -1,5 +1,5 @@
 ﻿using Chloe.Annotations;
-using Chloe.Core.Visitors;
+using Chloe.Visitors;
 using Chloe.DbExpressions;
 using Chloe.InternalExtensions;
 using Chloe.RDBMS;

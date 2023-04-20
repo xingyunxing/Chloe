@@ -1,4 +1,4 @@
-﻿using Chloe.Core.Visitors;
+﻿using Chloe.Visitors;
 using Chloe.DbExpressions;
 using Chloe.Utility;
 using System.Linq.Expressions;

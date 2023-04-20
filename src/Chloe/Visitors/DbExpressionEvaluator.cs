@@ -1,7 +1,7 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.Reflection;
 
-namespace Chloe.Core.Visitors
+namespace Chloe.Visitors
 {
     public class DbExpressionEvaluator : DbExpressionVisitor<object>
     {

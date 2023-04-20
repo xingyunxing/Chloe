@@ -1,5 +1,5 @@
 ﻿using Chloe.Core;
-using Chloe.Core.Visitors;
+using Chloe.Visitors;
 using Chloe.Data;
 using Chloe.DbExpressions;
 using Chloe.Descriptors;

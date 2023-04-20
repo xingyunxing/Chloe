@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace Chloe.Core.Visitors
+namespace Chloe.Visitors
 {
     public class ExpressionEvaluableJudge : ExpressionVisitor<bool>
     {

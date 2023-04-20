@@ -24,6 +24,7 @@
 	<ItemGroup>
 		<!--MySql.Data 在一定并发下会卡，慢，不建议使用-->
 		<!--<PackageReference Include="MySql.Data" Version="8.0.28" />-->
+		<PackageReference Include="Microsoft.Extensions.Primitives" Version="7.0.0" />
 		<PackageReference Include="MySqlConnector" Version="2.1.7" />
 		<PackageReference Include="System.Data.Odbc" Version="6.0.0" />
 		<PackageReference Include="System.Diagnostics.DiagnosticSource" Version="5.0.1" />

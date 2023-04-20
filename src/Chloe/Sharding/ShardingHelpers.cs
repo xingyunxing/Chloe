@@ -1,4 +1,4 @@
-﻿using Chloe.Core.Visitors;
+﻿using Chloe.Visitors;
 using Chloe.Descriptors;
 using Chloe.Reflection;
 using Chloe.Sharding.Models;

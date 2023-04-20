@@ -3,7 +3,7 @@ using Chloe.Descriptors;
 using Chloe.Extensions;
 using System.Linq.Expressions;
 
-namespace Chloe.Core.Visitors
+namespace Chloe.Visitors
 {
     public class DefaultExpressionParser : ExpressionVisitorBase
     {

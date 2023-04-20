@@ -1,7 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Chloe.Core.Visitors
+namespace Chloe.Visitors
 {
     public class InitMemberExtractor : ExpressionVisitor<Dictionary<MemberInfo, Expression>>
     {
