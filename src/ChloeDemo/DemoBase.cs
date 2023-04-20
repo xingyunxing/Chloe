@@ -32,24 +32,24 @@ namespace ChloeDemo
 
         public virtual void Run()
         {
-            this.InitDatabase();
-            this.InitData();
+            //this.InitDatabase();
+            //this.InitData();
 
-            Crud();
-            CrudAsync().GetAwaiter().GetResult();
+            //Crud();
+            //CrudAsync().GetAwaiter().GetResult();
 
-            BasicQuery();
-            JoinQuery();
-            AggregateQuery();
-            GroupQuery();
-            ComplexQuery();
-            QueryWithNavigation();
-            Insert();
+            //BasicQuery();
+            //JoinQuery();
+            //AggregateQuery();
+            //GroupQuery();
+            //ComplexQuery();
+            //QueryWithNavigation();
+            //Insert();
             Update();
-            Delete();
-            Method();
-            ExecuteCommandText();
-            DoWithTransaction();
+            //Delete();
+            //Method();
+            //ExecuteCommandText();
+            //DoWithTransaction();
 
             ConsoleHelper.WriteLineAndReadKey();
         }
@@ -541,10 +541,12 @@ namespace ChloeDemo
              * UPDATE [Person] SET [Age]=([Person].[Age] - 1),[EditTime]=DATETIME('NOW','LOCALTIME') WHERE [Person].[Gender] = 2
              */
 
-            //复杂更新
-            this.DbContext.Update<Person>(a => a.Id == 1, a => new Person() { Name = this.DbContext.Query<City>().IgnoreAllFilters().Where(p => p.Id == a.Id).First().Name });
+            //复杂条件以及复杂 set 更新
+            this.DbContext.Update<Person>(a => a.Id == 1 && a.Id == this.DbContext.Query<City>().IgnoreAllFilters().Where(p => p.Id == a.Id).First().Id, a => new Person() { Name = this.DbContext.Query<City>().IgnoreAllFilters().Where(p => p.Id == a.Id).First().Name });
             /*
-             * UPDATE [Person] SET [Name]=(SELECT [City].[Name] AS [C] FROM [City] AS [City] WHERE [City].[Id] = [Person].[Id] LIMIT 1 OFFSET 0) WHERE [Person].[Id] = 1
+             * UPDATE [Person] 
+               SET [Name]=(SELECT [City].[Name] AS [C] FROM [City] AS [City] WHERE [City].[Id] = [Person].[Id] LIMIT 1 OFFSET 0) 
+               WHERE ([Person].[Id] = 1 AND [Person].[Id] = (SELECT [City].[Id] AS [C] FROM [City] AS [City] WHERE [City].[Id] = [Person].[Id] LIMIT 1 OFFSET 0))
              */
 
             //实体更新
