@@ -1,18 +1,12 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.RDBMS;
+using Chloe.RDBMS.MethodHandlers;
 
 namespace Chloe.Oracle.MethodHandlers
 {
-    class DiffDays_Handler : IMethodHandler
+    class DiffDays_Handler : DiffDays_HandlerBase
     {
-        public bool CanProcess(DbMethodCallExpression exp)
-        {
-            if (exp.Method.DeclaringType != PublicConstants.TypeOfSql)
-                return false;
-
-            return true;
-        }
-        public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
+        public override void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
             throw new NotSupportedException(MethodHandlerHelper.AppendNotSupportedDbFunctionsMsg(exp.Method, "TotalDays"));
         }

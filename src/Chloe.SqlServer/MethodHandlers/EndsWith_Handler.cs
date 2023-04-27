@@ -1,18 +1,12 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.RDBMS;
+using Chloe.RDBMS.MethodHandlers;
 
 namespace Chloe.SqlServer.MethodHandlers
 {
-    class EndsWith_Handler : IMethodHandler
+    class EndsWith_Handler : EndsWith_HandlerBase
     {
-        public bool CanProcess(DbMethodCallExpression exp)
-        {
-            if (exp.Method != PublicConstants.MethodInfo_String_EndsWith)
-                return false;
-
-            return true;
-        }
-        public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
+        public override void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
             exp.Object.Accept(generator);
             generator.SqlBuilder.Append(" LIKE '%' + ");

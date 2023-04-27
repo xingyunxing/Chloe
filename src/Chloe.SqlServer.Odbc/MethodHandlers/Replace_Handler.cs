@@ -1,18 +1,12 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.RDBMS;
+using Chloe.RDBMS.MethodHandlers;
 
 namespace Chloe.SqlServer.Odbc.MethodHandlers
 {
-    class Replace_Handler : IMethodHandler
+    class Replace_Handler : Replace_HandlerBase
     {
-        public bool CanProcess(DbMethodCallExpression exp)
-        {
-            if (exp.Method != PublicConstants.MethodInfo_String_Replace)
-                return false;
-
-            return true;
-        }
-        public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
+        public override void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
             generator.SqlBuilder.Append("REPLACE(");
             exp.Object.Accept(generator);

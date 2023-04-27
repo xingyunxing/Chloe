@@ -13,6 +13,100 @@ namespace Chloe
 {
     public class PublicHelper
     {
+        public static readonly Dictionary<Type, Type> NumericTypes;
+        static readonly HashSet<Type> ToStringableNumericTypes;
+
+        static PublicHelper()
+        {
+            Dictionary<Type, Type> numericTypes = new Dictionary<Type, Type>();
+            numericTypes.Add(typeof(byte), typeof(byte));
+            numericTypes.Add(typeof(sbyte), typeof(sbyte));
+            numericTypes.Add(typeof(short), typeof(short));
+            numericTypes.Add(typeof(ushort), typeof(ushort));
+            numericTypes.Add(typeof(int), typeof(int));
+            numericTypes.Add(typeof(uint), typeof(uint));
+            numericTypes.Add(typeof(long), typeof(long));
+            numericTypes.Add(typeof(ulong), typeof(ulong));
+            numericTypes.Add(typeof(float), typeof(float));
+            numericTypes.Add(typeof(double), typeof(double));
+            numericTypes.Add(typeof(decimal), typeof(decimal));
+            NumericTypes = PublicHelper.Clone(numericTypes);
+
+            ToStringableNumericTypes = new HashSet<Type>();
+            ToStringableNumericTypes.Add(typeof(byte));
+            ToStringableNumericTypes.Add(typeof(sbyte));
+            ToStringableNumericTypes.Add(typeof(short));
+            ToStringableNumericTypes.Add(typeof(ushort));
+            ToStringableNumericTypes.Add(typeof(int));
+            ToStringableNumericTypes.Add(typeof(uint));
+            ToStringableNumericTypes.Add(typeof(long));
+            ToStringableNumericTypes.Add(typeof(ulong));
+            ToStringableNumericTypes.TrimExcess();
+        }
+
+        public static bool IsNumericType(Type type)
+        {
+            return PublicHelper.NumericTypes.ContainsKey(type);
+        }
+
+        public static bool IsToStringableNumericType(Type type)
+        {
+            type = ReflectionExtension.GetUnderlyingType(type);
+            return ToStringableNumericTypes.Contains(type);
+        }
+
+        /// <summary>
+        /// 修正使用关系运算符时的 DbType，避免出现双边类型不一致时导致索引失效
+        /// </summary>
+        /// <param name="exp1"></param>
+        /// <param name="exp2"></param>
+        public static void AmendDbInfo(DbExpression exp1, DbExpression exp2)
+        {
+            DbColumnAccessExpression datumPointExp = null;
+            DbParameterExpression expToAmend = null;
+
+            DbExpression e = Trim_Nullable_Value(exp1);
+            if (e.NodeType == DbExpressionType.ColumnAccess && exp2.NodeType == DbExpressionType.Parameter)
+            {
+                datumPointExp = (DbColumnAccessExpression)e;
+                expToAmend = (DbParameterExpression)exp2;
+            }
+            else if ((e = Trim_Nullable_Value(exp2)).NodeType == DbExpressionType.ColumnAccess && exp1.NodeType == DbExpressionType.Parameter)
+            {
+                datumPointExp = (DbColumnAccessExpression)e;
+                expToAmend = (DbParameterExpression)exp1;
+            }
+            else
+                return;
+
+            if (datumPointExp.Column.DbType != null)
+            {
+                if (expToAmend.DbType == null)
+                    expToAmend.DbType = datumPointExp.Column.DbType;
+            }
+        }
+        public static void AmendDbInfo(DbColumn column, DbExpression exp)
+        {
+            if (column.DbType == null || exp.NodeType != DbExpressionType.Parameter)
+                return;
+
+            DbParameterExpression expToAmend = (DbParameterExpression)exp;
+
+            if (expToAmend.DbType == null)
+                expToAmend.DbType = column.DbType;
+        }
+        static DbExpression Trim_Nullable_Value(DbExpression exp)
+        {
+            DbMemberExpression memberExp = exp as DbMemberExpression;
+            if (memberExp == null)
+                return exp;
+
+            if (memberExp.Member.Name == "Value" && ReflectionExtension.IsNullable(memberExp.Expression.Type))
+                return memberExp.Expression;
+
+            return exp;
+        }
+
         public static void CheckNull(object obj, string paramName = null)
         {
             if (obj == null)
@@ -278,6 +372,44 @@ namespace Chloe
             }
 
             return false;
+        }
+
+        public static NotSupportedException MakeNotSupportedMethodException(MethodInfo method)
+        {
+            StringBuilder sb = new StringBuilder();
+            ParameterInfo[] parameters = method.GetParameters();
+
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                ParameterInfo p = parameters[i];
+
+                if (i > 0)
+                    sb.Append(",");
+
+                string s = null;
+                if (p.IsOut)
+                    s = "out ";
+
+                sb.AppendFormat("{0}{1} {2}", s, p.ParameterType.Name, p.Name);
+            }
+
+            return new NotSupportedException(string.Format("Does not support method '{0}.{1}({2})'.", method.DeclaringType.Name, method.Name, sb.ToString()));
+        }
+
+        public static void EnsureTrimCharArgumentIsSpaces(DbExpression exp)
+        {
+            if (!exp.IsEvaluable())
+                throw new NotSupportedException();
+
+            var arg = exp.Evaluate();
+            if (arg == null)
+                throw new ArgumentNullException();
+
+            var chars = arg as char[];
+            if (chars.Length != 1 || chars[0] != ' ')
+            {
+                throw new NotSupportedException();
+            }
         }
     }
 }

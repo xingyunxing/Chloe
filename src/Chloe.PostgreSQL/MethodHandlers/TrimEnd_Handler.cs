@@ -1,20 +1,14 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.RDBMS;
+using Chloe.RDBMS.MethodHandlers;
 
 namespace Chloe.PostgreSQL.MethodHandlers
 {
-    class TrimEnd_Handler : IMethodHandler
+    class TrimEnd_Handler : TrimEnd_HandlerBase
     {
-        public bool CanProcess(DbMethodCallExpression exp)
+        public override void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
-            if (exp.Method != PublicConstants.MethodInfo_String_TrimEnd)
-                return false;
-
-            return true;
-        }
-        public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
-        {
-            MethodHandlerHelper.EnsureTrimCharArgumentIsSpaces(exp.Arguments[0]);
+            PublicHelper.EnsureTrimCharArgumentIsSpaces(exp.Arguments[0]);
 
             generator.SqlBuilder.Append("RTRIM(");
             exp.Object.Accept(generator);

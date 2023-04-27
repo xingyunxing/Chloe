@@ -1,18 +1,14 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.InternalExtensions;
 using Chloe.RDBMS;
+using Chloe.RDBMS.MethodHandlers;
 using System.Reflection;
 
 namespace Chloe.Oracle.MethodHandlers
 {
-    class IsEqual_Handler : IMethodHandler
+    class IsEqual_Handler : IsEqual_HandlerBase
     {
-        public bool CanProcess(DbMethodCallExpression exp)
-        {
-            MethodInfo method = exp.Method;
-            return PublicHelper.Is_Sql_IsEqual_Method(method);
-        }
-        public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
+        public override void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
             DbExpression left = exp.Arguments[0];
             DbExpression right = exp.Arguments[1];

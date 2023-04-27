@@ -1,19 +1,13 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.InternalExtensions;
 using Chloe.RDBMS;
+using Chloe.RDBMS.MethodHandlers;
 
 namespace Chloe.PostgreSQL.MethodHandlers
 {
-    class NextValueForSequence_Handler : IMethodHandler
+    class NextValueForSequence_Handler : NextValueForSequence_HandlerBase
     {
-        public bool CanProcess(DbMethodCallExpression exp)
-        {
-            if (exp.Method.DeclaringType != PublicConstants.TypeOfSql)
-                return false;
-
-            return true;
-        }
-        public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
+        public override void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
             /* select nextval('public.users_auto_id')  */
 

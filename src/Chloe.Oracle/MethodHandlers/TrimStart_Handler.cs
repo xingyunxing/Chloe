@@ -1,20 +1,14 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.RDBMS;
+using Chloe.RDBMS.MethodHandlers;
 
 namespace Chloe.Oracle.MethodHandlers
 {
-    class TrimStart_Handler : IMethodHandler
+    class TrimStart_Handler : TrimStart_HandlerBase
     {
-        public bool CanProcess(DbMethodCallExpression exp)
+        public override void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
-            if (exp.Method != PublicConstants.MethodInfo_String_TrimStart)
-                return false;
-
-            return true;
-        }
-        public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
-        {
-            MethodHandlerHelper.EnsureTrimCharArgumentIsSpaces(exp.Arguments[0]);
+            PublicHelper.EnsureTrimCharArgumentIsSpaces(exp.Arguments[0]);
 
             generator.SqlBuilder.Append("LTRIM(");
             exp.Object.Accept(generator);

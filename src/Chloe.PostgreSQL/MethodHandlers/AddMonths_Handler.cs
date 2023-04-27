@@ -1,17 +1,11 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.RDBMS;
+using Chloe.RDBMS.MethodHandlers;
 
 namespace Chloe.PostgreSQL.MethodHandlers
 {
-    class AddMonths_Handler : IMethodHandler
+    class AddMonths_Handler : AddMonths_HandlerBase
     {
-        public bool CanProcess(DbMethodCallExpression exp)
-        {
-            if (exp.Method.DeclaringType != PublicConstants.TypeOfDateTime)
-                return false;
-
-            return true;
-        }
         public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
             SqlGenerator.DbFunction_DATEADD(generator, "months", exp);

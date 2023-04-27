@@ -1,18 +1,12 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.RDBMS;
+using Chloe.RDBMS.MethodHandlers;
 
 namespace Chloe.Oracle.MethodHandlers
 {
-    class AddMinutes_Handler : IMethodHandler
+    class AddMinutes_Handler : AddMinutes_HandlerBase
     {
-        public bool CanProcess(DbMethodCallExpression exp)
-        {
-            if (exp.Method.DeclaringType != PublicConstants.TypeOfDateTime)
-                return false;
-
-            return true;
-        }
-        public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
+        public override void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
             SqlGenerator.DbFunction_DATEADD(generator, "MINUTE", exp);
         }

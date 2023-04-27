@@ -1,20 +1,14 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.RDBMS;
+using Chloe.RDBMS.MethodHandlers;
 
 namespace Chloe.Oracle.MethodHandlers
 {
-    class DiffMonths_Handler : IMethodHandler
+    class DiffMonths_Handler : DiffMonths_HandlerBase
     {
-        public bool CanProcess(DbMethodCallExpression exp)
+        public override bool CanProcess(DbMethodCallExpression exp)
         {
-            if (exp.Method.DeclaringType != PublicConstants.TypeOfSql)
-                return false;
-
             return false;
-        }
-        public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
-        {
-            throw UtilExceptions.NotSupportedMethod(exp.Method);
         }
     }
 }

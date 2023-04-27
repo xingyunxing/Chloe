@@ -1,30 +1,13 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.InternalExtensions;
 using Chloe.RDBMS;
+using Chloe.RDBMS.MethodHandlers;
 using System.Reflection;
 
 namespace Chloe.SQLite.MethodHandlers
 {
-    class Equals_Handler : IMethodHandler
+    class Equals_Handler : Equals_HandlerBase
     {
-        public bool CanProcess(DbMethodCallExpression exp)
-        {
-            MethodInfo method = exp.Method;
 
-            if (method.ReturnType != PublicConstants.TypeOfBoolean || method.IsStatic || method.GetParameters().Length != 1)
-                return false;
-
-            return true;
-        }
-        public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
-        {
-            DbExpression right = exp.Arguments[0];
-            if (right.Type != exp.Object.Type)
-            {
-                right = DbExpression.Convert(right, exp.Object.Type);
-            }
-
-            DbExpression.Equal(exp.Object, right).Accept(generator);
-        }
     }
 }

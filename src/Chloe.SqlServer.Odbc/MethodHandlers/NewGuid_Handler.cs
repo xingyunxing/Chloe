@@ -1,18 +1,12 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.RDBMS;
+using Chloe.RDBMS.MethodHandlers;
 
 namespace Chloe.SqlServer.Odbc.MethodHandlers
 {
-    class NewGuid_Handler : IMethodHandler
+    class NewGuid_Handler : NewGuid_HandlerBase
     {
-        public bool CanProcess(DbMethodCallExpression exp)
-        {
-            if (exp.Method != PublicConstants.MethodInfo_Guid_NewGuid)
-                return false;
-
-            return true;
-        }
-        public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
+        public override void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
             generator.SqlBuilder.Append("NEWID()");
         }

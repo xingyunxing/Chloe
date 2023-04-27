@@ -1,9 +1,9 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.InternalExtensions;
 
-namespace Chloe.SQLite.MethodHandlers
+namespace Chloe.RDBMS.MethodHandlers
 {
-    class MethodHandlerHelper
+    public class MethodHandlerHelper
     {
         public static void EnsureTrimCharArgumentIsSpaces(DbExpression exp)
         {

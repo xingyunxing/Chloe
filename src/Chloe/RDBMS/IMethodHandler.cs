@@ -21,4 +21,17 @@ namespace Chloe.RDBMS
         /// <param name="generator"></param>
         void Process(DbMethodCallExpression exp, SqlGeneratorBase generator);
     }
+
+    public class MethodHandlerBase : IMethodHandler
+    {
+        public virtual bool CanProcess(DbMethodCallExpression exp)
+        {
+            return false;
+        }
+
+        public virtual void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
+        {
+            throw PublicHelper.MakeNotSupportedMethodException(exp.Method);
+        }
+    }
 }

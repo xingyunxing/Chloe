@@ -1,18 +1,12 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.RDBMS;
+using Chloe.RDBMS.MethodHandlers;
 
 namespace Chloe.PostgreSQL.MethodHandlers
 {
-    class AddSeconds_Handler : IMethodHandler
+    class AddSeconds_Handler : AddSeconds_HandlerBase
     {
-        public bool CanProcess(DbMethodCallExpression exp)
-        {
-            if (exp.Method.DeclaringType != PublicConstants.TypeOfDateTime)
-                return false;
-
-            return true;
-        }
-        public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
+        public override void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
             SqlGenerator.DbFunction_DATEADD(generator, "secs", exp);
         }

@@ -1,18 +1,12 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.RDBMS;
+using Chloe.RDBMS.MethodHandlers;
 
 namespace Chloe.MySql.MethodHandlers
 {
-    class Trim_Handler : IMethodHandler
+    class Trim_Handler : Trim_HandlerBase
     {
-        public bool CanProcess(DbMethodCallExpression exp)
-        {
-            if (exp.Method != PublicConstants.MethodInfo_String_Trim)
-                return false;
-
-            return true;
-        }
-        public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
+        public override void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
             generator.SqlBuilder.Append("TRIM(");
             exp.Object.Accept(generator);

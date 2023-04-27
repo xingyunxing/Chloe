@@ -1,19 +1,13 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.InternalExtensions;
 using Chloe.RDBMS;
+using Chloe.RDBMS.MethodHandlers;
 
 namespace Chloe.PostgreSQL.MethodHandlers
 {
-    class AddMilliseconds_Handler : IMethodHandler
+    class AddMilliseconds_Handler : AddMilliseconds_HandlerBase
     {
-        public bool CanProcess(DbMethodCallExpression exp)
-        {
-            if (exp.Method.DeclaringType != PublicConstants.TypeOfDateTime)
-                return false;
-
-            return true;
-        }
-        public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
+        public override void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
             exp.Object.Accept(generator);
             generator.SqlBuilder.Append(" + interval ");
@@ -21,7 +15,7 @@ namespace Chloe.PostgreSQL.MethodHandlers
 
             var argExp = exp.Arguments[0];
             if (!argExp.IsEvaluable())
-                throw UtilExceptions.NotSupportedMethod(exp.Method);
+                throw PublicHelper.MakeNotSupportedMethodException(exp.Method);
 
             var arg = argExp.Evaluate();
             generator.SqlBuilder.Append(arg.ToString());

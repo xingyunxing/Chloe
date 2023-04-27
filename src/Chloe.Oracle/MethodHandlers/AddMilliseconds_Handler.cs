@@ -1,20 +1,14 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.RDBMS;
+using Chloe.RDBMS.MethodHandlers;
 
 namespace Chloe.Oracle.MethodHandlers
 {
-    class AddMilliseconds_Handler : IMethodHandler
+    class AddMilliseconds_Handler : AddMilliseconds_HandlerBase
     {
-        public bool CanProcess(DbMethodCallExpression exp)
+        public override bool CanProcess(DbMethodCallExpression exp)
         {
-            if (exp.Method.DeclaringType != PublicConstants.TypeOfDateTime)
-                return false;
-
             return false;
-        }
-        public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
-        {
-            throw UtilExceptions.NotSupportedMethod(exp.Method);
         }
     }
 }

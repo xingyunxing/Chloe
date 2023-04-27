@@ -106,7 +106,7 @@ namespace Chloe.MySql
                             valType = val.GetType();
                         }
 
-                        if (Utils.IsToStringableNumericType(valType))
+                        if (PublicHelper.IsToStringableNumericType(valType))
                         {
                             sqlBuilder.Append(val.ToString());
                             continue;

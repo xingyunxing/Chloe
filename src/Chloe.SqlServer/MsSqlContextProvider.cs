@@ -333,7 +333,7 @@ namespace Chloe.SqlServer
                             valType = val.GetType();
                         }
 
-                        if (Utils.IsToStringableNumericType(valType))
+                        if (PublicHelper.IsToStringableNumericType(valType))
                         {
                             sqlBuilder.Append(val.ToString());
                             continue;

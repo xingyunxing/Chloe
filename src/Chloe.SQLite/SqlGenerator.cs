@@ -17,7 +17,6 @@ namespace Chloe.SQLite
         static readonly Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers = InitAggregateHandlers();
         static readonly Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers = InitBinaryWithMethodHandlers();
         public static readonly Dictionary<Type, string> CastTypeMap;
-        public static readonly Dictionary<Type, Type> NumericTypes;
         static readonly List<string> CacheParameterNames;
 
         static SqlGenerator()
@@ -33,21 +32,6 @@ namespace Chloe.SQLite
             //castTypeMap.Add(typeof(decimal), "DECIMAL(19,0)");//I think this will be a bug.
             castTypeMap.Add(typeof(bool), "INTEGER");
             CastTypeMap = PublicHelper.Clone(castTypeMap);
-
-
-            Dictionary<Type, Type> numericTypes = new Dictionary<Type, Type>();
-            numericTypes.Add(typeof(byte), typeof(byte));
-            numericTypes.Add(typeof(sbyte), typeof(sbyte));
-            numericTypes.Add(typeof(short), typeof(short));
-            numericTypes.Add(typeof(ushort), typeof(ushort));
-            numericTypes.Add(typeof(int), typeof(int));
-            numericTypes.Add(typeof(uint), typeof(uint));
-            numericTypes.Add(typeof(long), typeof(long));
-            numericTypes.Add(typeof(ulong), typeof(ulong));
-            numericTypes.Add(typeof(float), typeof(float));
-            numericTypes.Add(typeof(double), typeof(double));
-            numericTypes.Add(typeof(decimal), typeof(decimal));
-            NumericTypes = PublicHelper.Clone(numericTypes);
 
 
             int cacheParameterNameCount = 2 * 12;
@@ -374,7 +358,7 @@ namespace Chloe.SQLite
             Action<DbAggregateExpression, SqlGeneratorBase> aggregateHandler;
             if (!AggregateHandlers.TryGetValue(exp.Method.Name, out aggregateHandler))
             {
-                throw UtilExceptions.NotSupportedMethod(exp.Method);
+                throw PublicHelper.MakeNotSupportedMethodException(exp.Method);
             }
 
             aggregateHandler(exp, this);
@@ -641,7 +625,7 @@ namespace Chloe.SQLite
                 return dbParameter.Accept(this);
             }
 
-            throw UtilExceptions.NotSupportedMethod(exp.Method);
+            throw PublicHelper.MakeNotSupportedMethodException(exp.Method);
         }
         public override DbExpression Visit(DbMemberExpression exp)
         {
@@ -728,7 +712,7 @@ namespace Chloe.SQLite
                 this.SqlBuilder.Append(Convert.ChangeType(exp.Value, Enum.GetUnderlyingType(objType)).ToString());
                 return exp;
             }
-            else if (NumericTypes.ContainsKey(exp.Value.GetType()))
+            else if (PublicHelper.IsNumericType(exp.Value.GetType()))
             {
                 this.SqlBuilder.Append(exp.Value);
                 return exp;

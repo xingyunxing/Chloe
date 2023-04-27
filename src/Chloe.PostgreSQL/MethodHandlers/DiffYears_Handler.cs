@@ -1,20 +1,14 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.RDBMS;
+using Chloe.RDBMS.MethodHandlers;
 
 namespace Chloe.PostgreSQL.MethodHandlers
 {
-    class DiffYears_Handler : IMethodHandler
+    class DiffYears_Handler : DiffYears_HandlerBase
     {
-        public bool CanProcess(DbMethodCallExpression exp)
+        public override bool CanProcess(DbMethodCallExpression exp)
         {
-            if (exp.Method.DeclaringType != PublicConstants.TypeOfSql)
-                return false;
-
             return false;
-        }
-        public void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
-        {
-            throw UtilExceptions.NotSupportedMethod(exp.Method);
         }
     }
 }
