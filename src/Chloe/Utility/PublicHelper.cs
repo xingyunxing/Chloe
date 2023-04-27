@@ -18,18 +18,18 @@ namespace Chloe
 
         static PublicHelper()
         {
-            HashSet<Type> numericTypes = new HashSet<Type>();
-            numericTypes.Add(typeof(byte));
-            numericTypes.Add(typeof(sbyte));
-            numericTypes.Add(typeof(short));
-            numericTypes.Add(typeof(ushort));
-            numericTypes.Add(typeof(int));
-            numericTypes.Add(typeof(uint));
-            numericTypes.Add(typeof(long));
-            numericTypes.Add(typeof(ulong));
-            numericTypes.Add(typeof(float));
-            numericTypes.Add(typeof(double));
-            numericTypes.Add(typeof(decimal));
+            NumericTypes = new HashSet<Type>();
+            NumericTypes.Add(typeof(byte));
+            NumericTypes.Add(typeof(sbyte));
+            NumericTypes.Add(typeof(short));
+            NumericTypes.Add(typeof(ushort));
+            NumericTypes.Add(typeof(int));
+            NumericTypes.Add(typeof(uint));
+            NumericTypes.Add(typeof(long));
+            NumericTypes.Add(typeof(ulong));
+            NumericTypes.Add(typeof(float));
+            NumericTypes.Add(typeof(double));
+            NumericTypes.Add(typeof(decimal));
             NumericTypes.TrimExcess();
 
 
