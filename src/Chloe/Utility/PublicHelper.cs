@@ -13,24 +13,25 @@ namespace Chloe
 {
     public class PublicHelper
     {
-        public static readonly Dictionary<Type, Type> NumericTypes;
+        static readonly HashSet<Type> NumericTypes;
         static readonly HashSet<Type> ToStringableNumericTypes;
 
         static PublicHelper()
         {
-            Dictionary<Type, Type> numericTypes = new Dictionary<Type, Type>();
-            numericTypes.Add(typeof(byte), typeof(byte));
-            numericTypes.Add(typeof(sbyte), typeof(sbyte));
-            numericTypes.Add(typeof(short), typeof(short));
-            numericTypes.Add(typeof(ushort), typeof(ushort));
-            numericTypes.Add(typeof(int), typeof(int));
-            numericTypes.Add(typeof(uint), typeof(uint));
-            numericTypes.Add(typeof(long), typeof(long));
-            numericTypes.Add(typeof(ulong), typeof(ulong));
-            numericTypes.Add(typeof(float), typeof(float));
-            numericTypes.Add(typeof(double), typeof(double));
-            numericTypes.Add(typeof(decimal), typeof(decimal));
-            NumericTypes = PublicHelper.Clone(numericTypes);
+            HashSet<Type> numericTypes = new HashSet<Type>();
+            numericTypes.Add(typeof(byte));
+            numericTypes.Add(typeof(sbyte));
+            numericTypes.Add(typeof(short));
+            numericTypes.Add(typeof(ushort));
+            numericTypes.Add(typeof(int));
+            numericTypes.Add(typeof(uint));
+            numericTypes.Add(typeof(long));
+            numericTypes.Add(typeof(ulong));
+            numericTypes.Add(typeof(float));
+            numericTypes.Add(typeof(double));
+            numericTypes.Add(typeof(decimal));
+            NumericTypes.TrimExcess();
+
 
             ToStringableNumericTypes = new HashSet<Type>();
             ToStringableNumericTypes.Add(typeof(byte));
@@ -46,7 +47,7 @@ namespace Chloe
 
         public static bool IsNumericType(Type type)
         {
-            return PublicHelper.NumericTypes.ContainsKey(type);
+            return PublicHelper.NumericTypes.Contains(type);
         }
 
         public static bool IsToStringableNumericType(Type type)
