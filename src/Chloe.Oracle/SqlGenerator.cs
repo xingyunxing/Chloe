@@ -234,7 +234,7 @@ namespace Chloe.Oracle
         }
         public override DbExpression Visit(DbAndExpression exp)
         {
-            Stack<DbExpression> operands = GatherBinaryExpressionOperand(exp);
+            Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
             this.ConcatOperands(operands, " AND ");
 
             return exp;
@@ -245,7 +245,7 @@ namespace Chloe.Oracle
         }
         public override DbExpression Visit(DbOrExpression exp)
         {
-            Stack<DbExpression> operands = GatherBinaryExpressionOperand(exp);
+            Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
             this.ConcatOperands(operands, " OR ");
 
             return exp;
@@ -265,7 +265,7 @@ namespace Chloe.Oracle
                 }
             }
 
-            Stack<DbExpression> operands = GatherBinaryExpressionOperand(exp);
+            Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
             this.ConcatOperands(operands, " + ");
 
             return exp;
@@ -273,7 +273,7 @@ namespace Chloe.Oracle
         // -
         public override DbExpression Visit(DbSubtractExpression exp)
         {
-            Stack<DbExpression> operands = GatherBinaryExpressionOperand(exp);
+            Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
             this.ConcatOperands(operands, " - ");
 
             return exp;
@@ -281,7 +281,7 @@ namespace Chloe.Oracle
         // *
         public override DbExpression Visit(DbMultiplyExpression exp)
         {
-            Stack<DbExpression> operands = GatherBinaryExpressionOperand(exp);
+            Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
             this.ConcatOperands(operands, " * ");
 
             return exp;
@@ -289,7 +289,7 @@ namespace Chloe.Oracle
         // /
         public override DbExpression Visit(DbDivideExpression exp)
         {
-            Stack<DbExpression> operands = GatherBinaryExpressionOperand(exp);
+            Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
             this.ConcatOperands(operands, " / ");
 
             return exp;

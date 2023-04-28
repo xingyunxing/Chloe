@@ -13,7 +13,7 @@ namespace Chloe.SqlServer.Odbc
 
         DbExpression ConvertDbBooleanExpression(DbExpression exp)
         {
-            DbCaseWhenExpression caseWhenExpression = SqlGenerator.ConstructReturnCSharpBooleanCaseWhenExpression(exp);
+            DbCaseWhenExpression caseWhenExpression = PublicHelper.ConstructReturnCSharpBooleanCaseWhenExpression(exp);
             return caseWhenExpression;
         }
 

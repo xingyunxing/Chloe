@@ -17,25 +17,6 @@ namespace Chloe.MySql
             return UtilConstants.ParameterNamePrefix + ordinal.ToString();
         }
 
-        static Stack<DbExpression> GatherBinaryExpressionOperand(DbBinaryExpression exp)
-        {
-            DbExpressionType nodeType = exp.NodeType;
-
-            Stack<DbExpression> items = new Stack<DbExpression>();
-            items.Push(exp.Right);
-
-            DbExpression left = exp.Left;
-            while (left.NodeType == nodeType)
-            {
-                exp = (DbBinaryExpression)left;
-                items.Push(exp.Right);
-                left = exp.Left;
-            }
-
-            items.Push(left);
-            return items;
-        }
-
         static bool TryGetCastTargetDbTypeString(Type sourceType, Type targetType, out string dbTypeString, bool throwNotSupportedException = true)
         {
             dbTypeString = null;
@@ -52,13 +33,9 @@ namespace Chloe.MySql
             }
 
             if (throwNotSupportedException)
-                throw new NotSupportedException(AppendNotSupportedCastErrorMsg(sourceType, targetType));
+                throw new NotSupportedException(PublicHelper.AppendNotSupportedCastErrorMsg(sourceType, targetType));
             else
                 return false;
-        }
-        static string AppendNotSupportedCastErrorMsg(Type sourceType, Type targetType)
-        {
-            return string.Format("Does not support the type '{0}' converted to type '{1}'.", sourceType.FullName, targetType.FullName);
         }
 
         public static void DbFunction_DATEADD(SqlGeneratorBase generator, string interval, DbMethodCallExpression exp)

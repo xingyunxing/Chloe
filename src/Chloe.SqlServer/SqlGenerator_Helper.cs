@@ -33,37 +33,6 @@ namespace Chloe.SqlServer
         {
             return DbValueExpressionTransformer.Transform(exp);
         }
-        public static DbCaseWhenExpression ConstructReturnCSharpBooleanCaseWhenExpression(DbExpression exp)
-        {
-            // case when 1>0 then 1 when not (1>0) then 0 else Null end
-            DbCaseWhenExpression.WhenThenExpressionPair whenThenPair = new DbCaseWhenExpression.WhenThenExpressionPair(exp, DbConstantExpression.True);
-            DbCaseWhenExpression.WhenThenExpressionPair whenThenPair1 = new DbCaseWhenExpression.WhenThenExpressionPair(DbExpression.Not(exp), DbConstantExpression.False);
-            List<DbCaseWhenExpression.WhenThenExpressionPair> whenThenExps = new List<DbCaseWhenExpression.WhenThenExpressionPair>(2);
-            whenThenExps.Add(whenThenPair);
-            whenThenExps.Add(whenThenPair1);
-            DbCaseWhenExpression caseWhenExpression = DbExpression.CaseWhen(whenThenExps, DbConstantExpression.Null, PublicConstants.TypeOfBoolean);
-
-            return caseWhenExpression;
-        }
-
-        static Stack<DbExpression> GatherBinaryExpressionOperand(DbBinaryExpression exp)
-        {
-            DbExpressionType nodeType = exp.NodeType;
-
-            Stack<DbExpression> items = new Stack<DbExpression>();
-            items.Push(exp.Right);
-
-            DbExpression left = exp.Left;
-            while (left.NodeType == nodeType)
-            {
-                exp = (DbBinaryExpression)left;
-                items.Push(exp.Right);
-                left = exp.Left;
-            }
-
-            items.Push(left);
-            return items;
-        }
 
         static bool TryGetCastTargetDbTypeString(Type sourceType, Type targetType, out string dbTypeString, bool throwNotSupportedException = true)
         {
@@ -81,7 +50,7 @@ namespace Chloe.SqlServer
                 if (sourceType != PublicConstants.TypeOfInt16 && sourceType != PublicConstants.TypeOfInt32 && sourceType != PublicConstants.TypeOfInt64 && sourceType != PublicConstants.TypeOfByte)
                 {
                     if (throwNotSupportedException)
-                        throw new NotSupportedException(AppendNotSupportedCastErrorMsg(sourceType, targetType));
+                        throw new NotSupportedException(PublicHelper.AppendNotSupportedCastErrorMsg(sourceType, targetType));
                     else
                         return false;
                 }
@@ -93,13 +62,9 @@ namespace Chloe.SqlServer
             }
 
             if (throwNotSupportedException)
-                throw new NotSupportedException(AppendNotSupportedCastErrorMsg(sourceType, targetType));
+                throw new NotSupportedException(PublicHelper.AppendNotSupportedCastErrorMsg(sourceType, targetType));
             else
                 return false;
-        }
-        static string AppendNotSupportedCastErrorMsg(Type sourceType, Type targetType)
-        {
-            return string.Format("Does not support the type '{0}' converted to type '{1}'.", sourceType.FullName, targetType.FullName);
         }
 
         public static void DbFunction_DATEADD(SqlGeneratorBase generator, string interval, DbMethodCallExpression exp)

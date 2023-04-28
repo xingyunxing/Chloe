@@ -29,101 +29,9 @@ namespace Chloe.SqlServer.Odbc
             return row_numberName;
         }
 
-        public static (DbExpression Left, DbExpression Right) AmendExpDbInfo(DbExpression left, DbExpression right)
-        {
-            left = DbExpressionExtension.StripInvalidConvert(left);
-            right = DbExpressionExtension.StripInvalidConvert(right);
-            SqlGenerator.AmendDbInfo(left, right);
-
-            return (left, right);
-        }
-        /// <summary>
-        /// 修正使用关系运算符时的 DbType，避免出现双边类型不一致时导致索引失效
-        /// </summary>
-        /// <param name="exp1"></param>
-        /// <param name="exp2"></param>
-        public static void AmendDbInfo(DbExpression exp1, DbExpression exp2)
-        {
-            DbColumnAccessExpression datumPointExp = null;
-            DbParameterExpression expToAmend = null;
-
-            DbExpression e = Trim_Nullable_Value(exp1);
-            if (e.NodeType == DbExpressionType.ColumnAccess && exp2.NodeType == DbExpressionType.Parameter)
-            {
-                datumPointExp = (DbColumnAccessExpression)e;
-                expToAmend = (DbParameterExpression)exp2;
-            }
-            else if ((e = Trim_Nullable_Value(exp2)).NodeType == DbExpressionType.ColumnAccess && exp1.NodeType == DbExpressionType.Parameter)
-            {
-                datumPointExp = (DbColumnAccessExpression)e;
-                expToAmend = (DbParameterExpression)exp1;
-            }
-            else
-                return;
-
-            if (datumPointExp.Column.DbType != null)
-            {
-                if (expToAmend.DbType == null)
-                    expToAmend.DbType = datumPointExp.Column.DbType;
-            }
-        }
-        public static void AmendDbInfo(DbColumn column, DbExpression exp)
-        {
-            if (column.DbType == null || exp.NodeType != DbExpressionType.Parameter)
-                return;
-
-            DbParameterExpression expToAmend = (DbParameterExpression)exp;
-
-            if (expToAmend.DbType == null)
-                expToAmend.DbType = column.DbType;
-        }
-        static DbExpression Trim_Nullable_Value(DbExpression exp)
-        {
-            DbMemberExpression memberExp = exp as DbMemberExpression;
-            if (memberExp == null)
-                return exp;
-
-            if (memberExp.Member.Name == "Value" && ReflectionExtension.IsNullable(memberExp.Expression.Type))
-                return memberExp.Expression;
-
-            return exp;
-        }
-
-
         static DbExpression EnsureDbExpressionReturnCSharpBoolean(DbExpression exp)
         {
             return DbValueExpressionTransformer.Transform(exp);
-        }
-        public static DbCaseWhenExpression ConstructReturnCSharpBooleanCaseWhenExpression(DbExpression exp)
-        {
-            // case when 1>0 then 1 when not (1>0) then 0 else Null end
-            DbCaseWhenExpression.WhenThenExpressionPair whenThenPair = new DbCaseWhenExpression.WhenThenExpressionPair(exp, DbConstantExpression.True);
-            DbCaseWhenExpression.WhenThenExpressionPair whenThenPair1 = new DbCaseWhenExpression.WhenThenExpressionPair(DbExpression.Not(exp), DbConstantExpression.False);
-            List<DbCaseWhenExpression.WhenThenExpressionPair> whenThenExps = new List<DbCaseWhenExpression.WhenThenExpressionPair>(2);
-            whenThenExps.Add(whenThenPair);
-            whenThenExps.Add(whenThenPair1);
-            DbCaseWhenExpression caseWhenExpression = DbExpression.CaseWhen(whenThenExps, DbConstantExpression.Null, PublicConstants.TypeOfBoolean);
-
-            return caseWhenExpression;
-        }
-
-        static Stack<DbExpression> GatherBinaryExpressionOperand(DbBinaryExpression exp)
-        {
-            DbExpressionType nodeType = exp.NodeType;
-
-            Stack<DbExpression> items = new Stack<DbExpression>();
-            items.Push(exp.Right);
-
-            DbExpression left = exp.Left;
-            while (left.NodeType == nodeType)
-            {
-                exp = (DbBinaryExpression)left;
-                items.Push(exp.Right);
-                left = exp.Left;
-            }
-
-            items.Push(left);
-            return items;
         }
 
         static bool TryGetCastTargetDbTypeString(Type sourceType, Type targetType, out string dbTypeString, bool throwNotSupportedException = true)
@@ -142,7 +50,7 @@ namespace Chloe.SqlServer.Odbc
                 if (sourceType != PublicConstants.TypeOfInt16 && sourceType != PublicConstants.TypeOfInt32 && sourceType != PublicConstants.TypeOfInt64 && sourceType != PublicConstants.TypeOfByte)
                 {
                     if (throwNotSupportedException)
-                        throw new NotSupportedException(AppendNotSupportedCastErrorMsg(sourceType, targetType));
+                        throw new NotSupportedException(PublicHelper.AppendNotSupportedCastErrorMsg(sourceType, targetType));
                     else
                         return false;
                 }
@@ -154,13 +62,9 @@ namespace Chloe.SqlServer.Odbc
             }
 
             if (throwNotSupportedException)
-                throw new NotSupportedException(AppendNotSupportedCastErrorMsg(sourceType, targetType));
+                throw new NotSupportedException(PublicHelper.AppendNotSupportedCastErrorMsg(sourceType, targetType));
             else
                 return false;
-        }
-        static string AppendNotSupportedCastErrorMsg(Type sourceType, Type targetType)
-        {
-            return string.Format("Does not support the type '{0}' converted to type '{1}'.", sourceType.FullName, targetType.FullName);
         }
 
         public static void DbFunction_DATEADD(SqlGeneratorBase generator, string interval, DbMethodCallExpression exp)

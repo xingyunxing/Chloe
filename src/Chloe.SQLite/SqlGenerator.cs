@@ -219,28 +219,28 @@ namespace Chloe.SQLite
 
         public override DbExpression Visit(DbBitAndExpression exp)
         {
-            Stack<DbExpression> operands = GatherBinaryExpressionOperand(exp);
+            Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
             this.ConcatOperands(operands, " & ");
 
             return exp;
         }
         public override DbExpression Visit(DbAndExpression exp)
         {
-            Stack<DbExpression> operands = GatherBinaryExpressionOperand(exp);
+            Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
             this.ConcatOperands(operands, " AND ");
 
             return exp;
         }
         public override DbExpression Visit(DbBitOrExpression exp)
         {
-            Stack<DbExpression> operands = GatherBinaryExpressionOperand(exp);
+            Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
             this.ConcatOperands(operands, " | ");
 
             return exp;
         }
         public override DbExpression Visit(DbOrExpression exp)
         {
-            Stack<DbExpression> operands = GatherBinaryExpressionOperand(exp);
+            Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
             this.ConcatOperands(operands, " OR ");
 
             return exp;
@@ -260,7 +260,7 @@ namespace Chloe.SQLite
                 }
             }
 
-            Stack<DbExpression> operands = GatherBinaryExpressionOperand(exp);
+            Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
             this.ConcatOperands(operands, " + ");
 
             return exp;
@@ -268,7 +268,7 @@ namespace Chloe.SQLite
         // -
         public override DbExpression Visit(DbSubtractExpression exp)
         {
-            Stack<DbExpression> operands = GatherBinaryExpressionOperand(exp);
+            Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
             this.ConcatOperands(operands, " - ");
 
             return exp;
@@ -276,7 +276,7 @@ namespace Chloe.SQLite
         // *
         public override DbExpression Visit(DbMultiplyExpression exp)
         {
-            Stack<DbExpression> operands = GatherBinaryExpressionOperand(exp);
+            Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
             this.ConcatOperands(operands, " * ");
 
             return exp;
@@ -284,7 +284,7 @@ namespace Chloe.SQLite
         // /
         public override DbExpression Visit(DbDivideExpression exp)
         {
-            Stack<DbExpression> operands = GatherBinaryExpressionOperand(exp);
+            Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
             this.ConcatOperands(operands, " / ");
 
             return exp;
@@ -292,7 +292,7 @@ namespace Chloe.SQLite
         // %
         public override DbExpression Visit(DbModuloExpression exp)
         {
-            Stack<DbExpression> operands = GatherBinaryExpressionOperand(exp);
+            Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
             this.ConcatOperands(operands, " % ");
 
             return exp;
