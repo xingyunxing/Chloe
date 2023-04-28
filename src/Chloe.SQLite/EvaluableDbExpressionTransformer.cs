@@ -7,9 +7,9 @@ namespace Chloe.SQLite
 {
     class EvaluableDbExpressionTransformer : EvaluableDbExpressionTransformerBase
     {
+        static HashSet<MemberInfo> _toTranslateMembers = new HashSet<MemberInfo>();
         static EvaluableDbExpressionTransformer _transformer = new EvaluableDbExpressionTransformer();
 
-        static HashSet<MemberInfo> _toTranslateMembers = new HashSet<MemberInfo>();
         static EvaluableDbExpressionTransformer()
         {
             _toTranslateMembers.Add(PublicConstants.PropertyInfo_String_Length);
@@ -32,27 +32,15 @@ namespace Chloe.SQLite
             _toTranslateMembers.TrimExcess();
         }
 
+        public EvaluableDbExpressionTransformer()
+        {
+            this.ToTranslateMembers = _toTranslateMembers;
+            this.MethodHandlers = SqlGenerator.MethodHandlerDic;
+        }
+
         public static DbExpression Transform(DbExpression exp)
         {
             return exp.Accept(_transformer);
-        }
-
-        public override bool CanTranslateToSql(DbMemberExpression exp)
-        {
-            return _toTranslateMembers.Contains(exp.Member);
-        }
-        public override bool CanTranslateToSql(DbMethodCallExpression exp)
-        {
-            IMethodHandler methodHandler;
-            if (SqlGenerator.MethodHandlerDic.TryGetValue(exp.Method.Name, out methodHandler))
-            {
-                if (methodHandler.CanProcess(exp))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
     }
 }

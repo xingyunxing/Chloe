@@ -1,6 +1,7 @@
 ﻿using Chloe.Annotations;
 using Chloe.DbExpressions;
 using Chloe.InternalExtensions;
+using Chloe.RDBMS;
 using System.Reflection;
 
 namespace Chloe.Visitors
@@ -15,6 +16,9 @@ namespace Chloe.Visitors
             return exp != null && (exp.NodeType == DbExpressionType.Constant || exp.NodeType == DbExpressionType.Parameter);
         }
 
+        protected HashSet<MemberInfo> ToTranslateMembers { get; set; }
+        protected Dictionary<string, IMethodHandler> MethodHandlers { get; set; }
+
         /// <summary>
         /// 是否可以将 exp.Member 翻译成数据库对应的语法
         /// </summary>
@@ -22,7 +26,7 @@ namespace Chloe.Visitors
         /// <returns></returns>
         public virtual bool CanTranslateToSql(DbMemberExpression exp)
         {
-            return false;
+            return this.ToTranslateMembers.Contains(exp.Member);
         }
         /// <summary>
         /// 是否可以将 exp.Method 翻译成数据库对应的语法
@@ -31,6 +35,15 @@ namespace Chloe.Visitors
         /// <returns></returns>
         public virtual bool CanTranslateToSql(DbMethodCallExpression exp)
         {
+            IMethodHandler methodHandler;
+            if (this.MethodHandlers.TryGetValue(exp.Method.Name, out methodHandler))
+            {
+                if (methodHandler.CanProcess(exp))
+                {
+                    return true;
+                }
+            }
+
             return false;
         }
 
