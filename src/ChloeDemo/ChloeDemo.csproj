@@ -82,7 +82,6 @@
 		<EmbeddedResource Include="..\tools\Chloe.PostgreSQL.nuspec" Link="tools\Chloe.PostgreSQL.nuspec" />
 		<EmbeddedResource Include="..\tools\Chloe.SQLite.nuspec" Link="tools\Chloe.SQLite.nuspec" />
 		<EmbeddedResource Include="..\tools\Chloe.SqlServer.nuspec" Link="tools\Chloe.SqlServer.nuspec" />
-		<EmbeddedResource Include="..\tools\Chloe.SqlServer.Odbc.nuspec" Link="tools\Chloe.SqlServer.Odbc.nuspec" />
 
 		<EmbeddedResource Include="..\tools\Chloe-All.bat" Link="tools\Chloe-All.bat" />
 	</ItemGroup>
