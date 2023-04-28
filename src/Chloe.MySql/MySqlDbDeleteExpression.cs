@@ -4,15 +4,13 @@ namespace Chloe.MySql
 {
     class MySqlDbDeleteExpression : DbDeleteExpression
     {
-        public MySqlDbDeleteExpression(DbTable table)
-          : this(table, null)
+        public MySqlDbDeleteExpression(DbTable table) : this(table, null)
         {
         }
-        public MySqlDbDeleteExpression(DbTable table, DbExpression condition)
-            : base(table, condition)
+        public MySqlDbDeleteExpression(DbTable table, DbExpression condition) : base(table, condition)
         {
         }
 
-        public int? Limits { get; set; }
+        public int Limits { get; set; }
     }
 }

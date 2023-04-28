@@ -35,9 +35,9 @@ namespace Chloe.Oracle
         {
             PublicHelper.CheckNull(methodName, nameof(methodName));
             PublicHelper.CheckNull(handler, nameof(handler));
-            lock (SqlGenerator.MethodHandlers)
+            lock (SqlGenerator.MethodHandlerDic)
             {
-                SqlGenerator.MethodHandlers[methodName] = handler;
+                SqlGenerator.MethodHandlerDic[methodName] = handler;
             }
         }
 

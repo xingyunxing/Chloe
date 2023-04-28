@@ -2,12 +2,9 @@
 {
     class SqlGenerator_ConvertToUppercase : SqlGenerator
     {
-        public override string SqlName(string name)
+        public override void QuoteName(string name)
         {
-            if (name == null)
-                return name;
-
-            return name.ToUpper();
+            base.QuoteName(name.ToUpper());
         }
     }
 }

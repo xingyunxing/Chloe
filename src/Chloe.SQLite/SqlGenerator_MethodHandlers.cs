@@ -5,7 +5,7 @@ namespace Chloe.SQLite
 {
     partial class SqlGenerator : SqlGeneratorBase
     {
-        static Dictionary<string, IMethodHandler> GetMethodHandlers()
+        static Dictionary<string, IMethodHandler> InitMethodHandlers()
         {
             var methodHandlers = new Dictionary<string, IMethodHandler>();
 

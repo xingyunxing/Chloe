@@ -44,7 +44,7 @@ namespace Chloe.MySql
         public override bool CanTranslateToSql(DbMethodCallExpression exp)
         {
             IMethodHandler methodHandler;
-            if (SqlGenerator.MethodHandlers.TryGetValue(exp.Method.Name, out methodHandler))
+            if (SqlGenerator.MethodHandlerDic.TryGetValue(exp.Method.Name, out methodHandler))
             {
                 if (methodHandler.CanProcess(exp))
                 {

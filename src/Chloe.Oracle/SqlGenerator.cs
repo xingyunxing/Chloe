@@ -1,6 +1,4 @@
-﻿using Chloe.Annotations;
-using Chloe.Visitors;
-using Chloe.DbExpressions;
+﻿using Chloe.DbExpressions;
 using Chloe.InternalExtensions;
 using Chloe.RDBMS;
 using Chloe.Reflection;
@@ -16,9 +14,9 @@ namespace Chloe.Oracle
 
         DbParamCollection _parameters = new DbParamCollection();
 
-        public static readonly Dictionary<string, IMethodHandler> MethodHandlers = GetMethodHandlers();
-        static readonly Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers = InitAggregateHandlers();
-        static readonly Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers = InitBinaryWithMethodHandlers();
+        public static readonly Dictionary<string, IMethodHandler> MethodHandlerDic = InitMethodHandlers();
+        static readonly Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlerDic = InitAggregateHandlers();
+        static readonly Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlersDic = InitBinaryWithMethodHandlers();
         static readonly Dictionary<Type, string> CastTypeMap;
         static readonly List<string> CacheParameterNames;
 
@@ -51,57 +49,17 @@ namespace Chloe.Oracle
 
         public List<DbParam> Parameters { get { return this._parameters.ToParameterList(); } }
 
+        protected override string LeftQuoteChar { get; } = "\"";
+        protected override string RightQuoteChar { get; } = "\"";
+        protected override Dictionary<string, IMethodHandler> MethodHandlers { get; } = MethodHandlerDic;
+        protected override Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers { get; } = AggregateHandlerDic;
+        protected override Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers { get; } = BinaryWithMethodHandlersDic;
+
         public static SqlGenerator CreateInstance()
         {
             return new SqlGenerator();
         }
 
-        public override DbExpression Visit(DbEqualExpression exp)
-        {
-            DbExpression left = exp.Left;
-            DbExpression right = exp.Right;
-
-            left = DbExpressionExtension.StripInvalidConvert(left);
-            right = DbExpressionExtension.StripInvalidConvert(right);
-
-            MethodInfo method_Sql_IsEqual = PublicConstants.MethodInfo_Sql_IsEqual.MakeGenericMethod(left.Type);
-
-            /* Sql.IsEqual(left, right) */
-            DbMethodCallExpression left_equals_right = DbExpression.MethodCall(null, method_Sql_IsEqual, new List<DbExpression>(2) { left, right });
-
-            if (right.NodeType == DbExpressionType.Parameter || right.NodeType == DbExpressionType.Constant || left.NodeType == DbExpressionType.Parameter || left.NodeType == DbExpressionType.Constant || right.NodeType == DbExpressionType.SubQuery || left.NodeType == DbExpressionType.SubQuery || !left.Type.CanNull() || !right.Type.CanNull())
-            {
-                /*
-                 * a.Name == name --> a.Name == name
-                 * a.Id == (select top 1 T.Id from T) --> a.Id == (select top 1 T.Id from T)
-                 * 对于上述查询，我们不考虑 null
-                 */
-
-                left_equals_right.Accept(this);
-                return exp;
-            }
-
-
-            /*
-             * a.Name == a.XName --> a.Name == a.XName or (a.Name is null and a.XName is null)
-             */
-
-            /* Sql.IsEqual(left, null) */
-            var left_is_null = DbExpression.MethodCall(null, method_Sql_IsEqual, new List<DbExpression>(2) { left, DbExpression.Constant(null, left.Type) });
-
-            /* Sql.IsEqual(right, null) */
-            var right_is_null = DbExpression.MethodCall(null, method_Sql_IsEqual, new List<DbExpression>(2) { right, DbExpression.Constant(null, right.Type) });
-
-            /* Sql.IsEqual(left, null) && Sql.IsEqual(right, null) */
-            var left_is_null_and_right_is_null = DbExpression.And(left_is_null, right_is_null);
-
-            /* Sql.IsEqual(left, right) || (Sql.IsEqual(left, null) && Sql.IsEqual(right, null)) */
-            var left_equals_right_or_left_is_null_and_right_is_null = DbExpression.Or(left_equals_right, left_is_null_and_right_is_null);
-
-            left_equals_right_or_left_is_null_and_right_is_null.Accept(this);
-
-            return exp;
-        }
         public override DbExpression Visit(DbNotEqualExpression exp)
         {
             DbExpression left = exp.Left;
@@ -212,16 +170,6 @@ namespace Chloe.Oracle
             return exp;
         }
 
-        public override DbExpression Visit(DbNotExpression exp)
-        {
-            this.SqlBuilder.Append("NOT ");
-            this.SqlBuilder.Append("(");
-            exp.Operand.Accept(this);
-            this.SqlBuilder.Append(")");
-
-            return exp;
-        }
-
         public override DbExpression Visit(DbBitAndExpression exp)
         {
             this.SqlBuilder.Append("BITAND(");
@@ -232,68 +180,11 @@ namespace Chloe.Oracle
 
             return exp;
         }
-        public override DbExpression Visit(DbAndExpression exp)
-        {
-            Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
-            this.ConcatOperands(operands, " AND ");
-
-            return exp;
-        }
         public override DbExpression Visit(DbBitOrExpression exp)
         {
             throw new NotSupportedException("'|' operator is not supported.");
         }
-        public override DbExpression Visit(DbOrExpression exp)
-        {
-            Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
-            this.ConcatOperands(operands, " OR ");
 
-            return exp;
-        }
-
-        // +
-        public override DbExpression Visit(DbAddExpression exp)
-        {
-            MethodInfo method = exp.Method;
-            if (method != null)
-            {
-                Action<DbBinaryExpression, SqlGeneratorBase> handler;
-                if (BinaryWithMethodHandlers.TryGetValue(method, out handler))
-                {
-                    handler(exp, this);
-                    return exp;
-                }
-            }
-
-            Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
-            this.ConcatOperands(operands, " + ");
-
-            return exp;
-        }
-        // -
-        public override DbExpression Visit(DbSubtractExpression exp)
-        {
-            Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
-            this.ConcatOperands(operands, " - ");
-
-            return exp;
-        }
-        // *
-        public override DbExpression Visit(DbMultiplyExpression exp)
-        {
-            Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
-            this.ConcatOperands(operands, " * ");
-
-            return exp;
-        }
-        // /
-        public override DbExpression Visit(DbDivideExpression exp)
-        {
-            Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
-            this.ConcatOperands(operands, " / ");
-
-            return exp;
-        }
         // %
         public override DbExpression Visit(DbModuloExpression exp)
         {
@@ -305,61 +196,6 @@ namespace Chloe.Oracle
 
             return exp;
         }
-        public override DbExpression Visit(DbNegateExpression exp)
-        {
-            this.SqlBuilder.Append("(");
-
-            this.SqlBuilder.Append("-");
-            exp.Operand.Accept(this);
-
-            this.SqlBuilder.Append(")");
-            return exp;
-        }
-        // <
-        public override DbExpression Visit(DbLessThanExpression exp)
-        {
-            var amendResult = PublicHelper.AmendExpDbInfo(exp.Left, exp.Right);
-
-            amendResult.Left.Accept(this);
-            this.SqlBuilder.Append(" < ");
-            amendResult.Right.Accept(this);
-
-            return exp;
-        }
-        // <=
-        public override DbExpression Visit(DbLessThanOrEqualExpression exp)
-        {
-            var amendResult = PublicHelper.AmendExpDbInfo(exp.Left, exp.Right);
-
-            amendResult.Left.Accept(this);
-            this.SqlBuilder.Append(" <= ");
-            amendResult.Right.Accept(this);
-
-            return exp;
-        }
-        // >
-        public override DbExpression Visit(DbGreaterThanExpression exp)
-        {
-            var amendResult = PublicHelper.AmendExpDbInfo(exp.Left, exp.Right);
-
-            amendResult.Left.Accept(this);
-            this.SqlBuilder.Append(" > ");
-            amendResult.Right.Accept(this);
-
-            return exp;
-        }
-        // >=
-        public override DbExpression Visit(DbGreaterThanOrEqualExpression exp)
-        {
-            var amendResult = PublicHelper.AmendExpDbInfo(exp.Left, exp.Right);
-
-            amendResult.Left.Accept(this);
-            this.SqlBuilder.Append(" >= ");
-            amendResult.Right.Accept(this);
-
-            return exp;
-        }
-
 
         public override DbExpression Visit(DbAggregateExpression exp)
         {
@@ -373,69 +209,6 @@ namespace Chloe.Oracle
             return exp;
         }
 
-
-        public override DbExpression Visit(DbTableExpression exp)
-        {
-            this.AppendTable(exp.Table);
-            return exp;
-        }
-        public override DbExpression Visit(DbColumnAccessExpression exp)
-        {
-            this.QuoteName(exp.Table.Name);
-            this.SqlBuilder.Append(".");
-            this.QuoteName(exp.Column.Name);
-
-            return exp;
-        }
-        public override DbExpression Visit(DbFromTableExpression exp)
-        {
-            this.AppendTableSegment(exp.Table);
-            this.VisitDbJoinTableExpressions(exp.JoinTables);
-
-            return exp;
-        }
-        public override DbExpression Visit(DbJoinTableExpression exp)
-        {
-            DbJoinTableExpression joinTablePart = exp;
-            string joinString = null;
-
-            if (joinTablePart.JoinType == DbJoinType.InnerJoin)
-            {
-                joinString = " INNER JOIN ";
-            }
-            else if (joinTablePart.JoinType == DbJoinType.LeftJoin)
-            {
-                joinString = " LEFT JOIN ";
-            }
-            else if (joinTablePart.JoinType == DbJoinType.RightJoin)
-            {
-                joinString = " RIGHT JOIN ";
-            }
-            else if (joinTablePart.JoinType == DbJoinType.FullJoin)
-            {
-                joinString = " FULL JOIN ";
-            }
-            else
-                throw new NotSupportedException("JoinType: " + joinTablePart.JoinType);
-
-            this.SqlBuilder.Append(joinString);
-            this.AppendTableSegment(joinTablePart.Table);
-            this.SqlBuilder.Append(" ON ");
-            JoinConditionExpressionTransformer.Transform(joinTablePart.Condition).Accept(this);
-            this.VisitDbJoinTableExpressions(joinTablePart.JoinTables);
-
-            return exp;
-        }
-
-
-        public override DbExpression Visit(DbSubQueryExpression exp)
-        {
-            this.SqlBuilder.Append("(");
-            exp.SqlQuery.Accept(this);
-            this.SqlBuilder.Append(")");
-
-            return exp;
-        }
         public override DbExpression Visit(DbSqlQueryExpression exp)
         {
             if (exp.TakeCount != null)
@@ -570,37 +343,6 @@ namespace Chloe.Oracle
 
             return exp;
         }
-        public override DbExpression Visit(DbDeleteExpression exp)
-        {
-            this.SqlBuilder.Append("DELETE FROM ");
-            this.AppendTable(exp.Table);
-            this.BuildWhereState(exp.Condition);
-
-            return exp;
-        }
-
-        public override DbExpression Visit(DbExistsExpression exp)
-        {
-            this.SqlBuilder.Append("Exists ");
-
-            DbSqlQueryExpression rawSqlQuery = exp.SqlQuery;
-            DbSqlQueryExpression sqlQuery = new DbSqlQueryExpression()
-            {
-                TakeCount = rawSqlQuery.TakeCount,
-                SkipCount = rawSqlQuery.SkipCount,
-                Table = rawSqlQuery.Table,
-                Condition = rawSqlQuery.Condition,
-                HavingCondition = rawSqlQuery.HavingCondition,
-            };
-
-            sqlQuery.GroupSegments.AddRange(rawSqlQuery.GroupSegments);
-
-            DbColumnSegment columnSegment = new DbColumnSegment(DbExpression.Parameter("1"), "C");
-            sqlQuery.ColumnSegments.Add(columnSegment);
-
-            DbSubQueryExpression subQuery = new DbSubQueryExpression(sqlQuery);
-            return subQuery.Accept(this);
-        }
 
         public override DbExpression Visit(DbCoalesceExpression exp)
         {
@@ -674,55 +416,6 @@ namespace Chloe.Oracle
             return exp;
         }
 
-
-        public override DbExpression Visit(DbMethodCallExpression exp)
-        {
-            IMethodHandler methodHandler;
-            if (MethodHandlers.TryGetValue(exp.Method.Name, out methodHandler))
-            {
-                if (methodHandler.CanProcess(exp))
-                {
-                    methodHandler.Process(exp, this);
-                    return exp;
-                }
-            }
-
-            DbFunctionAttribute dbFunction = exp.Method.GetCustomAttribute<DbFunctionAttribute>();
-            if (dbFunction != null)
-            {
-                string schema = dbFunction.Schema;
-                string functionName = string.IsNullOrEmpty(dbFunction.Name) ? exp.Method.Name : dbFunction.Name;
-
-                if (!string.IsNullOrEmpty(schema))
-                {
-                    this.QuoteName(schema);
-                    this.SqlBuilder.Append(".");
-                }
-
-                this.QuoteName(functionName);
-                this.SqlBuilder.Append("(");
-
-                string c = "";
-                foreach (DbExpression argument in exp.Arguments)
-                {
-                    this.SqlBuilder.Append(c);
-                    argument.Accept(this);
-                    c = ",";
-                }
-
-                this.SqlBuilder.Append(")");
-
-                return exp;
-            }
-
-            if (exp.IsEvaluable())
-            {
-                DbParameterExpression dbParameter = new DbParameterExpression(exp.Evaluate(), exp.Type);
-                return dbParameter.Accept(this);
-            }
-
-            throw PublicHelper.MakeNotSupportedMethodException(exp.Method);
-        }
         public override DbExpression Visit(DbMemberExpression exp)
         {
             MemberInfo member = exp.Member;
@@ -773,28 +466,7 @@ namespace Chloe.Oracle
                 return exp;
             }
 
-            if (member.Name == "Length" && member.DeclaringType == PublicConstants.TypeOfString)
-            {
-                this.SqlBuilder.Append("LENGTH(");
-                exp.Expression.Accept(this);
-                this.SqlBuilder.Append(")");
-
-                return exp;
-            }
-
-            if (member.Name == "Value" && ReflectionExtension.IsNullable(exp.Expression.Type))
-            {
-                exp.Expression.Accept(this);
-                return exp;
-            }
-
-            DbParameterExpression newExp;
-            if (DbExpressionExtension.TryConvertToParameterExpression(exp, out newExp))
-            {
-                return newExp.Accept(this);
-            }
-
-            throw new NotSupportedException(string.Format("'{0}.{1}' is not supported.", member.DeclaringType.FullName, member.Name));
+            return base.Visit(exp);
         }
         public override DbExpression Visit(DbConstantExpression exp)
         {
@@ -890,43 +562,19 @@ namespace Chloe.Oracle
         }
 
 
-        void AppendTableSegment(DbTableSegment seg)
+        protected override void AppendTableSegment(DbTableSegment seg)
         {
             seg.Body.Accept(this);
             this.SqlBuilder.Append(" ");
             this.QuoteName(seg.Alias);
         }
-        void AppendColumnSegment(DbColumnSegment seg)
+        protected override void AppendColumnSegment(DbColumnSegment seg)
         {
             DbValueExpressionTransformer.Transform(seg.Body).Accept(this);
             this.SqlBuilder.Append(" AS ");
             this.QuoteName(seg.Alias);
         }
-        void AppendOrdering(DbOrdering ordering)
-        {
-            if (ordering.OrderType == DbOrderType.Asc)
-            {
-                ordering.Expression.Accept(this);
-                this.SqlBuilder.Append(" ASC");
-                return;
-            }
-            else if (ordering.OrderType == DbOrderType.Desc)
-            {
-                ordering.Expression.Accept(this);
-                this.SqlBuilder.Append(" DESC");
-                return;
-            }
 
-            throw new NotSupportedException("OrderType: " + ordering.OrderType);
-        }
-
-        void VisitDbJoinTableExpressions(List<DbJoinTableExpression> tables)
-        {
-            foreach (var table in tables)
-            {
-                table.Accept(this);
-            }
-        }
         void BuildGeneralSql(DbSqlQueryExpression exp)
         {
             if (exp.TakeCount != null || exp.SkipCount != null)
@@ -966,104 +614,10 @@ namespace Chloe.Oracle
                 throw new NotSupportedException($"lock type: {seg.Lock.ToString()}");
         }
 
-
-        void BuildWhereState(DbExpression whereExpression)
-        {
-            if (whereExpression != null)
-            {
-                this.SqlBuilder.Append(" WHERE ");
-                whereExpression.Accept(this);
-            }
-        }
-        void BuildOrderState(List<DbOrdering> orderings)
-        {
-            if (orderings.Count > 0)
-            {
-                this.SqlBuilder.Append(" ORDER BY ");
-                this.ConcatOrderings(orderings);
-            }
-        }
-        void ConcatOrderings(List<DbOrdering> orderings)
-        {
-            for (int i = 0; i < orderings.Count; i++)
-            {
-                if (i > 0)
-                {
-                    this.SqlBuilder.Append(",");
-                }
-
-                this.AppendOrdering(orderings[i]);
-            }
-        }
-        void BuildGroupState(DbSqlQueryExpression exp)
-        {
-            var groupSegments = exp.GroupSegments;
-            if (groupSegments.Count == 0)
-                return;
-
-            this.SqlBuilder.Append(" GROUP BY ");
-            for (int i = 0; i < groupSegments.Count; i++)
-            {
-                if (i > 0)
-                    this.SqlBuilder.Append(",");
-
-                groupSegments[i].Accept(this);
-            }
-
-            if (exp.HavingCondition != null)
-            {
-                this.SqlBuilder.Append(" HAVING ");
-                exp.HavingCondition.Accept(this);
-            }
-        }
-
         public virtual string SqlName(string name)
         {
             return name;
         }
-        public virtual void QuoteName(string name)
-        {
-            if (string.IsNullOrEmpty(name))
-                throw new ArgumentException("name");
-
-            this.SqlBuilder.Append("\"", this.SqlName(name), "\"");
-        }
-        void AppendTable(DbTable table)
-        {
-            if (!string.IsNullOrEmpty(table.Schema))
-            {
-                this.QuoteName(table.Schema);
-                this.SqlBuilder.Append(".");
-            }
-
-            this.QuoteName(table.Name);
-        }
-
-        void ConcatOperands(IEnumerable<DbExpression> operands, string connector)
-        {
-            this.SqlBuilder.Append("(");
-
-            bool first = true;
-            foreach (DbExpression operand in operands)
-            {
-                if (first)
-                    first = false;
-                else
-                    this.SqlBuilder.Append(connector);
-
-                operand.Accept(this);
-            }
-
-            this.SqlBuilder.Append(")");
-            return;
-        }
-        void BuildCastState(DbExpression castExp, string targetDbTypeString)
-        {
-            this.SqlBuilder.Append("CAST(");
-            castExp.Accept(this);
-            this.SqlBuilder.Append(" AS ", targetDbTypeString, ")");
-        }
-
 
         bool IsDatePart(DbMemberExpression exp)
         {
