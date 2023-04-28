@@ -312,7 +312,7 @@ namespace Chloe.PostgreSQL
         // <
         public override DbExpression Visit(DbLessThanExpression exp)
         {
-            var amendResult = AmendExpDbInfo(exp.Left, exp.Right);
+            var amendResult = PublicHelper.AmendExpDbInfo(exp.Left, exp.Right);
 
             amendResult.Left.Accept(this);
             this.SqlBuilder.Append(" < ");
@@ -323,7 +323,7 @@ namespace Chloe.PostgreSQL
         // <=
         public override DbExpression Visit(DbLessThanOrEqualExpression exp)
         {
-            var amendResult = AmendExpDbInfo(exp.Left, exp.Right);
+            var amendResult = PublicHelper.AmendExpDbInfo(exp.Left, exp.Right);
 
             amendResult.Left.Accept(this);
             this.SqlBuilder.Append(" <= ");
@@ -334,7 +334,7 @@ namespace Chloe.PostgreSQL
         // >
         public override DbExpression Visit(DbGreaterThanExpression exp)
         {
-            var amendResult = AmendExpDbInfo(exp.Left, exp.Right);
+            var amendResult = PublicHelper.AmendExpDbInfo(exp.Left, exp.Right);
 
             amendResult.Left.Accept(this);
             this.SqlBuilder.Append(" > ");
@@ -345,7 +345,7 @@ namespace Chloe.PostgreSQL
         // >=
         public override DbExpression Visit(DbGreaterThanOrEqualExpression exp)
         {
-            var amendResult = AmendExpDbInfo(exp.Left, exp.Right);
+            var amendResult = PublicHelper.AmendExpDbInfo(exp.Left, exp.Right);
 
             amendResult.Left.Accept(this);
             this.SqlBuilder.Append(" >= ");
@@ -460,7 +460,7 @@ namespace Chloe.PostgreSQL
                 this.SqlBuilder.Append(separator);
 
                 DbExpression valExp = DbExpressionExtension.StripInvalidConvert(item.Value);
-                AmendDbInfo(item.Key, valExp);
+                PublicHelper.AmendDbInfo(item.Key, valExp);
                 DbValueExpressionTransformer.Transform(valExp).Accept(this);
                 separator = ",";
             }
@@ -499,7 +499,7 @@ namespace Chloe.PostgreSQL
                 this.SqlBuilder.Append("=");
 
                 DbExpression valExp = DbExpressionExtension.StripInvalidConvert(item.Value);
-                AmendDbInfo(item.Key, valExp);
+                PublicHelper.AmendDbInfo(item.Key, valExp);
                 DbValueExpressionTransformer.Transform(valExp).Accept(this);
             }
 

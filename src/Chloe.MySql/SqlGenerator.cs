@@ -312,7 +312,7 @@ namespace Chloe.MySql
         // <
         public override DbExpression Visit(DbLessThanExpression exp)
         {
-            var amendResult = AmendExpDbInfo(exp.Left, exp.Right);
+            var amendResult = PublicHelper.AmendExpDbInfo(exp.Left, exp.Right);
 
             amendResult.Left.Accept(this);
             this.SqlBuilder.Append(" < ");
@@ -323,7 +323,7 @@ namespace Chloe.MySql
         // <=
         public override DbExpression Visit(DbLessThanOrEqualExpression exp)
         {
-            var amendResult = AmendExpDbInfo(exp.Left, exp.Right);
+            var amendResult = PublicHelper.AmendExpDbInfo(exp.Left, exp.Right);
 
             amendResult.Left.Accept(this);
             this.SqlBuilder.Append(" <= ");
@@ -334,7 +334,7 @@ namespace Chloe.MySql
         // >
         public override DbExpression Visit(DbGreaterThanExpression exp)
         {
-            var amendResult = AmendExpDbInfo(exp.Left, exp.Right);
+            var amendResult = PublicHelper.AmendExpDbInfo(exp.Left, exp.Right);
 
             amendResult.Left.Accept(this);
             this.SqlBuilder.Append(" > ");
@@ -345,7 +345,7 @@ namespace Chloe.MySql
         // >=
         public override DbExpression Visit(DbGreaterThanOrEqualExpression exp)
         {
-            var amendResult = AmendExpDbInfo(exp.Left, exp.Right);
+            var amendResult = PublicHelper.AmendExpDbInfo(exp.Left, exp.Right);
 
             amendResult.Left.Accept(this);
             this.SqlBuilder.Append(" >= ");
@@ -465,7 +465,7 @@ namespace Chloe.MySql
                 }
 
                 DbExpression valExp = item.Value.StripInvalidConvert();
-                AmendDbInfo(item.Key, valExp);
+                PublicHelper.AmendDbInfo(item.Key, valExp);
                 valExp.Accept(this);
             }
 
@@ -491,7 +491,7 @@ namespace Chloe.MySql
                 this.SqlBuilder.Append("=");
 
                 DbExpression valExp = item.Value.StripInvalidConvert();
-                AmendDbInfo(item.Key, valExp);
+                PublicHelper.AmendDbInfo(item.Key, valExp);
                 valExp.Accept(this);
             }
 

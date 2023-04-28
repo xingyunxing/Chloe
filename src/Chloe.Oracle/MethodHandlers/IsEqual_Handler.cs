@@ -31,7 +31,7 @@ namespace Chloe.Oracle.MethodHandlers
                 return;
             }
 
-            SqlGenerator.AmendDbInfo(left, right);
+            PublicHelper.AmendDbInfo(left, right);
 
             left.Accept(generator);
             generator.SqlBuilder.Append(" = ");

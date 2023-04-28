@@ -56,6 +56,14 @@ namespace Chloe
             return ToStringableNumericTypes.Contains(type);
         }
 
+        public static (DbExpression Left, DbExpression Right) AmendExpDbInfo(DbExpression left, DbExpression right)
+        {
+            left = DbExpressionExtension.StripInvalidConvert(left);
+            right = DbExpressionExtension.StripInvalidConvert(right);
+            PublicHelper.AmendDbInfo(left, right);
+
+            return (left, right);
+        }
         /// <summary>
         /// 修正使用关系运算符时的 DbType，避免出现双边类型不一致时导致索引失效
         /// </summary>

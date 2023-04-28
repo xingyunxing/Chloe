@@ -318,7 +318,7 @@ namespace Chloe.Oracle
         // <
         public override DbExpression Visit(DbLessThanExpression exp)
         {
-            var amendResult = AmendExpDbInfo(exp.Left, exp.Right);
+            var amendResult = PublicHelper.AmendExpDbInfo(exp.Left, exp.Right);
 
             amendResult.Left.Accept(this);
             this.SqlBuilder.Append(" < ");
@@ -329,7 +329,7 @@ namespace Chloe.Oracle
         // <=
         public override DbExpression Visit(DbLessThanOrEqualExpression exp)
         {
-            var amendResult = AmendExpDbInfo(exp.Left, exp.Right);
+            var amendResult = PublicHelper.AmendExpDbInfo(exp.Left, exp.Right);
 
             amendResult.Left.Accept(this);
             this.SqlBuilder.Append(" <= ");
@@ -340,7 +340,7 @@ namespace Chloe.Oracle
         // >
         public override DbExpression Visit(DbGreaterThanExpression exp)
         {
-            var amendResult = AmendExpDbInfo(exp.Left, exp.Right);
+            var amendResult = PublicHelper.AmendExpDbInfo(exp.Left, exp.Right);
 
             amendResult.Left.Accept(this);
             this.SqlBuilder.Append(" > ");
@@ -351,7 +351,7 @@ namespace Chloe.Oracle
         // >=
         public override DbExpression Visit(DbGreaterThanOrEqualExpression exp)
         {
-            var amendResult = AmendExpDbInfo(exp.Left, exp.Right);
+            var amendResult = PublicHelper.AmendExpDbInfo(exp.Left, exp.Right);
 
             amendResult.Left.Accept(this);
             this.SqlBuilder.Append(" >= ");
@@ -509,7 +509,7 @@ namespace Chloe.Oracle
                 }
 
                 DbExpression valExp = item.Value.StripInvalidConvert();
-                AmendDbInfo(item.Key, valExp);
+                PublicHelper.AmendDbInfo(item.Key, valExp);
                 DbValueExpressionTransformer.Transform(valExp).Accept(this);
             }
 
@@ -562,7 +562,7 @@ namespace Chloe.Oracle
                 this.SqlBuilder.Append("=");
 
                 DbExpression valExp = item.Value.StripInvalidConvert();
-                AmendDbInfo(item.Key, valExp);
+                PublicHelper.AmendDbInfo(item.Key, valExp);
                 DbValueExpressionTransformer.Transform(valExp).Accept(this);
             }
 
