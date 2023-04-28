@@ -24,8 +24,7 @@ namespace Chloe.SqlServer
     public partial class MsSqlContextProvider : DbContextProvider
     {
         DatabaseProvider _databaseProvider;
-        public MsSqlContextProvider(string connString)
-            : this(new DefaultDbConnectionFactory(connString))
+        public MsSqlContextProvider(string connString) : this(new DefaultDbConnectionFactory(connString))
         {
         }
 
