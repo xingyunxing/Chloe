@@ -11,13 +11,13 @@ namespace Chloe.Visitors
     /// </summary>
     public class EvaluableDbExpressionTransformerBase : DbExpressionVisitor
     {
+        protected HashSet<MemberInfo> ToTranslateMembers { get; set; }
+        protected Dictionary<string, IMethodHandler> MethodHandlers { get; set; }
+
         public static bool IsConstantOrParameter(DbExpression exp)
         {
             return exp != null && (exp.NodeType == DbExpressionType.Constant || exp.NodeType == DbExpressionType.Parameter);
         }
-
-        protected HashSet<MemberInfo> ToTranslateMembers { get; set; }
-        protected Dictionary<string, IMethodHandler> MethodHandlers { get; set; }
 
         /// <summary>
         /// 是否可以将 exp.Member 翻译成数据库对应的语法

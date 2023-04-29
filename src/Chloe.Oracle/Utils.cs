@@ -59,9 +59,9 @@ namespace Chloe.Oracle
         public static string QuoteName(string name, bool convertToUppercase)
         {
             if (convertToUppercase)
-                return string.Concat("\"", name.ToUpper(), "\"");
+                return string.Concat(UtilConstants.LeftQuoteChar, name.ToUpper(), UtilConstants.RightQuoteChar);
 
-            return string.Concat("\"", name, "\"");
+            return string.Concat(UtilConstants.LeftQuoteChar, name, UtilConstants.RightQuoteChar);
         }
     }
 }

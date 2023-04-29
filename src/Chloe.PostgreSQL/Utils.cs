@@ -7,9 +7,9 @@ namespace Chloe.PostgreSQL
         public static string QuoteName(string name, bool convertToLowercase)
         {
             if (convertToLowercase)
-                return string.Concat("\"", name.ToLower(), "\"");
+                return string.Concat(UtilConstants.LeftQuoteChar, name.ToLower(), UtilConstants.RightQuoteChar);
 
-            return string.Concat("\"", name, "\"");
+            return string.Concat(UtilConstants.LeftQuoteChar, name, UtilConstants.RightQuoteChar);
         }
     }
 }

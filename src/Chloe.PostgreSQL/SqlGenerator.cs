@@ -46,8 +46,8 @@ namespace Chloe.PostgreSQL
 
         public List<DbParam> Parameters { get { return this._parameters.ToParameterList(); } }
 
-        protected override string LeftQuoteChar { get; } = "\"";
-        protected override string RightQuoteChar { get; } = "\"";
+        protected override string LeftQuoteChar { get; } = UtilConstants.LeftQuoteChar;
+        protected override string RightQuoteChar { get; } = UtilConstants.RightQuoteChar;
         protected override Dictionary<string, IMethodHandler> MethodHandlers { get; } = MethodHandlerDic;
         protected override Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers { get; } = AggregateHandlerDic;
         protected override Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers { get; } = BinaryWithMethodHandlersDic;

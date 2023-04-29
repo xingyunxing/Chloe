@@ -6,7 +6,7 @@ namespace Chloe.MySql
     {
         public static string QuoteName(string name)
         {
-            return string.Concat("`", name, "`");
+            return string.Concat(UtilConstants.LeftQuoteChar, name, UtilConstants.RightQuoteChar);
         }
     }
 }
