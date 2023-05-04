@@ -17,29 +17,6 @@ namespace Chloe.SQLite
             return UtilConstants.ParameterNamePrefix + ordinal.ToString();
         }
 
-        static void EnsureTrimCharArgumentIsSpaces(DbExpression exp)
-        {
-            var m = exp as DbMemberExpression;
-            if (m == null)
-                throw new NotSupportedException();
-
-            DbParameterExpression p;
-            if (!DbExpressionExtension.TryConvertToParameterExpression(m, out p))
-            {
-                throw new NotSupportedException();
-            }
-
-            var arg = p.Value;
-
-            if (arg == null)
-                throw new NotSupportedException();
-
-            var chars = arg as char[];
-            if (chars.Length != 1 || chars[0] != ' ')
-            {
-                throw new NotSupportedException();
-            }
-        }
         static bool TryGetCastTargetDbTypeString(Type sourceType, Type targetType, out string dbTypeString, bool throwNotSupportedException = true)
         {
             dbTypeString = null;
