@@ -65,12 +65,17 @@ namespace ChloeDemo
             PostgreSQLShardingTest postgreSQLShardingTest = new PostgreSQLShardingTest();
             postgreSQLShardingTest.Run().GetAwaiter().GetResult();
 
+            //Dameng 需要装多个数据库实现多库，不过自带分区表，不大需要分库
+            //DamengShardingTest damengShardingTest = new DamengShardingTest();
+            //damengShardingTest.Run().GetAwaiter().GetResult();
+
             RunDemo<SQLiteDemo>();
             RunDemo<MsSqlDemo>();
             RunDemo<MsSqlOdbcDemo>();
             RunDemo<MySqlDemo>();
             RunDemo<PostgreSQLDemo>();
             RunDemo<OracleDemo>();
+            RunDemo<DamengDemo>();
         }
 
         static void RunDemo<TDemo>() where TDemo : DemoBase, new()
