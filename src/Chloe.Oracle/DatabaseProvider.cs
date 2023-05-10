@@ -6,14 +6,14 @@ namespace Chloe.Oracle
     class DatabaseProvider : IDatabaseProvider
     {
         IDbConnectionFactory _dbConnectionFactory;
-        OracleContextProvider _oracleContextProvider;
+        OracleContextProvider _contextProvider;
 
         public string DatabaseType { get { return "Oracle"; } }
 
-        public DatabaseProvider(IDbConnectionFactory dbConnectionFactory, OracleContextProvider oracleContextProvider)
+        public DatabaseProvider(IDbConnectionFactory dbConnectionFactory, OracleContextProvider contextProvider)
         {
             this._dbConnectionFactory = dbConnectionFactory;
-            this._oracleContextProvider = oracleContextProvider;
+            this._contextProvider = contextProvider;
         }
         public IDbConnection CreateConnection()
         {
@@ -22,7 +22,7 @@ namespace Chloe.Oracle
         }
         public IDbExpressionTranslator CreateDbExpressionTranslator()
         {
-            if (this._oracleContextProvider.ConvertToUppercase == true)
+            if (this._contextProvider.ConvertToUppercase == true)
             {
                 return DbExpressionTranslator_ConvertToUppercase.Instance;
             }

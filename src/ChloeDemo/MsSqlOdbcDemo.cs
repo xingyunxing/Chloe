@@ -17,6 +17,9 @@ using System.Data.Odbc;
 
 namespace ChloeDemo
 {
+    /*
+     * 如果参数化 sql 参数出现日期类型报精度溢出错误问题，请参考 ./DbCommandInterceptor.cs 文件，在拦截器里对日期参数进行处理
+     */
     class MsSqlOdbcDemo : MsSqlDemo
     {
         public MsSqlOdbcDemo()
