@@ -29,6 +29,7 @@ namespace ChloeDemo
             string connStr = "Driver={ODBC Driver 17 for SQL Server};Server=.;Database=Chloe;UID=sa;PWD=sa;";
             MsSqlContext dbContext = new MsSqlContext(() => new OdbcConnection(connStr));
             dbContext.PagingMode = PagingMode.ROW_NUMBER;
+            dbContext.BindParameterByName = false;
             return dbContext;
         }
 

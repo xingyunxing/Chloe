@@ -37,7 +37,10 @@ namespace Chloe.SqlServer.DDL
             }
             else if (createMode == TableCreateMode.CreateNew)
             {
-                sb.AppendLine($"DROP TABLE IF EXISTS {Utils.QuoteName(tableName)};");
+                //this command needs sqlserver 2016 or up
+                //sb.AppendLine($"DROP TABLE IF EXISTS {Utils.QuoteName(tableName)};");
+
+                sb.AppendLine($"IF OBJECT_ID(N'{Utils.QuoteName(tableName)}', N'U') IS NOT NULL DROP TABLE {Utils.QuoteName(tableName)};");
             }
 
             sb.Append($"CREATE TABLE {Utils.QuoteName(tableName)}(");

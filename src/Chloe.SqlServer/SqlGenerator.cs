@@ -10,7 +10,8 @@ namespace Chloe.SqlServer
 {
     partial class SqlGenerator : SqlGeneratorBase
     {
-        DbParamCollection _parameters = new DbParamCollection();
+        IDbParamCollection _parameters;
+        bool _bindParameterByName;
 
         public static readonly Dictionary<string, IMethodHandler> MethodHandlerDic = InitMethodHandlers();
         static readonly Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlerDic = InitAggregateHandlers();
@@ -45,6 +46,12 @@ namespace Chloe.SqlServer
             CacheParameterNames = cacheParameterNames;
         }
 
+        public SqlGenerator(MsSqlContextProvider contextProvider)
+        {
+            this._bindParameterByName = contextProvider.BindParameterByName;
+            this._parameters = this._bindParameterByName ? new DbParamCollection() : new DbParamCollectionWithoutReuse();
+        }
+
         public List<DbParam> Parameters { get { return this._parameters.ToParameterList(); } }
 
         protected override string LeftQuoteChar { get; } = UtilConstants.LeftQuoteChar;
@@ -52,11 +59,6 @@ namespace Chloe.SqlServer
         protected override Dictionary<string, IMethodHandler> MethodHandlers { get; } = MethodHandlerDic;
         protected override Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers { get; } = AggregateHandlerDic;
         protected override Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers { get; } = BinaryWithMethodHandlersDic;
-
-        public static SqlGenerator CreateInstance()
-        {
-            return new SqlGenerator();
-        }
 
         public override DbExpression Visit(DbSqlQueryExpression exp)
         {
@@ -286,7 +288,11 @@ namespace Chloe.SqlServer
             if (paramValue == null)
                 paramValue = DBNull.Value;
 
-            DbParam p = this._parameters.Find(paramValue, paramType, exp.DbType);
+            DbParam p = null;
+            if (this._bindParameterByName)
+            {
+                p = this._parameters.Find(paramValue, paramType, exp.DbType);
+            }
 
             if (p != null)
             {
@@ -309,7 +315,12 @@ namespace Chloe.SqlServer
                 p.DbType = exp.DbType;
 
             this._parameters.Add(p);
-            this.SqlBuilder.Append(paramName);
+
+            if (!this._bindParameterByName)
+                this.SqlBuilder.Append("?");
+            else
+                this.SqlBuilder.Append(paramName);
+
             return exp;
         }
 

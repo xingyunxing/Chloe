@@ -2,7 +2,15 @@
 
 namespace Chloe.SqlServer
 {
-    class DbParamCollection
+    interface IDbParamCollection
+    {
+        int Count { get; }
+        DbParam Find(object value, Type paramType, DbType? dbType);
+        void Add(DbParam param);
+        List<DbParam> ToParameterList();
+    }
+
+    class DbParamCollection : IDbParamCollection
     {
         /* 以参数值为 key，DbParam 或 List<DbParam> 为 value */
         Dictionary<object, object> _dbParams = new Dictionary<object, object>();
@@ -69,7 +77,6 @@ namespace Chloe.SqlServer
             }
         }
 
-
         public List<DbParam> ToParameterList()
         {
             List<DbParam> ret = new List<DbParam>(this.Count);
@@ -92,6 +99,36 @@ namespace Chloe.SqlServer
             }
 
             return ret;
+        }
+    }
+
+    class DbParamCollectionWithoutReuse : IDbParamCollection
+    {
+        List<DbParam> _dbParams = new List<DbParam>();
+
+        public int Count { get => _dbParams.Count; }
+
+        public DbParam Find(object value, Type paramType, DbType? dbType)
+        {
+            List<DbParam> dbParamList = this._dbParams;
+            if (value == DBNull.Value)
+            {
+                return dbParamList.Find(a => a.Type == paramType);
+            }
+            else
+            {
+                return dbParamList.Find(a => a.DbType == dbType);
+            }
+        }
+
+        public void Add(DbParam param)
+        {
+            this._dbParams.Add(param);
+        }
+
+        public List<DbParam> ToParameterList()
+        {
+            return this._dbParams;
         }
     }
 }

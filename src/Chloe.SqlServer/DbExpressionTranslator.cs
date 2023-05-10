@@ -6,7 +6,13 @@ namespace Chloe.SqlServer
 {
     class DbExpressionTranslator : IDbExpressionTranslator
     {
-        public static readonly DbExpressionTranslator Instance = new DbExpressionTranslator();
+        protected MsSqlContextProvider ContextProvider { get; set; }
+
+        public DbExpressionTranslator(MsSqlContextProvider contextProvider)
+        {
+            this.ContextProvider = contextProvider;
+        }
+
         public virtual DbCommandInfo Translate(DbExpression expression)
         {
             SqlGenerator generator = this.CreateSqlGenerator();
@@ -21,16 +27,20 @@ namespace Chloe.SqlServer
         }
         public virtual SqlGenerator CreateSqlGenerator()
         {
-            return SqlGenerator.CreateInstance();
+            return new SqlGenerator(this.ContextProvider);
         }
     }
 
     class DbExpressionTranslator_OffsetFetch : DbExpressionTranslator
     {
-        public static readonly new DbExpressionTranslator_OffsetFetch Instance = new DbExpressionTranslator_OffsetFetch();
+        public DbExpressionTranslator_OffsetFetch(MsSqlContextProvider contextProvider) : base(contextProvider)
+        {
+
+        }
+
         public override SqlGenerator CreateSqlGenerator()
         {
-            return new SqlGenerator_OffsetFetch();
+            return new SqlGenerator_OffsetFetch(this.ContextProvider);
         }
     }
 }

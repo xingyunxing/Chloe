@@ -3,6 +3,7 @@ using Oracle.ManagedDataAccess.Client;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Odbc;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -27,9 +28,41 @@ namespace ChloeDemo
             }
         }
 
+        /// <summary>
+        /// 解决 odbc 日期类型报精度溢出错误问题
+        /// </summary>
+        /// <param name="command"></param>
+        void FixOdbcDateTimePrecision(IDbCommand command)
+        {
+            if (command is not OdbcCommand)
+            {
+                return;
+            }
+
+            foreach (IDbDataParameter param in command.Parameters)
+            {
+
+
+                var value = param.Value;
+                if (value == null)
+                {
+                    continue;
+                }
+
+                var valueType = value.GetType();
+                if (valueType == typeof(DateTime))
+                {
+                    //解决日期类型报精度溢出错误问题
+                    param.Precision = 23;
+                    param.Scale = 3;
+                }
+            }
+        }
+
         public void ReaderExecuting(IDbCommand command, DbCommandInterceptionContext<IDataReader> interceptionContext)
         {
             this.BindByName(command);
+            this.FixOdbcDateTimePrecision(command);
 
             //interceptionContext.DataBag.Add("startTime", DateTime.Now);
             Debug.WriteLine(AppendDbCommandInfo(command));
@@ -46,6 +79,7 @@ namespace ChloeDemo
         public void NonQueryExecuting(IDbCommand command, DbCommandInterceptionContext<int> interceptionContext)
         {
             this.BindByName(command);
+            this.FixOdbcDateTimePrecision(command);
 
             Debug.WriteLine(AppendDbCommandInfo(command));
             Console.WriteLine(command.CommandText);
@@ -59,6 +93,7 @@ namespace ChloeDemo
         public void ScalarExecuting(IDbCommand command, DbCommandInterceptionContext<object> interceptionContext)
         {
             this.BindByName(command);
+            this.FixOdbcDateTimePrecision(command);
 
             //interceptionContext.DataBag.Add("startTime", DateTime.Now);
             Debug.WriteLine(AppendDbCommandInfo(command));

@@ -6,14 +6,14 @@ namespace Chloe.SqlServer
     class DatabaseProvider : IDatabaseProvider
     {
         IDbConnectionFactory _dbConnectionFactory;
-        MsSqlContextProvider _msSqlContextProvider;
+        MsSqlContextProvider _contextProvider;
 
         public string DatabaseType { get { return "SqlServer"; } }
 
-        public DatabaseProvider(IDbConnectionFactory dbConnectionFactory, MsSqlContextProvider msSqlContextProvider)
+        public DatabaseProvider(IDbConnectionFactory dbConnectionFactory, MsSqlContextProvider _contextProvider)
         {
             this._dbConnectionFactory = dbConnectionFactory;
-            this._msSqlContextProvider = msSqlContextProvider;
+            this._contextProvider = _contextProvider;
         }
         public IDbConnection CreateConnection()
         {
@@ -21,13 +21,13 @@ namespace Chloe.SqlServer
         }
         public IDbExpressionTranslator CreateDbExpressionTranslator()
         {
-            if (this._msSqlContextProvider.PagingMode == PagingMode.ROW_NUMBER)
+            if (this._contextProvider.PagingMode == PagingMode.ROW_NUMBER)
             {
-                return DbExpressionTranslator.Instance;
+                return new DbExpressionTranslator(this._contextProvider);
             }
-            else if (this._msSqlContextProvider.PagingMode == PagingMode.OFFSET_FETCH)
+            else if (this._contextProvider.PagingMode == PagingMode.OFFSET_FETCH)
             {
-                return DbExpressionTranslator_OffsetFetch.Instance;
+                return new DbExpressionTranslator_OffsetFetch(this._contextProvider);
             }
 
             throw new NotSupportedException();

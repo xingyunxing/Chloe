@@ -4,6 +4,11 @@ namespace Chloe.SqlServer
 {
     class SqlGenerator_OffsetFetch : SqlGenerator
     {
+        public SqlGenerator_OffsetFetch(MsSqlContextProvider contextProvider) : base(contextProvider)
+        {
+
+        }
+
         protected override void BuildLimitSql(DbExpressions.DbSqlQueryExpression exp)
         {
             //order by number offset 10 rows fetch next 20 rows only;
