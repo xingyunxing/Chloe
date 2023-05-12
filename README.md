@@ -1,6 +1,6 @@
 # Chloe
 Chloe is a lightweight Object/Relational Mapping(ORM) library.
-The query interface is similar to LINQ. You can query data like LINQ and do any things(Join Query | Group Query | Aggregate Query | Insert | Batch Update | Batch Delete) by lambda with Chloe.ORM.
+The query interface is similar to LINQ. You can query data like LINQ and do any things(Join Query | Group Query | Aggregate Query | Insert | Batch Update | Batch Delete | Sharding) by lambda with Chloe.ORM.
 
 **Documentation**: [https://github.com/shuxinqin/Chloe/wiki](https://github.com/shuxinqin/Chloe/wiki "https://github.com/shuxinqin/Chloe/wiki")
 
