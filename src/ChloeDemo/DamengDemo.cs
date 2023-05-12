@@ -25,7 +25,8 @@ namespace ChloeDemo
 
         protected override IDbContext CreateDbContext()
         {
-            IDbContext dbContext = new DamengContext(new DamengConnectionFactory("Server=192.101.109.244; User Id=dmtest; PWD=dm.testdb;"));
+            //DAMENG DMSERVER 5236  SYSDBA dm12345678
+            IDbContext dbContext = new DamengContext(new DamengConnectionFactory("Server=localhost; User Id=SYSDBA; PWD=dm12345678;"));
             return dbContext;
         }
 

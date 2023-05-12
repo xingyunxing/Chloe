@@ -135,7 +135,7 @@ namespace ChloeDemo.Sharding
     {
         string GetConnString(int year)
         {
-            string connString = $"Server=192.101.109.244:{year};User Id=dmtest; PWD=dm.testdb;";
+            string connString = $"Server=localhost:{year};User Id=SYSDBA; PWD=dm12345678;";
             return connString;
         }
 
