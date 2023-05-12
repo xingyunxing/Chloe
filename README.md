@@ -13,6 +13,7 @@ The query interface is similar to LINQ. You can query data like LINQ and do any 
 | Oracle  | Install-Package Chloe.Oracle  |
 | SQLite  | Install-Package Chloe.SQLite  |
 | PostgreSQL  | Install-Package Chloe.PostgreSQL  |
+| 达梦  | Install-Package Chloe.Dameng  |
 
 # License
 [MIT](http://opensource.org/licenses/MIT) License
