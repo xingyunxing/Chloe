@@ -228,7 +228,7 @@ namespace Chloe.RDBMS
             if (method != null)
             {
                 Action<DbBinaryExpression, SqlGeneratorBase> handler;
-                if (BinaryWithMethodHandlers.TryGetValue(method, out handler))
+                if (this.BinaryWithMethodHandlers.TryGetValue(method, out handler))
                 {
                     handler(exp, this);
                     return exp;
