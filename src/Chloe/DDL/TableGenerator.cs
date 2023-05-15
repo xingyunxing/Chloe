@@ -46,7 +46,7 @@ namespace Chloe.DDL
         public void CreateTables(Type[] entityTypes, TableCreateMode createMode = TableCreateMode.CreateIfNotExists)
         {
             var typeDescriptors = entityTypes.Select(a => EntityTypeContainer.GetDescriptor(a));
-            CreateTables(typeDescriptors);
+            this.CreateTables(typeDescriptors, createMode);
         }
         void CreateTables(IEnumerable<TypeDescriptor> typeDescriptors, TableCreateMode createMode = TableCreateMode.CreateIfNotExists)
         {
