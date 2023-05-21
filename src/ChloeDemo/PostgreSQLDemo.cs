@@ -1,5 +1,5 @@
 ﻿using Chloe;
-using Chloe.DDL;
+using Chloe.RDBMS.DDL;
 using Chloe.Descriptors;
 using Chloe.Infrastructure;
 using Chloe.PostgreSQL;

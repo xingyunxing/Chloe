@@ -1,4 +1,4 @@
-﻿namespace Chloe.DDL
+﻿namespace Chloe.RDBMS.DDL
 {
     public class TableGenerateOptions
     {

@@ -3,7 +3,7 @@ using Chloe.Infrastructure;
 using System.Reflection;
 using System.Xml.Linq;
 
-namespace Chloe.DDL
+namespace Chloe.RDBMS.DDL
 {
     public abstract class TableGenerator
     {

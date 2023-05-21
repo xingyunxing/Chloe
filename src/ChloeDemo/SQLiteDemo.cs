@@ -9,7 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Chloe.DDL;
+using Chloe.RDBMS.DDL;
 using Chloe.SQLite.DDL;
 
 namespace ChloeDemo

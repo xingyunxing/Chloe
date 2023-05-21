@@ -12,7 +12,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using Chloe.SqlServer.DDL;
-using Chloe.DDL;
+using Chloe.RDBMS.DDL;
 
 namespace ChloeDemo
 {

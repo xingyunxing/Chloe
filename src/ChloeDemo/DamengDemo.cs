@@ -1,7 +1,7 @@
 ﻿using Chloe;
 using Chloe.Dameng;
 using Chloe.Dameng.DDL;
-using Chloe.DDL;
+using Chloe.RDBMS.DDL;
 using Chloe.Infrastructure;
 using System;
 using System.Collections.Generic;
