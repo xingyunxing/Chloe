@@ -15,28 +15,6 @@ namespace Chloe.Oracle.DDL
         {
         }
 
-        string SqlName(string name)
-        {
-            OracleContext dbContext = (this.DbContext as OracleContext);
-            OracleContextProvider dbContextProvider = (OracleContextProvider)dbContext.DefaultDbContextProvider;
-            if (dbContextProvider.ConvertToUppercase)
-                return name.ToUpper();
-
-            return name;
-        }
-        string QuoteName(string name)
-        {
-            OracleContext dbContext = (this.DbContext as OracleContext);
-            OracleContextProvider dbContextProvider = (OracleContextProvider)dbContext.DefaultDbContextProvider;
-            return Utils.QuoteName(name, dbContextProvider.ConvertToUppercase);
-        }
-
-        bool ExistsTable(string tableName)
-        {
-            bool tableExists = this.DbContext.SqlQuery<int>($"select count(1) from user_tables where TABLE_NAME = '{this.SqlName(tableName)}'").First() > 0;
-            return tableExists;
-        }
-
         public override List<string> GenCreateTableScript(TypeDescriptor typeDescriptor, string tableName, TableCreateMode createMode = TableCreateMode.CreateIfNotExists)
         {
             tableName = string.IsNullOrEmpty(tableName) ? typeDescriptor.Table.Name : tableName;
@@ -45,7 +23,7 @@ namespace Chloe.Oracle.DDL
 
             if (createMode == TableCreateMode.CreateIfNotExists)
             {
-                bool tableExists = this.ExistsTable(tableName);
+                bool tableExists = this.TableExists(tableName);
                 if (tableExists)
                 {
                     return sqlList;
@@ -53,7 +31,7 @@ namespace Chloe.Oracle.DDL
             }
             else if (createMode == TableCreateMode.CreateNew)
             {
-                bool tableExists = this.ExistsTable(tableName);
+                bool tableExists = this.TableExists(tableName);
                 if (tableExists)
                     sqlList.Add($"DROP TABLE {this.QuoteName(tableName)}");
             }
@@ -84,12 +62,16 @@ namespace Chloe.Oracle.DDL
 
             if (typeDescriptor.AutoIncrement != null)
             {
-                string seqName = $"{tableName.ToUpper()}_{typeDescriptor.AutoIncrement.Column.Name.ToUpper()}_SEQ".ToUpper();
-                bool seqExists = this.DbContext.SqlQuery<int>($"select count(*) from dba_sequences where SEQUENCE_NAME='{seqName}'").First() > 0;
+                string seqName = typeDescriptor.AutoIncrement.Definition.SequenceName;
+                if (string.IsNullOrEmpty(seqName))
+                {
+                    seqName = $"{tableName.ToUpper()}";
+                }
+
+                bool seqExists = this.SequenceExists(seqName);
                 if (!seqExists)
                 {
-                    string seqScript = $"CREATE SEQUENCE {this.QuoteName(seqName)} INCREMENT BY 1 MINVALUE 1 MAXVALUE 9999999999999999999999999999 START WITH 1 CACHE 20";
-
+                    string seqScript = this.BuildCreateSequenceSql(seqName);
                     sqlList.Add(seqScript);
                 }
 
@@ -111,11 +93,11 @@ end;";
                 }
 
                 string seqName = seqProperty.Definition.SequenceName;
-                bool seqExists = this.DbContext.SqlQuery<int>($"select count(*) from dba_sequences where SEQUENCE_NAME='{seqName}'").First() > 0;
+                bool seqExists = this.SequenceExists(seqName);
 
                 if (!seqExists)
                 {
-                    string seqScript = $"CREATE SEQUENCE {this.QuoteName(seqName)} INCREMENT BY 1 MINVALUE 1 MAXVALUE 9999999999999999999999999999 START WITH 1 CACHE 20";
+                    string seqScript = this.BuildCreateSequenceSql(seqName);
                     sqlList.Add(seqScript);
                 }
             }
@@ -124,6 +106,39 @@ end;";
             sqlList.AddRange(this.GenColumnCommentScripts(typeDescriptor, commentDoc));
 
             return sqlList;
+        }
+
+        string SqlName(string name)
+        {
+            OracleContext dbContext = (this.DbContext as OracleContext);
+            OracleContextProvider dbContextProvider = (OracleContextProvider)dbContext.DefaultDbContextProvider;
+            if (dbContextProvider.ConvertToUppercase)
+                return name.ToUpper();
+
+            return name;
+        }
+        string QuoteName(string name)
+        {
+            OracleContext dbContext = (this.DbContext as OracleContext);
+            OracleContextProvider dbContextProvider = (OracleContextProvider)dbContext.DefaultDbContextProvider;
+            return Utils.QuoteName(name, dbContextProvider.ConvertToUppercase);
+        }
+
+        bool TableExists(string tableName)
+        {
+            bool exists = this.DbContext.SqlQuery<int>($"select count(1) from user_tables where TABLE_NAME = '{this.SqlName(tableName)}'").First() > 0;
+            return exists;
+        }
+        bool SequenceExists(string seqName)
+        {
+            bool exists = this.DbContext.SqlQuery<int>($"select count(1) from user_sequences where SEQUENCE_NAME='{seqName}'").First() > 0;
+            return exists;
+        }
+        string BuildCreateSequenceSql(string seqName)
+        {
+            string seqScript = $"CREATE SEQUENCE {this.QuoteName(seqName)} INCREMENT BY 1 MINVALUE 1 MAXVALUE 9999999999999999999999999999 START WITH 1 CACHE 20";
+
+            return seqScript;
         }
 
         string BuildColumnPart(PrimitivePropertyDescriptor propertyDescriptor)
