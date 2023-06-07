@@ -65,7 +65,7 @@ namespace Chloe.Oracle.DDL
                 string seqName = typeDescriptor.AutoIncrement.Definition.SequenceName;
                 if (string.IsNullOrEmpty(seqName))
                 {
-                    seqName = $"{tableName.ToUpper()}";
+                    seqName = $"{tableName.ToUpper()}_SEQ";
                 }
 
                 bool seqExists = this.SequenceExists(seqName);
