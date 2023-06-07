@@ -386,13 +386,28 @@ namespace ChloeDemo
         {
             IQuery<Person> q = this.DbContext.Query<Person>();
 
+            //用法1
             IGroupingQuery<Person> g = q.Where(a => a.Id > 0).GroupBy(a => a.Age);
+            // g = g.AndBy(a => a.Id);  //多个字段分组
 
-            g = g.Having(a => true);
+            g = g.Having(a => a.Age > 1 && Sql.Count() > 0);
 
             g.Select(a => new { a.Age, Count = Sql.Count(), Sum = Sql.Sum(a.Age), Max = Sql.Max(a.Age), Min = Sql.Min(a.Age), Avg = Sql.Average(a.Age) }).ToList();
             /*
-             * SELECT [Person].[Age] AS [Age],COUNT(1) AS [Count],CAST(SUM([Person].[Age]) AS INTEGER) AS [Sum],CAST(MAX([Person].[Age]) AS INTEGER) AS [Max],CAST(MIN([Person].[Age]) AS INTEGER) AS [Min],CAST(AVG([Person].[Age]) AS REAL) AS [Avg] FROM [Person] AS [Person] WHERE [Person].[Id] > 0 GROUP BY [Person].[Age] HAVING ([Person].[Age] > 1 AND COUNT(1) > 0)
+             * SELECT [Person].[Age] AS [Age],COUNT(1) AS [Count],CAST(SUM([Person].[Age]) AS INTEGER) AS [Sum],CAST(MAX([Person].[Age]) AS INTEGER) AS [Max],CAST(MIN([Person].[Age]) AS INTEGER) AS [Min],CAST(AVG([Person].[Age]) AS REAL) AS [Avg] 
+             * FROM [Person] AS [Person] WHERE [Person].[Id] > 0 
+             * GROUP BY [Person].[Age] HAVING ([Person].[Age] > 1 AND COUNT(1) > 0)
+             */
+
+
+            //用法2
+            g = q.Where(a => a.Id > 0).GroupBy(a => new { a.Age, a.Id });
+            g = g.Having(a => a.Age > 1 && Sql.Count() > 0);
+            g.Select(a => new { a.Age, Count = Sql.Count(), Sum = Sql.Sum(a.Age), Max = Sql.Max(a.Age), Min = Sql.Min(a.Age), Avg = Sql.Average(a.Age) }).ToList();
+            /*
+             * SELECT [Person].[Age] AS [Age],COUNT(1) AS [Count],CAST(SUM([Person].[Age]) AS INTEGER) AS [Sum],MAX([Person].[Age]) AS [Max],MIN([Person].[Age]) AS [Min],CAST(AVG([Person].[Age]) AS REAL) AS [Avg] 
+             * FROM [Person] AS [Person] WHERE [Person].[Id] > 0
+             * GROUP BY [Person].[Age],[Person].[Id] HAVING ([Person].[Age] > 1 AND COUNT(1) > 0)
              */
 
             ConsoleHelper.WriteLineAndReadKey();
