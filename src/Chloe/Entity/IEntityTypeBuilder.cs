@@ -12,6 +12,7 @@ namespace Chloe.Entity
         IEntityTypeBuilder HasQueryFilter(LambdaExpression filter);
         IPrimitivePropertyBuilder Property(string property);
         IComplexPropertyBuilder HasOne(string property);
+        IComplexPropertyBuilder HasOne(string property, string foreignKey);
         ICollectionPropertyBuilder HasMany(string property);
     }
 
@@ -24,6 +25,7 @@ namespace Chloe.Entity
         IEntityTypeBuilder<TEntity> HasQueryFilter(Expression<Func<TEntity, bool>> filter);
         IPrimitivePropertyBuilder<TProperty, TEntity> Property<TProperty>(Expression<Func<TEntity, TProperty>> property);
         IComplexPropertyBuilder<TProperty, TEntity> HasOne<TProperty>(Expression<Func<TEntity, TProperty>> property);
+        IComplexPropertyBuilder<TProperty, TEntity> HasOne<TProperty, TForeignKey>(Expression<Func<TEntity, TProperty>> property, Expression<Func<TEntity, TForeignKey>> foreignKey);
         ICollectionPropertyBuilder<TProperty, TEntity> HasMany<TProperty>(Expression<Func<TEntity, TProperty>> property);
     }
 }
