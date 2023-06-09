@@ -26,6 +26,7 @@ namespace ChloeDemo.Sharding
 
             ShardingConfigContainer.Add(shardingConfigBuilder.Build());
 
+            await this.NormalQueryTest();
             await this.PageQueryByShardingKeyOrderByAscTest();
             await this.PageQueryByShardingKeyOrderByDescTest();
             await this.PageQueryInSingleTableTest();
@@ -56,6 +57,33 @@ namespace ChloeDemo.Sharding
             DbContext dbContext = new DbContext();
             dbContext.ShardingOptions.MaxConnectionsPerDataSource = 6;
             return dbContext;
+        }
+
+        async Task NormalQueryTest()
+        {
+            IDbContext dbContext = this.CreateDbContext();
+            var q = dbContext.Query<Order>();
+
+            var orders = await q.ToListAsync();
+            Debug.Assert(orders.Count == 1460);
+
+
+            orders = await q.Take(100).ToListAsync();
+            Debug.Assert(orders.Count == 100);
+
+
+            orders = await q.OrderByDesc(a => a.CreateTime).Take(63).ToListAsync();
+            Debug.Assert(orders.Count == 63);
+            Debug.Assert(orders.First().CreateTime == DateTime.Parse("2019-12-31 12:00"));
+            Debug.Assert(orders.Last().CreateTime == DateTime.Parse("2019-11-30 12:00"));
+
+
+            orders = await q.OrderBy(a => a.CreateTime).Take(63).ToListAsync();
+            Debug.Assert(orders.Count == 63);
+            Debug.Assert(orders.First().CreateTime == DateTime.Parse("2018-01-01 10:00"));
+            Debug.Assert(orders.Last().CreateTime == DateTime.Parse("2018-02-01 10:00"));
+
+            Helpers.PrintSplitLine();
         }
 
         /// <summary>
@@ -597,6 +625,15 @@ namespace ChloeDemo.Sharding
             var orders = await q.Exclude(a => new { a.UserId, a.Amount }).OrderByDesc(a => a.CreateTime).Take(10).ToListAsync();
 
             foreach (var order in orders)
+            {
+                Debug.Assert(order.UserId == default(string));
+                Debug.Assert(order.Amount == default(decimal));
+            }
+
+
+            var result = await q.Exclude(a => new { a.UserId, a.Amount }).OrderBy(a => a.CreateTime).PagingAsync(1, 20);
+
+            foreach (var order in result.DataList)
             {
                 Debug.Assert(order.UserId == default(string));
                 Debug.Assert(order.Amount == default(decimal));

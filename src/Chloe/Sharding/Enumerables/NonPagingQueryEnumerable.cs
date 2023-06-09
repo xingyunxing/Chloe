@@ -25,6 +25,8 @@ namespace Chloe.Sharding.Enumerables
             NonPagingQueryEnumerable _enumerable;
             CancellationToken _cancellationToken;
 
+            long _readCount = 0;
+
             public Enumerator(NonPagingQueryEnumerable enumerable, CancellationToken cancellationToken = default) : base(enumerable._queryPlan)
             {
                 this._enumerable = enumerable;
@@ -47,6 +49,23 @@ namespace Chloe.Sharding.Enumerables
                     queryContext.Dispose();
                     throw;
                 }
+            }
+
+            protected override async BoolResultTask MoveNext(bool async)
+            {
+                if (this._enumerable._queryPlan.QueryModel.Take.HasValue && this._readCount >= this._enumerable._queryPlan.QueryModel.Take.Value)
+                {
+                    return false;
+                }
+
+                bool hasNext = await base.MoveNext(async);
+
+                if (hasNext)
+                {
+                    this._readCount++;
+                }
+
+                return hasNext;
             }
 
             IFeatureEnumerator<object> CreateQueryEntityEnumerator(ParallelQueryContext queryContext, QueryProjection queryProjection, List<TableDataQueryPlan> dataQueryPlans)

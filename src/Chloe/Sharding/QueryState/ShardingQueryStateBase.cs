@@ -136,6 +136,14 @@ namespace Chloe.Sharding.QueryState
                 }
             }
 
+            if (queryPlan.IsOrderedTables)
+            {
+                //走分页逻辑，对程序性能有可能好点？
+
+                var pagingQueryEnumerable = new PagingQueryEnumerable(this.CreateQueryPlan());
+                return new PagingResultDataListEnumerable(pagingQueryEnumerable);
+            }
+
             return new NonPagingQueryEnumerable(queryPlan);
         }
 

@@ -271,6 +271,10 @@ namespace Chloe.Sharding
 
                     dataQueryModel.Orderings.Capacity = queryProjection.Orderings.Count;
                     dataQueryModel.Orderings.AppendRange(queryProjection.Orderings);
+
+                    dataQueryModel.ExcludedFields.Capacity = queryProjection.ExcludedFields.Count;
+                    dataQueryModel.ExcludedFields.AddRange(queryProjection.ExcludedFields);
+
                     dataQueryModel.Conditions.Add(condition);
                     dataQueryModel.Selector = queryProjection.Selector;
 
@@ -303,6 +307,8 @@ namespace Chloe.Sharding
             dataQueryModel.Lock = queryModel.Lock;
             dataQueryModel.IgnoreAllFilters = queryModel.IgnoreAllFilters;
 
+
+            dataQueryModel.ExcludedFields.AppendRange(queryModel.ExcludedFields);
             dataQueryModel.Conditions.AppendRange(queryModel.Conditions);
             dataQueryModel.Orderings.AppendRange(queryModel.Orderings);
             dataQueryModel.Skip = skip;
