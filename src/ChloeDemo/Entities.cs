@@ -54,7 +54,7 @@ namespace ChloeDemo
         /// 更新实体时不更新此字段
         /// </summary>
         [UpdateIgnoreAttribute]
-        public DateTime CreateTime { get; set; } = DateTime.Now;
+        public DateTime CreateTime { get; set; }
         public DateTime? EditTime { get; set; }
 
         [NotMapped]

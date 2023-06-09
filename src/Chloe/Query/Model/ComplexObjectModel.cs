@@ -17,6 +17,8 @@ namespace Chloe.Query
 {
     public class ComplexObjectModel : IObjectModel
     {
+        HashSet<MemberInfo> _excludedFields = null;
+
         public ComplexObjectModel(Type objectType) : this(GetDefaultConstructor(objectType))
         {
         }
@@ -270,6 +272,11 @@ namespace Chloe.Query
                 MemberInfo member = kv.Key;
                 DbExpression exp = kv.Value;
 
+                if (this.IsExcludedMember(member))
+                {
+                    continue;
+                }
+
                 int ordinal = ObjectModelHelper.TryGetOrAddColumn(sqlQuery, exp, member.Name).Value;
 
                 if (exp == this.NullChecking)
@@ -415,6 +422,12 @@ namespace Chloe.Query
                 objectModel = collectionModel.ElementModel;
             }
 
+            for (int i = 0; i < navigationNode.ExcludedFields.Count; i++)
+            {
+                List<MemberInfo> fields = PublicHelper.ResolveFields(navigationNode.ExcludedFields[i]);
+                objectModel.ExcludePrimitiveMembers(fields);
+            }
+
             if (navigationNode.Next != null)
             {
                 objectModel.Include(navigationNode.Next, queryModel, handleCollection);
@@ -472,6 +485,29 @@ namespace Chloe.Query
             }
 
             return false;
+        }
+
+        public void ExcludePrimitiveMember(MemberInfo memberInfo)
+        {
+            if (this._excludedFields == null)
+                this._excludedFields = new HashSet<MemberInfo>();
+
+            memberInfo = memberInfo.AsReflectedMemberOf(this.ObjectType);
+            this._excludedFields.Add(memberInfo);
+        }
+        public void ExcludePrimitiveMembers(IEnumerable<MemberInfo> memberInfos)
+        {
+            foreach (var memberInfo in memberInfos)
+            {
+                this.ExcludePrimitiveMember(memberInfo);
+            }
+        }
+        bool IsExcludedMember(MemberInfo memberInfo)
+        {
+            if (this._excludedFields == null)
+                return false;
+
+            return this._excludedFields.Contains(memberInfo);
         }
 
         ComplexObjectModel GenComplexObjectModel(ComplexPropertyDescriptor navigationDescriptor, NavigationNode navigationNode, QueryModel queryModel)

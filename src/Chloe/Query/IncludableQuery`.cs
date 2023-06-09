@@ -128,5 +128,17 @@ namespace Chloe.Query
 
             return new IncludableQuery<TEntity, TNavigation>(includeExpression);
         }
+
+        public IIncludableQuery<TEntity, TNavigation> ExcludeField<TField>(Expression<Func<TNavigation, TField>> field)
+        {
+            IncludeExpression prevIncludeExpression = this.QueryExpression as IncludeExpression;
+            NavigationNode startNavigation = prevIncludeExpression.NavigationNode.Clone();
+            NavigationNode lastNavigation = startNavigation.GetLast();
+            lastNavigation.ExcludedFields.Add(field);
+
+            IncludeExpression includeExpression = new IncludeExpression(typeof(TEntity), prevIncludeExpression.PrevExpression, startNavigation);
+
+            return new IncludableQuery<TEntity, TNavigation>(includeExpression);
+        }
     }
 }

@@ -1,11 +1,13 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.Descriptors;
 using Chloe.Exceptions;
+using Chloe.Extensions;
 using Chloe.Infrastructure;
 using Chloe.InternalExtensions;
 using Chloe.Reflection;
 using Chloe.Utility;
 using System.Collections;
+using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -454,6 +456,79 @@ namespace Chloe
         public static string AppendNotSupportedCastErrorMsg(Type sourceType, Type targetType)
         {
             return string.Format("Does not support the type '{0}' converted to type '{1}'.", sourceType.FullName, targetType.FullName);
+        }
+
+        /// <summary>
+        /// 解析字段
+        /// </summary>
+        /// <param name="fieldsLambdaExpression">a => a.Name || a => new { a.Name, a.Age } || a => new object[] { a.Name, a.Age }</param>
+        /// <returns></returns>
+        public static List<MemberInfo> ResolveFields(LambdaExpression fieldsLambdaExpression)
+        {
+            ParameterExpression parameterExpression = fieldsLambdaExpression.Parameters[0];
+
+            var body = ExpressionExtension.StripConvert(fieldsLambdaExpression.Body);
+
+            if (body.NodeType == ExpressionType.MemberAccess)
+            {
+                //a => a.Name
+                return new List<MemberInfo>(1) { PickMember(body, parameterExpression) };
+            }
+
+            ReadOnlyCollection<Expression> fieldExps = null;
+            if (body.NodeType == ExpressionType.New)
+            {
+                NewExpression newExpression = (NewExpression)body;
+                if (newExpression.Type.IsAnonymousType())
+                {
+                    //a => new { a.Name, a.Age }
+                    fieldExps = newExpression.Arguments;
+                }
+                else
+                {
+                    throw new NotSupportedException(fieldsLambdaExpression.ToString());
+                }
+            }
+            else if (body.NodeType == ExpressionType.NewArrayInit)
+            {
+                //a => new object[] { a.Name, a.Age }
+                NewArrayExpression newArrayExpression = body as NewArrayExpression;
+                if (newArrayExpression == null)
+                    throw new NotSupportedException(fieldsLambdaExpression.ToString());
+
+                fieldExps = newArrayExpression.Expressions;
+            }
+            else
+            {
+                throw new NotSupportedException(fieldsLambdaExpression.ToString());
+            }
+
+            List<MemberInfo> fields = new List<MemberInfo>(fieldExps.Count);
+
+            foreach (var fieldExp in fieldExps)
+            {
+                fields.Add(PickMember(fieldExp, parameterExpression));
+            }
+
+            return fields;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="exp">a.Name</param>
+        /// <param name="parameterExpression"></param>
+        /// <returns></returns>
+        /// <exception cref="NotSupportedException"></exception>
+        static MemberInfo PickMember(Expression exp, ParameterExpression parameterExpression)
+        {
+            MemberExpression memberExp = ExpressionExtension.StripConvert(exp) as MemberExpression;
+            if (memberExp == null)
+                throw new NotSupportedException(exp.ToString());
+
+            if (memberExp.Expression != parameterExpression)
+                throw new NotSupportedException(exp.ToString());
+
+            return memberExp.Member;
         }
     }
 }

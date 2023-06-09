@@ -26,6 +26,13 @@ namespace Chloe.Query
         DbExpression GetDbExpression(MemberExpression memberExpressionDeriveParameter);
         IObjectModel GetComplexMember(MemberExpression exp);
 
+        /// <summary>
+        /// 排除字段
+        /// </summary>
+        /// <param name="memberInfo"></param>
+        void ExcludePrimitiveMember(MemberInfo memberInfo);
+        void ExcludePrimitiveMembers(IEnumerable<MemberInfo> memberInfos);
+
         void SetNullChecking(DbExpression exp);
     }
 

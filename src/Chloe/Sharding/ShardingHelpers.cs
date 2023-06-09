@@ -81,7 +81,7 @@ namespace Chloe.Sharding
             var groupedTables = tables.GroupBy(a => a.DataSource.Name).Select(a => (a.First().DataSource, a.ToList()));
             return groupedTables;
         }
-        public static IOrderedQuery<T> InnerOrderBy<T>(this IQuery<T> q, Ordering ordering)
+        public static IOrderedQuery<T> OrderBy<T>(this IQuery<T> q, Ordering ordering)
         {
             LambdaExpression keySelector = ordering.KeySelector;
 
@@ -91,10 +91,10 @@ namespace Chloe.Sharding
             else
                 orderMethod = typeof(IQuery<T>).GetMethod(nameof(IQuery<int>.OrderByDesc));
 
-            IOrderedQuery<T> orderedQuery = Invoke<T>(q, orderMethod, keySelector);
+            IOrderedQuery<T> orderedQuery = CallOrderMethod<T>(q, orderMethod, keySelector);
             return orderedQuery;
         }
-        public static IOrderedQuery<T> InnerThenBy<T>(this IOrderedQuery<T> q, Ordering ordering)
+        public static IOrderedQuery<T> ThenBy<T>(this IOrderedQuery<T> q, Ordering ordering)
         {
             LambdaExpression keySelector = ordering.KeySelector;
 
@@ -104,10 +104,10 @@ namespace Chloe.Sharding
             else
                 orderMethod = typeof(IOrderedQuery<T>).GetMethod(nameof(IOrderedQuery<int>.ThenByDesc));
 
-            IOrderedQuery<T> orderedQuery = Invoke<T>(q, orderMethod, keySelector);
+            IOrderedQuery<T> orderedQuery = CallOrderMethod<T>(q, orderMethod, keySelector);
             return orderedQuery;
         }
-        public static IOrderedQuery<T> Invoke<T>(object q, MethodInfo orderMethod, LambdaExpression keySelector)
+        public static IOrderedQuery<T> CallOrderMethod<T>(object q, MethodInfo orderMethod, LambdaExpression keySelector)
         {
             orderMethod = orderMethod.MakeGenericMethod(new Type[] { keySelector.Body.Type });
             IOrderedQuery<T> orderedQuery = (IOrderedQuery<T>)orderMethod.FastInvoke(q, new object[] { keySelector });
@@ -150,6 +150,9 @@ namespace Chloe.Sharding
             QueryProjection queryProjection = new QueryProjection(queryModel.RootEntityType);
             queryProjection.Lock = queryModel.Lock;
             queryProjection.IgnoreAllFilters = queryModel.IgnoreAllFilters;
+
+            queryProjection.ExcludedFields.Capacity = queryModel.ExcludedFields.Count;
+            queryProjection.ExcludedFields.AppendRange(queryModel.ExcludedFields);
 
             queryProjection.Conditions.Capacity = queryModel.Conditions.Count;
             queryProjection.Conditions.AppendRange(queryModel.Conditions);
@@ -346,6 +349,11 @@ namespace Chloe.Sharding
         {
             var q = dbContextProvider.Query<T>(queryModel.Table.Name, queryModel.Lock);
 
+            foreach (var excludedField in queryModel.ExcludedFields)
+            {
+                q = q.Exclude(excludedField);
+            }
+
             foreach (var condition in queryModel.Conditions)
             {
                 q = q.Where((Expression<Func<T, bool>>)condition);
@@ -360,9 +368,9 @@ namespace Chloe.Sharding
             foreach (var ordering in queryModel.Orderings)
             {
                 if (orderedQuery == null)
-                    orderedQuery = q.InnerOrderBy(ordering);
+                    orderedQuery = q.OrderBy(ordering);
                 else
-                    orderedQuery = orderedQuery.InnerThenBy(ordering);
+                    orderedQuery = orderedQuery.ThenBy(ordering);
 
                 q = orderedQuery;
             }

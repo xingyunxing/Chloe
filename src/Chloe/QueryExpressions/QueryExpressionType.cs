@@ -13,7 +13,14 @@ namespace Chloe.QueryExpressions
         ThenBy,
         ThenByDesc,
         Select,
+        /// <summary>
+        /// Include navigation property query.
+        /// </summary>
         Include,
+        /// <summary>
+        /// Exclude field query.
+        /// </summary>
+        Exclude,
         Aggregate,
         JoinQuery,
         GroupingQuery,

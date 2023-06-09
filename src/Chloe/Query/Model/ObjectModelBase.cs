@@ -69,6 +69,16 @@ namespace Chloe.Query
             throw new NotImplementedException();
         }
 
+        public virtual void ExcludePrimitiveMember(MemberInfo memberInfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual void ExcludePrimitiveMembers(IEnumerable<MemberInfo> memberInfos)
+        {
+            throw new NotImplementedException();
+        }
+
         public virtual void SetNullChecking(DbExpression exp)
         {
 

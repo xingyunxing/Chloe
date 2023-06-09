@@ -6,6 +6,9 @@ using System.Linq.Expressions;
 
 namespace Chloe.Visitors
 {
+    /// <summary>
+    /// 解析 a => new User() { a.Name = name + "1" } lambda 中的 name + "1" 部分
+    /// </summary>
     public class UpdateColumnExpressionParser
     {
         TypeDescriptor _typeDescriptor;

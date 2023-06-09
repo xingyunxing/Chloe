@@ -2,6 +2,7 @@
 using Chloe.SQLite;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -40,6 +41,7 @@ namespace ChloeDemo
 
             BasicQuery();
             JoinQuery();
+            ExcludeFieldQuery();
             AggregateQuery();
             GroupQuery();
             ComplexQuery();
@@ -122,10 +124,10 @@ namespace ChloeDemo
             City city = new City();
             city.Name = cityName;
 
-            city.Persons.Add(new Person() { Name = $"{city.Name}-张三", Age = 30, Gender = Gender.Male, Ex = new PersonEx() { IdNumber = "452723197110211024", BirthDay = new DateTime(1971, 10, 21) } });
-            city.Persons.Add(new Person() { Name = $"{city.Name}-李四", Age = 31, Gender = Gender.Male, Ex = new PersonEx() { IdNumber = "452723197110221024", BirthDay = new DateTime(1971, 10, 22) } });
-            city.Persons.Add(new Person() { Name = $"{city.Name}-Chloe", Age = 18, Gender = Gender.Female, Ex = new PersonEx() { IdNumber = "452723197110231024", BirthDay = new DateTime(1971, 10, 23) } });
-            city.Persons.Add(new Person() { Name = $"{city.Name}-东方不败", Ex = new PersonEx() { IdNumber = "452723197110241024", BirthDay = new DateTime(1971, 10, 24) } });
+            city.Persons.Add(new Person() { Name = $"{city.Name}-张三", Age = 30, Gender = Gender.Male, CreateTime = DateTime.Now, Ex = new PersonEx() { IdNumber = "452723197110211024", BirthDay = new DateTime(1971, 10, 21) } });
+            city.Persons.Add(new Person() { Name = $"{city.Name}-李四", Age = 31, Gender = Gender.Male, CreateTime = DateTime.Now, Ex = new PersonEx() { IdNumber = "452723197110221024", BirthDay = new DateTime(1971, 10, 22) } });
+            city.Persons.Add(new Person() { Name = $"{city.Name}-Chloe", Age = 18, Gender = Gender.Female, CreateTime = DateTime.Now, Ex = new PersonEx() { IdNumber = "452723197110231024", BirthDay = new DateTime(1971, 10, 23) } });
+            city.Persons.Add(new Person() { Name = $"{city.Name}-东方不败", CreateTime = DateTime.Now, Ex = new PersonEx() { IdNumber = "452723197110241024", BirthDay = new DateTime(1971, 10, 24) } });
 
             return city;
         }
@@ -150,7 +152,7 @@ namespace ChloeDemo
             this._result = q.Sum(a => a.Id);
             this._result = q.Average(a => a.Age);
 
-            person = new Person() { Name = "chloe", Age = 18, Gender = Gender.Female, CityId = 1 };
+            person = new Person() { Name = "chloe", Age = 18, Gender = Gender.Female, CityId = 1, CreateTime = DateTime.Now };
 
             //插入
             person = this.DbContext.Insert(person);
@@ -197,7 +199,7 @@ namespace ChloeDemo
             this._result = await q.SumAsync(a => a.Id);
             this._result = await q.AverageAsync(a => a.Age);
 
-            person = new Person() { Name = "Chloe", Age = 18, Gender = Gender.Female, CityId = 1 };
+            person = new Person() { Name = "Chloe", Age = 18, Gender = Gender.Female, CityId = 1, CreateTime = DateTime.Now };
 
             //插入
             person = await this.DbContext.InsertAsync(person);
@@ -332,6 +334,88 @@ namespace ChloeDemo
             .OrderByDesc(a => a.Person.Age)   /* 排序 */
             .TakePage(1, 20)                /* 分页 */
             .ToList();
+
+            ConsoleHelper.WriteLineAndReadKey();
+        }
+        public virtual void ExcludeFieldQuery()
+        {
+            IQuery<Person> q = this.DbContext.Query<Person>();
+
+            //排除指定的字段
+            List<Person> persons = q.Exclude(a => a.Name).ToList();
+            /*
+             * 生成的 sql 语句中不包含 Name 字段
+             * SELECT [Person].[Gender] AS [Gender],[Person].[Age] AS [Age],[Person].[CityId] AS [CityId],[Person].[CreateTime] AS [CreateTime],[Person].[EditTime] AS [EditTime],[Person].[Id] AS [Id] 
+             * FROM [Person] AS [Person] WHERE ([Person].[Id] > -100 AND [Person].[Id] > -1)
+             */
+
+            foreach (var person in persons)
+            {
+                Debug.Assert(person.Name == default(string));
+            }
+
+
+            //使用匿名类的方式排除多个字段
+            persons = q.Exclude(a => new { a.Name, a.Age, a.EditTime, a.CityId, a.CreateTime }).ToList();
+            /*
+             * SELECT [Person].[Gender] AS [Gender],[Person].[Id] AS [Id] FROM [Person] AS [Person] WHERE ([Person].[Id] > -100 AND [Person].[Id] > -1)
+             */
+
+            foreach (var person in persons)
+            {
+                Debug.Assert(person.Name == default(string));
+                Debug.Assert(person.Age == default(int?));
+                Debug.Assert(person.EditTime == default(DateTime?));
+                Debug.Assert(person.CityId == default(int));
+                Debug.Assert(person.CreateTime == default(DateTime));
+            }
+
+
+            //在导航属性中排除指定的字段
+            persons = q.Exclude(a => a.Name).Include(a => a.City).ExcludeField(a => new { a.Name }).ThenInclude(a => a.Province).ExcludeField(a => new { a.Name }).ToList();
+            /*
+             * 生成的 sql 语句中不包含 Name 字段
+             * SELECT [Person].[Gender] AS [Gender],[Person].[Age] AS [Age],[Person].[CityId] AS [CityId],[Person].[CreateTime] AS [CreateTime],[Person].[EditTime] AS [EditTime],[Person].[Id] AS [Id]
+               ,[City].[ProvinceId] AS [ProvinceId],[City].[Id] AS [Id0]
+               ,[Province].[Id] AS [Id1] FROM [Person] AS [Person] 
+               INNER JOIN [City] AS [City] ON ([Person].[CityId] = [City].[Id] AND [City].[Id] > -2) 
+               INNER JOIN [Province] AS [Province] ON ([City].[ProvinceId] = [Province].[Id] AND [Province].[Id] > -3) 
+               WHERE ([Person].[Id] > -100 AND [Person].[Id] > -1)
+             */
+
+            foreach (var person in persons)
+            {
+                Debug.Assert(person.Name == default(string));
+                Debug.Assert(person.City.Name == default(string));
+                Debug.Assert(person.City.Province.Name == default(string));
+            }
+
+
+            var cities = this.DbContext.Query<City>().Exclude(a => a.Name)
+                  .IncludeMany(a => a.Persons).ExcludeField(a => a.Name)
+                  .Include(a => a.Province).ExcludeField(a => new { a.Name })
+                  .ToList();
+            /*
+             * 生成的 sql 语句中不包含 Name 字段
+             * SELECT [City].[ProvinceId] AS [ProvinceId],[City].[Id] AS [Id]
+               ,[Province].[Id] AS [Id0]
+               ,[Person].[Gender] AS [Gender],[Person].[Age] AS [Age],[Person].[CityId] AS [CityId],[Person].[CreateTime] AS [CreateTime],[Person].[EditTime] AS [EditTime],[Person].[Id] AS [Id1] 
+               FROM [City] AS [City] 
+               INNER JOIN [Province] AS [Province] ON ([City].[ProvinceId] = [Province].[Id] AND [Province].[Id] > -3) 
+               LEFT JOIN [Person] AS [Person] ON ([City].[Id] = [Person].[CityId] AND [Person].[Id] > -100 AND [Person].[Id] > -1) 
+               WHERE [City].[Id] > -2 ORDER BY [City].[Id] ASC
+             */
+
+            foreach (var city in cities)
+            {
+                Debug.Assert(city.Name == default(string));
+                Debug.Assert(city.Province.Name == default(string));
+
+                foreach (var person in city.Persons)
+                {
+                    Debug.Assert(person.Name == default(string));
+                }
+            }
 
             ConsoleHelper.WriteLineAndReadKey();
         }
@@ -527,6 +611,7 @@ namespace ChloeDemo
             person.Age = 18;
             person.Gender = Gender.Female;
             person.CityId = 1;
+            person.CreateTime = DateTime.Now;
 
             //会自动将自增 Id 设置到 person 的 Id 属性上
             person = this.DbContext.Insert(person);

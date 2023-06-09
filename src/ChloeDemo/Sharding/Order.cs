@@ -7,10 +7,15 @@ namespace ChloeDemo.Sharding
 {
     public class Order
     {
+        public Order()
+        {
+
+        }
+
         [Column(IsPrimaryKey = true, Size = 50)]
         public string Id { get; set; } = Guid.NewGuid().ToString("N");
         [Column(Size = 50)]
-        public string UserId { get; set; } = "chloe";
+        public string UserId { get; set; }
         public decimal Amount { get; set; }
         public int CreateMonth { get; set; }
         public int CreateYear { get; set; }

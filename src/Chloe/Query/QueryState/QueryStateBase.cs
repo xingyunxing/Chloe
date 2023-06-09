@@ -4,6 +4,7 @@ using Chloe.Query.Visitors;
 using Chloe.Utility;
 using System.Linq.Expressions;
 using Chloe.Visitors;
+using System.Reflection;
 
 namespace Chloe.Query.QueryState
 {
@@ -133,6 +134,13 @@ namespace Chloe.Query.QueryState
         public virtual IQueryState Accept(IncludeExpression exp)
         {
             throw new NotSupportedException("Cannot call 'Include' method now.");
+        }
+        public virtual IQueryState Accept(ExcludeExpression exp)
+        {
+            List<MemberInfo> fields = PublicHelper.ResolveFields(exp.Field);
+            this.QueryModel.ResultModel.ExcludePrimitiveMembers(fields);
+
+            return this;
         }
         public virtual IQueryState Accept(IgnoreAllFiltersExpression exp)
         {

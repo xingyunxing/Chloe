@@ -13,6 +13,7 @@ namespace Chloe.Query
         IQueryState Accept(GroupingQueryExpression exp);
         IQueryState Accept(DistinctExpression exp);
         IQueryState Accept(IncludeExpression exp);
+        IQueryState Accept(ExcludeExpression exp);
         IQueryState Accept(IgnoreAllFiltersExpression exp);
         IQueryState Accept(TrackingExpression exp);
         IQueryState Accept(PagingExpression exp);

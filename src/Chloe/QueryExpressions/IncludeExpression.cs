@@ -27,6 +27,7 @@ namespace Chloe.QueryExpressions
             this.Property = property;
         }
         public PropertyInfo Property { get; set; }
+        public List<LambdaExpression> ExcludedFields { get; private set; } = new List<LambdaExpression>();
         public LambdaExpression Condition { get; set; }
         public List<LambdaExpression> ContextFilters { get; private set; } = new List<LambdaExpression>();
         public NavigationNode Next { get; set; }
@@ -34,6 +35,7 @@ namespace Chloe.QueryExpressions
         public NavigationNode Clone()
         {
             NavigationNode current = new NavigationNode(this.Property) { Condition = this.Condition };
+            current.ExcludedFields.AppendRange(this.ExcludedFields);
             current.ContextFilters.AppendRange(this.ContextFilters);
             if (this.Next != null)
             {

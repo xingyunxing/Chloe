@@ -61,6 +61,13 @@ namespace Chloe.Sharding
             throw new NotImplementedException();
         }
 
+        public IQuery<T> Exclude<K>(Expression<Func<T, K>> field)
+        {
+            PublicHelper.CheckNull(field);
+            ExcludeExpression e = new ExcludeExpression(typeof(T), this.QueryExpression, field);
+            return new ShardingQuery<T>(e);
+        }
+
         public IJoinQuery<T, TOther> InnerJoin<TOther>(Expression<Func<T, TOther, bool>> on)
         {
             throw new NotImplementedException();

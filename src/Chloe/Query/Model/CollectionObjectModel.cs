@@ -27,5 +27,15 @@ namespace Chloe.Query
             CollectionObjectActivatorCreator ret = new CollectionObjectActivatorCreator(this._collectionType, this.OwnerType, elementActivatorCreator);
             return ret;
         }
+
+        public override void ExcludePrimitiveMember(MemberInfo memberInfo)
+        {
+            this.ElementModel.ExcludePrimitiveMember(memberInfo);
+        }
+
+        public override void ExcludePrimitiveMembers(IEnumerable<MemberInfo> memberInfos)
+        {
+            this.ElementModel.ExcludePrimitiveMembers(memberInfos);
+        }
     }
 }

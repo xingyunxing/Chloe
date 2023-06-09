@@ -48,6 +48,11 @@
             throw new NotImplementedException();
         }
 
+        public virtual T Visit(ExcludeExpression exp)
+        {
+            throw new NotImplementedException();
+        }
+
         public virtual T Visit(IgnoreAllFiltersExpression exp)
         {
             throw new NotImplementedException();

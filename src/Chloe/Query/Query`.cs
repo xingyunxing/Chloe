@@ -178,6 +178,13 @@ namespace Chloe.Query
             return new IncludableQuery<T, TCollectionItem>(this.QueryExpression, navigationPath);
         }
 
+        public IQuery<T> Exclude<TField>(Expression<Func<T, TField>> field)
+        {
+            PublicHelper.CheckNull(field);
+            ExcludeExpression e = new ExcludeExpression(typeof(T), this._expression, field);
+            return new Query<T>(e);
+        }
+
         public IQuery<T> Where(Expression<Func<T, bool>> predicate)
         {
             PublicHelper.CheckNull(predicate);

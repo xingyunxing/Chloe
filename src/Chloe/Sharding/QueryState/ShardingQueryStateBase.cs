@@ -66,6 +66,12 @@ namespace Chloe.Sharding.QueryState
             throw new NotSupportedException($"{nameof(IQuery<object>.Include)}");
         }
 
+        public virtual IQueryState Accept(ExcludeExpression exp)
+        {
+            this.QueryModel.ExcludedFields.Add(exp.Field);
+            return this;
+        }
+
         public virtual IQueryState Accept(IgnoreAllFiltersExpression exp)
         {
             this.QueryModel.IgnoreAllFilters = true;

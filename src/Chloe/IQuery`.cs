@@ -8,9 +8,27 @@ namespace Chloe
         IEnumerable<T> AsEnumerable();
         IQuery<TResult> Select<TResult>(Expression<Func<T, TResult>> selector);
 
+        /// <summary>
+        /// Include navigation property
+        /// </summary>
+        /// <returns></returns>
         IQuery<T> IncludeAll();
-        IIncludableQuery<T, TProperty> Include<TProperty>(Expression<Func<T, TProperty>> p);
-        IIncludableQuery<T, TCollectionItem> IncludeMany<TCollectionItem>(Expression<Func<T, IEnumerable<TCollectionItem>>> p);
+        /// <summary>
+        /// Include specified navigation property
+        /// </summary>
+        /// <typeparam name="TProperty"></typeparam>
+        /// <param name="navigationProperty">a => a.NavigationProperty</param>
+        /// <returns></returns>
+        IIncludableQuery<T, TProperty> Include<TProperty>(Expression<Func<T, TProperty>> navigationProperty);
+        IIncludableQuery<T, TCollectionItem> IncludeMany<TCollectionItem>(Expression<Func<T, IEnumerable<TCollectionItem>>> navigationProperty);
+
+        /// <summary>
+        /// Exclude specified field
+        /// </summary>
+        /// <typeparam name="TField"></typeparam>
+        /// <param name="field">a => a.Name || a => new { a.Name, a.Age } || a => new object[] { a.Name, a.Age }</param>
+        /// <returns></returns>
+        IQuery<T> Exclude<TField>(Expression<Func<T, TField>> field);
 
         IQuery<T> Where(Expression<Func<T, bool>> predicate);
         IOrderedQuery<T> OrderBy<K>(Expression<Func<T, K>> keySelector);

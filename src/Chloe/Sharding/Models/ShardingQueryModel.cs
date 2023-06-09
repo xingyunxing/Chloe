@@ -19,6 +19,7 @@ namespace Chloe.Sharding
         public bool IsTracking { get; set; }
         public bool IgnoreAllFilters { get; set; }
 
+        public List<LambdaExpression> ExcludedFields { get; set; } = new List<LambdaExpression>();
         public List<LambdaExpression> Conditions { get; set; } = new List<LambdaExpression>();
         public List<Ordering> Orderings { get; set; } = new List<Ordering>();
         public List<LambdaExpression> GroupKeySelectors { get; private set; } = new List<LambdaExpression>();

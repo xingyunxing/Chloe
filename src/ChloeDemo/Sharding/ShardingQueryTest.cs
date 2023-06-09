@@ -45,6 +45,7 @@ namespace ChloeDemo.Sharding
             await this.AvgNullQueryTest();
             await this.MaxMinQueryTest();
             await this.GroupQueryTest();
+            await this.ExcludeFieldQueryTest();
 
             Console.WriteLine("query test over...");
             Console.ReadKey();
@@ -581,6 +582,25 @@ namespace ChloeDemo.Sharding
             Debug.Assert(result_6.MaxAmount == 20);
             Debug.Assert(result_6.MinAmount == 10);
 
+            Helpers.PrintSplitLine();
+        }
+
+        /// <summary>
+        /// 排除指定字段查询
+        /// </summary>
+        /// <returns></returns>
+        async Task ExcludeFieldQueryTest()
+        {
+            IDbContext dbContext = this.CreateDbContext();
+            var q = dbContext.Query<Order>();
+
+            var orders = await q.Exclude(a => new { a.UserId, a.Amount }).OrderByDesc(a => a.CreateTime).Take(10).ToListAsync();
+
+            foreach (var order in orders)
+            {
+                Debug.Assert(order.UserId == default(string));
+                Debug.Assert(order.Amount == default(decimal));
+            }
 
             Helpers.PrintSplitLine();
         }

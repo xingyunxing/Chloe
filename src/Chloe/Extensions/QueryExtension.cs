@@ -162,5 +162,18 @@ namespace Chloe
         {
             return CallMethodAsync(query, nameof(IQuery<object>.FirstAsync), null);
         }
+
+        public static IQuery<T> Exclude<T>(this IQuery<T> q, LambdaExpression field)
+        {
+            IQuery<T> query = (IQuery<T>)Exclude((IQuery)q, field);
+            return query;
+        }
+        public static IQuery Exclude(this IQuery q, LambdaExpression field)
+        {
+            var method = q.GetType().GetMethod(nameof(IQuery<int>.Exclude));
+            method = method.MakeGenericMethod(new Type[] { field.Body.Type });
+            IQuery query = (IQuery)method.FastInvoke(q, new object[] { field });
+            return query;
+        }
     }
 }

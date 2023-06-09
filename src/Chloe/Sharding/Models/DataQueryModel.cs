@@ -20,6 +20,7 @@ namespace Chloe.Sharding
 
         public bool IgnoreAllFilters { get; set; }
 
+        public List<LambdaExpression> ExcludedFields { get; set; } = new List<LambdaExpression>();
         public List<LambdaExpression> Conditions { get; set; } = new List<LambdaExpression>();
         public List<Ordering> Orderings { get; set; } = new List<Ordering>();
         public List<LambdaExpression> GroupKeySelectors { get; set; } = new List<LambdaExpression>();
@@ -41,6 +42,7 @@ namespace Chloe.Sharding
 
         public bool IgnoreAllFilters { get; set; }
 
+        public List<LambdaExpression> ExcludedFields { get; set; } = new List<LambdaExpression>();
         public List<LambdaExpression> Conditions { get; set; } = new List<LambdaExpression>();
         public List<Ordering> Orderings { get; set; } = new List<Ordering>();
         public LambdaExpression Selector { get; set; }
@@ -56,6 +58,9 @@ namespace Chloe.Sharding
             queryModel.Skip = this.Skip;
             queryModel.Take = this.Take;
             queryModel.IgnoreAllFilters = this.IgnoreAllFilters;
+
+            queryModel.ExcludedFields.Capacity = this.ExcludedFields.Count;
+            queryModel.ExcludedFields.AppendRange(this.ExcludedFields);
 
             queryModel.Conditions.Capacity = this.Conditions.Count;
             queryModel.Conditions.AppendRange(this.Conditions);
