@@ -372,7 +372,10 @@ namespace ChloeDemo
 
 
             //在导航属性中排除指定的字段
-            persons = q.Exclude(a => a.Name).Include(a => a.City).ExcludeField(a => new { a.Name }).ThenInclude(a => a.Province).ExcludeField(a => new { a.Name }).ToList();
+            persons = q.Exclude(a => a.Name)
+                .Include(a => a.City).ExcludeField(a => a.Name)
+                .ThenInclude(a => a.Province).ExcludeField(a => a.Name)
+                .ToList();
             /*
              * 生成的 sql 语句中不包含 Name 字段
              * SELECT [Person].[Gender] AS [Gender],[Person].[Age] AS [Age],[Person].[CityId] AS [CityId],[Person].[CreateTime] AS [CreateTime],[Person].[EditTime] AS [EditTime],[Person].[Id] AS [Id]
@@ -393,7 +396,7 @@ namespace ChloeDemo
 
             var cities = this.DbContext.Query<City>().Exclude(a => a.Name)
                   .IncludeMany(a => a.Persons).ExcludeField(a => a.Name)
-                  .Include(a => a.Province).ExcludeField(a => new { a.Name })
+                  .Include(a => a.Province).ExcludeField(a => a.Name)
                   .ToList();
             /*
              * 生成的 sql 语句中不包含 Name 字段

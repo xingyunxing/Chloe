@@ -125,12 +125,10 @@ namespace Chloe
         /// <param name="source"></param>
         /// <param name="fields"></param>
         /// <returns></returns>
+        [Obsolete("Instead of using IQuery<T>.Exclude() method.")]
         public static IQuery<TEntity> Ignore<TEntity>(this IQuery<TEntity> source, Expression<Func<TEntity, object>> fields)
         {
-            PublicHelper.CheckNull(fields);
-
-            List<string> fieldList = FieldsResolver.Resolve(fields);
-            return source.Ignore(fieldList.ToArray());
+            return source.Exclude(fields);
         }
         /// <summary>
         /// dbContext.Query&lt;User&gt;().Ignore&lt;User&gt;("Name,Age", "NickName")
@@ -139,6 +137,7 @@ namespace Chloe
         /// <param name="source"></param>
         /// <param name="fields"></param>
         /// <returns></returns>
+        [Obsolete("Instead of using IQuery<T>.Exclude() method.")]
         public static IQuery<TEntity> Ignore<TEntity>(this IQuery<TEntity> source, params string[] fields)
         {
             PublicHelper.CheckNull(source);
