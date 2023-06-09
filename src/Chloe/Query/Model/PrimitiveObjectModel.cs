@@ -41,8 +41,7 @@ namespace Chloe.Query
 
         public override IObjectActivatorCreator GenarateObjectActivatorCreator(DbSqlQueryExpression sqlQuery)
         {
-            int ordinal;
-            ordinal = ObjectModelHelper.TryGetOrAddColumn(sqlQuery, this.Expression).Value;
+            int ordinal = ObjectModelHelper.TryGetOrAddColumn(sqlQuery, this.Expression).Value;
 
             PrimitiveObjectActivatorCreator activatorCreator = new PrimitiveObjectActivatorCreator(this.ObjectType, ordinal);
 

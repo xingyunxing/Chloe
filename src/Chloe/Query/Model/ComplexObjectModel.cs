@@ -20,10 +20,11 @@ namespace Chloe.Query
         public ComplexObjectModel(Type objectType) : this(GetDefaultConstructor(objectType))
         {
         }
-        public ComplexObjectModel(ConstructorInfo constructor)
-            : this(ConstructorDescriptor.GetInstance(constructor))
+
+        public ComplexObjectModel(ConstructorInfo constructor) : this(ConstructorDescriptor.GetInstance(constructor))
         {
         }
+
         public ComplexObjectModel(ConstructorDescriptor constructorDescriptor)
         {
             this.ObjectType = constructorDescriptor.ConstructorInfo.DeclaringType;
@@ -247,8 +248,7 @@ namespace Chloe.Query
                 ParameterInfo pi = kv.Key;
                 DbExpression exp = kv.Value;
 
-                int ordinal;
-                ordinal = ObjectModelHelper.TryGetOrAddColumn(sqlQuery, exp, pi.Name).Value;
+                int ordinal = ObjectModelHelper.TryGetOrAddColumn(sqlQuery, exp, pi.Name).Value;
 
                 if (exp == this.NullChecking)
                     activatorCreator.CheckNullOrdinal = ordinal;
@@ -270,8 +270,7 @@ namespace Chloe.Query
                 MemberInfo member = kv.Key;
                 DbExpression exp = kv.Value;
 
-                int ordinal;
-                ordinal = ObjectModelHelper.TryGetOrAddColumn(sqlQuery, exp, member.Name).Value;
+                int ordinal = ObjectModelHelper.TryGetOrAddColumn(sqlQuery, exp, member.Name).Value;
 
                 if (exp == this.NullChecking)
                     activatorCreator.CheckNullOrdinal = ordinal;

@@ -2,10 +2,10 @@
 {
     public class DbSqlQueryExpression : DbExpression
     {
-        public DbSqlQueryExpression()
-            : this(PublicConstants.TypeOfVoid)
+        public DbSqlQueryExpression() : this(PublicConstants.TypeOfVoid)
         {
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -16,6 +16,7 @@
             this.GroupSegments = new List<DbExpression>();
             this.Orderings = new List<DbOrdering>();
         }
+
         public bool IsDistinct { get; set; }
         public int? TakeCount { get; set; }
         public int? SkipCount { get; set; }
