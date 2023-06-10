@@ -625,6 +625,12 @@ namespace Chloe.RDBMS
         protected virtual void AppendColumnSegment(DbColumnSegment seg)
         {
             seg.Body.Accept(this);
+
+            if (seg.Body.IsColumnAccessWithName(seg.Alias))
+            {
+                return;
+            }
+
             this.SqlBuilder.Append(" AS ");
             this.QuoteName(seg.Alias);
         }

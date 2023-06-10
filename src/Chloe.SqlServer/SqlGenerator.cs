@@ -1,6 +1,5 @@
 ﻿using Chloe.Annotations;
 using Chloe.DbExpressions;
-using Chloe.InternalExtensions;
 using Chloe.RDBMS;
 using Chloe.Reflection;
 using System.Data;
@@ -379,7 +378,14 @@ namespace Chloe.SqlServer
         }
         protected override void AppendColumnSegment(DbColumnSegment seg)
         {
-            DbValueExpressionTransformer.Transform(seg.Body).Accept(this);
+            var e = DbValueExpressionTransformer.Transform(seg.Body);
+            e.Accept(this);
+
+            if (e.IsColumnAccessWithName(seg.Alias))
+            {
+                return;
+            }
+
             this.SqlBuilder.Append(" AS ");
             this.QuoteName(seg.Alias);
         }
@@ -436,8 +442,6 @@ namespace Chloe.SqlServer
                 this.QuoteName(tableAlias);
                 this.SqlBuilder.Append(".");
                 this.QuoteName(column.Alias);
-                this.SqlBuilder.Append(" AS ");
-                this.QuoteName(column.Alias);
             }
 
             this.SqlBuilder.Append(" FROM ");
@@ -451,9 +455,7 @@ namespace Chloe.SqlServer
                 if (i > 0)
                     this.SqlBuilder.Append(",");
 
-                DbValueExpressionTransformer.Transform(column.Body).Accept(this);
-                this.SqlBuilder.Append(" AS ");
-                this.QuoteName(column.Alias);
+                this.AppendColumnSegment(column);
             }
 
             List<DbOrdering> orderings = exp.Orderings;

@@ -3,7 +3,6 @@ using Chloe.Descriptors;
 using Chloe.Exceptions;
 using Chloe.Extensions;
 using Chloe.Infrastructure;
-using Chloe.InternalExtensions;
 using Chloe.Reflection;
 using Chloe.Utility;
 using System.Collections;

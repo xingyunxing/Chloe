@@ -302,7 +302,14 @@ namespace Chloe.Dameng
 
         protected override void AppendColumnSegment(DbColumnSegment seg)
         {
-            DbValueExpressionTransformer.Transform(seg.Body).Accept(this);
+            var e = DbValueExpressionTransformer.Transform(seg.Body);
+            e.Accept(this);
+
+            if (e.IsColumnAccessWithName(seg.Alias))
+            {
+                return;
+            }
+
             this.SqlBuilder.Append(" AS ");
             this.QuoteName(seg.Alias);
         }
