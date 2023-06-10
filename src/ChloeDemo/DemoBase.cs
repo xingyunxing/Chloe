@@ -36,22 +36,22 @@ namespace ChloeDemo
             this.InitDatabase();
             this.InitData();
 
-            Crud();
-            CrudAsync().GetAwaiter().GetResult();
+            this.Crud();
+            this.CrudAsync().GetAwaiter().GetResult();
 
-            BasicQuery();
-            JoinQuery();
-            ExcludeFieldQuery();
-            AggregateQuery();
-            GroupQuery();
-            ComplexQuery();
-            QueryWithNavigation();
-            Insert();
-            Update();
-            Delete();
-            Method();
-            ExecuteCommandText();
-            DoWithTransaction();
+            this.BasicQuery();
+            this.JoinQuery();
+            this.ExcludeFieldQuery();
+            this.AggregateQuery();
+            this.GroupQuery();
+            this.ComplexQuery();
+            this.QueryWithNavigation();
+            this.Insert();
+            this.Update();
+            this.Delete();
+            this.Method();
+            this.ExecuteCommandText();
+            this.DoWithTransaction();
 
             ConsoleHelper.WriteLineAndReadKey();
         }

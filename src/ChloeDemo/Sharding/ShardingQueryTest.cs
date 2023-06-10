@@ -68,6 +68,15 @@ namespace ChloeDemo.Sharding
             Debug.Assert(orders.Count == 1460);
 
 
+            orders = await q.Where(a => a.CreateMonth == 1).ToListAsync();
+            Debug.Assert(orders.Count == 31 * 2 * 2);
+
+            orders = await q.Where(a => a.CreateMonth == 1).Take(63).ToListAsync();
+            Debug.Assert(orders.Count == 63);
+            Debug.Assert(orders.First().CreateTime == DateTime.Parse("2019-01-01 10:00"));
+            Debug.Assert(orders.Last().CreateTime == DateTime.Parse("2018-01-01 10:00"));
+
+
             orders = await q.Take(100).ToListAsync();
             Debug.Assert(orders.Count == 100);
 
@@ -82,6 +91,13 @@ namespace ChloeDemo.Sharding
             Debug.Assert(orders.Count == 63);
             Debug.Assert(orders.First().CreateTime == DateTime.Parse("2018-01-01 10:00"));
             Debug.Assert(orders.Last().CreateTime == DateTime.Parse("2018-02-01 10:00"));
+
+
+            orders = await q.Where(a => a.CreateMonth == 1).OrderByDesc(a => a.CreateTime).Take(63).ToListAsync();
+            Debug.Assert(orders.Count == 63);
+            Debug.Assert(orders.First().CreateTime == DateTime.Parse("2019-01-31 12:00"));
+            Debug.Assert(orders[1].CreateTime == DateTime.Parse("2019-01-31 10:00"));
+            Debug.Assert(orders.Last().CreateTime == DateTime.Parse("2018-01-31 12:00"));
 
             Helpers.PrintSplitLine();
         }
