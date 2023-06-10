@@ -31,7 +31,7 @@ namespace ChloeDemo
              * q = q.Where(a=> a.Name == name);
              * ...
              * Tip: 自行拼接 lambda 表达式树的注意了，##千万不要用 ConstantExpression 包装你的变量，否则会生成非参数化 sql，存在 sql 注入风险哦！！！##包装变量方式参考这个 MakeWrapperAccess 方法：
-             * https://github.com/shuxinqin/Chloe/blob/master/src/Chloe/Extensions/ExpressionExtension.cs#L117
+             * https://github.com/shuxinqin/Chloe/blob/master/src/Chloe/Extensions/ExpressionExtension.cs#L130
              */
 
             /* 添加拦截器，输出 sql 语句极其相应的参数 */
