@@ -1,6 +1,4 @@
-﻿using Chloe.Reflection;
-
-namespace Chloe.MySql
+﻿namespace Chloe.MySql
 {
     internal static class Utils
     {

@@ -1,6 +1,4 @@
-﻿using Chloe.Reflection;
-
-namespace Chloe.SqlServer
+﻿namespace Chloe.SqlServer
 {
     internal static class Utils
     {

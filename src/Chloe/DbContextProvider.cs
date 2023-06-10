@@ -7,7 +7,6 @@ using Chloe.Exceptions;
 using Chloe.Infrastructure;
 using Chloe.Query;
 using Chloe.Query.Internals;
-using Chloe.Query.Visitors;
 using Chloe.Threading.Tasks;
 using Chloe.Utility;
 using System.Data;

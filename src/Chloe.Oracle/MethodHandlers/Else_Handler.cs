@@ -1,5 +1,4 @@
-﻿using Chloe.RDBMS;
-using Chloe.RDBMS.MethodHandlers;
+﻿using Chloe.RDBMS.MethodHandlers;
 
 namespace Chloe.Oracle.MethodHandlers
 {

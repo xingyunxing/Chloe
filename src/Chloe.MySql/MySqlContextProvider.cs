@@ -3,7 +3,6 @@ using Chloe.DbExpressions;
 using Chloe.Descriptors;
 using Chloe.Exceptions;
 using Chloe.Infrastructure;
-using Chloe.Query.Visitors;
 using Chloe.RDBMS;
 using Chloe.Threading.Tasks;
 using System.Data;

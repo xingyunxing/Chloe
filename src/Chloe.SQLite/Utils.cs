@@ -1,6 +1,4 @@
-﻿using Chloe.Reflection;
-
-namespace Chloe.SQLite
+﻿namespace Chloe.SQLite
 {
     internal static class Utils
     {

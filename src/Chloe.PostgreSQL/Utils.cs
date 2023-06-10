@@ -1,6 +1,4 @@
-﻿using Chloe.Reflection;
-
-namespace Chloe.PostgreSQL
+﻿namespace Chloe.PostgreSQL
 {
     internal static class Utils
     {

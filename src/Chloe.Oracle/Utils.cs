@@ -1,5 +1,4 @@
-﻿using Chloe.Reflection;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace Chloe.Oracle
 {
