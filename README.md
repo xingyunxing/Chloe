@@ -23,8 +23,8 @@ The query interface is similar to LINQ. You can query data like LINQ and do any 
 ```C#
 public enum Gender
 {
-    Man = 1,
-    Woman
+    Male = 1,
+    Female
 }
 
 [Table("Users")]
@@ -262,7 +262,7 @@ q.Select(a => new
 IDbContext context = new MsSqlContext(DbHelper.ConnectionString);
 
 //return the key value
-int id = (int)context.Insert<User>(() => new User() { Name = "lu", Age = 18, Gender = Gender.Man, CityId = 1, OpTime = DateTime.Now });
+int id = (int)context.Insert<User>(() => new User() { Name = "lu", Age = 18, Gender = Gender.Male, CityId = 1, OpTime = DateTime.Now });
 /*
  * INSERT INTO [Users]([Name],[Age],[Gender],[CityId],[OpTime]) VALUES(N'lu',18,1,1,GETDATE());SELECT @@IDENTITY
  */
@@ -271,14 +271,14 @@ int id = (int)context.Insert<User>(() => new User() { Name = "lu", Age = 18, Gen
 User user = new User();
 user.Name = "lu";
 user.Age = 18;
-user.Gender = Gender.Man;
+user.Gender = Gender.Male;
 user.CityId = 1;
 user.OpTime = new DateTime(1970, 1, 1);
 
 user = context.Insert(user);
 /*
  * String @P_0 = "lu";
-   Gender @P_1 = Man;
+   Gender @P_1 = Male;
    Int32 @P_2 = 18;
    Int32 @P_3 = 1;
    DateTime @P_4 = "1970/1/1 0:00:00";
@@ -289,7 +289,7 @@ user = context.Insert(user);
 ```C#
 MsSqlContext context = new MsSqlContext(DbHelper.ConnectionString);
 
-context.Update<User>(a => a.Id == 1, a => new User() { Name = a.Name, Age = a.Age + 1, Gender = Gender.Man, OpTime = DateTime.Now });
+context.Update<User>(a => a.Id == 1, a => new User() { Name = a.Name, Age = a.Age + 1, Gender = Gender.Male, OpTime = DateTime.Now });
 /*
  * UPDATE [Users] SET [Name]=[Users].[Name],[Age]=([Users].[Age] + 1),[Gender]=1,[OpTime]=GETDATE() WHERE [Users].[Id] = 1
  */
@@ -304,13 +304,13 @@ User user = new User();
 user.Id = 1;
 user.Name = "lu";
 user.Age = 28;
-user.Gender = Gender.Man;
+user.Gender = Gender.Male;
 user.OpTime = DateTime.Now;
 
 context.Update(user); //update all columns
 /*
  * String @P_0 = "lu";
-   Gender @P_1 = Man;
+   Gender @P_1 = Male;
    Int32 @P_2 = 28;
    Nullable<Int32> @P_3 = NULL;
    DateTime @P_4 = "2016/7/8 11:28:27";
