@@ -1,5 +1,4 @@
-﻿using Chloe.InternalExtensions;
-
+﻿
 namespace Chloe.DbExpressions
 {
     public class DbJoinTableExpression : DbMainTableExpression

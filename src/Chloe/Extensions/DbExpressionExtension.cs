@@ -1,8 +1,7 @@
 ﻿using Chloe.Visitors;
-using Chloe.DbExpressions;
 using Chloe.Reflection;
 
-namespace Chloe.InternalExtensions
+namespace Chloe.DbExpressions
 {
     public static class DbExpressionExtension
     {
@@ -201,6 +200,20 @@ namespace Chloe.InternalExtensions
         public static DbExpression And(this List<DbExpression> expressions)
         {
             return And(null, expressions);
+        }
+
+        public static bool IsColumnAccessWithName(this DbExpression exp, string name)
+        {
+            if (exp.NodeType == DbExpressionType.ColumnAccess)
+            {
+                DbColumnAccessExpression columnAccessExp = (DbColumnAccessExpression)exp;
+                if (columnAccessExp.Column.Name == name)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

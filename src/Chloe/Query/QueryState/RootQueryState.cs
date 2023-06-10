@@ -1,7 +1,6 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.Descriptors;
 using Chloe.Infrastructure;
-using Chloe.InternalExtensions;
 using Chloe.QueryExpressions;
 using Chloe.Utility;
 using System.Linq.Expressions;
