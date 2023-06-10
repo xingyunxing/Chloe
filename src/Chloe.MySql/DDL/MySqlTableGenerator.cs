@@ -110,6 +110,11 @@ namespace Chloe.MySql.DDL
                     stringLength = propertyDescriptor.Column.Size ?? this.Options.DefaultStringLength;
                 }
 
+                if (stringLength == 65535)
+                {
+                    return "text";
+                }
+
                 return $"varchar({stringLength})";
             }
 
