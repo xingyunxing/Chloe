@@ -120,17 +120,17 @@ namespace Chloe.MySql.DDL
 
             if (type == typeof(int))
             {
-                return "int(11)";
+                return "int";
             }
 
             if (type == typeof(byte))
             {
-                return "int(11)";
+                return "int";
             }
 
             if (type == typeof(Int16))
             {
-                return "int(11)";
+                return "int";
             }
 
             if (type == typeof(long))
@@ -140,27 +140,28 @@ namespace Chloe.MySql.DDL
 
             if (type == typeof(float))
             {
-                return "float(10, 4)";
+                return "float";
             }
 
             if (type == typeof(double))
             {
-                return "double(10, 4)";
+                return "double";
             }
 
             if (type == typeof(decimal))
             {
-                return "decimal(10, 4)";
+                return "decimal";
             }
 
             if (type == typeof(bool))
             {
-                return "int(11)";
+                return "int";
             }
 
             if (type == typeof(DateTime))
             {
-                return "datetime(0)";
+                //datetime=datetime(0)，只精确到秒。datetime(6) 可以精确到毫秒
+                return "datetime";
             }
 
             if (type == typeof(Guid))
