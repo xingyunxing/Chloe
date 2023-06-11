@@ -69,12 +69,12 @@ namespace Chloe.Query
             throw new NotImplementedException();
         }
 
-        public virtual void ExcludePrimitiveMember(MemberInfo memberInfo)
+        public virtual void ExcludePrimitiveMember(LinkeNode<MemberInfo> memberLink)
         {
             throw new NotImplementedException();
         }
 
-        public virtual void ExcludePrimitiveMembers(IEnumerable<MemberInfo> memberInfos)
+        public virtual void ExcludePrimitiveMembers(IEnumerable<LinkeNode<MemberInfo>> memberLinks)
         {
             throw new NotImplementedException();
         }

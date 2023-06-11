@@ -337,6 +337,11 @@ namespace Chloe.Query
                 MemberInfo member = kv.Key;
                 DbExpression exp = kv.Value;
 
+                if (this.IsExcludedMember(member))
+                {
+                    continue;
+                }
+
                 DbColumnAccessExpression cae = ObjectModelHelper.ParseColumnAccessExpression(sqlQuery, table, exp, member.Name);
 
                 newModel.AddPrimitiveMember(member, cae);
@@ -422,7 +427,7 @@ namespace Chloe.Query
 
             for (int i = 0; i < navigationNode.ExcludedFields.Count; i++)
             {
-                List<MemberInfo> fields = PublicHelper.ResolveFields(navigationNode.ExcludedFields[i]);
+                List<LinkeNode<MemberInfo>> fields = ExcludeFieldExtractor.Extract(navigationNode.ExcludedFields[i]);
                 objectModel.ExcludePrimitiveMembers(fields);
             }
 
@@ -485,19 +490,58 @@ namespace Chloe.Query
             return false;
         }
 
-        public void ExcludePrimitiveMember(MemberInfo memberInfo)
+        public void ExcludePrimitiveMember(LinkeNode<MemberInfo> memberLink)
         {
-            if (this._excludedFields == null)
-                this._excludedFields = new HashSet<MemberInfo>();
-
+            MemberInfo memberInfo = memberLink.Value;
             memberInfo = memberInfo.AsReflectedMemberOf(this.ObjectType);
-            this._excludedFields.Add(memberInfo);
-        }
-        public void ExcludePrimitiveMembers(IEnumerable<MemberInfo> memberInfos)
-        {
-            foreach (var memberInfo in memberInfos)
+
+            if (this.PrimitiveMembers.ContainsKey(memberInfo))
             {
-                this.ExcludePrimitiveMember(memberInfo);
+                if (memberLink.Next != null)
+                {
+                    //a.Name.Length, a.Age.Value ....
+                    throw new NotSupportedException($"Not support exclude field '{memberLink.Value.Name}.{memberLink.Next.Value.Name}'.");
+                }
+
+                if (this._excludedFields == null)
+                    this._excludedFields = new HashSet<MemberInfo>();
+
+                this._excludedFields.Add(memberInfo);
+                return;
+            }
+
+            if (memberLink.Next == null)
+            {
+                throw new NotSupportedException($"Not support exclude field '{memberLink.Value.Name}'.");
+            }
+
+            ComplexObjectModel complexMemberObjectModel = this.ComplexMembers.FindValue(memberInfo);
+            if (complexMemberObjectModel != null)
+            {
+                //a.City.Name
+                complexMemberObjectModel.ExcludePrimitiveMember(memberLink.Next);
+                return;
+            }
+
+            if (memberInfo.DeclaringType == this.ObjectType && this.ObjectType.IsAnonymousType())
+            {
+                //(person, city) => new { Person = person, City = city }
+                ComplexObjectModel complexConstructorParameterObjectModel = this.ComplexConstructorParameters.Where(a => a.Key.Name == memberInfo.Name).Select(a => a.Value).FirstOrDefault();
+                if (complexConstructorParameterObjectModel != null)
+                {
+                    //a.Person.Name
+                    complexConstructorParameterObjectModel.ExcludePrimitiveMember(memberLink.Next);
+                    return;
+                }
+            }
+
+            throw new NotSupportedException($"Not support exclude field '{memberLink.Value.Name}'.");
+        }
+        public void ExcludePrimitiveMembers(IEnumerable<LinkeNode<MemberInfo>> memberLinks)
+        {
+            foreach (var memberLink in memberLinks)
+            {
+                this.ExcludePrimitiveMember(memberLink);
             }
         }
         bool IsExcludedMember(MemberInfo memberInfo)

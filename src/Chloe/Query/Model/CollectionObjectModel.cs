@@ -28,14 +28,14 @@ namespace Chloe.Query
             return ret;
         }
 
-        public override void ExcludePrimitiveMember(MemberInfo memberInfo)
+        public override void ExcludePrimitiveMember(LinkeNode<MemberInfo> memberLink)
         {
-            this.ElementModel.ExcludePrimitiveMember(memberInfo);
+            this.ElementModel.ExcludePrimitiveMember(memberLink);
         }
 
-        public override void ExcludePrimitiveMembers(IEnumerable<MemberInfo> memberInfos)
+        public override void ExcludePrimitiveMembers(IEnumerable<LinkeNode<MemberInfo>> memberLinks)
         {
-            this.ElementModel.ExcludePrimitiveMembers(memberInfos);
+            this.ElementModel.ExcludePrimitiveMembers(memberLinks);
         }
     }
 }

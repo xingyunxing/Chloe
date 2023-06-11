@@ -29,9 +29,13 @@ namespace Chloe.Query
         /// <summary>
         /// 排除字段
         /// </summary>
-        /// <param name="memberInfo"></param>
-        void ExcludePrimitiveMember(MemberInfo memberInfo);
-        void ExcludePrimitiveMembers(IEnumerable<MemberInfo> memberInfos);
+        /// <param name="memberLink"></param>
+        void ExcludePrimitiveMember(LinkeNode<MemberInfo> memberLink);
+        /// <summary>
+        /// 排除字段
+        /// </summary>
+        /// <param name="memberLinks"></param>
+        void ExcludePrimitiveMembers(IEnumerable<LinkeNode<MemberInfo>> memberLinks);
 
         void SetNullChecking(DbExpression exp);
     }

@@ -345,8 +345,8 @@ namespace ChloeDemo
             List<Person> persons = q.Exclude(a => a.Name).ToList();
             /*
              * 生成的 sql 语句中不包含 Name 字段
-             * SELECT [Person].[Gender] AS [Gender],[Person].[Age] AS [Age],[Person].[CityId] AS [CityId],[Person].[CreateTime] AS [CreateTime],[Person].[EditTime] AS [EditTime],[Person].[Id] AS [Id] 
-             * FROM [Person] AS [Person] WHERE ([Person].[Id] > -100 AND [Person].[Id] > -1)
+             * SELECT [Person].[Gender],[Person].[Age],[Person].[CityId],[Person].[CreateTime],[Person].[EditTime],[Person].[Id]
+               FROM [Person] AS [Person] WHERE ([Person].[Id] > -100 AND [Person].[Id] > -1)
              */
 
             foreach (var person in persons)
@@ -355,10 +355,25 @@ namespace ChloeDemo
             }
 
 
-            //使用匿名类的方式排除多个字段
+            //使用匿名类形式排除多个字段
             persons = q.Exclude(a => new { a.Name, a.Age, a.EditTime, a.CityId, a.CreateTime }).ToList();
             /*
-             * SELECT [Person].[Gender] AS [Gender],[Person].[Id] AS [Id] FROM [Person] AS [Person] WHERE ([Person].[Id] > -100 AND [Person].[Id] > -1)
+             * SELECT [Person].[Gender],[Person].[Id] FROM [Person] AS [Person] WHERE ([Person].[Id] > -100 AND [Person].[Id] > -1)
+             */
+            foreach (var person in persons)
+            {
+                Debug.Assert(person.Name == default(string));
+                Debug.Assert(person.Age == default(int?));
+                Debug.Assert(person.EditTime == default(DateTime?));
+                Debug.Assert(person.CityId == default(int));
+                Debug.Assert(person.CreateTime == default(DateTime));
+            }
+
+
+            //使用 new object[] 形式排除多个字段
+            persons = q.Exclude(a => new object[] { a.Name, a.Age, a.EditTime, a.CityId, a.CreateTime }).ToList();
+            /*
+             * SELECT [Person].[Gender],[Person].[Id] FROM [Person] AS [Person] WHERE ([Person].[Id] > -100 AND [Person].[Id] > -1)
              */
 
             foreach (var person in persons)
@@ -371,6 +386,22 @@ namespace ChloeDemo
             }
 
 
+            //在多表连接中排除指定的字段
+            var joinResults = q.LeftJoin<City>((person, city) => person.CityId == city.Id).Select((person, city) => new { Person = person, City = city })
+                .Exclude(a => new Object[] { a.Person.Name, a.City.Name }).ToList();
+            /*
+             * SELECT [Person].[Gender],[Person].[Age],[Person].[CityId],[Person].[CreateTime],[Person].[EditTime],[Person].[Id],[City].[ProvinceId],[City].[Id] AS [Id0] 
+               FROM [Person] AS [Person] LEFT JOIN [City] AS [City] ON ([Person].[CityId] = [City].[Id] AND [City].[Id] > -2) 
+               WHERE ([Person].[Id] > -100 AND [Person].[Id] > -1)
+             */
+
+            foreach (var joinResult in joinResults)
+            {
+                Debug.Assert(joinResult.Person.Name == default(string));
+                Debug.Assert(joinResult.City.Name == default(string));
+            }
+
+
             //在导航属性中排除指定的字段
             persons = q.Exclude(a => a.Name)
                 .Include(a => a.City).ExcludeField(a => a.Name)
@@ -378,9 +409,8 @@ namespace ChloeDemo
                 .ToList();
             /*
              * 生成的 sql 语句中不包含 Name 字段
-             * SELECT [Person].[Gender] AS [Gender],[Person].[Age] AS [Age],[Person].[CityId] AS [CityId],[Person].[CreateTime] AS [CreateTime],[Person].[EditTime] AS [EditTime],[Person].[Id] AS [Id]
-               ,[City].[ProvinceId] AS [ProvinceId],[City].[Id] AS [Id0]
-               ,[Province].[Id] AS [Id1] FROM [Person] AS [Person] 
+             * SELECT [Person].[Gender],[Person].[Age],[Person].[CityId],[Person].[CreateTime],[Person].[EditTime],[Person].[Id],[City].[ProvinceId],[City].[Id] AS [Id0],[Province].[Id] AS [Id1] 
+               FROM [Person] AS [Person] 
                INNER JOIN [City] AS [City] ON ([Person].[CityId] = [City].[Id] AND [City].[Id] > -2) 
                INNER JOIN [Province] AS [Province] ON ([City].[ProvinceId] = [Province].[Id] AND [Province].[Id] > -3) 
                WHERE ([Person].[Id] > -100 AND [Person].[Id] > -1)
@@ -400,9 +430,7 @@ namespace ChloeDemo
                   .ToList();
             /*
              * 生成的 sql 语句中不包含 Name 字段
-             * SELECT [City].[ProvinceId] AS [ProvinceId],[City].[Id] AS [Id]
-               ,[Province].[Id] AS [Id0]
-               ,[Person].[Gender] AS [Gender],[Person].[Age] AS [Age],[Person].[CityId] AS [CityId],[Person].[CreateTime] AS [CreateTime],[Person].[EditTime] AS [EditTime],[Person].[Id] AS [Id1] 
+             * SELECT [City].[ProvinceId],[City].[Id],[Province].[Id] AS [Id0],[Person].[Gender],[Person].[Age],[Person].[CityId],[Person].[CreateTime],[Person].[EditTime],[Person].[Id] AS [Id1] 
                FROM [City] AS [City] 
                INNER JOIN [Province] AS [Province] ON ([City].[ProvinceId] = [Province].[Id] AND [Province].[Id] > -3) 
                LEFT JOIN [Person] AS [Person] ON ([City].[Id] = [Person].[CityId] AND [Person].[Id] > -100 AND [Person].[Id] > -1) 
@@ -706,7 +734,7 @@ namespace ChloeDemo
 
 
             //复杂条件删除
-            this.DbContext.Delete<Person>(a => !this.DbContext.Query<City>().IgnoreAllFilters().Select(a => a.Id).ToList().Contains(a.CityId));
+            this.DbContext.Delete<Person>(a => !this.DbContext.Query<City>().IgnoreAllFilters().Select(a => a.Id).ToList().Contains((int)a.CityId));
             /*
              * DELETE FROM [Person] WHERE NOT ([Person].[CityId] IN (SELECT [City].[Id] AS [C] FROM [City] AS [City]))
              */
