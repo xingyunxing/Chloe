@@ -120,7 +120,8 @@ namespace Chloe.Query.Mapping
                 }
                 else
                 {
-                    throw new UnbelievableException();
+                    //排除字段使用类型默认值
+                    argumentActivator = new NullValueObjectActivator(parameter.ParameterType);
                 }
 
                 argumentActivators.Add(argumentActivator);

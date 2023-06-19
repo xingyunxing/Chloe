@@ -248,6 +248,11 @@ namespace Chloe.Query
                 ParameterInfo pi = kv.Key;
                 DbExpression exp = kv.Value;
 
+                if (this.IsExcludedMember(pi))
+                {
+                    continue;
+                }
+
                 int ordinal = ObjectModelHelper.TryGetOrAddColumn(sqlQuery, exp, pi.Name).Value;
 
                 if (exp == this.NullChecking)
@@ -316,6 +321,11 @@ namespace Chloe.Query
             {
                 ParameterInfo pi = kv.Key;
                 DbExpression exp = kv.Value;
+
+                if (this.IsExcludedMember(pi))
+                {
+                    continue;
+                }
 
                 DbColumnAccessExpression cae = null;
                 cae = ObjectModelHelper.ParseColumnAccessExpression(sqlQuery, table, exp, pi.Name);
@@ -495,7 +505,7 @@ namespace Chloe.Query
             MemberInfo memberInfo = memberLink.Value;
             memberInfo = memberInfo.AsReflectedMemberOf(this.ObjectType);
 
-            if (this.PrimitiveMembers.ContainsKey(memberInfo))
+            if (this.GetPrimitiveMember(memberInfo) != null)
             {
                 if (memberLink.Next != null)
                 {
@@ -550,6 +560,15 @@ namespace Chloe.Query
                 return false;
 
             return this._excludedFields.Contains(memberInfo);
+        }
+        bool IsExcludedMember(ParameterInfo parameterInfo)
+        {
+            foreach (var map in this.ConstructorDescriptor.MemberParameterMap)
+            {
+                if (map.Value != parameterInfo) continue;
+                return IsExcludedMember(map.Key);
+            }
+            return false;
         }
 
         ComplexObjectModel GenComplexObjectModel(ComplexPropertyDescriptor navigationDescriptor, NavigationNode navigationNode, QueryModel queryModel)
