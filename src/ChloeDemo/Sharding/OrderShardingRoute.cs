@@ -38,7 +38,7 @@ namespace ChloeDemo.Sharding
     }
 
     /// <summary>
-    /// Order 表路由
+    /// Order 表路由。有关路由的一些说明请参考：https://github.com/shuxinqin/Chloe/issues/330
     /// </summary>
     public class OrderShardingRoute : IShardingRoute
     {

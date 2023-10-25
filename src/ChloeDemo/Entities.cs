@@ -35,8 +35,11 @@ namespace ChloeDemo
     [TableAttribute("Person")]
     public class Person : EntityBase
     {
+        /* 1:1，注：PersonEx 那边也要做相应的配置 */
         [Navigation("Id")]
-        public PersonEx Ex { get; set; } /* 1:1 */
+        public PersonEx Ex { get; set; }
+
+        /* 1:1，注：City 那边也要做相应的配置 */
         [Chloe.Annotations.NavigationAttribute("CityId")]
         public City City { get; set; }
 
@@ -66,6 +69,7 @@ namespace ChloeDemo
 
     public class PersonEx
     {
+        /* 1:1，注：Person 那边也要做相应的配置 */
         [Navigation("Id")]
         public Person Owner { get; set; }  /* 1:1 */
 
@@ -81,9 +85,11 @@ namespace ChloeDemo
         public string Name { get; set; }
         public int ProvinceId { get; set; }
 
+        /* 1:1，注：Province 那边也要做相应的配置 */
         [Chloe.Annotations.NavigationAttribute("ProvinceId")]
         public Province Province { get; set; }
 
+        /* 1:N，注：Person 那边也要做相应的配置 */
         [Chloe.Annotations.NavigationAttribute]
         public List<Person> Persons { get; set; } = new List<Person>();
     }
@@ -92,6 +98,7 @@ namespace ChloeDemo
     {
         public string Name { get; set; }
 
+        /* 1:N，注：City 那边也要做相应的配置 */
         [Chloe.Annotations.NavigationAttribute]
         public List<City> Cities { get; set; } = new List<City>();
     }

@@ -21,10 +21,10 @@ namespace ChloeDemo.Sharding
         public async Task Run()
         {
             ShardingConfigBuilder<Order> shardingConfigBuilder = new ShardingConfigBuilder<Order>();
-            shardingConfigBuilder.HasShardingKey(a => a.CreateTime);
-            shardingConfigBuilder.HasRoute(new OrderShardingRoute(this._shardingTest, new List<int>() { 2018, 2019 }));
+            shardingConfigBuilder.HasShardingKey(a => a.CreateTime);  //配置分片字段
+            shardingConfigBuilder.HasRoute(new OrderShardingRoute(this._shardingTest, new List<int>() { 2018, 2019 }));  //设置分片路由
 
-            ShardingConfigContainer.Add(shardingConfigBuilder.Build());
+            ShardingConfigContainer.Add(shardingConfigBuilder.Build());  //注册分片配置信息
 
             await this.NormalQueryTest();
             await this.PageQueryByShardingKeyOrderByAscTest();

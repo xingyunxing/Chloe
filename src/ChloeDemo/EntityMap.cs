@@ -27,8 +27,10 @@ namespace ChloeDemo
             this.Property(a => a.Gender).HasDbType(DbType.Int32);
             this.Property(a => a.CreateTime).UpdateIgnore(); //更新实体时不更新此字段
 
+            /* 配置导航属性关系 */
             this.HasOne(a => a.Ex, a => a.Id);
             this.HasOne(a => a.City, a => a.CityId);
+
             this.Ignore(a => a.NotMapped);
 
             /* global filter */
@@ -37,6 +39,9 @@ namespace ChloeDemo
             this.ConfigDataType();
         }
 
+        /// <summary>
+        /// 配置不同数据库下对应的映射字段类型
+        /// </summary>
         void ConfigDataType()
         {
             this.Property(a => a.Name)
@@ -55,6 +60,7 @@ namespace ChloeDemo
             this.MapTo("PersonEx");
             this.Property(a => a.Id).IsPrimaryKey().IsAutoIncrement(false);
 
+            /* 配置导航属性关系 */
             this.HasOne(a => a.Owner).WithForeignKey(a => a.Id);
 
             /* global filter */
@@ -66,9 +72,11 @@ namespace ChloeDemo
     {
         public CityMap()
         {
+            /* 配置导航属性关系 */
             this.HasMany(a => a.Persons);
             this.HasOne(a => a.Province).WithForeignKey(a => a.ProvinceId);
 
+            /* global filter */
             this.HasQueryFilter(a => a.Id > -2);
         }
     }
@@ -77,8 +85,10 @@ namespace ChloeDemo
     {
         public ProvinceMap()
         {
+            /* 配置导航属性关系 */
             this.HasMany(a => a.Cities);
 
+            /* global filter */
             this.HasQueryFilter(a => a.Id > -3);
         }
     }
@@ -88,6 +98,8 @@ namespace ChloeDemo
         public TestEntityMap()
         {
             this.Property(a => a.Id).IsAutoIncrement().IsPrimaryKey();
+
+            /* global filter */
             this.HasQueryFilter(a => a.Id > 0);
         }
     }
