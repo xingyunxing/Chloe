@@ -24,7 +24,7 @@ namespace Chloe.Entity
 
                 PrimitiveProperty primitiveProperty = new PrimitiveProperty(property);
                 primitiveProperty.DbType = mappingType.DbType;
-                primitiveProperty.IsNullable = property.PropertyType.CanNull();
+                primitiveProperty.IsNullable = property.PropertyType.CanBeNull();
 
                 if (string.Equals(property.Name, "id", StringComparison.OrdinalIgnoreCase))
                 {

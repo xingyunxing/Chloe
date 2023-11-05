@@ -137,7 +137,7 @@ namespace Chloe.Reflection
 
             return propertyOrField;
         }
-        public static bool CanNull(this Type type)
+        public static bool CanBeNull(this Type type)
         {
             if (type.IsNullable())
                 return true;
