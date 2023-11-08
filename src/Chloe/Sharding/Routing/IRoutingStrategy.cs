@@ -5,11 +5,46 @@
     /// </summary>
     public interface IRoutingStrategy
     {
+        /// <summary>
+        /// 当查询如 query.Where(a => a.CreateTime == value) 时，从所有分表中筛选出满足条件的分表
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         IEnumerable<RouteTable> ForEqual(object value);
+
+        /// <summary>
+        /// 当查询如 query.Where(a => a.CreateTime != value) 时，从所有分表中筛选出满足条件的分表
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         IEnumerable<RouteTable> ForNotEqual(object value);
+
+        /// <summary>
+        /// 当查询如 query.Where(a => a.CreateTime > value) 时，从所有分表中筛选出满足条件的分表
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         IEnumerable<RouteTable> ForGreaterThan(object value);
+
+        /// <summary>
+        /// 当查询如 query.Where(a => a.CreateTime >= value) 时，从所有分表中筛选出满足条件的分表
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         IEnumerable<RouteTable> ForGreaterThanOrEqual(object value);
+
+        /// <summary>
+        /// 当查询如 query.Where(a => a.CreateTime &lt; value) 时，从所有分表中筛选出满足条件的分表
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         IEnumerable<RouteTable> ForLessThan(object value);
+
+        /// <summary>
+        /// 当查询如 query.Where(a => a.CreateTime &lt;= value) 时，从所有分表中筛选出满足条件的分表
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         IEnumerable<RouteTable> ForLessThanOrEqual(object value);
     }
 

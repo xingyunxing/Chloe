@@ -3,12 +3,12 @@
 namespace Chloe.Sharding.Routing
 {
     /// <summary>
-    /// 分片路由
+    /// 分片路由。
     /// </summary>
     public interface IShardingRoute
     {
         /// <summary>
-        /// 获取所有的分片表
+        /// 获取所有的分片表。
         /// </summary>
         /// <returns></returns>
         IEnumerable<RouteTable> GetTables();
@@ -29,7 +29,7 @@ namespace Chloe.Sharding.Routing
     }
 
     /// <summary>
-    /// 条件关系运算符
+    /// 条件关系运算符。
     /// </summary>
     public enum ShardingOperator
     {
@@ -51,7 +51,7 @@ namespace Chloe.Sharding.Routing
         /// </summary>
         public bool IsOrdered { get; set; }
         /// <summary>
-        /// 重排后的路由表
+        /// 重排后的路由表。
         /// </summary>
         public List<RouteTable> Tables { get; set; }
     }

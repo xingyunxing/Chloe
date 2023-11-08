@@ -37,6 +37,23 @@ namespace ChloeDemo.Sharding
         public int Year { get; set; }
     }
 
+    /*
+     关于路由的一些说明：
+       1. Chloe 不负责创建数据库或数据表，你需要根据自己的分片情况维护所有分表集合。
+          框架不知道有哪些分表，因此你要实现 IShardingRoute.GetTables() 方法返回所有的分表信息（分表信息包括表名，表所在的库信息【IDbContextProviderFactory 对象】）。
+
+       2. 框架将路由策略做了抽象，所以路由到哪些表需要自己实现(按时序，取模还是其他算法自行实现)，目前支持（==，<=,>=,!=,<,>）等操作符路由。
+          比如假设根据 CreateTime 字段分表，如果类似 query.Where(a => a.CreateTime == 2020-10-10 ) 查询，要定位到哪些表呢？框架是不知道的，需要你告诉框架！
+          这时你要从你维护的所有分表集合中筛选出符合条件的分表来，所以你需要实现 IShardingRoute.GetStrategy(MemberInfo member) 接口，根据分片字段获取路由策略接口 IRoutingStrategy。
+          IRoutingStrategy 负责通过分片值【即 2020-10-10】筛选符合条件的分表，目前支持（==，<=,>=,!=,<,>）等操作符筛选。
+
+       3. 假设根据时间分表（CreateTime），查询时又根据 CreateTime 排序（如 query.OrderBy(a => a.CreateTime)）,因为数据储存是按时间段有序存储的，所以针对这种情况下的查询可以优化一下避免无谓的查询，
+          因此你需要实现 IShardingRoute.SortTables() 方法，对定位到的表进行一次重排，以提升查询效率（可以看看这篇文章，说得很好 https://www.cnblogs.com/xuejiaming/p/15237878.html） 。
+          ps：如果不需要重排，IShardingRoute.SortTables() 实现里直接返回传入的参数即可。
+
+       4. 只要实现了 IShardingRoute 接口，把 IShardingRoute 对象注册进框架，然后就可以像常规使用方式愉快的做增删查改了。
+     */
+
     /// <summary>
     /// Order 表路由。有关路由的一些说明请参考：https://github.com/shuxinqin/Chloe/issues/330
     /// </summary>
