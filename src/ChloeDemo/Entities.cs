@@ -60,11 +60,14 @@ namespace ChloeDemo
         public DateTime CreateTime { get; set; }
         public DateTime? EditTime { get; set; }
 
+        /// <summary>
+        /// 行版本
+        /// </summary>
+        [Column(IsRowVersion = true)]
+        public int RowVersion { get; set; }
+
         [NotMapped]
         public string NotMapped { get; set; }
-
-        //[Column(IsRowVersion = true)]
-        //public int RowVersion { get; set; }
     }
 
     public class PersonEx

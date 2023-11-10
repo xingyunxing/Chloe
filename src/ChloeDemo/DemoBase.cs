@@ -172,7 +172,7 @@ namespace ChloeDemo
             this._result = this.DbContext.Delete<Person>(person);
 
             //lambda 表达式插入，返回主键
-            var insertedId = this.DbContext.Insert(() => new Person() { Name = "chloe", Age = 18, Gender = Gender.Female, CityId = 1, CreateTime = DateTime.Now });
+            var insertedId = this.DbContext.Insert(() => new Person() { Name = "chloe", Age = 18, Gender = Gender.Female, CityId = 1, CreateTime = DateTime.Now, RowVersion = 0 });
 
             //根据主键删除
             this._result = this.DbContext.DeleteByKey<Person>(insertedId);
@@ -219,7 +219,7 @@ namespace ChloeDemo
             this._result = await this.DbContext.DeleteAsync<Person>(person);
 
             //lambda 表达式插入，返回主键
-            var insertedId = await this.DbContext.InsertAsync(() => new Person() { Name = "Chloe", Age = 18, Gender = Gender.Female, CityId = 1, CreateTime = DateTime.Now });
+            var insertedId = await this.DbContext.InsertAsync(() => new Person() { Name = "Chloe", Age = 18, Gender = Gender.Female, CityId = 1, CreateTime = DateTime.Now, RowVersion = 0 });
 
             //根据主键删除
             this._result = await this.DbContext.DeleteByKeyAsync<Person>(insertedId);
@@ -631,7 +631,7 @@ namespace ChloeDemo
         {
             //lambda 插入
             //返回主键 Id
-            int id = (int)this.DbContext.Insert<Person>(() => new Person() { Name = "Chloe", Age = 18, Gender = Gender.Female, CityId = 1, CreateTime = DateTime.Now });
+            int id = (int)this.DbContext.Insert<Person>(() => new Person() { Name = "Chloe", Age = 18, Gender = Gender.Female, CityId = 1, CreateTime = DateTime.Now, RowVersion = 0 });
             /*
              * INSERT INTO [Person]([Name],[Age],[Gender],[CityId],[CreateTime]) VALUES('Chloe',18,2,1,DATETIME('NOW','LOCALTIME'));SELECT LAST_INSERT_ROWID()
              */
@@ -684,8 +684,7 @@ namespace ChloeDemo
              */
 
             //实体更新
-            Person person = new Person();
-            person.Id = 1;
+            Person person = this.DbContext.Query<Person>().First(a => a.Id == 1);
             person.Name = "Chloe";
             person.Age = 28;
             person.Gender = Gender.Female;
@@ -693,13 +692,13 @@ namespace ChloeDemo
 
             this.DbContext.Update(person); //会更新所有映射的字段
             /*
-             * String @P_0 = 'Chloe';
-               Gender @P_1 = Female;
-               Int32 @P_2 = 28;
-               Nullable<Int32> @P_3 = NULL;
-               DateTime @P_4 = '2016/8/6 22:05:02';
-               Int32 @P_5 = 1;
-               UPDATE [Person] SET [Name]=@P_0,[Gender]=@P_1,[Age]=@P_2,[CityId]=@P_3,[EditTime]=@P_4 WHERE [Person].[Id] = @P_5
+             * Input String @P_0 = 'Chloe';
+               Input Int32 @P_1 = 2;
+               Input Int32 @P_2 = 28;
+               Input Int32 @P_3 = 1;
+               Input DateTime @P_4 = '2023/11/10 23:27:48';
+               Input Int32 @P_5 = 0;
+               UPDATE [Person] SET [Name]=@P_0,[Gender]=@P_1,[Age]=@P_2,[CityId]=@P_3,[EditTime]=@P_4,[RowVersion]=@P_3 WHERE ([Person].[Id] = @P_3 AND [Person].[RowVersion] = @P_5)
              */
 
 
@@ -711,9 +710,10 @@ namespace ChloeDemo
             person.Name = person.Name + "1";
             this.DbContext.Update(person);//这时只会更新被修改的字段
             /*
-             * String @P_0 = 'lu1';
-               Int32 @P_1 = 1;
-               UPDATE [Person] SET [Name]=@P_0 WHERE [Person].[Id] = @P_1
+             * Input String @P_0 = 'Chloe1';
+               Input Int32 @P_1 = 2;
+               Input Int32 @P_2 = 1;
+               UPDATE [Person] SET [Name]=@P_0,[RowVersion]=@P_1 WHERE ([Person].[Id] = @P_2 AND [Person].[RowVersion] = @P_2)
              */
 
             ConsoleHelper.WriteLineAndReadKey();
@@ -740,12 +740,12 @@ namespace ChloeDemo
              */
 
             //实体删除
-            Person person = new Person();
-            person.Id = 1;
+            Person person = this.DbContext.Query<Person>().First();
             this.DbContext.Delete(person);
             /*
-             * Int32 @P_0 = 1;
-               DELETE FROM [Person] WHERE [Person].[Id] = @P_0
+             * Input Int32 @P_0 = 2;
+               Input Int32 @P_1 = 0;
+               DELETE FROM [Person] WHERE ([Person].[Id] = @P_0 AND [Person].[RowVersion] = @P_1)
              */
 
             ConsoleHelper.WriteLineAndReadKey(1);

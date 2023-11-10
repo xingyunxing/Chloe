@@ -25,6 +25,9 @@ namespace ChloeDemo
         {
             this.MapTo("Person");
             this.Property(a => a.Gender).HasDbType(DbType.Int32);
+
+            this.Property(a => a.RowVersion).IsRowVersion();  //配置行版本
+
             this.Property(a => a.CreateTime).UpdateIgnore(); //更新实体时不更新此字段
 
             /* 配置导航属性关系 */
@@ -35,6 +38,8 @@ namespace ChloeDemo
 
             /* global filter */
             this.HasQueryFilter(a => a.Id > -1);
+
+
 
             this.ConfigDataType();
         }
