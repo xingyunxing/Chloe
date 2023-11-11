@@ -39,8 +39,6 @@ namespace ChloeDemo
             /* global filter */
             this.HasQueryFilter(a => a.Id > -1);
 
-
-
             this.ConfigDataType();
         }
 

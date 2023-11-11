@@ -5,8 +5,6 @@
 		<LangVersion>10.0</LangVersion>
 
 		<Version>5.10.0</Version>
-		<AssemblyVersion>5.10.0.0</AssemblyVersion>
-		<FileVersion>5.10.0.0</FileVersion>
 		<Description>A lightweight and high-performance Object/Relational Mapping(ORM) library.</Description>
 		<PackageId>Chloe.Dameng</PackageId>
 		<Product>Chloe.Dameng</Product>
