@@ -4,7 +4,7 @@
 		<!--<TargetFramework>netstandard2.0</TargetFramework>-->
 		<!--<TargetFramework>net45</TargetFramework>-->
 		<!--<TargetFramework>net5.0</TargetFramework>-->
-		<TargetFrameworks>netstandard2.0;net46;net5.0</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0;net46;net5.0;net8.0</TargetFrameworks>
 		<LangVersion>10.0</LangVersion>
 
 		<Version>5.10.0</Version>
@@ -21,14 +21,17 @@
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net46'">
+		<DefineConstants>NETFX;NET46</DefineConstants>
+	</PropertyGroup>
 	<PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
 		<DefineConstants>NETCORE</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net5.0'">
 		<DefineConstants>NETCORE;NET5</DefineConstants>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net46'">
-		<DefineConstants>NETFX;NET46</DefineConstants>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
+		<DefineConstants>NETCORE;NET8</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net46'">
@@ -38,12 +41,16 @@
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
 		<PackageReference Include="System.Reflection.Emit" Version="4.7.0" />
 		<PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
-		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.0.0" />
-		<PackageReference Include="System.Linq.Async" Version="4.0.0" />
+		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
+		<PackageReference Include="System.Linq.Async" Version="6.0.1" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
-		<PackageReference Include="System.Linq.Async" Version="4.0.0" />
+		<PackageReference Include="System.Linq.Async" Version="6.0.1" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+		<PackageReference Include="System.Linq.Async" Version="6.0.1" />
 	</ItemGroup>
 
 </Project>

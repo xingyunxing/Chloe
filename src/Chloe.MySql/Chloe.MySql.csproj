@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;net46;net5.0</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0;net46;net5.0;net8.0</TargetFrameworks>
 		<LangVersion>10.0</LangVersion>
 
 		<Version>5.10.0</Version>
@@ -17,14 +17,17 @@
 		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net46'">
+		<DefineConstants>NETFX;NET46</DefineConstants>
+	</PropertyGroup>
 	<PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
 		<DefineConstants>NETCORE</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net5.0'">
 		<DefineConstants>NETCORE;NET5</DefineConstants>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net46'">
-		<DefineConstants>NETFX;NET46</DefineConstants>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
+		<DefineConstants>NETCORE;NET8</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup>

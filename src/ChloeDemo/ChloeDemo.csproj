@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<!--<TargetFramework>netcoreapp3.1</TargetFramework>-->
+		<!--<TargetFramework>net8.0</TargetFramework>-->
 		<!--<TargetFramework>net462</TargetFramework>-->
-		<TargetFrameworks>netcoreapp3.1;net462</TargetFrameworks>
+		<TargetFrameworks>net462;net8.0</TargetFrameworks>
 
 		<LangVersion>10.0</LangVersion>
 
@@ -15,19 +15,28 @@
 		<GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
-		<DefineConstants>NETCORE</DefineConstants>
+	<PropertyGroup>
+		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
 	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<PlatformTarget>AnyCPU</PlatformTarget>
+	</PropertyGroup>
+
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net462'">
 		<DefineConstants>NETFX</DefineConstants>
 	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
+		<DefineConstants>NETCORE</DefineConstants>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<!--MySql.Data 在一定并发下会卡，慢，不建议使用-->
 		<!--<PackageReference Include="MySql.Data" Version="8.0.28" />-->
-		<PackageReference Include="Microsoft.Extensions.Primitives" Version="7.0.0" />
-		<PackageReference Include="MySqlConnector" Version="2.1.7" />
-		<PackageReference Include="System.Data.Odbc" Version="6.0.0" />
-		<PackageReference Include="System.Diagnostics.DiagnosticSource" Version="5.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Primitives" Version="8.0.0" />
+		<PackageReference Include="MySqlConnector" Version="2.3.0" />
+		<PackageReference Include="System.Data.Odbc" Version="8.0.0" />
+		<PackageReference Include="System.Diagnostics.DiagnosticSource" Version="8.0.0" />
 		<Reference Include="DmProvider">
 			<HintPath>..\lib\DmProvider.dll</HintPath>
 		</Reference>
@@ -42,20 +51,6 @@
 		<ProjectReference Include="..\Chloe.SQLite\Chloe.SQLite.csproj" />
 		<ProjectReference Include="..\Chloe.SqlServer\Chloe.SqlServer.csproj" />
 		<ProjectReference Include="..\Chloe.PostgreSQL\Chloe.PostgreSQL.csproj" />
-	</ItemGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<PlatformTarget>AnyCPU</PlatformTarget>
-	</PropertyGroup>
-
-	<PropertyGroup>
-		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-	</PropertyGroup>
-
-	<ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
-		<PackageReference Include="Microsoft.Data.Sqlite" Version="1.0.1" />
-		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.61" />
-		<PackageReference Include="Npgsql" Version="4.0.0" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net462'">
@@ -78,16 +73,9 @@
 		</Content>
 	</ItemGroup>
 
-	<ItemGroup>
-		<EmbeddedResource Include="..\tools\Chloe.nuspec" Link="tools\Chloe.nuspec" />
-		<EmbeddedResource Include="..\tools\Chloe.Extension.nuspec" Link="tools\Chloe.Extension.nuspec" />
-		<EmbeddedResource Include="..\tools\Chloe.MySql.nuspec" Link="tools\Chloe.MySql.nuspec" />
-		<EmbeddedResource Include="..\tools\Chloe.Oracle.nuspec" Link="tools\Chloe.Oracle.nuspec" />
-		<EmbeddedResource Include="..\tools\Chloe.PostgreSQL.nuspec" Link="tools\Chloe.PostgreSQL.nuspec" />
-		<EmbeddedResource Include="..\tools\Chloe.SQLite.nuspec" Link="tools\Chloe.SQLite.nuspec" />
-		<EmbeddedResource Include="..\tools\Chloe.SqlServer.nuspec" Link="tools\Chloe.SqlServer.nuspec" />
-		<EmbeddedResource Include="..\tools\Chloe.Dameng.nuspec" Link="tools\Chloe.Dameng.nuspec" />
-
-		<EmbeddedResource Include="..\tools\Pack-Chloe-All.bat" Link="tools\Pack-Chloe-All.bat" />
+	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+		<PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.0" />
+		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.120" />
+		<PackageReference Include="Npgsql" Version="4.0.0" />
 	</ItemGroup>
 </Project>

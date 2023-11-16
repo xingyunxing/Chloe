@@ -26,6 +26,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chloe.Dameng", "Chloe.Dameng\Chloe.Dameng.csproj", "{FC609205-5629-4808-8045-4966AD9EE299}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{808B845C-D283-43EC-888E-51DAF36E78E4}"
+	ProjectSection(SolutionItems) = preProject
+		tools\Chloe.Dameng.nuspec = tools\Chloe.Dameng.nuspec
+		tools\Chloe.Extension.nuspec = tools\Chloe.Extension.nuspec
+		tools\Chloe.MySql.nuspec = tools\Chloe.MySql.nuspec
+		tools\Chloe.nuspec = tools\Chloe.nuspec
+		tools\Chloe.Oracle.nuspec = tools\Chloe.Oracle.nuspec
+		tools\Chloe.PostgreSQL.nuspec = tools\Chloe.PostgreSQL.nuspec
+		tools\Chloe.SQLite.nuspec = tools\Chloe.SQLite.nuspec
+		tools\Chloe.SqlServer.nuspec = tools\Chloe.SqlServer.nuspec
+		tools\Pack-Chloe-All.bat = tools\Pack-Chloe-All.bat
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
