@@ -2,7 +2,7 @@
 <package >
 	<metadata>
 		<id>Chloe.Extension</id>
-		<version>5.10.0</version>
+		<version>5.10.1</version>
 		<title>Chloe.Extension</title>
 		<authors>Shuxin Qin</authors>
 		<owners>Shuxin Qin</owners>
@@ -16,19 +16,19 @@
 
 		<dependencies>
 			<group targetFramework="net46">
-				<dependency id="Chloe" version="5.10.0" />
+				<dependency id="Chloe" version="5.10.1" />
 			</group>
 
 			<group targetFramework="netstandard2.0">
-				<dependency id="Chloe" version="5.10.0" />
+				<dependency id="Chloe" version="5.10.1" />
 			</group>
 
 			<group targetFramework="net5.0">
-				<dependency id="Chloe" version="5.10.0" />
+				<dependency id="Chloe" version="5.10.1" />
 			</group>
 
 			<group targetFramework="net8.0">
-				<dependency id="Chloe" version="5.10.0" />
+				<dependency id="Chloe" version="5.10.1" />
 			</group>
 		</dependencies>
 
