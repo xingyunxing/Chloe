@@ -1,4 +1,5 @@
-﻿using Chloe.DbExpressions;
+﻿using Chloe.Data;
+using Chloe.DbExpressions;
 using Chloe.Descriptors;
 using Chloe.Exceptions;
 using Chloe.Extensions;
@@ -7,6 +8,7 @@ using Chloe.Reflection;
 using Chloe.Utility;
 using System.Collections;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -528,6 +530,22 @@ namespace Chloe
                 throw new NotSupportedException(exp.ToString());
 
             return memberExp.Member;
+        }
+
+        public static Action<TEntity, IDataReader> GetMapper<TEntity>(PrimitivePropertyDescriptor propertyDescriptor, int ordinal)
+        {
+            var dbValueReader = DataReaderConstant.GetDbValueReader(propertyDescriptor.PropertyType);
+
+            Action<TEntity, IDataReader> mapper = (TEntity entity, IDataReader reader) =>
+            {
+                object value = dbValueReader.GetValue(reader, ordinal);
+                if (value == null || value == DBNull.Value)
+                    throw new ChloeException($"Unable to get the {propertyDescriptor.Property.Name} value from data reader.");
+
+                propertyDescriptor.SetValue(entity, value);
+            };
+
+            return mapper;
         }
     }
 }

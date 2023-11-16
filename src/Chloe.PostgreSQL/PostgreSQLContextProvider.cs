@@ -104,7 +104,7 @@ namespace Chloe.PostgreSQL
             List<Action<TEntity, IDataReader>> mappers = new List<Action<TEntity, IDataReader>>();
             foreach (var item in typeDescriptor.PrimitivePropertyDescriptors.Where(a => a.IsAutoIncrement || a.HasSequence()))
             {
-                mappers.Add(GetMapper<TEntity>(item, insertExp.Returns.Count));
+                mappers.Add(PublicHelper.GetMapper<TEntity>(item, insertExp.Returns.Count));
                 insertExp.Returns.Add(item.Column);
             }
 

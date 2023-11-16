@@ -141,13 +141,13 @@ namespace Chloe.SqlServer
 
                 /* 自增 id 不能用 output  inserted.Id 输出，因为如果表设置了触发器的话会报错 */
                 dbCommandInfo.CommandText = string.Concat(dbCommandInfo.CommandText, ";", this.GetSelectLastInsertIdClause());
-                mappers.Add(GetMapper<TEntity>(outputColumns[0], 0));
+                mappers.Add(PublicHelper.GetMapper<TEntity>(outputColumns[0], 0));
             }
             else
             {
                 foreach (PrimitivePropertyDescriptor outputColumn in outputColumns)
                 {
-                    mappers.Add(GetMapper<TEntity>(outputColumn, insertExp.Returns.Count));
+                    mappers.Add(PublicHelper.GetMapper<TEntity>(outputColumn, insertExp.Returns.Count));
                     insertExp.Returns.Add(outputColumn.Column);
                 }
 
@@ -564,7 +564,7 @@ namespace Chloe.SqlServer
             if (rowVersionDescriptor.IsTimestamp())
             {
                 List<Action<TEntity, IDataReader>> mappers = new List<Action<TEntity, IDataReader>>();
-                mappers.Add(GetMapper<TEntity>(rowVersionDescriptor, e.Returns.Count));
+                mappers.Add(PublicHelper.GetMapper<TEntity>(rowVersionDescriptor, e.Returns.Count));
                 e.Returns.Add(rowVersionDescriptor.Column);
 
                 IDataReader dataReader = await this.ExecuteReader(e, @async);
