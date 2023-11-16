@@ -659,8 +659,10 @@ namespace ChloeDemo
         }
         public virtual void Update()
         {
+            Person person = this.DbContext.Query<Person>().First();
+
             //lambda 更新
-            this.DbContext.Update<Person>(a => a.Id == 1, a => new Person() { Name = a.Name, Age = a.Age + 1, Gender = Gender.Female, EditTime = DateTime.Now });
+            this.DbContext.Update<Person>(a => a.Id == person.Id, a => new Person() { Name = a.Name, Age = a.Age + 1, Gender = Gender.Female, EditTime = DateTime.Now });
             /*
              * UPDATE [Person] SET [Name]=[Person].[Name],[Age]=([Person].[Age] + 1),[Gender]=1,[EditTime]=DATETIME('NOW','LOCALTIME') WHERE [Person].[Id] = 1
              */
@@ -673,7 +675,7 @@ namespace ChloeDemo
              */
 
             //复杂条件以及复杂 set 更新
-            this.DbContext.Update<Person>(a => a.Id == 1 && a.Id == this.DbContext.Query<City>().IgnoreAllFilters().Where(city => city.Id == a.Id).First().Id, a => new Person()
+            this.DbContext.Update<Person>(a => a.Id == person.Id && a.Id == this.DbContext.Query<City>().IgnoreAllFilters().Where(city => city.Id == a.Id).First().Id, a => new Person()
             {
                 Name = this.DbContext.Query<City>().IgnoreAllFilters().Where(city => city.Id == a.Id).First().Name
             });
@@ -684,7 +686,7 @@ namespace ChloeDemo
              */
 
             //实体更新
-            Person person = this.DbContext.Query<Person>().First(a => a.Id == 1);
+            person = this.DbContext.Query<Person>().First();
             person.Name = "Chloe";
             person.Age = 28;
             person.Gender = Gender.Female;
@@ -720,7 +722,9 @@ namespace ChloeDemo
         }
         public virtual void Delete()
         {
-            this.DbContext.Delete<Person>(a => a.Id == 1);
+            Person person = this.DbContext.Query<Person>().First();
+
+            this.DbContext.Delete<Person>(a => a.Id == person.Id);
             /*
              * DELETE FROM [Person] WHERE [Person].[Id] = 1
              */
@@ -740,7 +744,7 @@ namespace ChloeDemo
              */
 
             //实体删除
-            Person person = this.DbContext.Query<Person>().First();
+            person = this.DbContext.Query<Person>().First();
             this.DbContext.Delete(person);
             /*
              * Input Int32 @P_0 = 2;
