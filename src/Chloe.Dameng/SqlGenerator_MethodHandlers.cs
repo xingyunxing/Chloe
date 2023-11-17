@@ -9,7 +9,8 @@ namespace Chloe.Dameng
         {
             var methodHandlerMap = new Dictionary<string, List<IMethodHandler>>();
 
-            var methodHandlerTypes = Assembly.GetExecutingAssembly().GetTypes().Where(a => a.IsClass && !a.IsAbstract && typeof(IMethodHandler).IsAssignableFrom(a) && a.Name.EndsWith("_Handler") && a.GetConstructor(Type.EmptyTypes) != null);
+            string nameSpace = "Chloe.Dameng.MethodHandlers";
+            var methodHandlerTypes = Assembly.GetExecutingAssembly().GetTypes().Where(a => a.Namespace == nameSpace && a.IsClass && !a.IsAbstract && typeof(IMethodHandler).IsAssignableFrom(a) && a.Name.EndsWith("_Handler") && a.GetConstructor(Type.EmptyTypes) != null);
 
             foreach (Type methodHandlerType in methodHandlerTypes)
             {
