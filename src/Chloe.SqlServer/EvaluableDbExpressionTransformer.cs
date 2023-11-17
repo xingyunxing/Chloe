@@ -1,6 +1,7 @@
 ﻿using Chloe.Visitors;
 using Chloe.DbExpressions;
 using System.Reflection;
+using Chloe.RDBMS;
 
 namespace Chloe.SqlServer
 {
@@ -32,13 +33,22 @@ namespace Chloe.SqlServer
 
         public EvaluableDbExpressionTransformer()
         {
-            this.ToTranslateMembers = _toTranslateMembers;
-            this.MethodHandlers = SqlGenerator.MethodHandlerDic;
+
         }
 
         public static DbExpression Transform(DbExpression exp)
         {
             return exp.Accept(_transformer);
+        }
+
+        protected override HashSet<MemberInfo> GetToTranslateMembers()
+        {
+            return _toTranslateMembers;
+        }
+
+        protected override Dictionary<string, IMethodHandler[]> GetMethodHandlers()
+        {
+            return SqlGenerator.MethodHandlerDic;
         }
     }
 }

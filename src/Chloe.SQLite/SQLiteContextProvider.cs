@@ -2,6 +2,7 @@
 using Chloe.Descriptors;
 using Chloe.Infrastructure;
 using Chloe.RDBMS;
+using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
 
@@ -48,7 +49,15 @@ namespace Chloe.SQLite
             PublicHelper.CheckNull(handler, nameof(handler));
             lock (SqlGenerator.MethodHandlerDic)
             {
-                SqlGenerator.MethodHandlerDic[methodName] = handler;
+                List<IMethodHandler> methodHandlers = new List<IMethodHandler>();
+                if (SqlGenerator.MethodHandlerDic.TryGetValue(methodName, out var methodHandlerArray))
+                {
+                    methodHandlers.AddRange(methodHandlerArray);
+                }
+
+                methodHandlers.Add(handler);
+
+                SqlGenerator.MethodHandlerDic[methodName] = methodHandlers.ToArray();
             }
         }
 

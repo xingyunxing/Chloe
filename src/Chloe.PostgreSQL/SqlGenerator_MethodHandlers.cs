@@ -5,19 +5,32 @@ namespace Chloe.PostgreSQL
 {
     partial class SqlGenerator : SqlGeneratorBase
     {
-        static Dictionary<string, IMethodHandler> InitMethodHandlers()
+        static Dictionary<string, IMethodHandler[]> InitMethodHandlers()
         {
-            var methodHandlers = new Dictionary<string, IMethodHandler>();
+            var methodHandlerMap = new Dictionary<string, List<IMethodHandler>>();
 
             var methodHandlerTypes = Assembly.GetExecutingAssembly().GetTypes().Where(a => a.IsClass && !a.IsAbstract && typeof(IMethodHandler).IsAssignableFrom(a) && a.Name.EndsWith("_Handler") && a.GetConstructor(Type.EmptyTypes) != null);
 
             foreach (Type methodHandlerType in methodHandlerTypes)
             {
                 string handleMethodName = methodHandlerType.Name.Substring(0, methodHandlerType.Name.Length - "_Handler".Length);
-                methodHandlers.Add(handleMethodName, (IMethodHandler)Activator.CreateInstance(methodHandlerType));
+
+                List<IMethodHandler> methodHandlers;
+                if (!methodHandlerMap.TryGetValue(handleMethodName, out methodHandlers))
+                {
+                    methodHandlers = new List<IMethodHandler>();
+                    methodHandlerMap.Add(handleMethodName, methodHandlers);
+                }
+
+                methodHandlers.Add((IMethodHandler)Activator.CreateInstance(methodHandlerType));
             }
 
-            var ret = PublicHelper.Clone(methodHandlers);
+            Dictionary<string, IMethodHandler[]> ret = new Dictionary<string, IMethodHandler[]>(methodHandlerMap.Count);
+            foreach (var kv in methodHandlerMap)
+            {
+                ret.Add(kv.Key, kv.Value.ToArray());
+            }
+
             return ret;
         }
     }

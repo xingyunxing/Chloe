@@ -1,4 +1,5 @@
 ﻿using Chloe.DbExpressions;
+using Chloe.RDBMS;
 using Chloe.Visitors;
 using System.Reflection;
 
@@ -32,13 +33,22 @@ namespace Chloe.Dameng
 
         public EvaluableDbExpressionTransformer()
         {
-            this.ToTranslateMembers = _toTranslateMembers;
-            this.MethodHandlers = SqlGenerator.MethodHandlerDic;
+
         }
 
         public static DbExpression Transform(DbExpression exp)
         {
             return exp.Accept(_transformer);
+        }
+
+        protected override HashSet<MemberInfo> GetToTranslateMembers()
+        {
+            return _toTranslateMembers;
+        }
+
+        protected override Dictionary<string, IMethodHandler[]> GetMethodHandlers()
+        {
+            return SqlGenerator.MethodHandlerDic;
         }
     }
 }

@@ -20,7 +20,7 @@ namespace Chloe.RDBMS
 
         protected abstract string LeftQuoteChar { get; }
         protected abstract string RightQuoteChar { get; }
-        protected abstract Dictionary<string, IMethodHandler> MethodHandlers { get; }
+        protected abstract Dictionary<string, IMethodHandler[]> MethodHandlers { get; }
         protected abstract Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers { get; }
         protected abstract Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers { get; }
 
@@ -514,13 +514,19 @@ namespace Chloe.RDBMS
 
         public override DbExpression Visit(DbMethodCallExpression exp)
         {
-            IMethodHandler methodHandler;
-            if (this.MethodHandlers.TryGetValue(exp.Method.Name, out methodHandler))
+            Dictionary<string, IMethodHandler[]> methodHandlerMap = this.MethodHandlers;
+            IMethodHandler[] methodHandlers;
+
+            if (methodHandlerMap.TryGetValue(exp.Method.Name, out methodHandlers))
             {
-                if (methodHandler.CanProcess(exp))
+                for (int i = 0; i < methodHandlers.Length; i++)
                 {
-                    methodHandler.Process(exp, this);
-                    return exp;
+                    IMethodHandler methodHandler = methodHandlers[i];
+                    if (methodHandler.CanProcess(exp))
+                    {
+                        methodHandler.Process(exp, this);
+                        return exp;
+                    }
                 }
             }
 

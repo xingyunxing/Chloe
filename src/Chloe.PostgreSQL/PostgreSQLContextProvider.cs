@@ -38,7 +38,15 @@ namespace Chloe.PostgreSQL
             PublicHelper.CheckNull(handler, nameof(handler));
             lock (SqlGenerator.MethodHandlerDic)
             {
-                SqlGenerator.MethodHandlerDic[methodName] = handler;
+                List<IMethodHandler> methodHandlers = new List<IMethodHandler>();
+                if (SqlGenerator.MethodHandlerDic.TryGetValue(methodName, out var methodHandlerArray))
+                {
+                    methodHandlers.AddRange(methodHandlerArray);
+                }
+
+                methodHandlers.Add(handler);
+
+                SqlGenerator.MethodHandlerDic[methodName] = methodHandlers.ToArray();
             }
         }
 

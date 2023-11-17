@@ -13,7 +13,7 @@ namespace Chloe.Oracle
 
         DbParamCollection _parameters = new DbParamCollection();
 
-        public static readonly Dictionary<string, IMethodHandler> MethodHandlerDic = InitMethodHandlers();
+        public static readonly Dictionary<string, IMethodHandler[]> MethodHandlerDic = InitMethodHandlers();
         static readonly Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlerDic = InitAggregateHandlers();
         static readonly Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlersDic = InitBinaryWithMethodHandlers();
         static readonly Dictionary<Type, string> CastTypeMap;
@@ -50,7 +50,7 @@ namespace Chloe.Oracle
 
         protected override string LeftQuoteChar { get; } = UtilConstants.LeftQuoteChar;
         protected override string RightQuoteChar { get; } = UtilConstants.RightQuoteChar;
-        protected override Dictionary<string, IMethodHandler> MethodHandlers { get; } = MethodHandlerDic;
+        protected override Dictionary<string, IMethodHandler[]> MethodHandlers { get; } = MethodHandlerDic;
         protected override Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers { get; } = AggregateHandlerDic;
         protected override Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers { get; } = BinaryWithMethodHandlersDic;
 

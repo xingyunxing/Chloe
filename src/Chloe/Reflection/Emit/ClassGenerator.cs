@@ -45,7 +45,7 @@ namespace Chloe.Reflection.Emit
 
             tb.DefineDefaultConstructor(MethodAttributes.Public | MethodAttributes.SpecialName);
 
-            MethodBuilder methodBuilder = tb.DefineMethod("Map", MethodAttributes.Public | MethodAttributes.Virtual, CallingConventions.HasThis, typeof(void), new Type[] { typeof(object), typeof(System.Data.IDataReader), typeof(int) });
+            MethodBuilder methodBuilder = tb.DefineMethod(nameof(IMRM.Map), MethodAttributes.Public | MethodAttributes.Virtual, CallingConventions.HasThis, typeof(void), new Type[] { typeof(object), typeof(System.Data.IDataReader), typeof(int) });
 
             ILGenerator il = methodBuilder.GetILGenerator();
 

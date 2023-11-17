@@ -8,14 +8,24 @@ namespace Chloe.Visitors
     /// <summary>
     /// 将 DbExpression 中可求值的表达式计算出来，转换成 DbParameterExpression
     /// </summary>
-    public class EvaluableDbExpressionTransformerBase : DbExpressionVisitor
+    public abstract class EvaluableDbExpressionTransformerBase : DbExpressionVisitor
     {
-        protected HashSet<MemberInfo> ToTranslateMembers { get; set; }
-        protected Dictionary<string, IMethodHandler> MethodHandlers { get; set; }
+        protected EvaluableDbExpressionTransformerBase()
+        {
+        }
 
         public static bool IsConstantOrParameter(DbExpression exp)
         {
             return exp != null && (exp.NodeType == DbExpressionType.Constant || exp.NodeType == DbExpressionType.Parameter);
+        }
+
+        protected virtual HashSet<MemberInfo> GetToTranslateMembers()
+        {
+            throw new NotImplementedException();
+        }
+        protected virtual Dictionary<string, IMethodHandler[]> GetMethodHandlers()
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -25,7 +35,8 @@ namespace Chloe.Visitors
         /// <returns></returns>
         public virtual bool CanTranslateToSql(DbMemberExpression exp)
         {
-            return this.ToTranslateMembers.Contains(exp.Member);
+            HashSet<MemberInfo> toTranslateMembers = this.GetToTranslateMembers();
+            return toTranslateMembers.Contains(exp.Member);
         }
         /// <summary>
         /// 是否可以将 exp.Method 翻译成数据库对应的语法
@@ -34,12 +45,17 @@ namespace Chloe.Visitors
         /// <returns></returns>
         public virtual bool CanTranslateToSql(DbMethodCallExpression exp)
         {
-            IMethodHandler methodHandler;
-            if (this.MethodHandlers.TryGetValue(exp.Method.Name, out methodHandler))
+            Dictionary<string, IMethodHandler[]> methodHandlerMap = this.GetMethodHandlers();
+            IMethodHandler[] methodHandlers;
+            if (methodHandlerMap.TryGetValue(exp.Method.Name, out methodHandlers))
             {
-                if (methodHandler.CanProcess(exp))
+                for (int i = 0; i < methodHandlers.Length; i++)
                 {
-                    return true;
+                    IMethodHandler methodHandler = methodHandlers[i];
+                    if (methodHandler.CanProcess(exp))
+                    {
+                        return true;
+                    }
                 }
             }
 
