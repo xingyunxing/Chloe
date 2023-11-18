@@ -72,7 +72,7 @@ namespace Chloe.Entity
             return propertyBuilder;
         }
 
-        public PrimitiveProperty GetPrimitiveProperty(string property)
+        internal PrimitiveProperty GetPrimitiveProperty(string property)
         {
             PrimitiveProperty entityProperty = this.EntityType.PrimitiveProperties.FirstOrDefault(a => a.Property.Name == property);
 
@@ -81,7 +81,7 @@ namespace Chloe.Entity
 
             return entityProperty;
         }
-        public ComplexProperty GetComplexProperty(string property)
+        internal ComplexProperty GetComplexProperty(string property)
         {
             ComplexProperty complexProperty = this.EntityType.ComplexProperties.Where(a => a.Property.Name == property).FirstOrDefault();
 
@@ -94,7 +94,7 @@ namespace Chloe.Entity
 
             return complexProperty;
         }
-        public CollectionProperty GetCollectionProperty(string property)
+        internal CollectionProperty GetCollectionProperty(string property)
         {
             CollectionProperty collectionProperty = this.EntityType.CollectionProperties.Where(a => a.Property.Name == property).FirstOrDefault();
 
@@ -109,7 +109,7 @@ namespace Chloe.Entity
         }
 
 
-        public PropertyInfo GetProperty(string property)
+        internal PropertyInfo GetProperty(string property)
         {
             PropertyInfo entityProperty = this.EntityType.Type.GetProperty(property);
 
