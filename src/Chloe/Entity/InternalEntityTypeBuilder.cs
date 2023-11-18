@@ -83,6 +83,12 @@ namespace Chloe.Entity
                         continue;
                     }
 
+                    if (propertyAttribute is UniqueIndexAttribute)
+                    {
+                        propertyBuilder.IsUniqueIndex(true);
+                        continue;
+                    }
+
                     if (propertyAttribute is UpdateIgnoreAttribute)
                     {
                         propertyBuilder.UpdateIgnore(true);
