@@ -33,12 +33,11 @@ namespace Chloe.Dameng
             lock (SqlGenerator.MethodHandlerDic)
             {
                 List<IMethodHandler> methodHandlers = new List<IMethodHandler>();
+                methodHandlers.Add(handler);
                 if (SqlGenerator.MethodHandlerDic.TryGetValue(methodName, out var methodHandlerArray))
                 {
                     methodHandlers.AddRange(methodHandlerArray);
                 }
-
-                methodHandlers.Add(handler);
 
                 SqlGenerator.MethodHandlerDic[methodName] = methodHandlers.ToArray();
             }
