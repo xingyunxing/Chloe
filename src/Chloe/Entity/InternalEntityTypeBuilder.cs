@@ -5,9 +5,9 @@ using System.Reflection;
 
 namespace Chloe.Entity
 {
-    internal class InternalEntityTypeBuilder<TEntity> : EntityTypeBuilder<TEntity>
+    class InternalEntityTypeBuilder : EntityTypeBuilder
     {
-        public InternalEntityTypeBuilder()
+        public InternalEntityTypeBuilder(Type type) : base(type)
         {
             this.ConfigureTableMapping();
             this.ConfigureColumnMapping();

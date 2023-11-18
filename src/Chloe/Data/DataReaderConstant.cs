@@ -20,7 +20,7 @@ namespace Chloe.Data
 
             if (type.IsEnum)
             {
-                result = (isNullable ? Reader_GetEnum_Nullable : Reader_GetEnum).MakeGenericMethod(type);
+                result = (isNullable ? Reader_GetEnum_Nullable : Reader_GetEnum).MakeGenericMethod(type);  //注：aot不支持
                 return result;
             }
 
@@ -66,14 +66,18 @@ namespace Chloe.Data
                     {
                         result = isNullable ? Reader_GetGuid_Nullable : Reader_GetGuid;
                     }
-                    else if (type == PublicConstants.TypeOfObject)
+                    else
                     {
                         result = Reader_GetValue;
                     }
-                    else
-                    {
-                        result = (isNullable ? Reader_GetTValue_Nullable : Reader_GetTValue).MakeGenericMethod(type);
-                    }
+                    //else if (type == PublicConstants.TypeOfObject)
+                    //{
+                    //    result = Reader_GetValue;
+                    //}
+                    //else
+                    //{
+                    //    result = (isNullable ? Reader_GetTValue_Nullable : Reader_GetTValue).MakeGenericMethod(type);  //aot不支持
+                    //}
                     break;
             }
             return result;

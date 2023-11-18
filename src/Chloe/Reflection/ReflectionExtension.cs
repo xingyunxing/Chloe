@@ -165,6 +165,29 @@ namespace Chloe.Reflection
 
             return underlyingType;
         }
+
+        /// <summary>
+        /// 是否是枚举。如果是 TEnum? 也会返回 true。
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static bool IsEnumType(this Type type)
+        {
+            Type underlyingType = type.GetUnderlyingType();
+            return underlyingType.IsEnum;
+        }
+        /// <summary>
+        /// 是否是枚举。如果是 TEnum? 也会返回 true。
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="underlyingType"></param>
+        /// <returns></returns>
+        public static bool IsEnumType(this Type type, out Type underlyingType)
+        {
+            underlyingType = type.GetUnderlyingType();
+            return underlyingType.IsEnum;
+        }
+
         public static bool IsAnonymousType(this Type type)
         {
             string typeName = type.Name;

@@ -12,6 +12,18 @@ namespace Chloe.Reflection.Emit
 
         public static Func<IDataReader, int, object> CreateDataReaderGetValueHandler(Type valueType)
         {
+            Func<IDataReader, int, object> del;
+            Type enumType;
+            if (valueType.IsEnumType(out enumType))
+            {
+                del = (IDataReader dataReader, int ordinal) =>
+                {
+                    object value = dataReader.GetEnum(ordinal, enumType);
+                    return value;
+                };
+                return del;
+            }
+
             var reader = Expression.Parameter(typeof(IDataReader), "reader");
             var ordinal = Expression.Parameter(typeof(int), "ordinal");
 
@@ -21,26 +33,51 @@ namespace Chloe.Reflection.Emit
             var toObject = Expression.Convert(getValue, typeof(object));
 
             var lambda = Expression.Lambda<Func<IDataReader, int, object>>(toObject, reader, ordinal);
-            var del = lambda.Compile();
+            del = lambda.Compile();
 
             return del;
         }
 
         public static MemberMapper CreateMapper(MemberInfo member)
         {
+            Type memberType = member.GetMemberType();
+            if (memberType.IsEnumType())
+            {
+                return CreateEnumMapper(member);
+            }
+
             var p = Expression.Parameter(typeof(object), "instance");
             var instance = Expression.Convert(p, member.DeclaringType);
             var reader = Expression.Parameter(typeof(IDataReader), "reader");
             var ordinal = Expression.Parameter(typeof(int), "ordinal");
 
-            var readerMethod = DataReaderConstant.GetReaderMethod(member.GetMemberType());
-            var getValue = Expression.Call(null, readerMethod, reader, ordinal);
+            var readerMethod = DataReaderConstant.GetReaderMethod(memberType);
+
+            Expression getValue = Expression.Call(null, readerMethod, reader, ordinal);
+            if (readerMethod.ReturnType != memberType)
+            {
+                getValue = Expression.Convert(getValue, memberType);
+            }
+
             var assign = ExpressionExtension.Assign(member, instance, getValue);
             var lambda = Expression.Lambda<MemberMapper>(assign, p, reader, ordinal);
 
             MemberMapper del = lambda.Compile();
 
             return del;
+        }
+        static MemberMapper CreateEnumMapper(MemberInfo member)
+        {
+            Type memberType = member.GetMemberType();
+            Type enumType = memberType.GetUnderlyingType();
+            MemberSetter memberSetter = MemberSetterContainer.Get(member);
+            MemberMapper memberMapper = (object instance, IDataReader dataReader, int ordinal) =>
+            {
+                object value = dataReader.GetEnum(ordinal, enumType);
+                memberSetter(instance, value);
+            };
+
+            return memberMapper;
         }
 
         static BinaryExpression MakeAssign(MemberInfo propertyOrField, Expression instance, Expression value)

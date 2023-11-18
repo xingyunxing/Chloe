@@ -37,13 +37,7 @@ namespace Chloe.Query
             var q = this.CreateAggregateQueryCore<TResult>(method, arguments);
             return q;
         }
-        /// <summary>
-        /// 类<see cref="Chloe.Query.Visitors.GeneralExpressionParser"/>有引用该方法[反射]
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="method"></param>
-        /// <param name="arguments"></param>
-        /// <returns></returns>
+
         internal Query<TResult> CreateAggregateQueryCore<TResult>(MethodInfo method, List<Expression> arguments)
         {
             AggregateQueryExpression e = new AggregateQueryExpression(this._expression, method, arguments);

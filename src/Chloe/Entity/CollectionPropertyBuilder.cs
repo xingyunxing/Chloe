@@ -1,16 +1,14 @@
 ﻿namespace Chloe.Entity
 {
-    public class CollectionPropertyBuilder<TProperty, TEntity> : ICollectionPropertyBuilder<TProperty, TEntity>
+    public class CollectionPropertyBuilder : ICollectionPropertyBuilder
     {
-        public CollectionPropertyBuilder(CollectionProperty property, IEntityTypeBuilder<TEntity> declaringBuilder)
+        public CollectionPropertyBuilder(CollectionProperty property, IEntityTypeBuilder declaringBuilder)
         {
             this.Property = property;
             this.DeclaringBuilder = declaringBuilder;
         }
 
-        IEntityTypeBuilder ICollectionPropertyBuilder.DeclaringBuilder { get { return this.DeclaringBuilder; } }
-        public IEntityTypeBuilder<TEntity> DeclaringBuilder { get; }
-
         public CollectionProperty Property { get; private set; }
+        public IEntityTypeBuilder DeclaringBuilder { get; private set; }
     }
 }

@@ -18,7 +18,7 @@ namespace Chloe.Infrastructure
                 {
                     if (!InstanceCache.TryGetValue(type, out instance))
                     {
-                        IEntityTypeBuilder entityTypeBuilder = Activator.CreateInstance(typeof(InternalEntityTypeBuilder<>).MakeGenericType(type)) as IEntityTypeBuilder;
+                        IEntityTypeBuilder entityTypeBuilder = new InternalEntityTypeBuilder(type);
                         instance = new TypeDescriptor(entityTypeBuilder.EntityType.MakeDefinition());
                         InstanceCache.GetOrAdd(type, instance);
                     }
