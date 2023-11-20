@@ -26,30 +26,6 @@ namespace Chloe.Oracle
             return string.Format("{0}.{1}({2})", method.DeclaringType.Name, method.Name, sb.ToString());
         }
 
-        public static List<List<T>> InBatches<T>(List<T> source, int batchSize)
-        {
-            List<List<T>> batches = new List<List<T>>();
-
-            List<T> batch = new List<T>(source.Count > batchSize ? batchSize : source.Count);
-            for (int i = 0; i < source.Count; i++)
-            {
-                var item = source[i];
-                batch.Add(item);
-                if (batch.Count >= batchSize)
-                {
-                    batches.Add(batch);
-                    batch = new List<T>();
-                }
-            }
-
-            if (batch.Count > 0)
-            {
-                batches.Add(batch);
-            }
-
-            return batches;
-        }
-
         public static string GenOutputColumnParameterName(string columnName)
         {
             return UtilConstants.OutputParameterNamePrefix + columnName;
