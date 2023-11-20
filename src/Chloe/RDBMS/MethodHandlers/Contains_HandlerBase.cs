@@ -109,6 +109,12 @@ namespace Chloe.RDBMS.MethodHandlers
             PublicHelper.MakeNotSupportedMethodException(exp.Method);
         }
 
+        /// <summary>
+        /// in (1,2,3...)
+        /// </summary>
+        /// <param name="generator"></param>
+        /// <param name="elementExps"></param>
+        /// <param name="operand"></param>
         protected virtual void In(SqlGeneratorBase generator, List<DbExpression> elementExps, DbExpression operand)
         {
             if (elementExps.Count == 0)
@@ -117,19 +123,50 @@ namespace Chloe.RDBMS.MethodHandlers
                 return;
             }
 
-            operand.Accept(generator);
-            generator.SqlBuilder.Append(" IN (");
+            int maxInItems = generator.Options.MaxInItems;
 
+            if (elementExps.Count > maxInItems)
+                generator.SqlBuilder.Append("(");
+
+            int batches = 0;
+            int currentInItems = 0;
             for (int i = 0; i < elementExps.Count; i++)
             {
-                if (i > 0)
+                if (currentInItems == 0)
+                {
+                    if (batches > 0)
+                    {
+                        generator.SqlBuilder.Append(" OR ");
+                    }
+
+                    operand.Accept(generator);
+                    generator.SqlBuilder.Append(" IN (");
+                }
+
+                if (currentInItems > 0)
                     generator.SqlBuilder.Append(",");
 
                 elementExps[i].Accept(generator);
+
+                currentInItems++;
+                if (currentInItems == maxInItems || i == (elementExps.Count - 1))
+                {
+                    generator.SqlBuilder.Append(")");
+                    currentInItems = 0;
+                    batches++;
+                }
             }
 
-            generator.SqlBuilder.Append(")");
+            if (elementExps.Count > maxInItems)
+                generator.SqlBuilder.Append(")");
         }
+
+        /// <summary>
+        /// in 子查询
+        /// </summary>
+        /// <param name="generator"></param>
+        /// <param name="sqlQuery"></param>
+        /// <param name="operand"></param>
         protected virtual void In(SqlGeneratorBase generator, DbSqlQueryExpression sqlQuery, DbExpression operand)
         {
             operand.Accept(generator);

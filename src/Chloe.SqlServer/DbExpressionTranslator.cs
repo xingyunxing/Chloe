@@ -27,7 +27,21 @@ namespace Chloe.SqlServer
         }
         public virtual SqlGenerator CreateSqlGenerator()
         {
-            return new SqlGenerator(this.ContextProvider);
+            SqlServerSqlGeneratorOptions options = this.CreateOptions();
+            return new SqlGenerator(options);
+        }
+
+        protected SqlServerSqlGeneratorOptions CreateOptions()
+        {
+            var options = new SqlServerSqlGeneratorOptions()
+            {
+                LeftQuoteChar = UtilConstants.LeftQuoteChar,
+                RightQuoteChar = UtilConstants.RightQuoteChar,
+                MaxInItems = UtilConstants.MaxInItems,
+                BindParameterByName = this.ContextProvider.BindParameterByName
+            };
+
+            return options;
         }
     }
 
@@ -40,7 +54,8 @@ namespace Chloe.SqlServer
 
         public override SqlGenerator CreateSqlGenerator()
         {
-            return new SqlGenerator_OffsetFetch(this.ContextProvider);
+            SqlServerSqlGeneratorOptions options = this.CreateOptions();
+            return new SqlGenerator_OffsetFetch(options);
         }
     }
 }

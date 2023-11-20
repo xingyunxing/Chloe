@@ -4,7 +4,7 @@ namespace Chloe.SqlServer
 {
     class SqlGenerator_OffsetFetch : SqlGenerator
     {
-        public SqlGenerator_OffsetFetch(MsSqlContextProvider contextProvider) : base(contextProvider)
+        public SqlGenerator_OffsetFetch(SqlServerSqlGeneratorOptions options) : base(options)
         {
 
         }

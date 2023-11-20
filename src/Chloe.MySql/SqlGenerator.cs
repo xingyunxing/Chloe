@@ -44,17 +44,26 @@ namespace Chloe.MySql
             CacheParameterNames = cacheParameterNames;
         }
 
+        public SqlGenerator(SqlGeneratorOptions options) : base(options)
+        {
+
+        }
+
         public List<DbParam> Parameters { get { return this._parameters.ToParameterList(); } }
 
-        protected override string LeftQuoteChar { get; } = UtilConstants.LeftQuoteChar;
-        protected override string RightQuoteChar { get; } = UtilConstants.RightQuoteChar;
         protected override Dictionary<string, IMethodHandler[]> MethodHandlers { get; } = MethodHandlerDic;
         protected override Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers { get; } = AggregateHandlerDic;
         protected override Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers { get; } = BinaryWithMethodHandlersDic;
 
         public static SqlGenerator CreateInstance()
         {
-            return new SqlGenerator();
+            var options = new SqlGeneratorOptions()
+            {
+                LeftQuoteChar = UtilConstants.LeftQuoteChar,
+                RightQuoteChar = UtilConstants.RightQuoteChar,
+                MaxInItems = UtilConstants.MaxInItems
+            };
+            return new SqlGenerator(options);
         }
 
         public override DbExpression Visit(DbJoinTableExpression exp)

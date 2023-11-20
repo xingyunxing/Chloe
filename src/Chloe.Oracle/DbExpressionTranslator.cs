@@ -1,6 +1,7 @@
 ﻿using Chloe.Core;
 using Chloe.DbExpressions;
 using Chloe.Infrastructure;
+using Chloe.RDBMS;
 
 namespace Chloe.Oracle
 {
@@ -30,7 +31,8 @@ namespace Chloe.Oracle
         public static readonly new DbExpressionTranslator_ConvertToUppercase Instance = new DbExpressionTranslator_ConvertToUppercase();
         public override SqlGenerator CreateSqlGenerator()
         {
-            return new SqlGenerator_ConvertToUppercase();
+            SqlGeneratorOptions options = SqlGenerator.CreateOptions();
+            return new SqlGenerator_ConvertToUppercase(options);
         }
     }
 }

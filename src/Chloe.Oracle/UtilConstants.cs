@@ -10,7 +10,11 @@ namespace Chloe.Oracle
         public const string ParameterNamePlaceholer = ":";
         public static readonly string ParameterNamePrefix = ParameterNamePlaceholer + "P_";
         public static readonly string OutputParameterNamePrefix = ParameterNamePlaceholer + "R_";
-        public const int InElements = 1000; /* oracle 限定 in 表达式的最大个数 */
+
+        /// <summary>
+        /// in 参数最大个数
+        /// </summary>
+        public static int MaxInItems = 1000;
 
         #region MemberInfo constants
 

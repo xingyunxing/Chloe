@@ -1,6 +1,7 @@
 ﻿using Chloe.Core;
 using Chloe.DbExpressions;
 using Chloe.Infrastructure;
+using Chloe.RDBMS;
 
 namespace Chloe.PostgreSQL
 {
@@ -30,7 +31,8 @@ namespace Chloe.PostgreSQL
         public static readonly new DbExpressionTranslator_ConvertToLowercase Instance = new DbExpressionTranslator_ConvertToLowercase();
         public override SqlGenerator CreateSqlGenerator()
         {
-            return new SqlGenerator_ConvertToLowercase();
+            SqlGeneratorOptions options = SqlGenerator.CreateOptions();
+            return new SqlGenerator_ConvertToLowercase(options);
         }
     }
 }

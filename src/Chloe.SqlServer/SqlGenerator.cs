@@ -45,16 +45,14 @@ namespace Chloe.SqlServer
             CacheParameterNames = cacheParameterNames;
         }
 
-        public SqlGenerator(MsSqlContextProvider contextProvider)
+        public SqlGenerator(SqlServerSqlGeneratorOptions options) : base(options)
         {
-            this._bindParameterByName = contextProvider.BindParameterByName;
+            this._bindParameterByName = options.BindParameterByName;
             this._parameters = this._bindParameterByName ? new DbParamCollection() : new DbParamCollectionWithoutReuse();
         }
 
         public List<DbParam> Parameters { get { return this._parameters.ToParameterList(); } }
 
-        protected override string LeftQuoteChar { get; } = UtilConstants.LeftQuoteChar;
-        protected override string RightQuoteChar { get; } = UtilConstants.RightQuoteChar;
         protected override Dictionary<string, IMethodHandler[]> MethodHandlers { get; } = MethodHandlerDic;
         protected override Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers { get; } = AggregateHandlerDic;
         protected override Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers { get; } = BinaryWithMethodHandlersDic;

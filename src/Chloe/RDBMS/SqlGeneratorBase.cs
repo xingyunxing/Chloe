@@ -10,16 +10,19 @@ namespace Chloe.RDBMS
     {
         ISqlBuilder _sqlBuilder = new SqlBuilder();
 
-        protected SqlGeneratorBase()
+        protected SqlGeneratorBase(SqlGeneratorOptions options)
         {
-
+            this.Options = options;
         }
+
+        public SqlGeneratorOptions Options { get; set; }
 
         public ISqlBuilder SqlBuilder { get { return this._sqlBuilder; } }
 
 
-        protected abstract string LeftQuoteChar { get; }
-        protected abstract string RightQuoteChar { get; }
+        public string LeftQuoteChar { get { return this.Options.LeftQuoteChar; } }
+        public string RightQuoteChar { get { return this.Options.RightQuoteChar; } }
+
         protected abstract Dictionary<string, IMethodHandler[]> MethodHandlers { get; }
         protected abstract Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers { get; }
         protected abstract Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers { get; }
