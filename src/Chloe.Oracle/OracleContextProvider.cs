@@ -359,10 +359,11 @@ namespace Chloe.Oracle
                     continue;
 
                 object val = propertyDescriptor.GetValue(entity);
-                PublicHelper.NotNullCheck(propertyDescriptor, val);
 
                 if (entityState != null && !entityState.HasChanged(propertyDescriptor, val))
                     continue;
+
+                PublicHelper.NotNullCheck(propertyDescriptor, val);
 
                 DbExpression valExp = DbExpression.Parameter(val, propertyDescriptor.PropertyType, propertyDescriptor.Column.DbType);
                 updateColumns.Add(propertyDescriptor, valExp);
