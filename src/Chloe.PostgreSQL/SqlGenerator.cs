@@ -43,33 +43,18 @@ namespace Chloe.PostgreSQL
             CacheParameterNames = cacheParameterNames;
         }
 
-        public SqlGenerator(SqlGeneratorOptions options) : base(options)
+        public SqlGenerator(PostgreSQLSqlGeneratorOptions options) : base(options)
         {
-
+            this.Options = options;
         }
+
+        public new PostgreSQLSqlGeneratorOptions Options { get; set; }
 
         public List<DbParam> Parameters { get { return this._parameters.ToParameterList(); } }
 
         protected override Dictionary<string, IMethodHandler[]> MethodHandlers { get; } = MethodHandlerDic;
         protected override Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers { get; } = AggregateHandlerDic;
         protected override Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers { get; } = BinaryWithMethodHandlersDic;
-
-        public static SqlGenerator CreateInstance()
-        {
-            SqlGeneratorOptions options = CreateOptions();
-            return new SqlGenerator(options);
-        }
-        internal static SqlGeneratorOptions CreateOptions()
-        {
-            var options = new SqlGeneratorOptions()
-            {
-                LeftQuoteChar = UtilConstants.LeftQuoteChar,
-                RightQuoteChar = UtilConstants.RightQuoteChar,
-                MaxInItems = UtilConstants.MaxInItems
-            };
-
-            return options;
-        }
 
         public override DbExpression Visit(DbSqlQueryExpression exp)
         {
@@ -296,6 +281,14 @@ namespace Chloe.PostgreSQL
             this._parameters.Add(p);
             this.SqlBuilder.Append(paramName);
             return exp;
+        }
+
+        public override void QuoteName(string name)
+        {
+            if (this.Options.ConvertToLowercase)
+                name = name.ToLower();
+
+            base.QuoteName(name);
         }
 
         protected override void AppendColumnSegment(DbColumnSegment seg)

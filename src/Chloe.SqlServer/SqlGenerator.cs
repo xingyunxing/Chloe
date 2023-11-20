@@ -10,7 +10,6 @@ namespace Chloe.SqlServer
     partial class SqlGenerator : SqlGeneratorBase
     {
         IDbParamCollection _parameters;
-        bool _bindParameterByName;
 
         public static readonly Dictionary<string, IMethodHandler[]> MethodHandlerDic = InitMethodHandlers();
         static readonly Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlerDic = InitAggregateHandlers();
@@ -47,9 +46,11 @@ namespace Chloe.SqlServer
 
         public SqlGenerator(SqlServerSqlGeneratorOptions options) : base(options)
         {
-            this._bindParameterByName = options.BindParameterByName;
-            this._parameters = this._bindParameterByName ? new DbParamCollection() : new DbParamCollectionWithoutReuse();
+            this.Options = options;
+            this._parameters = options.BindParameterByName ? new DbParamCollection() : new DbParamCollectionWithoutReuse();
         }
+
+        public new SqlServerSqlGeneratorOptions Options { get; set; }
 
         public List<DbParam> Parameters { get { return this._parameters.ToParameterList(); } }
 
@@ -286,7 +287,7 @@ namespace Chloe.SqlServer
                 paramValue = DBNull.Value;
 
             DbParam p = null;
-            if (this._bindParameterByName)
+            if (this.Options.BindParameterByName)
             {
                 p = this._parameters.Find(paramValue, paramType, exp.DbType);
             }
@@ -313,7 +314,7 @@ namespace Chloe.SqlServer
 
             this._parameters.Add(p);
 
-            if (!this._bindParameterByName)
+            if (!this.Options.BindParameterByName)
                 this.SqlBuilder.Append("?");
             else
                 this.SqlBuilder.Append(paramName);
@@ -413,8 +414,14 @@ namespace Chloe.SqlServer
             this.BuildGroupState(exp);
             this.BuildOrderState(exp.Orderings);
         }
-        protected virtual void BuildLimitSql(DbSqlQueryExpression exp)
+        void BuildLimitSql(DbSqlQueryExpression exp)
         {
+            if (this.Options.PagingMode == PagingMode.OFFSET_FETCH)
+            {
+                this.BuildOffsetFetchSql(exp);
+                return;
+            }
+
             bool shouldSortResults = false;
             if (exp.TakeCount != null)
                 shouldSortResults = true;
@@ -494,7 +501,47 @@ namespace Chloe.SqlServer
                 this.SqlBuilder.Append(" ASC");
             }
         }
-        protected void AppendDistinct(bool isDistinct)
+        void BuildOffsetFetchSql(DbExpressions.DbSqlQueryExpression exp)
+        {
+            //order by number offset 10 rows fetch next 20 rows only;
+            this.SqlBuilder.Append("SELECT ");
+
+            this.AppendDistinct(exp.IsDistinct);
+
+            List<DbColumnSegment> columns = exp.ColumnSegments;
+            for (int i = 0; i < columns.Count; i++)
+            {
+                DbColumnSegment column = columns[i];
+                if (i > 0)
+                    this.SqlBuilder.Append(",");
+
+                this.AppendColumnSegment(column);
+            }
+
+            this.SqlBuilder.Append(" FROM ");
+            exp.Table.Accept(this);
+            this.BuildWhereState(exp.Condition);
+            this.BuildGroupState(exp);
+
+            List<DbOrdering> orderings = exp.Orderings;
+            if (orderings.Count == 0)
+            {
+                DbExpression orderingExp = DbExpression.Add(PublicConstants.DbParameter_1, DbConstantExpression.Zero, DbConstantExpression.Zero.Type, null);
+                DbOrdering ordering = new DbOrdering(orderingExp, DbOrderType.Asc);
+                orderings = new List<DbOrdering>(1);
+                orderings.Add(ordering);
+            }
+
+            this.BuildOrderState(orderings);
+
+            this.SqlBuilder.Append(" OFFSET ", exp.SkipCount.Value.ToString(), " ROWS");
+            if (exp.TakeCount != null)
+            {
+                this.SqlBuilder.Append(" FETCH NEXT ", exp.TakeCount.Value.ToString(), " ROWS ONLY");
+            }
+        }
+
+        void AppendDistinct(bool isDistinct)
         {
             if (isDistinct)
                 this.SqlBuilder.Append("DISTINCT ");

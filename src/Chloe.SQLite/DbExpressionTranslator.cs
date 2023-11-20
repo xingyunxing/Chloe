@@ -1,6 +1,7 @@
 ﻿using Chloe.Core;
 using Chloe.DbExpressions;
 using Chloe.Infrastructure;
+using Chloe.RDBMS;
 
 namespace Chloe.SQLite
 {
@@ -9,7 +10,8 @@ namespace Chloe.SQLite
         public static readonly DbExpressionTranslator Instance = new DbExpressionTranslator();
         public DbCommandInfo Translate(DbExpression expression)
         {
-            SqlGenerator generator = SqlGenerator.CreateInstance();
+            SqlGeneratorOptions options = this.CreateOptions();
+            SqlGenerator generator = new SqlGenerator(options);
             expression = EvaluableDbExpressionTransformer.Transform(expression);
             expression.Accept(generator);
 
@@ -18,6 +20,18 @@ namespace Chloe.SQLite
             result.CommandText = generator.SqlBuilder.ToSql();
 
             return result;
+        }
+
+        SqlGeneratorOptions CreateOptions()
+        {
+            var options = new SqlGeneratorOptions()
+            {
+                LeftQuoteChar = UtilConstants.LeftQuoteChar,
+                RightQuoteChar = UtilConstants.RightQuoteChar,
+                MaxInItems = UtilConstants.MaxInItems
+            };
+
+            return options;
         }
     }
 }

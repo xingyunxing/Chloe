@@ -6,16 +6,17 @@ namespace Chloe.SqlServer
 {
     class DbExpressionTranslator : IDbExpressionTranslator
     {
-        protected MsSqlContextProvider ContextProvider { get; set; }
+        MsSqlContextProvider ContextProvider { get; set; }
 
         public DbExpressionTranslator(MsSqlContextProvider contextProvider)
         {
             this.ContextProvider = contextProvider;
         }
 
-        public virtual DbCommandInfo Translate(DbExpression expression)
+        public DbCommandInfo Translate(DbExpression expression)
         {
-            SqlGenerator generator = this.CreateSqlGenerator();
+            SqlServerSqlGeneratorOptions options = this.CreateOptions();
+            SqlGenerator generator = new SqlGenerator(options);
             expression = EvaluableDbExpressionTransformer.Transform(expression);
             expression.Accept(generator);
 
@@ -25,37 +26,19 @@ namespace Chloe.SqlServer
 
             return dbCommandInfo;
         }
-        public virtual SqlGenerator CreateSqlGenerator()
-        {
-            SqlServerSqlGeneratorOptions options = this.CreateOptions();
-            return new SqlGenerator(options);
-        }
 
-        protected SqlServerSqlGeneratorOptions CreateOptions()
+        SqlServerSqlGeneratorOptions CreateOptions()
         {
             var options = new SqlServerSqlGeneratorOptions()
             {
                 LeftQuoteChar = UtilConstants.LeftQuoteChar,
                 RightQuoteChar = UtilConstants.RightQuoteChar,
                 MaxInItems = UtilConstants.MaxInItems,
+                PagingMode = this.ContextProvider.PagingMode,
                 BindParameterByName = this.ContextProvider.BindParameterByName
             };
 
             return options;
-        }
-    }
-
-    class DbExpressionTranslator_OffsetFetch : DbExpressionTranslator
-    {
-        public DbExpressionTranslator_OffsetFetch(MsSqlContextProvider contextProvider) : base(contextProvider)
-        {
-
-        }
-
-        public override SqlGenerator CreateSqlGenerator()
-        {
-            SqlServerSqlGeneratorOptions options = this.CreateOptions();
-            return new SqlGenerator_OffsetFetch(options);
         }
     }
 }

@@ -1,15 +1,18 @@
 ﻿using Chloe.Core;
 using Chloe.DbExpressions;
 using Chloe.Infrastructure;
+using Chloe.RDBMS;
 
 namespace Chloe.Dameng
 {
     class DbExpressionTranslator : IDbExpressionTranslator
     {
         public static readonly DbExpressionTranslator Instance = new DbExpressionTranslator();
-        public virtual DbCommandInfo Translate(DbExpression expression)
+
+        public DbCommandInfo Translate(DbExpression expression)
         {
-            SqlGenerator generator = SqlGenerator.CreateInstance();
+            SqlGeneratorOptions options = this.CreateOptions();
+            SqlGenerator generator = new SqlGenerator(options);
             expression = EvaluableDbExpressionTransformer.Transform(expression);
             expression.Accept(generator);
 
@@ -20,6 +23,18 @@ namespace Chloe.Dameng
             };
 
             return dbCommandInfo;
+        }
+
+        SqlGeneratorOptions CreateOptions()
+        {
+            var options = new SqlGeneratorOptions()
+            {
+                LeftQuoteChar = UtilConstants.LeftQuoteChar,
+                RightQuoteChar = UtilConstants.RightQuoteChar,
+                MaxInItems = UtilConstants.MaxInItems
+            };
+
+            return options;
         }
     }
 }

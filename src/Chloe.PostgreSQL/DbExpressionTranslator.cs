@@ -1,16 +1,22 @@
 ﻿using Chloe.Core;
 using Chloe.DbExpressions;
 using Chloe.Infrastructure;
-using Chloe.RDBMS;
 
 namespace Chloe.PostgreSQL
 {
     class DbExpressionTranslator : IDbExpressionTranslator
     {
-        public static readonly DbExpressionTranslator Instance = new DbExpressionTranslator();
-        public virtual DbCommandInfo Translate(DbExpression expression)
+        PostgreSQLContextProvider ContextProvider { get; set; }
+
+        public DbExpressionTranslator(PostgreSQLContextProvider contextProvider)
         {
-            SqlGenerator generator = this.CreateSqlGenerator();
+            this.ContextProvider = contextProvider;
+        }
+
+        public DbCommandInfo Translate(DbExpression expression)
+        {
+            PostgreSQLSqlGeneratorOptions options = this.CreateOptions();
+            SqlGenerator generator = new SqlGenerator(options);
             expression = EvaluableDbExpressionTransformer.Transform(expression);
             expression.Accept(generator);
 
@@ -20,19 +26,18 @@ namespace Chloe.PostgreSQL
 
             return dbCommandInfo;
         }
-        public virtual SqlGenerator CreateSqlGenerator()
-        {
-            return SqlGenerator.CreateInstance();
-        }
-    }
 
-    class DbExpressionTranslator_ConvertToLowercase : DbExpressionTranslator
-    {
-        public static readonly new DbExpressionTranslator_ConvertToLowercase Instance = new DbExpressionTranslator_ConvertToLowercase();
-        public override SqlGenerator CreateSqlGenerator()
+        PostgreSQLSqlGeneratorOptions CreateOptions()
         {
-            SqlGeneratorOptions options = SqlGenerator.CreateOptions();
-            return new SqlGenerator_ConvertToLowercase(options);
+            var options = new PostgreSQLSqlGeneratorOptions()
+            {
+                LeftQuoteChar = UtilConstants.LeftQuoteChar,
+                RightQuoteChar = UtilConstants.RightQuoteChar,
+                MaxInItems = UtilConstants.MaxInItems,
+                ConvertToLowercase = this.ContextProvider.ConvertToLowercase
+            };
+
+            return options;
         }
     }
 }

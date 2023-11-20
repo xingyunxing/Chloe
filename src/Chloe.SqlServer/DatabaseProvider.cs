@@ -21,16 +21,7 @@ namespace Chloe.SqlServer
         }
         public IDbExpressionTranslator CreateDbExpressionTranslator()
         {
-            if (this._contextProvider.PagingMode == PagingMode.ROW_NUMBER)
-            {
-                return new DbExpressionTranslator(this._contextProvider);
-            }
-            else if (this._contextProvider.PagingMode == PagingMode.OFFSET_FETCH)
-            {
-                return new DbExpressionTranslator_OffsetFetch(this._contextProvider);
-            }
-
-            throw new NotSupportedException();
+            return new DbExpressionTranslator(this._contextProvider);
         }
         public string CreateParameterName(string name)
         {

@@ -53,17 +53,6 @@ namespace Chloe.Dameng
         protected override Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers { get; } = AggregateHandlerDic;
         protected override Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers { get; } = BinaryWithMethodHandlersDic;
 
-        public static SqlGenerator CreateInstance()
-        {
-            var options = new SqlGeneratorOptions()
-            {
-                LeftQuoteChar = UtilConstants.LeftQuoteChar,
-                RightQuoteChar = UtilConstants.RightQuoteChar,
-                MaxInItems = UtilConstants.MaxInItems
-            };
-            return new SqlGenerator(options);
-        }
-
         public override DbExpression Visit(DbSqlQueryExpression exp)
         {
             this.BuildGeneralSql(exp);

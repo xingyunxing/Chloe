@@ -1,17 +1,15 @@
 ﻿using Chloe.RDBMS;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Chloe.SqlServer
 {
-    internal class SqlServerSqlGeneratorOptions : SqlGeneratorOptions
+    class SqlServerSqlGeneratorOptions : SqlGeneratorOptions
     {
         public SqlServerSqlGeneratorOptions()
         {
 
         }
 
+        public PagingMode PagingMode { get; set; }
         public bool BindParameterByName { get; set; }
     }
 }

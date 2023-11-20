@@ -55,17 +55,6 @@ namespace Chloe.MySql
         protected override Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers { get; } = AggregateHandlerDic;
         protected override Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers { get; } = BinaryWithMethodHandlersDic;
 
-        public static SqlGenerator CreateInstance()
-        {
-            var options = new SqlGeneratorOptions()
-            {
-                LeftQuoteChar = UtilConstants.LeftQuoteChar,
-                RightQuoteChar = UtilConstants.RightQuoteChar,
-                MaxInItems = UtilConstants.MaxInItems
-            };
-            return new SqlGenerator(options);
-        }
-
         public override DbExpression Visit(DbJoinTableExpression exp)
         {
             if (exp.JoinType == DbJoinType.FullJoin)
@@ -252,6 +241,27 @@ namespace Chloe.MySql
 
             this._parameters.Add(p);
             this.SqlBuilder.Append(paramName);
+            return exp;
+        }
+
+        public override DbExpression Visit(DbUpdateExpression exp)
+        {
+            base.Visit(exp);
+            if (exp is MySqlDbUpdateExpression)
+            {
+                this.SqlBuilder.Append(" LIMIT ", (exp as MySqlDbUpdateExpression).Limits.ToString());
+            }
+
+            return exp;
+        }
+        public override DbExpression Visit(DbDeleteExpression exp)
+        {
+            base.Visit(exp);
+            if (exp is MySqlDbDeleteExpression)
+            {
+                this.SqlBuilder.Append(" LIMIT ", (exp as MySqlDbDeleteExpression).Limits.ToString());
+            }
+
             return exp;
         }
 

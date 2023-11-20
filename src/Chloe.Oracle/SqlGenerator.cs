@@ -46,33 +46,18 @@ namespace Chloe.Oracle
             CacheParameterNames = cacheParameterNames;
         }
 
-        public SqlGenerator(SqlGeneratorOptions options) : base(options)
+        public SqlGenerator(OracleSqlGeneratorOptions options) : base(options)
         {
-
+            this.Options = options;
         }
+
+        public new OracleSqlGeneratorOptions Options { get; set; }
 
         public List<DbParam> Parameters { get { return this._parameters.ToParameterList(); } }
 
         protected override Dictionary<string, IMethodHandler[]> MethodHandlers { get; } = MethodHandlerDic;
         protected override Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers { get; } = AggregateHandlerDic;
         protected override Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers { get; } = BinaryWithMethodHandlersDic;
-
-        public static SqlGenerator CreateInstance()
-        {
-            SqlGeneratorOptions options = CreateOptions();
-            return new SqlGenerator(options);
-        }
-        internal static SqlGeneratorOptions CreateOptions()
-        {
-            var options = new SqlGeneratorOptions()
-            {
-                LeftQuoteChar = UtilConstants.LeftQuoteChar,
-                RightQuoteChar = UtilConstants.RightQuoteChar,
-                MaxInItems = UtilConstants.MaxInItems
-            };
-
-            return options;
-        }
 
         public override DbExpression Visit(DbNotEqualExpression exp)
         {
@@ -635,9 +620,12 @@ namespace Chloe.Oracle
                 throw new NotSupportedException($"lock type: {seg.Lock.ToString()}");
         }
 
-        public virtual string SqlName(string name)
+        public override void QuoteName(string name)
         {
-            return name;
+            if (this.Options.ConvertToUppercase)
+                name = name.ToUpper();
+
+            base.QuoteName(name);
         }
 
         bool IsDatePart(DbMemberExpression exp)

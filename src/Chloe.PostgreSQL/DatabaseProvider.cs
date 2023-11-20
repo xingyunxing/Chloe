@@ -21,14 +21,7 @@ namespace Chloe.PostgreSQL
         }
         public IDbExpressionTranslator CreateDbExpressionTranslator()
         {
-            if (this._contextProvider.ConvertToLowercase == true)
-            {
-                return DbExpressionTranslator_ConvertToLowercase.Instance;
-            }
-            else
-            {
-                return DbExpressionTranslator.Instance;
-            }
+            return new DbExpressionTranslator(this._contextProvider);
         }
         public string CreateParameterName(string name)
         {

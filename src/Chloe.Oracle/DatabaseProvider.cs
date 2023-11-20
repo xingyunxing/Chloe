@@ -22,14 +22,7 @@ namespace Chloe.Oracle
         }
         public IDbExpressionTranslator CreateDbExpressionTranslator()
         {
-            if (this._contextProvider.ConvertToUppercase == true)
-            {
-                return DbExpressionTranslator_ConvertToUppercase.Instance;
-            }
-            else
-            {
-                return DbExpressionTranslator.Instance;
-            }
+            return new DbExpressionTranslator(this._contextProvider);
         }
         public string CreateParameterName(string name)
         {

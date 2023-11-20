@@ -1,16 +1,22 @@
 ﻿using Chloe.Core;
 using Chloe.DbExpressions;
 using Chloe.Infrastructure;
-using Chloe.RDBMS;
 
 namespace Chloe.Oracle
 {
     class DbExpressionTranslator : IDbExpressionTranslator
     {
-        public static readonly DbExpressionTranslator Instance = new DbExpressionTranslator();
-        public virtual DbCommandInfo Translate(DbExpression expression)
+        OracleContextProvider ContextProvider { get; set; }
+
+        public DbExpressionTranslator(OracleContextProvider contextProvider)
         {
-            SqlGenerator generator = this.CreateSqlGenerator();
+            this.ContextProvider = contextProvider;
+        }
+
+        public DbCommandInfo Translate(DbExpression expression)
+        {
+            OracleSqlGeneratorOptions options = this.CreateOptions();
+            SqlGenerator generator = new SqlGenerator(options);
             expression = EvaluableDbExpressionTransformer.Transform(expression);
             expression.Accept(generator);
 
@@ -20,19 +26,18 @@ namespace Chloe.Oracle
 
             return dbCommandInfo;
         }
-        public virtual SqlGenerator CreateSqlGenerator()
-        {
-            return SqlGenerator.CreateInstance();
-        }
-    }
 
-    class DbExpressionTranslator_ConvertToUppercase : DbExpressionTranslator
-    {
-        public static readonly new DbExpressionTranslator_ConvertToUppercase Instance = new DbExpressionTranslator_ConvertToUppercase();
-        public override SqlGenerator CreateSqlGenerator()
+        OracleSqlGeneratorOptions CreateOptions()
         {
-            SqlGeneratorOptions options = SqlGenerator.CreateOptions();
-            return new SqlGenerator_ConvertToUppercase(options);
+            var options = new OracleSqlGeneratorOptions()
+            {
+                LeftQuoteChar = UtilConstants.LeftQuoteChar,
+                RightQuoteChar = UtilConstants.RightQuoteChar,
+                MaxInItems = UtilConstants.MaxInItems,
+                ConvertToUppercase = this.ContextProvider.ConvertToUppercase
+            };
+
+            return options;
         }
     }
 }
