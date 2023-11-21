@@ -176,13 +176,16 @@ namespace ChloeDemo.Sharding
                     //因为按照日期分表，在根据日期排序的情况下，我们对路由到的表进行一个排序，对分页有查询优化。
                     if (firstOrdering.Ascending)
                     {
+                        //query.OrderBy(a => a.CreateTime)
                         return new SortResult() { IsOrdered = true, Tables = tables.OrderBy(a => (a.DataSource as OrderRouteDataSource).Year).ThenBy(a => (a as OrderRouteTable).Month).ToList() };
                     }
 
+                    //query.OrderByDescending(a => a.CreateTime)
                     return new SortResult() { IsOrdered = true, Tables = tables.OrderByDescending(a => (a.DataSource as OrderRouteDataSource).Year).ThenByDescending(a => (a as OrderRouteTable).Month).ToList() };
                 }
             }
 
+            //其他情况不做重排
             return new SortResult() { IsOrdered = false, Tables = tables };
         }
     }
