@@ -20,6 +20,7 @@ namespace ChloeDemo.Sharding
 
         public IDbContextProvider CreateDbContextProvider()
         {
+            //具体实现在 ShardingTestImpl.cs 文件里
             return this._shardingTest.CreateDbContextProvider(this._year);
         }
     }
