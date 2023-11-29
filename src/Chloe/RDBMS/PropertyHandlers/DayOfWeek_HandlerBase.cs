@@ -1,12 +1,12 @@
-﻿using System.Reflection;
+﻿using Chloe.DbExpressions;
 
 namespace Chloe.RDBMS.PropertyHandlers
 {
     public class DayOfWeek_HandlerBase : PropertyHandlerBase
     {
-        public override MemberInfo GetCanProcessProperty()
+        public override bool CanProcess(DbMemberExpression exp)
         {
-            return PublicConstants.PropertyInfo_DateTime_DayOfWeek;
+            return exp.Member == PublicConstants.PropertyInfo_DateTime_DayOfWeek || exp.Member == PublicConstants.PropertyInfo_DateTimeOffset_DayOfWeek;
         }
     }
 }

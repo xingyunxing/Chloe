@@ -1,12 +1,12 @@
-﻿using System.Reflection;
+﻿using Chloe.DbExpressions;
 
 namespace Chloe.RDBMS.PropertyHandlers
 {
     public class Minute_HandlerBase : PropertyHandlerBase
     {
-        public override MemberInfo GetCanProcessProperty()
+        public override bool CanProcess(DbMemberExpression exp)
         {
-            return PublicConstants.PropertyInfo_DateTime_Minute;
+            return exp.Member == PublicConstants.PropertyInfo_DateTime_Minute || exp.Member == PublicConstants.PropertyInfo_DateTimeOffset_Minute;
         }
     }
 }
