@@ -15,6 +15,16 @@ namespace Chloe.PostgreSQL
         }
 
         /// <summary>
+        /// 设置属性解析器。
+        /// </summary>
+        /// <param name="propertyName"></param>
+        /// <param name="handler"></param>
+        public static void SetPropertyHandler(string propertyName, IPropertyHandler handler)
+        {
+            PostgreSQLContextProvider.SetPropertyHandler(propertyName, handler);
+        }
+
+        /// <summary>
         /// 设置方法解析器。
         /// </summary>
         /// <param name="methodName"></param>

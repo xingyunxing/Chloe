@@ -13,6 +13,7 @@ namespace Chloe.Oracle
 
         DbParamCollection _parameters = new DbParamCollection();
 
+        public static readonly Dictionary<string, IPropertyHandler[]> PropertyHandlerDic = InitPropertyHandlers();
         public static readonly Dictionary<string, IMethodHandler[]> MethodHandlerDic = InitMethodHandlers();
         static readonly Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlerDic = InitAggregateHandlers();
         static readonly Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlersDic = InitBinaryWithMethodHandlers();
@@ -55,6 +56,7 @@ namespace Chloe.Oracle
 
         public List<DbParam> Parameters { get { return this._parameters.ToParameterList(); } }
 
+        protected override Dictionary<string, IPropertyHandler[]> PropertyHandlers { get; } = PropertyHandlerDic;
         protected override Dictionary<string, IMethodHandler[]> MethodHandlers { get; } = MethodHandlerDic;
         protected override Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers { get; } = AggregateHandlerDic;
         protected override Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers { get; } = BinaryWithMethodHandlersDic;
@@ -407,7 +409,7 @@ namespace Chloe.Oracle
             string dbTypeString;
             if (TryGetCastTargetDbTypeString(exp.Operand.Type, exp.Type, out dbTypeString, false))
             {
-                this.BuildCastState(EnsureDbExpressionReturnCSharpBoolean(exp.Operand), dbTypeString);
+                BuildCastState(this, EnsureDbExpressionReturnCSharpBoolean(exp.Operand), dbTypeString);
             }
             else
                 EnsureDbExpressionReturnCSharpBoolean(exp.Operand).Accept(this);
@@ -417,49 +419,6 @@ namespace Chloe.Oracle
 
         public override DbExpression Visit(DbMemberExpression exp)
         {
-            MemberInfo member = exp.Member;
-
-            if (member == OracleSemantics.PropertyInfo_ROWNUM)
-            {
-                this.SqlBuilder.Append("ROWNUM");
-                return exp;
-            }
-
-            if (member.DeclaringType == PublicConstants.TypeOfDateTime)
-            {
-                if (member == PublicConstants.PropertyInfo_DateTime_Now)
-                {
-                    this.SqlBuilder.Append("SYSTIMESTAMP");
-                    return exp;
-                }
-
-                if (member == PublicConstants.PropertyInfo_DateTime_UtcNow)
-                {
-                    this.SqlBuilder.Append("SYS_EXTRACT_UTC(SYSTIMESTAMP)");
-                    return exp;
-                }
-
-                if (member == PublicConstants.PropertyInfo_DateTime_Today)
-                {
-                    //other way: this.SqlBuilder.Append("TO_DATE(TO_CHAR(SYSDATE,'yyyy-mm-dd'),'yyyy-mm-dd')");
-                    this.SqlBuilder.Append("TRUNC(SYSDATE,'DD')");
-                    return exp;
-                }
-
-                if (member == PublicConstants.PropertyInfo_DateTime_Date)
-                {
-                    this.SqlBuilder.Append("TRUNC(");
-                    exp.Expression.Accept(this);
-                    this.SqlBuilder.Append(",'DD')");
-                    return exp;
-                }
-
-                if (this.IsDatePart(exp))
-                {
-                    return exp;
-                }
-            }
-
             if (this.IsDateSubtract(exp))
             {
                 return exp;
@@ -628,66 +587,6 @@ namespace Chloe.Oracle
             base.QuoteName(name);
         }
 
-        bool IsDatePart(DbMemberExpression exp)
-        {
-            MemberInfo member = exp.Member;
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Year)
-            {
-                DbFunction_DATEPART(this, "yyyy", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Month)
-            {
-                DbFunction_DATEPART(this, "mm", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Day)
-            {
-                DbFunction_DATEPART(this, "dd", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Hour)
-            {
-                DbFunction_DATEPART(this, "hh24", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Minute)
-            {
-                DbFunction_DATEPART(this, "mi", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Second)
-            {
-                DbFunction_DATEPART(this, "ss", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Millisecond)
-            {
-                /* exp.Expression must be TIMESTAMP,otherwise there will be an error occurred. */
-                DbFunction_DATEPART(this, "ff3", exp.Expression, true);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_DayOfWeek)
-            {
-                // CAST(TO_CHAR(SYSDATE,'D') AS NUMBER) - 1
-                this.SqlBuilder.Append("(");
-                DbFunction_DATEPART(this, "D", exp.Expression);
-                this.SqlBuilder.Append(" - 1");
-                this.SqlBuilder.Append(")");
-
-                return true;
-            }
-
-            return false;
-        }
         bool IsDateSubtract(DbMemberExpression exp)
         {
             MemberInfo member = exp.Member;
@@ -791,9 +690,9 @@ namespace Chloe.Oracle
              * (cast(dateTime1 as date)-cast(dateTime2 as date)) * 24 * 60 * 60 * 1000 
              */
             this.LeftBracket();
-            this.BuildCastState(dateTime1, "DATE");
+            BuildCastState(this, dateTime1, "DATE");
             this.SqlBuilder.Append("-");
-            this.BuildCastState(dateTime2, "DATE");
+            BuildCastState(this, dateTime2, "DATE");
             this.RightBracket();
 
             this.SqlBuilder.Append(" * ");
@@ -807,7 +706,7 @@ namespace Chloe.Oracle
             this.SqlBuilder.Append("CAST(");
 
             this.SqlBuilder.Append("TO_CHAR(");
-            this.BuildCastState(dateTime, "TIMESTAMP");
+            BuildCastState(this, dateTime, "TIMESTAMP");
             this.SqlBuilder.Append(",'ff3')");
 
             this.SqlBuilder.Append(" AS NUMBER)");

@@ -23,6 +23,7 @@ namespace Chloe.RDBMS
         public string LeftQuoteChar { get { return this.Options.LeftQuoteChar; } }
         public string RightQuoteChar { get { return this.Options.RightQuoteChar; } }
 
+        protected abstract Dictionary<string, IPropertyHandler[]> PropertyHandlers { get; }
         protected abstract Dictionary<string, IMethodHandler[]> MethodHandlers { get; }
         protected abstract Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers { get; }
         protected abstract Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers { get; }
@@ -552,15 +553,20 @@ namespace Chloe.RDBMS
         {
             MemberInfo member = exp.Member;
 
-            if (member.Name == "Length" && member.DeclaringType == PublicConstants.TypeOfString)
-            {
-                return this.VisitStringLengthMemberAccessExpression(exp);
-            }
+            Dictionary<string, IPropertyHandler[]> propertyHandlerMap = this.PropertyHandlers;
+            IPropertyHandler[] propertyHandlers;
 
-            if (member.Name == "Value" && ReflectionExtension.IsNullable(exp.Expression.Type))
+            if (propertyHandlerMap.TryGetValue(member.Name, out propertyHandlers))
             {
-                exp.Expression.Accept(this);
-                return exp;
+                for (int i = 0; i < propertyHandlers.Length; i++)
+                {
+                    IPropertyHandler propertyHandler = propertyHandlers[i];
+                    if (propertyHandler.CanProcess(exp))
+                    {
+                        propertyHandler.Process(exp, this);
+                        return exp;
+                    }
+                }
             }
 
             DbParameterExpression newExp;
@@ -572,14 +578,6 @@ namespace Chloe.RDBMS
             throw new NotSupportedException(string.Format("'{0}.{1}' is not supported.", member.DeclaringType.FullName, member.Name));
         }
 
-        protected virtual DbExpression VisitStringLengthMemberAccessExpression(DbMemberExpression exp)
-        {
-            this.SqlBuilder.Append("LENGTH(");
-            exp.Expression.Accept(this);
-            this.SqlBuilder.Append(")");
-
-            return exp;
-        }
         protected virtual DbExpression VisitDbFunctionMethodCallExpression(DbMethodCallExpression exp)
         {
             DbFunctionAttribute dbFunction = exp.Method.GetCustomAttribute<DbFunctionAttribute>();
@@ -719,15 +717,15 @@ namespace Chloe.RDBMS
             }
         }
 
-        protected virtual void BuildCastState(DbExpression castExp, string targetDbTypeString)
+        public static void BuildCastState(SqlGeneratorBase generator, DbExpression castExp, string targetDbTypeString)
         {
-            this.SqlBuilder.Append("CAST(");
-            castExp.Accept(this);
-            this.SqlBuilder.Append(" AS ", targetDbTypeString, ")");
+            generator.SqlBuilder.Append("CAST(");
+            castExp.Accept(generator);
+            generator.SqlBuilder.Append(" AS ", targetDbTypeString, ")");
         }
-        protected void BuildCastState(object castObject, string targetDbTypeString)
+        public static void BuildCastState(SqlGeneratorBase generator, object castObject, string targetDbTypeString)
         {
-            this.SqlBuilder.Append("CAST(", castObject, " AS ", targetDbTypeString, ")");
+            generator.SqlBuilder.Append("CAST(", castObject, " AS ", targetDbTypeString, ")");
         }
 
         protected void AppendOrdering(DbOrdering ordering)

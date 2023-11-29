@@ -11,6 +11,7 @@ namespace Chloe.SQLite
     {
         DbParamCollection _parameters = new DbParamCollection();
 
+        public static readonly Dictionary<string, IPropertyHandler[]> PropertyHandlerDic = InitPropertyHandlers();
         public static readonly Dictionary<string, IMethodHandler[]> MethodHandlerDic = InitMethodHandlers();
         static readonly Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlerDic = InitAggregateHandlers();
         static readonly Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlersDic = InitBinaryWithMethodHandlers();
@@ -49,6 +50,7 @@ namespace Chloe.SQLite
 
         public List<DbParam> Parameters { get { return this._parameters.ToParameterList(); } }
 
+        protected override Dictionary<string, IPropertyHandler[]> PropertyHandlers { get; } = PropertyHandlerDic;
         protected override Dictionary<string, IMethodHandler[]> MethodHandlers { get; } = MethodHandlerDic;
         protected override Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers { get; } = AggregateHandlerDic;
         protected override Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers { get; } = BinaryWithMethodHandlersDic;
@@ -95,7 +97,7 @@ namespace Chloe.SQLite
             string dbTypeString;
             if (TryGetCastTargetDbTypeString(exp.Operand.Type, exp.Type, out dbTypeString, false))
             {
-                this.BuildCastState(exp.Operand, dbTypeString);
+                BuildCastState(this, exp.Operand, dbTypeString);
             }
             else
             {
@@ -135,46 +137,6 @@ namespace Chloe.SQLite
             return exp;
         }
 
-        public override DbExpression Visit(DbMemberExpression exp)
-        {
-            MemberInfo member = exp.Member;
-
-            if (member.DeclaringType == PublicConstants.TypeOfDateTime)
-            {
-                if (member == PublicConstants.PropertyInfo_DateTime_Now)
-                {
-                    this.SqlBuilder.Append("DATETIME('NOW','LOCALTIME')");
-                    return exp;
-                }
-
-                if (member == PublicConstants.PropertyInfo_DateTime_UtcNow)
-                {
-                    this.SqlBuilder.Append("DATETIME()");
-                    return exp;
-                }
-
-                if (member == PublicConstants.PropertyInfo_DateTime_Today)
-                {
-                    this.SqlBuilder.Append("DATE('NOW','LOCALTIME')");
-                    return exp;
-                }
-
-                if (member == PublicConstants.PropertyInfo_DateTime_Date)
-                {
-                    this.SqlBuilder.Append("DATETIME(DATE(");
-                    exp.Expression.Accept(this);
-                    this.SqlBuilder.Append("))");
-                    return exp;
-                }
-
-                if (this.IsDatePart(exp))
-                {
-                    return exp;
-                }
-            }
-
-            return base.Visit(exp);
-        }
         public override DbExpression Visit(DbConstantExpression exp)
         {
             if (exp.Value == null || exp.Value == DBNull.Value)
@@ -291,56 +253,5 @@ namespace Chloe.SQLite
             this.QuoteName(table.Name);
         }
 
-        bool IsDatePart(DbMemberExpression exp)
-        {
-            MemberInfo member = exp.Member;
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Year)
-            {
-                DbFunction_DATEPART(this, "Y", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Month)
-            {
-                DbFunction_DATEPART(this, "m", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Day)
-            {
-                DbFunction_DATEPART(this, "d", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Hour)
-            {
-                DbFunction_DATEPART(this, "H", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Minute)
-            {
-                DbFunction_DATEPART(this, "M", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Second)
-            {
-                DbFunction_DATEPART(this, "S", exp.Expression);
-                return true;
-            }
-
-            /* SQLite is not supports MILLISECOND */
-
-
-            if (member == PublicConstants.PropertyInfo_DateTime_DayOfWeek)
-            {
-                DbFunction_DATEPART(this, "w", exp.Expression);
-                return true;
-            }
-
-            return false;
-        }
     }
 }

@@ -19,7 +19,7 @@ namespace Chloe.Visitors
             return exp != null && (exp.NodeType == DbExpressionType.Constant || exp.NodeType == DbExpressionType.Parameter);
         }
 
-        protected virtual HashSet<MemberInfo> GetToTranslateMembers()
+        protected virtual Dictionary<string, IPropertyHandler[]> GetPropertyHandlers()
         {
             throw new NotImplementedException();
         }
@@ -35,8 +35,21 @@ namespace Chloe.Visitors
         /// <returns></returns>
         public virtual bool CanTranslateToSql(DbMemberExpression exp)
         {
-            HashSet<MemberInfo> toTranslateMembers = this.GetToTranslateMembers();
-            return toTranslateMembers.Contains(exp.Member);
+            Dictionary<string, IPropertyHandler[]> propertyHandlerMap = this.GetPropertyHandlers();
+            IPropertyHandler[] propertyHandlers;
+            if (propertyHandlerMap.TryGetValue(exp.Member.Name, out propertyHandlers))
+            {
+                for (int i = 0; i < propertyHandlers.Length; i++)
+                {
+                    IPropertyHandler propertyHandler = propertyHandlers[i];
+                    if (propertyHandler.CanProcess(exp))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
         /// <summary>
         /// 是否可以将 exp.Method 翻译成数据库对应的语法

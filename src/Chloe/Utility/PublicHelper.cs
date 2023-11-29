@@ -4,6 +4,7 @@ using Chloe.Descriptors;
 using Chloe.Exceptions;
 using Chloe.Extensions;
 using Chloe.Infrastructure;
+using Chloe.RDBMS;
 using Chloe.Reflection;
 using Chloe.Utility;
 using System.Collections;
@@ -546,6 +547,64 @@ namespace Chloe
             };
 
             return mapper;
+        }
+
+        public static Dictionary<string, IPropertyHandler[]> FindPropertyHandlers(Assembly assembly)
+        {
+            var propertyHandlerMap = new Dictionary<string, List<IPropertyHandler>>();
+
+            var propertyHandlerTypes = assembly.GetTypes().Where(a => a.IsClass && !a.IsAbstract && typeof(IPropertyHandler).IsAssignableFrom(a) && a.Name.EndsWith("_Handler") && a.GetConstructor(Type.EmptyTypes) != null);
+
+            foreach (Type propertyHandlerType in propertyHandlerTypes)
+            {
+                string handlePropertyName = propertyHandlerType.Name.Substring(0, propertyHandlerType.Name.Length - "_Handler".Length);
+
+                List<IPropertyHandler> propertyHandlers;
+                if (!propertyHandlerMap.TryGetValue(handlePropertyName, out propertyHandlers))
+                {
+                    propertyHandlers = new List<IPropertyHandler>();
+                    propertyHandlerMap.Add(handlePropertyName, propertyHandlers);
+                }
+
+                propertyHandlers.Add((IPropertyHandler)Activator.CreateInstance(propertyHandlerType));
+            }
+
+            Dictionary<string, IPropertyHandler[]> ret = new Dictionary<string, IPropertyHandler[]>(propertyHandlerMap.Count);
+            foreach (var kv in propertyHandlerMap)
+            {
+                ret.Add(kv.Key, kv.Value.ToArray());
+            }
+
+            return ret;
+        }
+
+        public static Dictionary<string, IMethodHandler[]> FindMethodHandlers(Assembly assembly)
+        {
+            var methodHandlerMap = new Dictionary<string, List<IMethodHandler>>();
+
+            var methodHandlerTypes = assembly.GetTypes().Where(a => a.IsClass && !a.IsAbstract && typeof(IMethodHandler).IsAssignableFrom(a) && a.Name.EndsWith("_Handler") && a.GetConstructor(Type.EmptyTypes) != null);
+
+            foreach (Type methodHandlerType in methodHandlerTypes)
+            {
+                string handleMethodName = methodHandlerType.Name.Substring(0, methodHandlerType.Name.Length - "_Handler".Length);
+
+                List<IMethodHandler> methodHandlers;
+                if (!methodHandlerMap.TryGetValue(handleMethodName, out methodHandlers))
+                {
+                    methodHandlers = new List<IMethodHandler>();
+                    methodHandlerMap.Add(handleMethodName, methodHandlers);
+                }
+
+                methodHandlers.Add((IMethodHandler)Activator.CreateInstance(methodHandlerType));
+            }
+
+            Dictionary<string, IMethodHandler[]> ret = new Dictionary<string, IMethodHandler[]>(methodHandlerMap.Count);
+            foreach (var kv in methodHandlerMap)
+            {
+                ret.Add(kv.Key, kv.Value.ToArray());
+            }
+
+            return ret;
         }
     }
 }

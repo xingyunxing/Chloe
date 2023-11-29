@@ -11,6 +11,7 @@ namespace Chloe.MySql
     {
         DbParamCollection _parameters = new DbParamCollection();
 
+        public static readonly Dictionary<string, IPropertyHandler[]> PropertyHandlerDic = InitPropertyHandlers();
         public static readonly Dictionary<string, IMethodHandler[]> MethodHandlerDic = InitMethodHandlers();
         static readonly Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlerDic = InitAggregateHandlers();
         static readonly Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlersDic = InitBinaryWithMethodHandlers();
@@ -51,6 +52,7 @@ namespace Chloe.MySql
 
         public List<DbParam> Parameters { get { return this._parameters.ToParameterList(); } }
 
+        protected override Dictionary<string, IPropertyHandler[]> PropertyHandlers { get; } = PropertyHandlerDic;
         protected override Dictionary<string, IMethodHandler[]> MethodHandlers { get; } = MethodHandlerDic;
         protected override Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers { get; } = AggregateHandlerDic;
         protected override Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers { get; } = BinaryWithMethodHandlersDic;
@@ -98,7 +100,7 @@ namespace Chloe.MySql
             string dbTypeString;
             if (TryGetCastTargetDbTypeString(exp.Operand.Type, exp.Type, out dbTypeString, false))
             {
-                this.BuildCastState(exp.Operand, dbTypeString);
+                BuildCastState(this, exp.Operand, dbTypeString);
             }
             else
                 exp.Operand.Accept(this);
@@ -127,46 +129,6 @@ namespace Chloe.MySql
             return exp;
         }
 
-        public override DbExpression Visit(DbMemberExpression exp)
-        {
-            MemberInfo member = exp.Member;
-
-            if (member.DeclaringType == PublicConstants.TypeOfDateTime)
-            {
-                if (member == PublicConstants.PropertyInfo_DateTime_Now)
-                {
-                    this.SqlBuilder.Append("NOW()");
-                    return exp;
-                }
-
-                if (member == PublicConstants.PropertyInfo_DateTime_UtcNow)
-                {
-                    this.SqlBuilder.Append("UTC_TIMESTAMP()");
-                    return exp;
-                }
-
-                if (member == PublicConstants.PropertyInfo_DateTime_Today)
-                {
-                    this.SqlBuilder.Append("CURDATE()");
-                    return exp;
-                }
-
-                if (member == PublicConstants.PropertyInfo_DateTime_Date)
-                {
-                    this.SqlBuilder.Append("DATE(");
-                    exp.Expression.Accept(this);
-                    this.SqlBuilder.Append(")");
-                    return exp;
-                }
-
-                if (this.IsDatePart(exp))
-                {
-                    return exp;
-                }
-            }
-
-            return base.Visit(exp);
-        }
         public override DbExpression Visit(DbConstantExpression exp)
         {
             if (exp.Value == null || exp.Value == DBNull.Value)
@@ -311,59 +273,5 @@ namespace Chloe.MySql
                 throw new NotSupportedException($"lock type: {seg.Lock.ToString()}");
         }
 
-        bool IsDatePart(DbMemberExpression exp)
-        {
-            MemberInfo member = exp.Member;
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Year)
-            {
-                DbFunction_DATEPART(this, "YEAR", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Month)
-            {
-                DbFunction_DATEPART(this, "MONTH", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Day)
-            {
-                DbFunction_DATEPART(this, "DAY", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Hour)
-            {
-                DbFunction_DATEPART(this, "HOUR", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Minute)
-            {
-                DbFunction_DATEPART(this, "MINUTE", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Second)
-            {
-                DbFunction_DATEPART(this, "SECOND", exp.Expression);
-                return true;
-            }
-
-            /* MySql is not supports MILLISECOND */
-
-
-            if (member == PublicConstants.PropertyInfo_DateTime_DayOfWeek)
-            {
-                this.SqlBuilder.Append("(");
-                DbFunction_DATEPART(this, "DAYOFWEEK", exp.Expression);
-                this.SqlBuilder.Append(" - 1)");
-
-                return true;
-            }
-
-            return false;
-        }
     }
 }

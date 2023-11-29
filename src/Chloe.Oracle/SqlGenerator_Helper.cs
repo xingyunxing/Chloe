@@ -87,7 +87,7 @@ namespace Chloe.Oracle
             generator.SqlBuilder.Append("CAST(TO_CHAR(");
             if (castToTimestamp)
             {
-                (generator as SqlGenerator).BuildCastState(exp, "TIMESTAMP");
+                BuildCastState(generator, exp, "TIMESTAMP");
             }
             else
                 exp.Accept(generator);

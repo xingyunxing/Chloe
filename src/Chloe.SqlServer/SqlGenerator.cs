@@ -11,6 +11,7 @@ namespace Chloe.SqlServer
     {
         IDbParamCollection _parameters;
 
+        public static readonly Dictionary<string, IPropertyHandler[]> PropertyHandlerDic = InitPropertyHandlers();
         public static readonly Dictionary<string, IMethodHandler[]> MethodHandlerDic = InitMethodHandlers();
         static readonly Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlerDic = InitAggregateHandlers();
         static readonly Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlersDic = InitBinaryWithMethodHandlers();
@@ -54,6 +55,7 @@ namespace Chloe.SqlServer
 
         public List<DbParam> Parameters { get { return this._parameters.ToParameterList(); } }
 
+        protected override Dictionary<string, IPropertyHandler[]> PropertyHandlers { get; } = PropertyHandlerDic;
         protected override Dictionary<string, IMethodHandler[]> MethodHandlers { get; } = MethodHandlerDic;
         protected override Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers { get; } = AggregateHandlerDic;
         protected override Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers { get; } = BinaryWithMethodHandlersDic;
@@ -190,7 +192,7 @@ namespace Chloe.SqlServer
             string dbTypeString;
             if (TryGetCastTargetDbTypeString(exp.Operand.Type, exp.Type, out dbTypeString))
             {
-                this.BuildCastState(EnsureDbExpressionReturnCSharpBoolean(exp.Operand), dbTypeString);
+                BuildCastState(this, EnsureDbExpressionReturnCSharpBoolean(exp.Operand), dbTypeString);
             }
             else
                 EnsureDbExpressionReturnCSharpBoolean(exp.Operand).Accept(this);
@@ -198,44 +200,6 @@ namespace Chloe.SqlServer
             return exp;
         }
 
-        public override DbExpression Visit(DbMemberExpression exp)
-        {
-            MemberInfo member = exp.Member;
-
-            if (member.DeclaringType == PublicConstants.TypeOfDateTime)
-            {
-                if (member == PublicConstants.PropertyInfo_DateTime_Now)
-                {
-                    this.SqlBuilder.Append("GETDATE()");
-                    return exp;
-                }
-
-                if (member == PublicConstants.PropertyInfo_DateTime_UtcNow)
-                {
-                    this.SqlBuilder.Append("GETUTCDATE()");
-                    return exp;
-                }
-
-                if (member == PublicConstants.PropertyInfo_DateTime_Today)
-                {
-                    this.BuildCastState("GETDATE()", "DATE");
-                    return exp;
-                }
-
-                if (member == PublicConstants.PropertyInfo_DateTime_Date)
-                {
-                    this.BuildCastState(exp.Expression, "DATE");
-                    return exp;
-                }
-
-                if (this.IsDatePart(exp))
-                {
-                    return exp;
-                }
-            }
-
-            return base.Visit(exp);
-        }
         public override DbExpression Visit(DbConstantExpression exp)
         {
             if (exp.Value == null || exp.Value == DBNull.Value)
@@ -322,14 +286,6 @@ namespace Chloe.SqlServer
             return exp;
         }
 
-        protected override DbExpression VisitStringLengthMemberAccessExpression(DbMemberExpression exp)
-        {
-            this.SqlBuilder.Append("LEN(");
-            exp.Expression.Accept(this);
-            this.SqlBuilder.Append(")");
-
-            return exp;
-        }
         protected override DbExpression VisitDbFunctionMethodCallExpression(DbMethodCallExpression exp)
         {
             DbFunctionAttribute dbFunction = exp.Method.GetCustomAttribute<DbFunctionAttribute>();
@@ -545,64 +501,6 @@ namespace Chloe.SqlServer
         {
             if (isDistinct)
                 this.SqlBuilder.Append("DISTINCT ");
-        }
-
-        bool IsDatePart(DbMemberExpression exp)
-        {
-            MemberInfo member = exp.Member;
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Year)
-            {
-                DbFunction_DATEPART(this, "YEAR", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Month)
-            {
-                DbFunction_DATEPART(this, "MONTH", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Day)
-            {
-                DbFunction_DATEPART(this, "DAY", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Hour)
-            {
-                DbFunction_DATEPART(this, "HOUR", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Minute)
-            {
-                DbFunction_DATEPART(this, "MINUTE", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Second)
-            {
-                DbFunction_DATEPART(this, "SECOND", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Millisecond)
-            {
-                DbFunction_DATEPART(this, "MILLISECOND", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_DayOfWeek)
-            {
-                this.SqlBuilder.Append("(");
-                DbFunction_DATEPART(this, "WEEKDAY", exp.Expression);
-                this.SqlBuilder.Append(" - 1)");
-
-                return true;
-            }
-
-            return false;
         }
 
         void AppendOutputClause(List<DbColumn> returns)

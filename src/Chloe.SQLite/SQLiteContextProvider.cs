@@ -39,6 +39,28 @@ namespace Chloe.SQLite
 
 
         /// <summary>
+        /// 设置属性解析器。
+        /// </summary>
+        /// <param name="propertyName"></param>
+        /// <param name="handler"></param>
+        public static void SetPropertyHandler(string propertyName, IPropertyHandler handler)
+        {
+            PublicHelper.CheckNull(propertyName, nameof(propertyName));
+            PublicHelper.CheckNull(handler, nameof(handler));
+            lock (SqlGenerator.PropertyHandlerDic)
+            {
+                List<IPropertyHandler> propertyHandlers = new List<IPropertyHandler>();
+                propertyHandlers.Add(handler);
+                if (SqlGenerator.PropertyHandlerDic.TryGetValue(propertyName, out var propertyHandlerArray))
+                {
+                    propertyHandlers.AddRange(propertyHandlerArray);
+                }
+
+                SqlGenerator.PropertyHandlerDic[propertyName] = propertyHandlers.ToArray();
+            }
+        }
+
+        /// <summary>
         /// 设置方法解析器。
         /// </summary>
         /// <param name="methodName"></param>

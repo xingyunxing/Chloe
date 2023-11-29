@@ -10,6 +10,7 @@ namespace Chloe.PostgreSQL
     {
         DbParamCollection _parameters = new DbParamCollection();
 
+        public static readonly Dictionary<string, IPropertyHandler[]> PropertyHandlerDic = InitPropertyHandlers();
         public static readonly Dictionary<string, IMethodHandler[]> MethodHandlerDic = InitMethodHandlers();
         static readonly Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlerDic = InitAggregateHandlers();
         static readonly Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlersDic = InitBinaryWithMethodHandlers();
@@ -52,6 +53,7 @@ namespace Chloe.PostgreSQL
 
         public List<DbParam> Parameters { get { return this._parameters.ToParameterList(); } }
 
+        protected override Dictionary<string, IPropertyHandler[]> PropertyHandlers { get; } = PropertyHandlerDic;
         protected override Dictionary<string, IMethodHandler[]> MethodHandlers { get; } = MethodHandlerDic;
         protected override Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers { get; } = AggregateHandlerDic;
         protected override Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers { get; } = BinaryWithMethodHandlersDic;
@@ -159,7 +161,7 @@ namespace Chloe.PostgreSQL
             string dbTypeString;
             if (TryGetCastTargetDbTypeString(exp.Operand.Type, exp.Type, out dbTypeString, false))
             {
-                this.BuildCastState(exp.Operand, dbTypeString);
+                BuildCastState(this, exp.Operand, dbTypeString);
             }
             else
                 exp.Operand.Accept(this);
@@ -167,45 +169,6 @@ namespace Chloe.PostgreSQL
             return exp;
         }
 
-        public override DbExpression Visit(DbMemberExpression exp)
-        {
-            MemberInfo member = exp.Member;
-
-            if (member.DeclaringType == PublicConstants.TypeOfDateTime)
-            {
-                if (member == PublicConstants.PropertyInfo_DateTime_Now)
-                {
-                    this.SqlBuilder.Append("NOW()");
-                    return exp;
-                }
-
-                //not supported
-                //if (member == PublicConstants.PropertyInfo_DateTime_UtcNow)
-                //{
-                //    this.SqlBuilder.Append("GETUTCDATE()");
-                //    return exp;
-                //}
-
-                if (member == PublicConstants.PropertyInfo_DateTime_Today)
-                {
-                    this.BuildCastState("NOW()", "DATE");
-                    return exp;
-                }
-
-                if (member == PublicConstants.PropertyInfo_DateTime_Date)
-                {
-                    this.BuildCastState(exp.Expression, "DATE");
-                    return exp;
-                }
-
-                if (this.IsDatePart(exp))
-                {
-                    return exp;
-                }
-            }
-
-            return base.Visit(exp);
-        }
         public override DbExpression Visit(DbConstantExpression exp)
         {
             if (exp.Value == null || exp.Value == DBNull.Value)
@@ -351,59 +314,5 @@ namespace Chloe.PostgreSQL
                 throw new NotSupportedException($"lock type: {seg.Lock.ToString()}");
         }
 
-        bool IsDatePart(DbMemberExpression exp)
-        {
-            MemberInfo member = exp.Member;
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Year)
-            {
-                DbFunction_DATEPART(this, "YEAR", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Month)
-            {
-                DbFunction_DATEPART(this, "MONTH", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Day)
-            {
-                DbFunction_DATEPART(this, "DAY", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Hour)
-            {
-                DbFunction_DATEPART(this, "HOUR", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Minute)
-            {
-                DbFunction_DATEPART(this, "MINUTE", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Second)
-            {
-                DbFunction_DATEPART(this, "SECOND", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_Millisecond)
-            {
-                DbFunction_DATEPART(this, "MILLISECOND", exp.Expression);
-                return true;
-            }
-
-            if (member == PublicConstants.PropertyInfo_DateTime_DayOfWeek)
-            {
-                DbFunction_DATEPART(this, "DOW", exp.Expression);
-                return true;
-            }
-
-            return false;
-        }
     }
 }
