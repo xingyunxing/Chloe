@@ -1,7 +1,6 @@
 ﻿using Chloe.DbExpressions;
 using Chloe.RDBMS;
 using Chloe.Visitors;
-using System.Reflection;
 
 namespace Chloe.Dameng
 {

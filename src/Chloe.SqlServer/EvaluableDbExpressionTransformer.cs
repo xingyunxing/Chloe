@@ -1,6 +1,5 @@
 ﻿using Chloe.Visitors;
 using Chloe.DbExpressions;
-using System.Reflection;
 using Chloe.RDBMS;
 
 namespace Chloe.SqlServer
