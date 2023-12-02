@@ -247,9 +247,12 @@ namespace Chloe.Sharding
             ParameterExpression parameter = Expression.Parameter(queryProjection.RootEntityType, "a");
             Expression keyMemberAccess = Expression.MakeMemberAccess(parameter, typeDescriptor.PrimaryKeys.First().Definition.Property);
 
+            int maxBatchSize = 10000;
+            int batchSize = maxInItems > maxBatchSize ? maxBatchSize : maxInItems;
+
             foreach (var keyResult in keyResults.Where(a => a.Keys.Count > 0))
             {
-                List<List<object>> batches = Slice(keyResult.Keys, maxInItems);
+                List<List<object>> batches = Slice(keyResult.Keys, batchSize);
 
                 foreach (var batch in batches)
                 {
