@@ -11,11 +11,6 @@ namespace Chloe.Oracle
         public static readonly string ParameterNamePrefix = ParameterNamePlaceholer + "P_";
         public static readonly string OutputParameterNamePrefix = ParameterNamePlaceholer + "R_";
 
-        /// <summary>
-        /// in 参数最大个数
-        /// </summary>
-        public static int MaxInItems = 1000;
-
         #region MemberInfo constants
 
         /* TimeSpan */

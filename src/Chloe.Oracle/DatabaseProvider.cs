@@ -5,25 +5,26 @@ namespace Chloe.Oracle
 {
     class DatabaseProvider : IDatabaseProvider
     {
-        IDbConnectionFactory _dbConnectionFactory;
         OracleContextProvider _contextProvider;
 
         public string DatabaseType { get { return "Oracle"; } }
 
-        public DatabaseProvider(IDbConnectionFactory dbConnectionFactory, OracleContextProvider contextProvider)
+        public DatabaseProvider(OracleContextProvider contextProvider)
         {
-            this._dbConnectionFactory = dbConnectionFactory;
             this._contextProvider = contextProvider;
         }
+
         public IDbConnection CreateConnection()
         {
-            IDbConnection conn = this._dbConnectionFactory.CreateConnection();
+            IDbConnection conn = this._contextProvider.Options.DbConnectionFactory.CreateConnection();
             return conn;
         }
+
         public IDbExpressionTranslator CreateDbExpressionTranslator()
         {
             return new DbExpressionTranslator(this._contextProvider);
         }
+
         public string CreateParameterName(string name)
         {
             if (string.IsNullOrEmpty(name))

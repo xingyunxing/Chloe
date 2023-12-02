@@ -33,8 +33,8 @@ namespace Chloe.Oracle
             {
                 LeftQuoteChar = UtilConstants.LeftQuoteChar,
                 RightQuoteChar = UtilConstants.RightQuoteChar,
-                MaxInItems = UtilConstants.MaxInItems,
-                ConvertToUppercase = this.ContextProvider.ConvertToUppercase
+                MaxInItems = this.ContextProvider.Options.MaxInItems,
+                ConvertToUppercase = this.ContextProvider.Options.ConvertToUppercase
             };
 
             return options;

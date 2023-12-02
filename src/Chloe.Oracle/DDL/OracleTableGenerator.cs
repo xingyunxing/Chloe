@@ -112,7 +112,7 @@ end;";
         {
             OracleContext dbContext = (this.DbContext as OracleContext);
             OracleContextProvider dbContextProvider = (OracleContextProvider)dbContext.DefaultDbContextProvider;
-            if (dbContextProvider.ConvertToUppercase)
+            if (dbContextProvider.Options.ConvertToUppercase)
                 return name.ToUpper();
 
             return name;
@@ -121,7 +121,7 @@ end;";
         {
             OracleContext dbContext = (this.DbContext as OracleContext);
             OracleContextProvider dbContextProvider = (OracleContextProvider)dbContext.DefaultDbContextProvider;
-            return Utils.QuoteName(name, dbContextProvider.ConvertToUppercase);
+            return Utils.QuoteName(name, dbContextProvider.Options.ConvertToUppercase);
         }
 
         bool TableExists(string tableName)

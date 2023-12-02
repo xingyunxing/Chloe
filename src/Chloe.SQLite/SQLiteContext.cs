@@ -6,20 +6,22 @@ namespace Chloe.SQLite
 {
     public class SQLiteContext : DbContext
     {
-        public SQLiteContext(IDbConnectionFactory dbConnectionFactory) : this(dbConnectionFactory, true)
+        public SQLiteContext(Func<IDbConnection> dbConnectionFactory) : this(new DbConnectionFactory(dbConnectionFactory))
         {
 
         }
-        public SQLiteContext(IDbConnectionFactory dbConnectionFactory, bool concurrencyMode) : base(new DbContextProviderFactory(dbConnectionFactory, concurrencyMode))
+
+        public SQLiteContext(IDbConnectionFactory dbConnectionFactory) : this(new SQLiteOptions() { DbConnectionFactory = dbConnectionFactory })
         {
 
         }
-        public SQLiteContext(Func<IDbConnection> dbConnectionFactory) : this(new DbConnectionFactory(dbConnectionFactory), true)
+
+        public SQLiteContext(SQLiteOptions options) : base(options, new DbContextProviderFactory(options))
         {
+            this.Options = options;
         }
-        public SQLiteContext(Func<IDbConnection> dbConnectionFactory, bool concurrencyMode) : this(new DbConnectionFactory(dbConnectionFactory), concurrencyMode)
-        {
-        }
+
+        public new SQLiteOptions Options { get; private set; }
 
         /// <summary>
         /// 设置属性解析器。
@@ -44,19 +46,17 @@ namespace Chloe.SQLite
 
     class DbContextProviderFactory : IDbContextProviderFactory
     {
-        IDbConnectionFactory _dbConnectionFactory;
-        bool _concurrencyMode;
+        SQLiteOptions _options;
 
-        public DbContextProviderFactory(IDbConnectionFactory dbConnectionFactory, bool concurrencyMode)
+        public DbContextProviderFactory(SQLiteOptions options)
         {
-            PublicHelper.CheckNull(dbConnectionFactory);
-            this._dbConnectionFactory = dbConnectionFactory;
-            this._concurrencyMode = concurrencyMode;
+            PublicHelper.CheckNull(options);
+            this._options = options;
         }
 
         public IDbContextProvider CreateDbContextProvider()
         {
-            return new SQLiteContextProvider(this._dbConnectionFactory, this._concurrencyMode);
+            return new SQLiteContextProvider(this._options);
         }
     }
 }

@@ -5,22 +5,31 @@ namespace Chloe.SQLite
 {
     class DatabaseProvider : IDatabaseProvider
     {
-        IDbConnectionFactory _dbConnectionFactory;
+        SQLiteContextProvider _contextProvider;
 
         public string DatabaseType { get { return "SQLite"; } }
 
-        public DatabaseProvider(IDbConnectionFactory dbConnectionFactory)
+        public DatabaseProvider(SQLiteContextProvider contextProvider)
         {
-            this._dbConnectionFactory = dbConnectionFactory;
+            this._contextProvider = contextProvider;
         }
+
         public IDbConnection CreateConnection()
         {
-            return this._dbConnectionFactory.CreateConnection();
+            IDbConnection conn = this._contextProvider.Options.DbConnectionFactory.CreateConnection();
+            if (this._contextProvider.Options.ConcurrencyMode == true)
+            {
+                conn = new ChloeSQLiteConcurrentConnection(conn);
+            }
+
+            return conn;
         }
+
         public IDbExpressionTranslator CreateDbExpressionTranslator()
         {
             return DbExpressionTranslator.Instance;
         }
+
         public string CreateParameterName(string name)
         {
             if (string.IsNullOrEmpty(name))

@@ -33,8 +33,8 @@ namespace Chloe.PostgreSQL
             {
                 LeftQuoteChar = UtilConstants.LeftQuoteChar,
                 RightQuoteChar = UtilConstants.RightQuoteChar,
-                MaxInItems = UtilConstants.MaxInItems,
-                ConvertToLowercase = this.ContextProvider.ConvertToLowercase
+                MaxInItems = this.ContextProvider.Options.MaxInItems,
+                ConvertToLowercase = this.ContextProvider.Options.ConvertToLowercase
             };
 
             return options;

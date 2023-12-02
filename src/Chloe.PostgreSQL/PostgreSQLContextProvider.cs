@@ -17,13 +17,26 @@ namespace Chloe.PostgreSQL
     {
         DatabaseProvider _databaseProvider;
 
-        public PostgreSQLContextProvider(IDbConnectionFactory dbConnectionFactory)
-        {
-            PublicHelper.CheckNull(dbConnectionFactory);
-            this._databaseProvider = new DatabaseProvider(dbConnectionFactory, this);
-        }
         public PostgreSQLContextProvider(Func<IDbConnection> dbConnectionFactory) : this(new DbConnectionFactory(dbConnectionFactory))
         {
+
+        }
+
+        public PostgreSQLContextProvider(IDbConnectionFactory dbConnectionFactory) : this(new PostgreSQLOptions() { DbConnectionFactory = dbConnectionFactory })
+        {
+
+        }
+
+        public PostgreSQLContextProvider(PostgreSQLOptions options)
+        {
+            this.Options = options;
+            this._databaseProvider = new DatabaseProvider(this);
+        }
+
+        public PostgreSQLOptions Options { get; private set; }
+        public override IDatabaseProvider DatabaseProvider
+        {
+            get { return this._databaseProvider; }
         }
 
 
@@ -71,14 +84,6 @@ namespace Chloe.PostgreSQL
             }
         }
 
-        /// <summary>
-        /// 是否将 sql 中的表名/字段名转成小写。默认为 true。
-        /// </summary>
-        public bool ConvertToLowercase { get; set; } = true;
-        public override IDatabaseProvider DatabaseProvider
-        {
-            get { return this._databaseProvider; }
-        }
 
         protected override async Task<TEntity> Insert<TEntity>(TEntity entity, string table, bool @async)
         {

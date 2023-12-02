@@ -19,7 +19,7 @@ namespace Chloe.PostgreSQL.DDL
         {
             PostgreSQLContext dbContext = (this.DbContext as PostgreSQLContext);
             var dbContextProvider = (PostgreSQLContextProvider)dbContext.DefaultDbContextProvider;
-            return Utils.QuoteName(name, dbContextProvider.ConvertToLowercase);
+            return Utils.QuoteName(name, dbContextProvider.Options.ConvertToLowercase);
         }
 
         public override List<string> GenCreateTableScript(TypeDescriptor typeDescriptor, string tableName, TableCreateMode createMode = TableCreateMode.CreateIfNotExists)

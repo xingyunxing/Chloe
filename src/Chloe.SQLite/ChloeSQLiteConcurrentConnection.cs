@@ -4,12 +4,11 @@ using System.Threading;
 
 namespace Chloe.SQLite
 {
-    /* 
-     * ********************* Warning ********************* 
-     * 支持读写并发控制
-     * 由于内部使用了 ReaderWriterLockSlim 锁，所以，任何对 sqlite 的操作只能在创建该连接的线程内，不能跨线程操作。否则会出现无法释放锁的风险！！！！！
-     * 同时，如果开启了事务后，必须保证事务最终被 Commit 或 Rollback，不然内部 ReaderWriterLockSlim 锁得不到释放，会导致锁一直被占用，使得整个程序持续阻塞！！！ 
-     */
+    /// <summary>
+    /// 支持读写并发控制
+    /// <para>由于内部使用了 ReaderWriterLockSlim 锁，所以，任何对 sqlite 的操作只能在创建该连接的线程内，不能跨线程操作。否则会出现无法释放锁的风险！！！！！</para> 
+    /// <para>同时，如果开启了事务后，必须保证事务最终被 Commit 或 Rollback，不然内部 ReaderWriterLockSlim 锁得不到释放，会导致锁一直被占用，使得整个程序持续阻塞！！！</para> 
+    /// </summary>
     public class ChloeSQLiteConcurrentConnection : DbConnectionDecorator, IDbConnection, IDisposable
     {
         ReaderWriterLockWrapper _rwLock;

@@ -10,17 +10,25 @@ namespace Chloe
 
         IDbSession _session;
 
-        public DbContext() : this(null)
+        public DbContext() : this(new DbOptions())
         {
 
         }
 
-        public DbContext(IDbContextProviderFactory dbContextProviderFactory)
+        public DbContext(DbOptions options) : this(options, null)
         {
+
+        }
+
+        public DbContext(DbOptions options, IDbContextProviderFactory dbContextProviderFactory)
+        {
+            this.Options = options;
             this.DbContextProviderFactory = dbContextProviderFactory;
             this.Butler = new DbContextButler(this);
             this._session = new DbSession(this);
         }
+
+        public DbOptions Options { get; private set; }
 
         /// <summary>
         /// 是否启用分片功能。

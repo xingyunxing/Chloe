@@ -16,13 +16,27 @@ namespace Chloe.Oracle
     public partial class OracleContextProvider : DbContextProvider
     {
         DatabaseProvider _databaseProvider;
-        public OracleContextProvider(IDbConnectionFactory dbConnectionFactory)
-        {
-            PublicHelper.CheckNull(dbConnectionFactory);
-            this._databaseProvider = new DatabaseProvider(dbConnectionFactory, this);
-        }
+
         public OracleContextProvider(Func<IDbConnection> dbConnectionFactory) : this(new DbConnectionFactory(dbConnectionFactory))
         {
+
+        }
+
+        public OracleContextProvider(IDbConnectionFactory dbConnectionFactory) : this(new OracleOptions() { DbConnectionFactory = dbConnectionFactory })
+        {
+
+        }
+
+        public OracleContextProvider(OracleOptions options)
+        {
+            this.Options = options;
+            this._databaseProvider = new DatabaseProvider(this);
+        }
+
+        public OracleOptions Options { get; private set; }
+        public override IDatabaseProvider DatabaseProvider
+        {
+            get { return this._databaseProvider; }
         }
 
 
@@ -68,15 +82,6 @@ namespace Chloe.Oracle
 
                 SqlGenerator.MethodHandlerDic[methodName] = methodHandlers.ToArray();
             }
-        }
-
-        /// <summary>
-        /// 是否将 sql 中的表名/字段名转成大写。默认为 true。
-        /// </summary>
-        public bool ConvertToUppercase { get; set; } = true;
-        public override IDatabaseProvider DatabaseProvider
-        {
-            get { return this._databaseProvider; }
         }
 
         protected override async Task<TEntity> Insert<TEntity>(TEntity entity, string table, bool @async)
@@ -474,7 +479,7 @@ namespace Chloe.Oracle
         }
         string QuoteName(string name)
         {
-            if (this.ConvertToUppercase)
+            if (this.Options.ConvertToUppercase)
                 return string.Concat("\"", name.ToUpper(), "\"");
 
             return string.Concat("\"", name, "\"");

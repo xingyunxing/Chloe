@@ -11,32 +11,28 @@ namespace Chloe.SQLite
     public class SQLiteContextProvider : DbContextProvider
     {
         DatabaseProvider _databaseProvider;
-        public SQLiteContextProvider(IDbConnectionFactory dbConnectionFactory)
-            : this(dbConnectionFactory, true)
-        {
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="dbConnectionFactory"></param>
-        /// <param name="concurrencyMode">是否支持读写并发安全</param>
-        public SQLiteContextProvider(IDbConnectionFactory dbConnectionFactory, bool concurrencyMode)
-        {
-            PublicHelper.CheckNull(dbConnectionFactory);
-
-            if (concurrencyMode == true)
-                dbConnectionFactory = new ConcurrentDbConnectionFactory(dbConnectionFactory);
-
-            this._databaseProvider = new DatabaseProvider(dbConnectionFactory);
-        }
 
         public SQLiteContextProvider(Func<IDbConnection> dbConnectionFactory) : this(new DbConnectionFactory(dbConnectionFactory))
         {
-        }
-        public SQLiteContextProvider(Func<IDbConnection> dbConnectionFactory, bool concurrencyMode) : this(new DbConnectionFactory(dbConnectionFactory), concurrencyMode)
-        {
+
         }
 
+        public SQLiteContextProvider(IDbConnectionFactory dbConnectionFactory) : this(new SQLiteOptions() { DbConnectionFactory = dbConnectionFactory })
+        {
+
+        }
+
+        public SQLiteContextProvider(SQLiteOptions options)
+        {
+            this.Options = options;
+            this._databaseProvider = new DatabaseProvider(this);
+        }
+
+        public SQLiteOptions Options { get; private set; }
+        public override IDatabaseProvider DatabaseProvider
+        {
+            get { return this._databaseProvider; }
+        }
 
         /// <summary>
         /// 设置属性解析器。
@@ -82,10 +78,6 @@ namespace Chloe.SQLite
             }
         }
 
-        public override IDatabaseProvider DatabaseProvider
-        {
-            get { return this._databaseProvider; }
-        }
         protected override string GetSelectLastInsertIdClause()
         {
             return "SELECT LAST_INSERT_ROWID()";

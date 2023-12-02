@@ -6,28 +6,22 @@ namespace Chloe.Oracle
 {
     public class OracleContext : DbContext
     {
-        public OracleContext(IDbConnectionFactory dbConnectionFactory) : base(new DbContextProviderFactory(dbConnectionFactory))
-        {
-
-        }
         public OracleContext(Func<IDbConnection> dbConnectionFactory) : this(new DbConnectionFactory(dbConnectionFactory))
         {
+
         }
 
-        /// <summary>
-        /// 是否将 sql 中的表名/字段名转成大写。默认为 true。
-        /// </summary>
-        public bool ConvertToUppercase
+        public OracleContext(IDbConnectionFactory dbConnectionFactory) : this(new OracleOptions() { DbConnectionFactory = dbConnectionFactory })
         {
-            get
-            {
-                return (this.DefaultDbContextProvider as OracleContextProvider).ConvertToUppercase;
-            }
-            set
-            {
-                (this.DefaultDbContextProvider as OracleContextProvider).ConvertToUppercase = value;
-            }
+
         }
+
+        public OracleContext(OracleOptions options) : base(options, new DbContextProviderFactory(options))
+        {
+            this.Options = options;
+        }
+
+        public new OracleOptions Options { get; private set; }
 
         /// <summary>
         /// 设置属性解析器。
@@ -52,17 +46,17 @@ namespace Chloe.Oracle
 
     class DbContextProviderFactory : IDbContextProviderFactory
     {
-        IDbConnectionFactory _dbConnectionFactory;
+        OracleOptions _options;
 
-        public DbContextProviderFactory(IDbConnectionFactory dbConnectionFactory)
+        public DbContextProviderFactory(OracleOptions options)
         {
-            PublicHelper.CheckNull(dbConnectionFactory);
-            this._dbConnectionFactory = dbConnectionFactory;
+            PublicHelper.CheckNull(options);
+            this._options = options;
         }
 
         public IDbContextProvider CreateDbContextProvider()
         {
-            return new OracleContextProvider(this._dbConnectionFactory);
+            return new OracleContextProvider(this._options);
         }
     }
 }

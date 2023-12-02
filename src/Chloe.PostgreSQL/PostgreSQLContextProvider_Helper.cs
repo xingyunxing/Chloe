@@ -21,7 +21,7 @@ namespace Chloe.PostgreSQL
                 PrimitivePropertyDescriptor mappingPropertyDescriptor = mappingPropertyDescriptors[i];
                 if (i > 0)
                     sqlBuilder.Append(",");
-                sqlBuilder.Append(Utils.QuoteName(mappingPropertyDescriptor.Column.Name, this.ConvertToLowercase));
+                sqlBuilder.Append(Utils.QuoteName(mappingPropertyDescriptor.Column.Name, this.Options.ConvertToLowercase));
             }
 
             sqlBuilder.Append(") VALUES");
@@ -32,9 +32,9 @@ namespace Chloe.PostgreSQL
         string AppendTableName(DbTable table)
         {
             if (string.IsNullOrEmpty(table.Schema))
-                return Utils.QuoteName(table.Name, this.ConvertToLowercase);
+                return Utils.QuoteName(table.Name, this.Options.ConvertToLowercase);
 
-            return string.Format("{0}.{1}", Utils.QuoteName(table.Schema, this.ConvertToLowercase), Utils.QuoteName(table.Name, this.ConvertToLowercase));
+            return string.Format("{0}.{1}", Utils.QuoteName(table.Schema, this.Options.ConvertToLowercase), Utils.QuoteName(table.Name, this.Options.ConvertToLowercase));
         }
     }
 }

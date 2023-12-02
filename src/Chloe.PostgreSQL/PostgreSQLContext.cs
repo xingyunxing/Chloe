@@ -6,13 +6,22 @@ namespace Chloe.PostgreSQL
 {
     public class PostgreSQLContext : DbContext
     {
-        public PostgreSQLContext(IDbConnectionFactory dbConnectionFactory) : base(new DbContextProviderFactory(dbConnectionFactory))
+        public PostgreSQLContext(Func<IDbConnection> dbConnectionFactory) : this(new DbConnectionFactory(dbConnectionFactory))
         {
 
         }
-        public PostgreSQLContext(Func<IDbConnection> dbConnectionFactory) : this(new DbConnectionFactory(dbConnectionFactory))
+
+        public PostgreSQLContext(IDbConnectionFactory dbConnectionFactory) : this(new PostgreSQLOptions() { DbConnectionFactory = dbConnectionFactory })
         {
+
         }
+
+        public PostgreSQLContext(PostgreSQLOptions options) : base(options, new DbContextProviderFactory(options))
+        {
+            this.Options = options;
+        }
+
+        public new PostgreSQLOptions Options { get; private set; }
 
         /// <summary>
         /// 设置属性解析器。
@@ -33,36 +42,21 @@ namespace Chloe.PostgreSQL
         {
             PostgreSQLContextProvider.SetMethodHandler(methodName, handler);
         }
-
-        /// <summary>
-        /// 是否将 sql 中的表名/字段名转成小写。默认为 true。
-        /// </summary>
-        public bool ConvertToLowercase
-        {
-            get
-            {
-                return (this.DefaultDbContextProvider as PostgreSQLContextProvider).ConvertToLowercase;
-            }
-            set
-            {
-                (this.DefaultDbContextProvider as PostgreSQLContextProvider).ConvertToLowercase = value;
-            }
-        }
     }
 
     class DbContextProviderFactory : IDbContextProviderFactory
     {
-        IDbConnectionFactory _dbConnectionFactory;
+        PostgreSQLOptions _options;
 
-        public DbContextProviderFactory(IDbConnectionFactory dbConnectionFactory)
+        public DbContextProviderFactory(PostgreSQLOptions options)
         {
-            PublicHelper.CheckNull(dbConnectionFactory);
-            this._dbConnectionFactory = dbConnectionFactory;
+            PublicHelper.CheckNull(options);
+            this._options = options;
         }
 
         public IDbContextProvider CreateDbContextProvider()
         {
-            return new PostgreSQLContextProvider(this._dbConnectionFactory);
+            return new PostgreSQLContextProvider(this._options);
         }
     }
 }

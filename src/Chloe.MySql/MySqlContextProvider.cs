@@ -16,14 +16,24 @@ namespace Chloe.MySql
     public class MySqlContextProvider : DbContextProvider
     {
         DatabaseProvider _databaseProvider;
-        public MySqlContextProvider(IDbConnectionFactory dbConnectionFactory)
-        {
-            PublicHelper.CheckNull(dbConnectionFactory);
-            this._databaseProvider = new DatabaseProvider(dbConnectionFactory);
-        }
+
         public MySqlContextProvider(Func<IDbConnection> dbConnectionFactory) : this(new DbConnectionFactory(dbConnectionFactory))
         {
+
         }
+
+        public MySqlContextProvider(IDbConnectionFactory dbConnectionFactory) : this(new MySqlOptions() { DbConnectionFactory = dbConnectionFactory })
+        {
+
+        }
+
+        public MySqlContextProvider(MySqlOptions options)
+        {
+            this.Options = options;
+            this._databaseProvider = new DatabaseProvider(this);
+        }
+
+        public MySqlOptions Options { get; private set; }
 
 
         /// <summary>

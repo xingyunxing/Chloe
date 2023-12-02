@@ -24,21 +24,34 @@ namespace Chloe.SqlServer
     public partial class MsSqlContextProvider : DbContextProvider
     {
         DatabaseProvider _databaseProvider;
+
         public MsSqlContextProvider(string connString) : this(new DefaultDbConnectionFactory(connString))
         {
+
         }
 
-        public MsSqlContextProvider(IDbConnectionFactory dbConnectionFactory)
-        {
-            PublicHelper.CheckNull(dbConnectionFactory);
-
-            this.PagingMode = PagingMode.ROW_NUMBER;
-            this._databaseProvider = new DatabaseProvider(dbConnectionFactory, this);
-        }
         public MsSqlContextProvider(Func<IDbConnection> dbConnectionFactory) : this(new DbConnectionFactory(dbConnectionFactory))
         {
+
         }
 
+        public MsSqlContextProvider(IDbConnectionFactory dbConnectionFactory) : this(new MsSqlOptions() { DbConnectionFactory = dbConnectionFactory })
+        {
+
+        }
+
+        public MsSqlContextProvider(MsSqlOptions options)
+        {
+            this.Options = options;
+            this._databaseProvider = new DatabaseProvider(this);
+        }
+
+        public MsSqlOptions Options { get; private set; }
+
+        public override IDatabaseProvider DatabaseProvider
+        {
+            get { return this._databaseProvider; }
+        }
 
         /// <summary>
         /// 设置属性解析器。
@@ -84,21 +97,6 @@ namespace Chloe.SqlServer
             }
         }
 
-        /// <summary>
-        /// 分页模式。
-        /// </summary>
-        public PagingMode PagingMode { get; set; }
-
-        /// <summary>
-        /// 设置参数绑定方式。有些驱动（如ODBC驱动）不支持命名参数，只支持参数占位符，严格要求实际参数的顺序和个数，参数化 sql 只能如：select * from person where id=? 等形式。
-        /// 默认值为 true。
-        /// </summary>
-        public bool BindParameterByName { get; set; } = true;
-
-        public override IDatabaseProvider DatabaseProvider
-        {
-            get { return this._databaseProvider; }
-        }
 
         protected override async Task<TEntity> Insert<TEntity>(TEntity entity, string table, bool @async)
         {
@@ -387,7 +385,7 @@ namespace Chloe.SqlServer
                         DbParam dbParam = new DbParam(paramName, val) { DbType = mappingPropertyDescriptor.Column.DbType };
                         dbParams.Add(dbParam);
 
-                        if (!this.BindParameterByName)
+                        if (!this.Options.BindParameterByName)
                             sqlBuilder.Append("?");
                         else
                             sqlBuilder.Append(paramName);

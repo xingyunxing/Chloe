@@ -7,13 +7,22 @@ namespace Chloe.Dameng
     //hongyl 加入dbContext参数
     public class DamengContext : DbContext
     {
-        public DamengContext(IDbConnectionFactory dbConnectionFactory) : base(new DbContextProviderFactory(dbConnectionFactory))
+        public DamengContext(Func<IDbConnection> dbConnectionFactory) : this(new DbConnectionFactory(dbConnectionFactory))
         {
 
         }
-        public DamengContext(Func<IDbConnection> dbConnectionFactory) : this(new DbConnectionFactory(dbConnectionFactory))
+
+        public DamengContext(IDbConnectionFactory dbConnectionFactory) : this(new DamengOptions() { DbConnectionFactory = dbConnectionFactory })
         {
+
         }
+
+        public DamengContext(DamengOptions options) : base(options, new DbContextProviderFactory(options))
+        {
+            this.Options = options;
+        }
+
+        public new DamengOptions Options { get; private set; }
 
         /// <summary>
         /// 设置属性解析器。
@@ -38,22 +47,17 @@ namespace Chloe.Dameng
 
     class DbContextProviderFactory : IDbContextProviderFactory
     {
-        IDbConnectionFactory _dbConnectionFactory;
+        DamengOptions _options;
 
-        public DbContextProviderFactory(IDbConnectionFactory dbConnectionFactory)
+        public DbContextProviderFactory(DamengOptions options)
         {
-            PublicHelper.CheckNull(dbConnectionFactory);
-            this._dbConnectionFactory = dbConnectionFactory;
-        }
-
-        public IDbContextProvider CreateDbContextProvider(IDbContext dbContext)
-        {
-            return new DamengContextProvider(this._dbConnectionFactory);
+            PublicHelper.CheckNull(options);
+            this._options = options;
         }
 
         public IDbContextProvider CreateDbContextProvider()
         {
-            return new DamengContextProvider(this._dbConnectionFactory);
+            return new DamengContextProvider(this._options);
         }
     }
 }

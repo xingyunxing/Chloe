@@ -5,24 +5,26 @@ namespace Chloe.SqlServer
 {
     class DatabaseProvider : IDatabaseProvider
     {
-        IDbConnectionFactory _dbConnectionFactory;
         MsSqlContextProvider _contextProvider;
 
         public string DatabaseType { get { return "SqlServer"; } }
 
-        public DatabaseProvider(IDbConnectionFactory dbConnectionFactory, MsSqlContextProvider _contextProvider)
+        public DatabaseProvider(MsSqlContextProvider _contextProvider)
         {
-            this._dbConnectionFactory = dbConnectionFactory;
             this._contextProvider = _contextProvider;
         }
+
         public IDbConnection CreateConnection()
         {
-            return this._dbConnectionFactory.CreateConnection();
+            IDbConnection conn = this._contextProvider.Options.DbConnectionFactory.CreateConnection();
+            return conn;
         }
+
         public IDbExpressionTranslator CreateDbExpressionTranslator()
         {
             return new DbExpressionTranslator(this._contextProvider);
         }
+
         public string CreateParameterName(string name)
         {
             if (string.IsNullOrEmpty(name))

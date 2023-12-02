@@ -10,16 +10,25 @@ namespace Chloe.Dameng
     //hongyl 调整增删改处理、加入无主键处理
     public partial class DamengContextProvider : DbContextProvider
     {
-        readonly DatabaseProvider _databaseProvider;
-        public DamengContextProvider(IDbConnectionFactory dbConnectionFactory)
-        {
-            PublicHelper.CheckNull(dbConnectionFactory);
-            this._databaseProvider = new DatabaseProvider(dbConnectionFactory);
-        }
+        DatabaseProvider _databaseProvider;
+
         public DamengContextProvider(Func<IDbConnection> dbConnectionFactory) : this(new DbConnectionFactory(dbConnectionFactory))
         {
+
         }
 
+        public DamengContextProvider(IDbConnectionFactory dbConnectionFactory) : this(new DamengOptions() { DbConnectionFactory = dbConnectionFactory })
+        {
+
+        }
+
+        public DamengContextProvider(DamengOptions options)
+        {
+            this.Options = options;
+            this._databaseProvider = new DatabaseProvider(this);
+        }
+
+        public DamengOptions Options { get; private set; }
 
         /// <summary>
         /// 设置属性解析器。

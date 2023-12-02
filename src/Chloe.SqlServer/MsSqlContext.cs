@@ -9,15 +9,25 @@ namespace Chloe.SqlServer
     {
         public MsSqlContext(string connString) : this(new DefaultDbConnectionFactory(connString))
         {
-        }
-
-        public MsSqlContext(IDbConnectionFactory dbConnectionFactory) : base(new DbContextProviderFactory(dbConnectionFactory))
-        {
 
         }
+
         public MsSqlContext(Func<IDbConnection> dbConnectionFactory) : this(new DbConnectionFactory(dbConnectionFactory))
         {
+
         }
+
+        public MsSqlContext(IDbConnectionFactory dbConnectionFactory) : this(new MsSqlOptions() { DbConnectionFactory = dbConnectionFactory })
+        {
+
+        }
+
+        public MsSqlContext(MsSqlOptions options) : base(options, new DbContextProviderFactory(options))
+        {
+            this.Options = options;
+        }
+
+        public new MsSqlOptions Options { get; private set; }
 
         /// <summary>
         /// 设置属性解析器。
@@ -37,37 +47,6 @@ namespace Chloe.SqlServer
         public static void SetMethodHandler(string methodName, IMethodHandler handler)
         {
             MsSqlContextProvider.SetMethodHandler(methodName, handler);
-        }
-
-        /// <summary>
-        /// 分页模式。
-        /// </summary>
-        public PagingMode PagingMode
-        {
-            get
-            {
-                return (this.DefaultDbContextProvider as MsSqlContextProvider).PagingMode;
-            }
-            set
-            {
-                (this.DefaultDbContextProvider as MsSqlContextProvider).PagingMode = value;
-            }
-        }
-
-        /// <summary>
-        /// 设置参数绑定方式。有些驱动（如ODBC驱动）不支持命名参数，只支持参数占位符，严格要求实际参数的顺序和个数，参数化 sql 只能如：select * from person where id=? 等形式。
-        /// 默认值为 true。
-        /// </summary>
-        public bool BindParameterByName
-        {
-            get
-            {
-                return (this.DefaultDbContextProvider as MsSqlContextProvider).BindParameterByName;
-            }
-            set
-            {
-                (this.DefaultDbContextProvider as MsSqlContextProvider).BindParameterByName = value;
-            }
         }
 
         /// <summary>
@@ -93,17 +72,17 @@ namespace Chloe.SqlServer
 
     class DbContextProviderFactory : IDbContextProviderFactory
     {
-        IDbConnectionFactory _dbConnectionFactory;
+        MsSqlOptions _options;
 
-        public DbContextProviderFactory(IDbConnectionFactory dbConnectionFactory)
+        public DbContextProviderFactory(MsSqlOptions options)
         {
-            PublicHelper.CheckNull(dbConnectionFactory);
-            this._dbConnectionFactory = dbConnectionFactory;
+            PublicHelper.CheckNull(options);
+            this._options = options;
         }
 
         public IDbContextProvider CreateDbContextProvider()
         {
-            return new MsSqlContextProvider(this._dbConnectionFactory);
+            return new MsSqlContextProvider(this._options);
         }
     }
 }

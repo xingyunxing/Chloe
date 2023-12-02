@@ -6,13 +6,22 @@ namespace Chloe.MySql
 {
     public class MySqlContext : DbContext
     {
-        public MySqlContext(IDbConnectionFactory dbConnectionFactory) : base(new DbContextProviderFactory(dbConnectionFactory))
+        public MySqlContext(Func<IDbConnection> dbConnectionFactory) : this(new DbConnectionFactory(dbConnectionFactory))
         {
 
         }
-        public MySqlContext(Func<IDbConnection> dbConnectionFactory) : this(new DbConnectionFactory(dbConnectionFactory))
+
+        public MySqlContext(IDbConnectionFactory dbConnectionFactory) : this(new MySqlOptions() { DbConnectionFactory = dbConnectionFactory })
         {
+
         }
+
+        public MySqlContext(MySqlOptions options) : base(options, new DbContextProviderFactory(options))
+        {
+            this.Options = options;
+        }
+
+        public new MySqlOptions Options { get; private set; }
 
         /// <summary>
         /// 设置属性解析器。
@@ -37,17 +46,17 @@ namespace Chloe.MySql
 
     class DbContextProviderFactory : IDbContextProviderFactory
     {
-        IDbConnectionFactory _dbConnectionFactory;
+        MySqlOptions _options;
 
-        public DbContextProviderFactory(IDbConnectionFactory dbConnectionFactory)
+        public DbContextProviderFactory(MySqlOptions options)
         {
-            PublicHelper.CheckNull(dbConnectionFactory);
-            this._dbConnectionFactory = dbConnectionFactory;
+            PublicHelper.CheckNull(options);
+            this._options = options;
         }
 
         public IDbContextProvider CreateDbContextProvider()
         {
-            return new MySqlContextProvider(this._dbConnectionFactory);
+            return new MySqlContextProvider(this._options);
         }
     }
 }

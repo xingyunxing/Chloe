@@ -5,24 +5,26 @@ namespace Chloe.PostgreSQL
 {
     class DatabaseProvider : IDatabaseProvider
     {
-        IDbConnectionFactory _dbConnectionFactory;
         PostgreSQLContextProvider _contextProvider;
 
         public string DatabaseType { get { return "PostgreSQL"; } }
 
-        public DatabaseProvider(IDbConnectionFactory dbConnectionFactory, PostgreSQLContextProvider contextProvider)
+        public DatabaseProvider(PostgreSQLContextProvider contextProvider)
         {
-            this._dbConnectionFactory = dbConnectionFactory;
             this._contextProvider = contextProvider;
         }
+
         public IDbConnection CreateConnection()
         {
-            return this._dbConnectionFactory.CreateConnection();
+            IDbConnection conn = this._contextProvider.Options.DbConnectionFactory.CreateConnection();
+            return conn;
         }
+
         public IDbExpressionTranslator CreateDbExpressionTranslator()
         {
             return new DbExpressionTranslator(this._contextProvider);
         }
+
         public string CreateParameterName(string name)
         {
             if (string.IsNullOrEmpty(name))

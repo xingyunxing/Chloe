@@ -32,7 +32,7 @@ namespace Chloe.Sharding
         public ShardingDbContextProvider DbContextProvider { get; set; }
         public IShardingRoute Route { get; private set; }
 
-        public int MaxInItems { get { return this.DbContextProvider.DbContext.ShardingOptions.MaxInItems; } }
+        public int MaxInItems { get { return this.DbContextProvider.DbContext.Options.MaxInItems; } }
 
         public IShardingConfig ShardingConfig { get; private set; }
 
