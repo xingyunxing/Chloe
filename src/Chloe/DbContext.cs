@@ -22,6 +22,8 @@ namespace Chloe
 
         public DbContext(DbOptions options, IDbContextProviderFactory dbContextProviderFactory)
         {
+            PublicHelper.CheckNull(options, nameof(options));
+
             this.Options = options;
             this.DbContextProviderFactory = dbContextProviderFactory;
             this.Butler = new DbContextButler(this);

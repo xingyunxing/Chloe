@@ -24,6 +24,8 @@ namespace Chloe.Dameng
 
         public DamengContextProvider(DamengOptions options)
         {
+            PublicHelper.CheckNull(options, nameof(options));
+
             this.Options = options;
             this._databaseProvider = new DatabaseProvider(this);
         }

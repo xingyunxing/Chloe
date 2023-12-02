@@ -29,6 +29,8 @@ namespace Chloe.Oracle
 
         public OracleContextProvider(OracleOptions options)
         {
+            PublicHelper.CheckNull(options, nameof(options));
+
             this.Options = options;
             this._databaseProvider = new DatabaseProvider(this);
         }

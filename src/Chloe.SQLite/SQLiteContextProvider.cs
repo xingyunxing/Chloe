@@ -24,6 +24,8 @@ namespace Chloe.SQLite
 
         public SQLiteContextProvider(SQLiteOptions options)
         {
+            PublicHelper.CheckNull(options, nameof(options));
+
             this.Options = options;
             this._databaseProvider = new DatabaseProvider(this);
         }

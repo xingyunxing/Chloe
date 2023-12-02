@@ -42,6 +42,8 @@ namespace Chloe.SqlServer
 
         public MsSqlContextProvider(MsSqlOptions options)
         {
+            PublicHelper.CheckNull(options, nameof(options));
+
             this.Options = options;
             this._databaseProvider = new DatabaseProvider(this);
         }
