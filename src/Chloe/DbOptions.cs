@@ -9,6 +9,6 @@ namespace Chloe
         /// <summary>
         /// in 条件参数最大个数
         /// </summary>
-        public int MaxInItems { get; set; } = 1000;
+        public int MaxInItems { get; set; } = int.MaxValue;
     }
 }

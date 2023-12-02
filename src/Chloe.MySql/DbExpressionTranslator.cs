@@ -7,7 +7,12 @@ namespace Chloe.MySql
 {
     class DbExpressionTranslator : IDbExpressionTranslator
     {
-        public static readonly DbExpressionTranslator Instance = new DbExpressionTranslator();
+        MySqlContextProvider ContextProvider { get; set; }
+
+        public DbExpressionTranslator(MySqlContextProvider contextProvider)
+        {
+            this.ContextProvider = contextProvider;
+        }
 
         public DbCommandInfo Translate(DbExpression expression)
         {
@@ -29,7 +34,7 @@ namespace Chloe.MySql
             {
                 LeftQuoteChar = UtilConstants.LeftQuoteChar,
                 RightQuoteChar = UtilConstants.RightQuoteChar,
-                MaxInItems = UtilConstants.MaxInItems
+                MaxInItems = this.ContextProvider.Options.MaxInItems
             };
 
             return options;

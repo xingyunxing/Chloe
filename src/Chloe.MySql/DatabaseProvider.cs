@@ -22,7 +22,7 @@ namespace Chloe.MySql
 
         public IDbExpressionTranslator CreateDbExpressionTranslator()
         {
-            return DbExpressionTranslator.Instance;
+            return new DbExpressionTranslator(this._contextProvider);
         }
 
         public string CreateParameterName(string name)

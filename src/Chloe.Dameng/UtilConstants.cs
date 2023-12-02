@@ -7,10 +7,5 @@
 
         public const string ParameterNamePlaceholer = ":";
         public static readonly string ParameterNamePrefix = ParameterNamePlaceholer + "P_";
-
-        /// <summary>
-        /// in 参数最大个数
-        /// </summary>
-        public static int MaxInItems = int.MaxValue;
     }
 }

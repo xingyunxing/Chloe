@@ -7,7 +7,13 @@ namespace Chloe.SQLite
 {
     class DbExpressionTranslator : IDbExpressionTranslator
     {
-        public static readonly DbExpressionTranslator Instance = new DbExpressionTranslator();
+        SQLiteContextProvider ContextProvider { get; set; }
+
+        public DbExpressionTranslator(SQLiteContextProvider contextProvider)
+        {
+            this.ContextProvider = contextProvider;
+        }
+
         public DbCommandInfo Translate(DbExpression expression)
         {
             SqlGeneratorOptions options = this.CreateOptions();
@@ -28,7 +34,7 @@ namespace Chloe.SQLite
             {
                 LeftQuoteChar = UtilConstants.LeftQuoteChar,
                 RightQuoteChar = UtilConstants.RightQuoteChar,
-                MaxInItems = UtilConstants.MaxInItems
+                MaxInItems = this.ContextProvider.Options.MaxInItems
             };
 
             return options;

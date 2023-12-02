@@ -3,6 +3,11 @@ namespace Chloe.SqlServer
 {
     public class MsSqlOptions : DbOptions
     {
+        public MsSqlOptions()
+        {
+
+        }
+
         /// <summary>
         /// 分页模式。
         /// </summary>

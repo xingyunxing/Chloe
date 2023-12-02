@@ -7,7 +7,12 @@ namespace Chloe.Dameng
 {
     class DbExpressionTranslator : IDbExpressionTranslator
     {
-        public static readonly DbExpressionTranslator Instance = new DbExpressionTranslator();
+        DamengContextProvider ContextProvider { get; set; }
+
+        public DbExpressionTranslator(DamengContextProvider contextProvider)
+        {
+            this.ContextProvider = contextProvider;
+        }
 
         public DbCommandInfo Translate(DbExpression expression)
         {
@@ -31,7 +36,7 @@ namespace Chloe.Dameng
             {
                 LeftQuoteChar = UtilConstants.LeftQuoteChar,
                 RightQuoteChar = UtilConstants.RightQuoteChar,
-                MaxInItems = UtilConstants.MaxInItems
+                MaxInItems = this.ContextProvider.Options.MaxInItems
             };
 
             return options;
