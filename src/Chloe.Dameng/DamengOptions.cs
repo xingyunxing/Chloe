@@ -5,7 +5,7 @@ namespace Chloe.Dameng
     {
         public DamengOptions()
         {
-            this.MaxInItems = int.MaxValue;
+
         }
     }
 }
