@@ -27,6 +27,7 @@ namespace ChloeDemo
         {
             MsSqlContext dbContext = new MsSqlContext("Data Source = .;Initial Catalog = Chloe;Integrated Security = SSPI;");
             dbContext.Options.PagingMode = PagingMode.OFFSET_FETCH;
+
             return dbContext;
         }
 

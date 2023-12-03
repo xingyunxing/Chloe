@@ -277,16 +277,6 @@ namespace Chloe.Visitors
 
         protected override DbExpression VisitMethodCall(MethodCallExpression exp)
         {
-            if (exp.Method == PublicConstants.MethodInfo_String_IsNullOrEmpty)
-            {
-                /* string.IsNullOrEmpty(x) --> x == null || x == "" */
-
-                var stringArg = exp.Arguments[0];
-                var equalNullExp = Expression.Equal(stringArg, UtilConstants.Constant_Null_String);
-                var equalEmptyExp = Expression.Equal(stringArg, UtilConstants.Constant_Empty_String);
-                return this.Visit(Expression.OrElse(equalNullExp, equalEmptyExp));
-            }
-
             DbExpression obj = null;
             List<DbExpression> argList = new List<DbExpression>(exp.Arguments.Count);
             DbExpression dbExp = null;

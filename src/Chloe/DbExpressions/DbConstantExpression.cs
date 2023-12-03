@@ -6,6 +6,7 @@
         Type _type;
 
         public static readonly DbConstantExpression Null = new DbConstantExpression(null);
+        public static readonly DbConstantExpression StringNull = new DbConstantExpression(null, typeof(string));
         public static readonly DbConstantExpression StringEmpty = new DbConstantExpression(string.Empty);
         public static readonly DbConstantExpression One = new DbConstantExpression(1);
         public static readonly DbConstantExpression Zero = new DbConstantExpression(0);

@@ -14,20 +14,12 @@ namespace Chloe.RDBMS.MethodHandlers
         public override void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
             DbExpression e = exp.Arguments.First();
-            DbEqualExpression equalNullExpression = DbExpression.Equal(e, DbExpression.Constant(null, PublicConstants.TypeOfString));
-            DbEqualExpression equalEmptyExpression = DbExpression.Equal(e, DbExpression.Constant(string.Empty));
+            DbEqualExpression equalNullExpression = DbExpression.Equal(e, DbConstantExpression.StringNull);
+            DbEqualExpression equalEmptyExpression = DbExpression.Equal(e, DbConstantExpression.StringEmpty);
 
             DbOrExpression orExpression = DbExpression.Or(equalNullExpression, equalEmptyExpression);
 
-            DbCaseWhenExpression.WhenThenExpressionPair whenThenPair = new DbCaseWhenExpression.WhenThenExpressionPair(orExpression, DbConstantExpression.One);
-
-            List<DbCaseWhenExpression.WhenThenExpressionPair> whenThenExps = new List<DbCaseWhenExpression.WhenThenExpressionPair>(1);
-            whenThenExps.Add(whenThenPair);
-
-            DbCaseWhenExpression caseWhenExpression = DbExpression.CaseWhen(whenThenExps, DbConstantExpression.Zero, PublicConstants.TypeOfBoolean);
-
-            var eqExp = DbExpression.Equal(caseWhenExpression, DbConstantExpression.One);
-            eqExp.Accept(generator);
+            orExpression.Accept(generator);
         }
     }
 }
