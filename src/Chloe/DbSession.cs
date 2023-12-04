@@ -23,6 +23,16 @@ namespace Chloe
         public int CommandTimeout { get { return this.DbContextButler.CommandTimeout; } set { this.DbContextButler.CommandTimeout = value; } }
 
 
+        public void AddInterceptor(IDbCommandInterceptor interceptor)
+        {
+            this.DbContextButler.AddInterceptor(interceptor);
+        }
+        public void RemoveInterceptor(IDbCommandInterceptor interceptor)
+        {
+            this.DbContextButler.RemoveInterceptor(interceptor);
+        }
+
+
         public int ExecuteNonQuery(string cmdText, params DbParam[] parameters)
         {
             return this.SessionProvider.ExecuteNonQuery(cmdText, parameters);
@@ -144,15 +154,6 @@ namespace Chloe
         public void RollbackTransaction()
         {
             this.DbContextButler.RollbackTransaction();
-        }
-
-        public void AddInterceptor(IDbCommandInterceptor interceptor)
-        {
-            this.DbContextButler.AddInterceptor(interceptor);
-        }
-        public void RemoveInterceptor(IDbCommandInterceptor interceptor)
-        {
-            this.DbContextButler.RemoveInterceptor(interceptor);
         }
 
         public void Dispose()

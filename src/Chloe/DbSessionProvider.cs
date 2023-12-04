@@ -18,6 +18,19 @@ namespace Chloe
         public bool IsInTransaction { get { return this._dbContextProvider.AdoSession.IsInTransaction; } }
         public int CommandTimeout { get { return this._dbContextProvider.AdoSession.CommandTimeout; } set { this._dbContextProvider.AdoSession.CommandTimeout = value; } }
 
+
+        public void AddInterceptor(IDbCommandInterceptor interceptor)
+        {
+            PublicHelper.CheckNull(interceptor, nameof(interceptor));
+            this._dbContextProvider.AdoSession.SessionInterceptors.Add(interceptor);
+        }
+        public void RemoveInterceptor(IDbCommandInterceptor interceptor)
+        {
+            PublicHelper.CheckNull(interceptor, nameof(interceptor));
+            this._dbContextProvider.AdoSession.SessionInterceptors.Remove(interceptor);
+        }
+
+
         public int ExecuteNonQuery(string cmdText, params DbParam[] parameters)
         {
             return this.ExecuteNonQuery(cmdText, CommandType.Text, parameters);
@@ -145,17 +158,6 @@ namespace Chloe
         public void RollbackTransaction()
         {
             this._dbContextProvider.AdoSession.RollbackTransaction();
-        }
-
-        public void AddInterceptor(IDbCommandInterceptor interceptor)
-        {
-            PublicHelper.CheckNull(interceptor, nameof(interceptor));
-            this._dbContextProvider.AdoSession.SessionInterceptors.Add(interceptor);
-        }
-        public void RemoveInterceptor(IDbCommandInterceptor interceptor)
-        {
-            PublicHelper.CheckNull(interceptor, nameof(interceptor));
-            this._dbContextProvider.AdoSession.SessionInterceptors.Remove(interceptor);
         }
 
         public void Dispose()
