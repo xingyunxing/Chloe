@@ -14,6 +14,15 @@ namespace Chloe
         bool IsInTransaction { get; }
         int CommandTimeout { get; set; }
 
+
+        /// <summary>
+        /// 添加拦截器。注：仅对当前上下文起作用。
+        /// </summary>
+        /// <param name="interceptor"></param>
+        void AddInterceptor(IDbCommandInterceptor interceptor);
+        void RemoveInterceptor(IDbCommandInterceptor interceptor);
+
+
         int ExecuteNonQuery(string cmdText, params DbParam[] parameters);
         int ExecuteNonQuery(string cmdText, CommandType cmdType, params DbParam[] parameters);
         int ExecuteNonQuery(string cmdText, object parameter);
@@ -95,12 +104,5 @@ namespace Chloe
         void BeginTransaction(IsolationLevel il);
         void CommitTransaction();
         void RollbackTransaction();
-
-        /// <summary>
-        /// 添加拦截器。注：仅对当前上下文起作用。
-        /// </summary>
-        /// <param name="interceptor"></param>
-        void AddInterceptor(IDbCommandInterceptor interceptor);
-        void RemoveInterceptor(IDbCommandInterceptor interceptor);
     }
 }
