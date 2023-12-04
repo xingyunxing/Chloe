@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;net46;net5.0;net8.0</TargetFrameworks>
+		<LangVersion>10.0</LangVersion>
+
+		<Version>5.16.0</Version>
+		<Description>A lightweight and high-performance Object/Relational Mapping(ORM) library.</Description>
+		<PackageId>Chloe.KingbaseES</PackageId>
+		<Product>Chloe.ORM</Product>
+		<Authors>Shuxin Qin</Authors>
+		<Copyright>Copyright 2016-2023.</Copyright>
+		<GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net46'">
+		<DefineConstants>NETFX;NET46</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+		<DefineConstants>NETCORE</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net5.0'">
+		<DefineConstants>NETCORE;NET5</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
+		<DefineConstants>NETCORE;NET8</DefineConstants>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Chloe\Chloe.csproj" />
+	</ItemGroup>
+</Project>

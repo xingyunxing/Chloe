@@ -40,11 +40,15 @@
 		<Reference Include="DmProvider">
 			<HintPath>..\lib\DmProvider.dll</HintPath>
 		</Reference>
+		<Reference Include="Kdbndp">
+		  <HintPath>..\lib\Kdbndp.dll</HintPath>
+		</Reference>
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\Chloe.Dameng\Chloe.Dameng.csproj" />
 		<ProjectReference Include="..\Chloe.Extension\Chloe.Extension.csproj" />
+		<ProjectReference Include="..\Chloe.KingbaseES\Chloe.KingbaseES.csproj" />
 		<ProjectReference Include="..\Chloe.Oracle\Chloe.Oracle.csproj" />
 		<ProjectReference Include="..\Chloe\Chloe.csproj" />
 		<ProjectReference Include="..\Chloe.MySql\Chloe.MySql.csproj" />
