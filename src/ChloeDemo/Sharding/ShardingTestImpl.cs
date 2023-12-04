@@ -1,6 +1,8 @@
 ﻿using Chloe;
 using Chloe.Dameng;
 using Chloe.Dameng.DDL;
+using Chloe.KingbaseES;
+using Chloe.KingbaseES.DDL;
 using Chloe.MySql;
 using Chloe.MySql.DDL;
 using Chloe.Oracle;
@@ -156,6 +158,35 @@ namespace ChloeDemo.Sharding
         public override void CreateTable<TEntity>(DbContext dbContext, string table)
         {
             var tableGenerator = new DamengTableGenerator(dbContext);
+            tableGenerator.CreateTable(typeof(TEntity), table);
+        }
+    }
+
+    internal class KingbaseESShardingTest : ShardingTest
+    {
+        string GetConnString(int year)
+        {
+            string connString = $"Server=172.16.40.52;User Id=system;Password=Hhrhl@789;Port=54321;Database=order{year};Pooling=true;";
+            return connString;
+        }
+
+        public override DbContext CreateInitDataDbContext(int year)
+        {
+            string connString = this.GetConnString(year);
+            DbContext dbContext = new KingbaseESContext(new KingbaseESConnectionFactory(connString));
+            return dbContext;
+        }
+
+        public override IDbContextProvider CreateDbContextProvider(int year)
+        {
+            string connString = this.GetConnString(year);
+            var dbContextProvider = new KingbaseESContextProvider(new KingbaseESConnectionFactory(connString));
+            return dbContextProvider;
+        }
+
+        public override void CreateTable<TEntity>(DbContext dbContext, string table)
+        {
+            var tableGenerator = new KingbaseESTableGenerator(dbContext);
             tableGenerator.CreateTable(typeof(TEntity), table);
         }
     }

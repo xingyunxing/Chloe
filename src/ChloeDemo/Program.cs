@@ -69,6 +69,10 @@ namespace ChloeDemo
             //DamengShardingTest damengShardingTest = new DamengShardingTest();
             //damengShardingTest.Run().GetAwaiter().GetResult();
 
+            //KingbaseES 分库分表测试
+            KingbaseESShardingTest kingbaseESShardingTest = new KingbaseESShardingTest();
+            kingbaseESShardingTest.Run().GetAwaiter().GetResult();
+
             RunDemo<SQLiteDemo>();
             RunDemo<MsSqlDemo>();
             RunDemo<MsSqlOdbcDemo>();
@@ -76,6 +80,7 @@ namespace ChloeDemo
             RunDemo<PostgreSQLDemo>();
             RunDemo<OracleDemo>();
             RunDemo<DamengDemo>();
+            RunDemo<KingbaseESDemo>();
         }
 
         static void RunDemo<TDemo>() where TDemo : DemoBase, new()
