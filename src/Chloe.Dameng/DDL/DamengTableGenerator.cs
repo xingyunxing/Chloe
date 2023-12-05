@@ -43,6 +43,12 @@ namespace Chloe.Dameng.DDL
                 c = ",";
             }
 
+            if (typeDescriptor.PrimaryKeys.Count > 0)
+            {
+                sb.AppendLine(c);
+                sb.Append($"  PRIMARY KEY ({string.Join(",", typeDescriptor.PrimaryKeys.Select(c => Utils.QuoteName(c.Column.Name)))})");
+            }
+
             sb.AppendLine();
             sb.Append(")';");
             sb.AppendLine();
@@ -65,19 +71,13 @@ namespace Chloe.Dameng.DDL
                 part += " IDENTITY";
             }
 
-            if (!propertyDescriptor.IsPrimaryKey)
+            if (!propertyDescriptor.IsNullable || propertyDescriptor.IsPrimaryKey)
             {
-                if (!propertyDescriptor.IsNullable)
-                {
-                    part += " NOT NULL";
-                }
-                else
-                {
-                    part += " NULL";
-                }
+                part += " NOT NULL";
             }
             else
             {
+                part += " NULL";
             }
 
             return part;
@@ -107,7 +107,10 @@ namespace Chloe.Dameng.DDL
                 {
                     stringLength = propertyDescriptor.Column.Size ?? this.Options.DefaultStringLength;
                 }
-
+                if (stringLength == int.MaxValue)
+                {
+                    return "TEXT";
+                }
                 return $"VARCHAR({stringLength})";
             }
 
