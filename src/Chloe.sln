@@ -32,6 +32,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{808B845C
 	ProjectSection(SolutionItems) = preProject
 		tools\Chloe.Dameng.nuspec = tools\Chloe.Dameng.nuspec
 		tools\Chloe.Extension.nuspec = tools\Chloe.Extension.nuspec
+		tools\Chloe.KingbaseES.nuspec = tools\Chloe.KingbaseES.nuspec
 		tools\Chloe.MySql.nuspec = tools\Chloe.MySql.nuspec
 		tools\Chloe.nuspec = tools\Chloe.nuspec
 		tools\Chloe.Oracle.nuspec = tools\Chloe.Oracle.nuspec

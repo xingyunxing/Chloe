@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package >
 	<metadata>
-		<id>Chloe.Dameng</id>
+		<id>Chloe.KingbaseES</id>
 		<version>5.17.0</version>
-		<title>Chloe.Dameng</title>
+		<title>Chloe.KingbaseES</title>
 		<authors>Chloe.ORM contributors</authors>
 		<owners>Chloe.ORM contributors</owners>
 		<licenseUrl>https://github.com/shuxinqin/Chloe/blob/master/LICENSE</licenseUrl>
@@ -14,7 +14,7 @@
 			A lightweight and high-performance Object/Relational Mapping(ORM) library.
 		</description>
 		<copyright>Copyright 2016-2023</copyright>
-		<tags>Chloe,ORM,Data,Dameng,.NET Core</tags>
+		<tags>Chloe,ORM,Data,KingbaseES,.NET Core</tags>
 
 		<dependencies>
 			<group targetFramework="net46">
@@ -37,16 +37,16 @@
 	</metadata>
 
 	<files>
-		<file src="..\Chloe.Dameng\bin\Release\net46\Chloe.Dameng.dll" target="lib\net46" />
-		<file src="..\Chloe.Dameng\bin\Release\net46\Chloe.Dameng.xml" target="lib\net46" />
+		<file src="..\Chloe.KingbaseES\bin\Release\net46\Chloe.KingbaseES.dll" target="lib\net46" />
+		<file src="..\Chloe.KingbaseES\bin\Release\net46\Chloe.KingbaseES.xml" target="lib\net46" />
 
-		<file src="..\Chloe.Dameng\bin\Release\netstandard2.0\Chloe.Dameng.dll" target="lib\netstandard2.0"></file>
-		<file src="..\Chloe.Dameng\bin\Release\netstandard2.0\Chloe.Dameng.xml" target="lib\netstandard2.0"></file>
+		<file src="..\Chloe.KingbaseES\bin\Release\netstandard2.0\Chloe.KingbaseES.dll" target="lib\netstandard2.0"></file>
+		<file src="..\Chloe.KingbaseES\bin\Release\netstandard2.0\Chloe.KingbaseES.xml" target="lib\netstandard2.0"></file>
 
-		<file src="..\Chloe.Dameng\bin\Release\net5.0\Chloe.Dameng.dll" target="lib\net5.0"></file>
-		<file src="..\Chloe.Dameng\bin\Release\net5.0\Chloe.Dameng.xml" target="lib\net5.0"></file>
+		<file src="..\Chloe.KingbaseES\bin\Release\net5.0\Chloe.KingbaseES.dll" target="lib\net5.0"></file>
+		<file src="..\Chloe.KingbaseES\bin\Release\net5.0\Chloe.KingbaseES.xml" target="lib\net5.0"></file>
 
-		<file src="..\Chloe.Dameng\bin\Release\net8.0\Chloe.Dameng.dll" target="lib\net8.0"></file>
-		<file src="..\Chloe.Dameng\bin\Release\net8.0\Chloe.Dameng.xml" target="lib\net8.0"></file>
+		<file src="..\Chloe.KingbaseES\bin\Release\net8.0\Chloe.KingbaseES.dll" target="lib\net8.0"></file>
+		<file src="..\Chloe.KingbaseES\bin\Release\net8.0\Chloe.KingbaseES.xml" target="lib\net8.0"></file>
 	</files>
 </package>
