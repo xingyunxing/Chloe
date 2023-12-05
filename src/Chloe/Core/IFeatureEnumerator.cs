@@ -127,7 +127,10 @@ namespace Chloe
             if (this._enumerator is IEnumerator<T> enumerator)
             {
                 bool hasNext = enumerator.MoveNext();
-                this._current = enumerator.Current;
+                if (hasNext)
+                    this._current = enumerator.Current;
+                else
+                    this._current = default;
 
                 return hasNext;
             }
@@ -140,7 +143,10 @@ namespace Chloe
             if (this._enumerator is IAsyncEnumerator<T> enumerator)
             {
                 bool hasNext = await enumerator.MoveNextAsync();
-                this._current = enumerator.Current;
+                if (hasNext)
+                    this._current = enumerator.Current;
+                else
+                    this._current = default;
 
                 return hasNext;
             }
@@ -231,7 +237,10 @@ namespace Chloe
             if (this._enumerator is IEnumerator enumerator)
             {
                 bool hasNext = enumerator.MoveNext();
-                this._current = enumerator.Current;
+                if (hasNext)
+                    this._current = enumerator.Current;
+                else
+                    this._current = default;
 
                 return hasNext;
             }
@@ -246,7 +255,10 @@ namespace Chloe
                 BoolResultTask task = (BoolResultTask)this._moveNextAsyncInvoker(this._enumerator);
 
                 bool hasNext = await task;
-                this._current = this._getCurrentGetter(this._enumerator);
+                if (hasNext)
+                    this._current = this._getCurrentGetter(this._enumerator);
+                else
+                    this._current = default;
 
                 return hasNext;
             }

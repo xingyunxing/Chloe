@@ -31,6 +31,7 @@ namespace Chloe.Sharding
 
         class Enumerator : IFeatureEnumerator<T>
         {
+            bool _disposed = false;
             ParallelMergeEnumerable<T> _enumerable;
             CancellationToken _cancellationToken;
 
@@ -58,6 +59,9 @@ namespace Chloe.Sharding
             }
             async ValueTask Dispose(bool @async)
             {
+                if (this._disposed)
+                    return;
+
                 if (this._queue != null)
                 {
                     foreach (var enumerator in this._queue)
@@ -67,6 +71,7 @@ namespace Chloe.Sharding
                 }
 
                 this._enumerable._queryContext.Dispose();
+                this._disposed = true;
             }
 
             public bool MoveNext()
