@@ -219,18 +219,18 @@ namespace Chloe.Data
 
         void ExecuteDbCommandInterceptors(Action<IDbCommandInterceptor> act)
         {
-            IDbCommandInterceptor[] globalInterceptors = this.GlobalInterceptors;
-            for (int i = 0; i < globalInterceptors.Length; i++)
-            {
-                act(globalInterceptors[i]);
-            }
-
             if (this._sessionInterceptors != null)
             {
                 for (int i = 0; i < this._sessionInterceptors.Count; i++)
                 {
                     act(this._sessionInterceptors[i]);
                 }
+            }
+
+            IDbCommandInterceptor[] globalInterceptors = this.GlobalInterceptors;
+            for (int i = 0; i < globalInterceptors.Length; i++)
+            {
+                act(globalInterceptors[i]);
             }
         }
         #endregion
