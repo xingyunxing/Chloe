@@ -1,12 +1,15 @@
-﻿using System;
-using System.Linq.Expressions;
-using System.Reflection;
+﻿using System.Linq.Expressions;
 
 namespace Chloe.Entity
 {
     public class EntityTypeBuilder<TEntity> : EntityTypeBuilder, IEntityTypeBuilder<TEntity>, IEntityTypeBuilder
     {
-        public EntityTypeBuilder() : base(typeof(TEntity))
+        public EntityTypeBuilder() : this(false)
+        {
+
+        }
+
+        public EntityTypeBuilder(bool useAnnotationMapping) : base(typeof(TEntity), useAnnotationMapping)
         {
 
         }
