@@ -153,6 +153,20 @@ namespace Chloe
             PrimitivePropertyDescriptor firstIgnoreProperty = null;
             object firstIgnorePropertyValue = null;
 
+            Func<object, bool> canIgnoreInsert = value =>
+            {
+                if (ignoreNullValueInsert && value == null)
+                {
+                    return true;
+                }
+                if (ignoreEmptyStringValueInsert && string.Empty.Equals(value))
+                {
+                    return true;
+                }
+
+                return false;
+            };
+
             Dictionary<PrimitivePropertyDescriptor, DbExpression> insertColumns = new Dictionary<PrimitivePropertyDescriptor, DbExpression>();
             foreach (PrimitivePropertyDescriptor propertyDescriptor in typeDescriptor.PrimitivePropertyDescriptors)
             {
@@ -168,17 +182,7 @@ namespace Chloe
 
                 PublicHelper.NotNullCheck(propertyDescriptor, val);
 
-                if (ignoreNullValueInsert && val == null)
-                {
-                    if (firstIgnoreProperty == null)
-                    {
-                        firstIgnoreProperty = propertyDescriptor;
-                        firstIgnorePropertyValue = val;
-                    }
-
-                    continue;
-                }
-                if (ignoreEmptyStringValueInsert && string.Empty.Equals(val))
+                if (canIgnoreInsert(val))
                 {
                     if (firstIgnoreProperty == null)
                     {

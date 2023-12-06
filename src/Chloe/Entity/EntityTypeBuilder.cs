@@ -8,11 +8,11 @@ namespace Chloe.Entity
 {
     public class EntityTypeBuilder : IEntityTypeBuilder
     {
-        public EntityTypeBuilder(Type type, bool useAnnotationMapping)
+        public EntityTypeBuilder(Type type, bool initializeWithAnnotationMapping)
         {
             this.EntityType = new EntityType(type);
 
-            if (useAnnotationMapping)
+            if (initializeWithAnnotationMapping)
             {
                 this.ConfigureTableMapping();
                 this.ConfigureColumnMapping();
