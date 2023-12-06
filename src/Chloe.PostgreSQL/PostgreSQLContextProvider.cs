@@ -27,15 +27,12 @@ namespace Chloe.PostgreSQL
 
         }
 
-        public PostgreSQLContextProvider(PostgreSQLOptions options)
+        public PostgreSQLContextProvider(PostgreSQLOptions options) : base(options)
         {
-            PublicHelper.CheckNull(options, nameof(options));
-
-            this.Options = options;
             this._databaseProvider = new DatabaseProvider(this);
         }
 
-        public PostgreSQLOptions Options { get; private set; }
+        public new PostgreSQLOptions Options { get { return base.Options as PostgreSQLOptions; } }
         public override IDatabaseProvider DatabaseProvider
         {
             get { return this._databaseProvider; }
@@ -97,6 +94,11 @@ namespace Chloe.PostgreSQL
 
             Dictionary<PrimitivePropertyDescriptor, object> keyValueMap = PrimaryKeyHelper.CreateKeyValueMap(typeDescriptor);
 
+            bool ignoreNullValueInsert = (this.Options.InsertStrategy & InsertStrategy.IgnoreNull) == InsertStrategy.IgnoreNull;
+            bool ignoreEmptyStringValueInsert = (this.Options.InsertStrategy & InsertStrategy.IgnoreEmptyString) == InsertStrategy.IgnoreEmptyString;
+            PrimitivePropertyDescriptor firstIgnoreProperty = null;
+            object firstIgnorePropertyValue = null;
+
             Dictionary<PrimitivePropertyDescriptor, DbExpression> insertColumns = new Dictionary<PrimitivePropertyDescriptor, DbExpression>();
             foreach (PrimitivePropertyDescriptor propertyDescriptor in typeDescriptor.PrimitivePropertyDescriptors)
             {
@@ -119,8 +121,35 @@ namespace Chloe.PostgreSQL
                     keyValueMap[propertyDescriptor] = val;
                 }
 
+                if (ignoreNullValueInsert && val == null)
+                {
+                    if (firstIgnoreProperty == null)
+                    {
+                        firstIgnoreProperty = propertyDescriptor;
+                        firstIgnorePropertyValue = val;
+                    }
+
+                    continue;
+                }
+                if (ignoreEmptyStringValueInsert && string.Empty.Equals(val))
+                {
+                    if (firstIgnoreProperty == null)
+                    {
+                        firstIgnoreProperty = propertyDescriptor;
+                        firstIgnorePropertyValue = val;
+                    }
+
+                    continue;
+                }
+
                 DbParameterExpression valExp = DbExpression.Parameter(val, propertyDescriptor.PropertyType, propertyDescriptor.Column.DbType);
                 insertColumns.Add(propertyDescriptor, valExp);
+            }
+
+            if (insertColumns.Count == 0 && firstIgnoreProperty != null)
+            {
+                DbExpression valExp = DbExpression.Parameter(firstIgnorePropertyValue, firstIgnoreProperty.PropertyType, firstIgnoreProperty.Column.DbType);
+                insertColumns.Add(firstIgnoreProperty, valExp);
             }
 
             PrimitivePropertyDescriptor nullValueKey = keyValueMap.Where(a => a.Value == null && !a.Key.IsAutoIncrement).Select(a => a.Key).FirstOrDefault();

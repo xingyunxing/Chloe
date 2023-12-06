@@ -22,15 +22,12 @@ namespace Chloe.Dameng
 
         }
 
-        public DamengContextProvider(DamengOptions options)
+        public DamengContextProvider(DamengOptions options) : base(options)
         {
-            PublicHelper.CheckNull(options, nameof(options));
-
-            this.Options = options;
             this._databaseProvider = new DatabaseProvider(this);
         }
 
-        public DamengOptions Options { get; private set; }
+        public new DamengOptions Options { get { return base.Options as DamengOptions; } }
 
         /// <summary>
         /// 设置属性解析器。

@@ -27,15 +27,12 @@ namespace Chloe.Oracle
 
         }
 
-        public OracleContextProvider(OracleOptions options)
+        public OracleContextProvider(OracleOptions options) : base(options)
         {
-            PublicHelper.CheckNull(options, nameof(options));
-
-            this.Options = options;
             this._databaseProvider = new DatabaseProvider(this);
         }
 
-        public OracleOptions Options { get; private set; }
+        public new OracleOptions Options { get { return base.Options as OracleOptions; } }
         public override IDatabaseProvider DatabaseProvider
         {
             get { return this._databaseProvider; }
@@ -94,6 +91,11 @@ namespace Chloe.Oracle
 
             DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
 
+            bool ignoreNullValueInsert = (this.Options.InsertStrategy & InsertStrategy.IgnoreNull) == InsertStrategy.IgnoreNull;
+            bool ignoreEmptyStringValueInsert = (this.Options.InsertStrategy & InsertStrategy.IgnoreEmptyString) == InsertStrategy.IgnoreEmptyString;
+            PrimitivePropertyDescriptor firstIgnoreProperty = null;
+            object firstIgnorePropertyValue = null;
+
             List<PrimitivePropertyDescriptor> outputColumns = new List<PrimitivePropertyDescriptor>();
             Dictionary<PrimitivePropertyDescriptor, DbExpression> insertColumns = new Dictionary<PrimitivePropertyDescriptor, DbExpression>();
             foreach (PrimitivePropertyDescriptor propertyDescriptor in typeDescriptor.PrimitivePropertyDescriptors)
@@ -116,8 +118,35 @@ namespace Chloe.Oracle
 
                 PublicHelper.NotNullCheck(propertyDescriptor, val);
 
-                DbExpression valExp = DbExpression.Parameter(val, propertyDescriptor.PropertyType, propertyDescriptor.Column.DbType);
+                if (ignoreNullValueInsert && val == null)
+                {
+                    if (firstIgnoreProperty == null)
+                    {
+                        firstIgnoreProperty = propertyDescriptor;
+                        firstIgnorePropertyValue = val;
+                    }
+
+                    continue;
+                }
+                if (ignoreEmptyStringValueInsert && string.Empty.Equals(val))
+                {
+                    if (firstIgnoreProperty == null)
+                    {
+                        firstIgnoreProperty = propertyDescriptor;
+                        firstIgnorePropertyValue = val;
+                    }
+
+                    continue;
+                }
+
+                DbParameterExpression valExp = DbExpression.Parameter(val, propertyDescriptor.PropertyType, propertyDescriptor.Column.DbType);
                 insertColumns.Add(propertyDescriptor, valExp);
+            }
+
+            if (insertColumns.Count == 0 && firstIgnoreProperty != null)
+            {
+                DbExpression valExp = DbExpression.Parameter(firstIgnorePropertyValue, firstIgnoreProperty.PropertyType, firstIgnoreProperty.Column.DbType);
+                insertColumns.Add(firstIgnoreProperty, valExp);
             }
 
             DbInsertExpression e = new DbInsertExpression(dbTable);

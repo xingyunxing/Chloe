@@ -27,15 +27,12 @@ namespace Chloe.MySql
 
         }
 
-        public MySqlContextProvider(MySqlOptions options)
+        public MySqlContextProvider(MySqlOptions options) : base(options)
         {
-            PublicHelper.CheckNull(options, nameof(options));
-
-            this.Options = options;
             this._databaseProvider = new DatabaseProvider(this);
         }
 
-        public MySqlOptions Options { get; private set; }
+        public new MySqlOptions Options { get { return base.Options as MySqlOptions; } }
 
 
         /// <summary>

@@ -21,15 +21,12 @@ namespace Chloe.KingbaseES
 
         }
 
-        public KingbaseESContextProvider(KingbaseESOptions options)
+        public KingbaseESContextProvider(KingbaseESOptions options) : base(options)
         {
-            PublicHelper.CheckNull(options, nameof(options));
-
-            this.Options = options;
             this._databaseProvider = new DatabaseProvider(this);
         }
 
-        public KingbaseESOptions Options { get; private set; }
+        public new KingbaseESOptions Options { get { return base.Options as KingbaseESOptions; } }
         public override IDatabaseProvider DatabaseProvider
         {
             get { return this._databaseProvider; }

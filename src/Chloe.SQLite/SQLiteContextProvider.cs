@@ -22,15 +22,12 @@ namespace Chloe.SQLite
 
         }
 
-        public SQLiteContextProvider(SQLiteOptions options)
+        public SQLiteContextProvider(SQLiteOptions options) : base(options)
         {
-            PublicHelper.CheckNull(options, nameof(options));
-
-            this.Options = options;
             this._databaseProvider = new DatabaseProvider(this);
         }
 
-        public SQLiteOptions Options { get; private set; }
+        public new SQLiteOptions Options { get { return base.Options as SQLiteOptions; } }
         public override IDatabaseProvider DatabaseProvider
         {
             get { return this._databaseProvider; }

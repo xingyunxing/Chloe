@@ -655,6 +655,32 @@ namespace ChloeDemo
                INSERT INTO [Person]([Name],[Gender],[Age],[CityId],[CreateTime]) VALUES(@P_0,@P_1,@P_2,@P_3,@P_4);SELECT LAST_INSERT_ROWID()
              */
 
+
+            //实体插入
+            person = new Person();
+            person.Name = "";
+            person.Age = 18;
+            person.Gender = Gender.Female;
+            person.CityId = 1;
+            person.CreateTime = DateTime.Now;
+
+            //null 和字符串空值不参与插入
+            (this.DbContext as DbContext).Options.InsertStrategy = InsertStrategy.IgnoreNull | InsertStrategy.IgnoreEmptyString;
+
+            //插入时 null 和空字符串属性不参与插入
+            person = this.DbContext.Insert(person);
+            /*
+             * Input Int32 @P_0 = 2;
+               Input Int32 @P_1 = 18;
+               Input Int32 @P_2 = 1;
+               Input DateTime @P_3 = '2023/12/7 1:09:08';
+               Input Int32 @P_4 = 0;
+               INSERT INTO [Person]([Gender],[Age],[CityId],[CreateTime],[RowVersion]) VALUES(@P_0,@P_1,@P_2,@P_3,@P_4);SELECT LAST_INSERT_ROWID()
+             */
+
+            person = this.DbContext.Query<Person>().Where(a => a.Id == person.Id).First();
+            Debug.Assert(person.Name == null && person.EditTime == null);
+
             ConsoleHelper.WriteLineAndReadKey();
         }
         public virtual void Update()

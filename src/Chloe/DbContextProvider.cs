@@ -21,8 +21,20 @@ namespace Chloe
         InnerAdoSession _adoSession;
         DbSessionProvider _session;
         Dictionary<Type, List<LambdaExpression>> _queryFilters = new Dictionary<Type, List<LambdaExpression>>();
-
         TrackingEntityContainer _trackingEntityContainer;
+
+        protected DbContextProvider(DbOptions options)
+        {
+            PublicHelper.CheckNull(options, nameof(options));
+
+            this.Options = options;
+            this._session = new DbSessionProvider(this);
+        }
+
+        public DbOptions Options { get; private set; }
+
+        public IDbSessionProvider Session { get { return this._session; } }
+
         TrackingEntityContainer TrackingEntityContainer
         {
             get
@@ -37,6 +49,7 @@ namespace Chloe
         }
 
         internal Dictionary<Type, List<LambdaExpression>> QueryFilters { get { return this._queryFilters; } }
+
         internal InnerAdoSession AdoSession
         {
             get
@@ -47,14 +60,8 @@ namespace Chloe
                 return this._adoSession;
             }
         }
+
         public abstract IDatabaseProvider DatabaseProvider { get; }
-
-        protected DbContextProvider()
-        {
-            this._session = new DbSessionProvider(this);
-        }
-
-        public IDbSessionProvider Session { get { return this._session; } }
 
         public void HasQueryFilter<TEntity>(Expression<Func<TEntity, bool>> filter)
         {
@@ -141,6 +148,11 @@ namespace Chloe
 
             Dictionary<PrimitivePropertyDescriptor, object> keyValueMap = PrimaryKeyHelper.CreateKeyValueMap(typeDescriptor);
 
+            bool ignoreNullValueInsert = (this.Options.InsertStrategy & InsertStrategy.IgnoreNull) == InsertStrategy.IgnoreNull;
+            bool ignoreEmptyStringValueInsert = (this.Options.InsertStrategy & InsertStrategy.IgnoreEmptyString) == InsertStrategy.IgnoreEmptyString;
+            PrimitivePropertyDescriptor firstIgnoreProperty = null;
+            object firstIgnorePropertyValue = null;
+
             Dictionary<PrimitivePropertyDescriptor, DbExpression> insertColumns = new Dictionary<PrimitivePropertyDescriptor, DbExpression>();
             foreach (PrimitivePropertyDescriptor propertyDescriptor in typeDescriptor.PrimitivePropertyDescriptors)
             {
@@ -156,8 +168,35 @@ namespace Chloe
 
                 PublicHelper.NotNullCheck(propertyDescriptor, val);
 
+                if (ignoreNullValueInsert && val == null)
+                {
+                    if (firstIgnoreProperty == null)
+                    {
+                        firstIgnoreProperty = propertyDescriptor;
+                        firstIgnorePropertyValue = val;
+                    }
+
+                    continue;
+                }
+                if (ignoreEmptyStringValueInsert && string.Empty.Equals(val))
+                {
+                    if (firstIgnoreProperty == null)
+                    {
+                        firstIgnoreProperty = propertyDescriptor;
+                        firstIgnorePropertyValue = val;
+                    }
+
+                    continue;
+                }
+
                 DbParameterExpression valExp = DbExpression.Parameter(val, propertyDescriptor.PropertyType, propertyDescriptor.Column.DbType);
                 insertColumns.Add(propertyDescriptor, valExp);
+            }
+
+            if (insertColumns.Count == 0 && firstIgnoreProperty != null)
+            {
+                DbExpression valExp = DbExpression.Parameter(firstIgnorePropertyValue, firstIgnoreProperty.PropertyType, firstIgnoreProperty.Column.DbType);
+                insertColumns.Add(firstIgnoreProperty, valExp);
             }
 
             PrimitivePropertyDescriptor nullValueKey = keyValueMap.Where(a => a.Value == null && !a.Key.IsAutoIncrement).Select(a => a.Key).FirstOrDefault();
