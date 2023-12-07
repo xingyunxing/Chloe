@@ -3,17 +3,21 @@ using System.Reflection;
 
 namespace Chloe.Visitors
 {
-    public class InitMemberExtractor : ExpressionVisitor<Dictionary<MemberInfo, Expression>>
+    public class InitMemberExtractor : ExpressionVisitor<List<KeyValuePair<MemberInfo, Expression>>>
     {
         static readonly InitMemberExtractor _extractor = new InitMemberExtractor();
+
         InitMemberExtractor()
         {
+
         }
-        public static Dictionary<MemberInfo, Expression> Extract(Expression exp)
+
+        public static List<KeyValuePair<MemberInfo, Expression>> Extract(Expression exp)
         {
             return _extractor.Visit(exp);
         }
-        public override Dictionary<MemberInfo, Expression> Visit(Expression exp)
+
+        public override List<KeyValuePair<MemberInfo, Expression>> Visit(Expression exp)
         {
             if (exp == null)
                 return null;
@@ -28,13 +32,13 @@ namespace Chloe.Visitors
                     throw new Exception(string.Format("Unhandled expression type: '{0}'", exp.NodeType));
             }
         }
-        protected override Dictionary<MemberInfo, Expression> VisitLambda(LambdaExpression exp)
+        protected override List<KeyValuePair<MemberInfo, Expression>> VisitLambda(LambdaExpression exp)
         {
             return this.Visit(exp.Body);
         }
-        protected override Dictionary<MemberInfo, Expression> VisitMemberInit(MemberInitExpression exp)
+        protected override List<KeyValuePair<MemberInfo, Expression>> VisitMemberInit(MemberInitExpression exp)
         {
-            Dictionary<MemberInfo, Expression> ret = new Dictionary<MemberInfo, Expression>(exp.Bindings.Count);
+            List<KeyValuePair<MemberInfo, Expression>> ret = new List<KeyValuePair<MemberInfo, Expression>>(exp.Bindings.Count);
 
             foreach (MemberBinding binding in exp.Bindings)
             {
@@ -46,7 +50,7 @@ namespace Chloe.Visitors
                 MemberAssignment memberAssignment = (MemberAssignment)binding;
                 MemberInfo member = memberAssignment.Member;
 
-                ret.Add(member, memberAssignment.Expression);
+                ret.Add(new KeyValuePair<MemberInfo, Expression>(member, memberAssignment.Expression));
             }
 
             return ret;

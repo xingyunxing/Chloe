@@ -192,7 +192,7 @@ namespace Chloe.PostgreSQL
 
             PrimitivePropertyDescriptor keyPropertyDescriptor = typeDescriptor.PrimaryKeys.FirstOrDefault();
 
-            Dictionary<MemberInfo, Expression> insertColumns = InitMemberExtractor.Extract(content);
+            List<KeyValuePair<MemberInfo, Expression>> insertColumns = InitMemberExtractor.Extract(content);
 
             DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
 

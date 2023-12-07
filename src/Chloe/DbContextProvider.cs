@@ -246,7 +246,7 @@ namespace Chloe
 
             PrimitivePropertyDescriptor keyPropertyDescriptor = typeDescriptor.PrimaryKeys.FirstOrDefault();
 
-            Dictionary<MemberInfo, Expression> insertColumns = InitMemberExtractor.Extract(content);
+            List<KeyValuePair<MemberInfo, Expression>> insertColumns = InitMemberExtractor.Extract(content);
 
             DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
             DefaultExpressionParser expressionParser = typeDescriptor.GetExpressionParser(dbTable);
@@ -408,7 +408,7 @@ namespace Chloe
 
             TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(TEntity));
 
-            Dictionary<MemberInfo, Expression> updateColumns = InitMemberExtractor.Extract(content);
+            List<KeyValuePair<MemberInfo, Expression>> updateColumns = InitMemberExtractor.Extract(content);
 
             DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
             DbUpdateExpression updateExpression = new DbUpdateExpression(dbTable);

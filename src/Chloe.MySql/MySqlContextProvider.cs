@@ -253,7 +253,7 @@ namespace Chloe.MySql
 
             TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(TEntity));
 
-            Dictionary<MemberInfo, Expression> updateColumns = InitMemberExtractor.Extract(content);
+            List<KeyValuePair<MemberInfo, Expression>> updateColumns = InitMemberExtractor.Extract(content);
 
             DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
             DbExpression conditionExp = FilterPredicateParser.Parse(condition, typeDescriptor, dbTable);

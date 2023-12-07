@@ -119,7 +119,7 @@ namespace Chloe.Sharding
 
             IShardingContext shardingContext = this.CreateShardingContext(typeof(TEntity));
 
-            Dictionary<MemberInfo, Expression> insertColumns = InitMemberExtractor.Extract(content);
+            List<KeyValuePair<MemberInfo, Expression>> insertColumns = InitMemberExtractor.Extract(content);
 
             List<ShardingKey> shardingKeys = this.GetShardingKeys(shardingContext.ShardingConfig, insertColumns);
 
@@ -133,7 +133,7 @@ namespace Chloe.Sharding
 
             return persistedDbContextProvider.Insert<TEntity>(content, routeTable.Name);
         }
-        List<ShardingKey> GetShardingKeys(IShardingConfig shardingConfig, Dictionary<MemberInfo, Expression> insertColumns)
+        List<ShardingKey> GetShardingKeys(IShardingConfig shardingConfig, List<KeyValuePair<MemberInfo, Expression>> insertColumns)
         {
             List<ShardingKey> shardingKeys = new List<ShardingKey>(shardingConfig.ShardingKeys.Count);
 
@@ -141,7 +141,7 @@ namespace Chloe.Sharding
             {
                 MemberInfo shardingKeyMember = shardingConfig.ShardingKeys[i];
 
-                var shardingKeyExp = insertColumns.FindValue(shardingKeyMember);
+                var shardingKeyExp = insertColumns.Where(a => a.Key == shardingKeyMember).Select(a => a.Value).FirstOrDefault();
                 if (shardingKeyExp == null)
                 {
                     throw new ArgumentException($"Sharding key not found from content.");
