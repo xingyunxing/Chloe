@@ -91,8 +91,8 @@ namespace Chloe.Oracle
 
             bool ignoreNullValueInsert = (this.Options.InsertStrategy & InsertStrategy.IgnoreNull) == InsertStrategy.IgnoreNull;
             bool ignoreEmptyStringValueInsert = (this.Options.InsertStrategy & InsertStrategy.IgnoreEmptyString) == InsertStrategy.IgnoreEmptyString;
-            PrimitivePropertyDescriptor firstIgnoreProperty = null;
-            object firstIgnorePropertyValue = null;
+            PrimitivePropertyDescriptor firstIgnoredProperty = null;
+            object firstIgnoredPropertyValue = null;
 
             Func<object, bool> canIgnoreInsert = value =>
             {
@@ -135,10 +135,10 @@ namespace Chloe.Oracle
 
                 if (canIgnoreInsert(val))
                 {
-                    if (firstIgnoreProperty == null)
+                    if (firstIgnoredProperty == null)
                     {
-                        firstIgnoreProperty = propertyDescriptor;
-                        firstIgnorePropertyValue = val;
+                        firstIgnoredProperty = propertyDescriptor;
+                        firstIgnoredPropertyValue = val;
                     }
 
                     continue;
@@ -148,10 +148,10 @@ namespace Chloe.Oracle
                 insertExpression.AppendInsertColumn(propertyDescriptor.Column, valExp);
             }
 
-            if (insertExpression.InsertColumns.Count == 0 && firstIgnoreProperty != null)
+            if (insertExpression.InsertColumns.Count == 0 && firstIgnoredProperty != null)
             {
-                DbExpression valExp = DbExpression.Parameter(firstIgnorePropertyValue, firstIgnoreProperty.PropertyType, firstIgnoreProperty.Column.DbType);
-                insertExpression.AppendInsertColumn(firstIgnoreProperty.Column, valExp);
+                DbExpression valExp = DbExpression.Parameter(firstIgnoredPropertyValue, firstIgnoredProperty.PropertyType, firstIgnoredProperty.Column.DbType);
+                insertExpression.AppendInsertColumn(firstIgnoredProperty.Column, valExp);
             }
 
             insertExpression.Returns.AddRange(outputColumns.Select(a => a.Column));

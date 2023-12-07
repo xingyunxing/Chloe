@@ -17,21 +17,34 @@ namespace Chloe.Query
     {
         HashSet<MemberInfo> _excludedFields = null;
 
-        public ComplexObjectModel(Type objectType) : this(GetDefaultConstructor(objectType))
+        public ComplexObjectModel(Type objectType) : this(GetDefaultConstructor(objectType), 0)
         {
         }
 
-        public ComplexObjectModel(ConstructorInfo constructor) : this(ConstructorDescriptor.GetInstance(constructor))
+        public ComplexObjectModel(Type objectType, int primitiveMemberCount) : this(GetDefaultConstructor(objectType), primitiveMemberCount)
         {
         }
 
-        public ComplexObjectModel(ConstructorDescriptor constructorDescriptor)
+        public ComplexObjectModel(ConstructorInfo constructor) : this(ConstructorDescriptor.GetInstance(constructor), 0)
+        {
+        }
+
+        public ComplexObjectModel(ConstructorInfo constructor, int primitiveMemberCount) : this(ConstructorDescriptor.GetInstance(constructor), primitiveMemberCount)
+        {
+        }
+
+        public ComplexObjectModel(ConstructorDescriptor constructorDescriptor) : this(constructorDescriptor, 0)
+        {
+
+        }
+
+        public ComplexObjectModel(ConstructorDescriptor constructorDescriptor, int primitiveMemberCount)
         {
             this.ObjectType = constructorDescriptor.ConstructorInfo.DeclaringType;
             this.ConstructorDescriptor = constructorDescriptor;
             this.PrimitiveConstructorParameters = new Dictionary<ParameterInfo, DbExpression>();
             this.ComplexConstructorParameters = new Dictionary<ParameterInfo, ComplexObjectModel>();
-            this.PrimitiveMembers = new Dictionary<MemberInfo, DbExpression>();
+            this.PrimitiveMembers = new Dictionary<MemberInfo, DbExpression>(primitiveMemberCount);
             this.ComplexMembers = new Dictionary<MemberInfo, ComplexObjectModel>();
             this.CollectionMembers = new Dictionary<MemberInfo, CollectionObjectModel>();
         }
@@ -308,7 +321,7 @@ namespace Chloe.Query
 
         public IObjectModel ToNewObjectModel(DbSqlQueryExpression sqlQuery, DbTable table, DbMainTableExpression dependentTable, bool ignoreFilters)
         {
-            ComplexObjectModel newModel = new ComplexObjectModel(this.ConstructorDescriptor);
+            ComplexObjectModel newModel = new ComplexObjectModel(this.ConstructorDescriptor, this.PrimitiveMembers.Count);
             newModel.DependentTable = dependentTable;
             newModel.IncludeCollections.AppendRange(this.IncludeCollections);
 

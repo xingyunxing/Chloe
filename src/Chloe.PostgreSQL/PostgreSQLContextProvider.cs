@@ -92,8 +92,8 @@ namespace Chloe.PostgreSQL
 
             bool ignoreNullValueInsert = (this.Options.InsertStrategy & InsertStrategy.IgnoreNull) == InsertStrategy.IgnoreNull;
             bool ignoreEmptyStringValueInsert = (this.Options.InsertStrategy & InsertStrategy.IgnoreEmptyString) == InsertStrategy.IgnoreEmptyString;
-            PrimitivePropertyDescriptor firstIgnoreProperty = null;
-            object firstIgnorePropertyValue = null;
+            PrimitivePropertyDescriptor firstIgnoredProperty = null;
+            object firstIgnoredPropertyValue = null;
 
             Func<object, bool> canIgnoreInsert = value =>
             {
@@ -131,10 +131,10 @@ namespace Chloe.PostgreSQL
 
                 if (canIgnoreInsert(val))
                 {
-                    if (firstIgnoreProperty == null)
+                    if (firstIgnoredProperty == null)
                     {
-                        firstIgnoreProperty = propertyDescriptor;
-                        firstIgnorePropertyValue = val;
+                        firstIgnoredProperty = propertyDescriptor;
+                        firstIgnoredPropertyValue = val;
                     }
 
                     continue;
@@ -144,10 +144,10 @@ namespace Chloe.PostgreSQL
                 insertExpression.AppendInsertColumn(propertyDescriptor.Column, valExp);
             }
 
-            if (insertExpression.InsertColumns.Count == 0 && firstIgnoreProperty != null)
+            if (insertExpression.InsertColumns.Count == 0 && firstIgnoredProperty != null)
             {
-                DbExpression valExp = DbExpression.Parameter(firstIgnorePropertyValue, firstIgnoreProperty.PropertyType, firstIgnoreProperty.Column.DbType);
-                insertExpression.AppendInsertColumn(firstIgnoreProperty.Column, valExp);
+                DbExpression valExp = DbExpression.Parameter(firstIgnoredPropertyValue, firstIgnoredProperty.PropertyType, firstIgnoredProperty.Column.DbType);
+                insertExpression.AppendInsertColumn(firstIgnoredProperty.Column, valExp);
             }
 
             List<Action<TEntity, IDataReader>> mappers = new List<Action<TEntity, IDataReader>>();
