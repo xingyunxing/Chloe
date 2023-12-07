@@ -67,7 +67,7 @@ namespace Chloe.Query
             throw new NotSupportedException();
         }
 
-        public virtual IObjectModel ToNewObjectModel(DbSqlQueryExpression sqlQuery, DbTable table, DbMainTableExpression dependentTable, bool ignoreFilters)
+        public virtual IObjectModel ToNewObjectModel(DbSqlQueryExpression sqlQuery, DbTable table, DbMainTableExpression dependentTable)
         {
             throw new NotImplementedException();
         }

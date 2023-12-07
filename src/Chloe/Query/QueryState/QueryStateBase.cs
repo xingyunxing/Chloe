@@ -218,7 +218,7 @@ namespace Chloe.Query.QueryState
             DbTable aliasTable = new DbTable(tableSeg.Alias);
 
             //根据旧的生成新 ResultModel
-            IObjectModel newResultModel = this.QueryModel.ResultModel.ToNewObjectModel(sqlQuery, aliasTable, fromTable, newQueryModel.Options.IgnoreFilters);
+            IObjectModel newResultModel = this.QueryModel.ResultModel.ToNewObjectModel(sqlQuery, aliasTable, fromTable);
             newQueryModel.ResultModel = newResultModel;
 
             //得将 subQuery.SqlQuery.Orders 告诉 以下创建的 result
@@ -293,7 +293,7 @@ namespace Chloe.Query.QueryState
             DbFromTableExpression fromTable = new DbFromTableExpression(tableSeg);
 
             DbTable aliasTable = new DbTable(tableSeg.Alias);
-            IObjectModel newModel = this.QueryModel.ResultModel.ToNewObjectModel(sqlQuery, aliasTable, fromTable, newQueryModel.Options.IgnoreFilters);
+            IObjectModel newModel = this.QueryModel.ResultModel.ToNewObjectModel(sqlQuery, aliasTable, fromTable);
 
             newQueryModel.FromTable = fromTable;
             newQueryModel.ResultModel = newModel;
@@ -310,7 +310,7 @@ namespace Chloe.Query.QueryState
             DbJoinTableExpression joinTable = new DbJoinTableExpression(joinType.AsDbJoinType(), tableSeg);
 
             DbTable aliasTable = new DbTable(tableSeg.Alias);
-            IObjectModel newModel = this.QueryModel.ResultModel.ToNewObjectModel(sqlQuery, aliasTable, joinTable, this.QueryModel.Options.IgnoreFilters);
+            IObjectModel newModel = this.QueryModel.ResultModel.ToNewObjectModel(sqlQuery, aliasTable, joinTable);
 
             scopeParameters[conditionExpression.Parameters[conditionExpression.Parameters.Count - 1]] = newModel;
 

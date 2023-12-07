@@ -322,13 +322,13 @@ namespace Chloe.Query
             return activatorCreator;
         }
 
-        public IObjectModel ToNewObjectModel(DbSqlQueryExpression sqlQuery, DbTable table, DbMainTableExpression dependentTable, bool ignoreFilters)
+        public IObjectModel ToNewObjectModel(DbSqlQueryExpression sqlQuery, DbTable table, DbMainTableExpression dependentTable)
         {
             ComplexObjectModel newModel = new ComplexObjectModel(this.QueryOptions, this.ConstructorDescriptor, this.PrimitiveMembers.Count);
             newModel.DependentTable = dependentTable;
             newModel.IncludeCollections.AppendRange(this.IncludeCollections);
 
-            if (!ignoreFilters)
+            if (!this.QueryOptions.IgnoreFilters)
             {
                 this.SetupFilters();
             }
@@ -354,7 +354,7 @@ namespace Chloe.Query
                 ParameterInfo pi = kv.Key;
                 IObjectModel val = kv.Value;
 
-                ComplexObjectModel complexMemberModel = val.ToNewObjectModel(sqlQuery, table, dependentTable, ignoreFilters) as ComplexObjectModel;
+                ComplexObjectModel complexMemberModel = val.ToNewObjectModel(sqlQuery, table, dependentTable) as ComplexObjectModel;
                 newModel.AddConstructorParameter(pi, complexMemberModel);
             }
 
@@ -385,7 +385,7 @@ namespace Chloe.Query
                 MemberInfo member = kv.Key;
                 IObjectModel val = kv.Value;
 
-                ComplexObjectModel complexMemberModel = val.ToNewObjectModel(sqlQuery, table, dependentTable, ignoreFilters) as ComplexObjectModel;
+                ComplexObjectModel complexMemberModel = val.ToNewObjectModel(sqlQuery, table, dependentTable) as ComplexObjectModel;
                 newModel.AddComplexMember(member, complexMemberModel);
             }
 
