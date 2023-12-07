@@ -66,6 +66,11 @@ namespace Chloe.Sharding.QueryState
             throw new NotSupportedException($"{nameof(IQuery<object>.Include)}");
         }
 
+        public virtual IQueryState Accept(BindTwoWayExpression exp)
+        {
+            throw new NotSupportedException($"{nameof(IQuery<object>.Include)}");
+        }
+
         public virtual IQueryState Accept(ExcludeExpression exp)
         {
             this.QueryModel.ExcludedFields.Add(exp.Field);

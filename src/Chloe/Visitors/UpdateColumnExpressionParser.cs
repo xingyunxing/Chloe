@@ -23,7 +23,7 @@ namespace Chloe.Visitors
 
         public DbExpression Parse(Expression updateColumnExp)
         {
-            ComplexObjectModel objectModel = this._typeDescriptor.GenObjectModel(this._dbTable);
+            ComplexObjectModel objectModel = this._typeDescriptor.GenObjectModel(this._dbTable, new QueryOptions());
             ScopeParameterDictionary scopeParameters = new ScopeParameterDictionary(1);
             scopeParameters.Add(this._parameterExp, objectModel);
 
@@ -41,9 +41,9 @@ namespace Chloe.Visitors
                 return GeneralExpressionParser.Parse(updateColumnExp, scopeParameters, scopeTables);
             }
 
-            public static DbExpression Parse(ParameterExpression parameterExp, Expression updateColumnExp, TypeDescriptor typeDescriptor, DbTable dbTable)
+            public static DbExpression Parse(ParameterExpression parameterExp, Expression updateColumnExp, TypeDescriptor typeDescriptor, DbTable dbTable, QueryOptions queryOptions)
             {
-                ComplexObjectModel objectModel = typeDescriptor.GenObjectModel(dbTable);
+                ComplexObjectModel objectModel = typeDescriptor.GenObjectModel(dbTable, queryOptions);
                 ScopeParameterDictionary scopeParameters = new ScopeParameterDictionary(1);
                 scopeParameters.Add(parameterExp, objectModel);
 

@@ -5,11 +5,15 @@ namespace Chloe.Query
 {
     public class QueryModel
     {
-        public QueryModel(ScopeParameterDictionary scopeParameters, StringSet scopeTables) : this(scopeParameters, scopeTables, false)
+        public QueryModel(ScopeParameterDictionary scopeParameters, StringSet scopeTables) : this(new QueryOptions(), scopeParameters, scopeTables)
         {
+
         }
-        public QueryModel(ScopeParameterDictionary scopeParameters, StringSet scopeTables, bool ignoreFilters)
+
+        public QueryModel(QueryOptions options, ScopeParameterDictionary scopeParameters, StringSet scopeTables)
         {
+            this.Options = options;
+
             if (scopeTables == null)
                 this.ScopeTables = new StringSet();
             else
@@ -19,11 +23,9 @@ namespace Chloe.Query
                 this.ScopeParameters = new ScopeParameterDictionary();
             else
                 this.ScopeParameters = scopeParameters.Clone();
-
-            this.IgnoreFilters = ignoreFilters;
         }
 
-        public bool IsTracking { get; set; }
+        public QueryOptions Options { get; private set; }
 
         public IObjectModel ResultModel { get; set; }
 
@@ -32,7 +34,6 @@ namespace Chloe.Query
         /// </summary>
         public bool InheritOrderings { get; set; }
 
-        public bool IgnoreFilters { get; set; }
         public List<DbOrdering> Orderings { get; private set; } = new List<DbOrdering>();
         public List<DbExpression> GroupSegments { get; private set; } = new List<DbExpression>();
         public List<DbExpression> GlobalFilters { get; private set; } = new List<DbExpression>();
@@ -67,7 +68,7 @@ namespace Chloe.Query
             sqlQuery.Orderings.AppendRange(this.Orderings);
             sqlQuery.Condition = this.Condition;
 
-            if (!this.IgnoreFilters)
+            if (!this.Options.IgnoreFilters)
             {
                 sqlQuery.Condition = this.ContextFilters.And().And(sqlQuery.Condition).And(this.GlobalFilters);
             }
@@ -79,10 +80,9 @@ namespace Chloe.Query
         }
         public QueryModel Clone(bool includeOrderings = true)
         {
-            QueryModel newQueryModel = new QueryModel(this.ScopeParameters, this.ScopeTables, this.IgnoreFilters);
+            QueryModel newQueryModel = new QueryModel(this.Options, this.ScopeParameters, this.ScopeTables);
             newQueryModel.FromTable = this.FromTable;
 
-            newQueryModel.IsTracking = this.IsTracking;
             newQueryModel.ResultModel = this.ResultModel;
 
             if (includeOrderings)

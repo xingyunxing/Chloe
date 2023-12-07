@@ -74,6 +74,13 @@ namespace Chloe.Query.Visitors
             return state;
         }
 
+        public override IQueryState Visit(BindTwoWayExpression exp)
+        {
+            IQueryState prevState = exp.PrevExpression.Accept(this);
+            IQueryState state = prevState.Accept(exp);
+            return state;
+        }
+
         public override IQueryState Visit(ExcludeExpression exp)
         {
             IQueryState prevState = exp.PrevExpression.Accept(this);
@@ -101,5 +108,6 @@ namespace Chloe.Query.Visitors
             IQueryState state = prevState.Accept(exp);
             return state;
         }
+
     }
 }

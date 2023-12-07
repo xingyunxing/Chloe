@@ -8,7 +8,7 @@ namespace Chloe.Query
     {
         Type _collectionType;
 
-        public CollectionObjectModel(Type ownerType, PropertyInfo associatedProperty, ComplexObjectModel elementModel) : base(associatedProperty.PropertyType)
+        public CollectionObjectModel(QueryOptions queryOptions, Type ownerType, PropertyInfo associatedProperty, ComplexObjectModel elementModel) : base(queryOptions, associatedProperty.PropertyType)
         {
             this.OwnerType = ownerType;
             this.AssociatedProperty = associatedProperty;
@@ -24,7 +24,7 @@ namespace Chloe.Query
         public override IObjectActivatorCreator GenarateObjectActivatorCreator(DbSqlQueryExpression sqlQuery)
         {
             IObjectActivatorCreator elementActivatorCreator = this.ElementModel.GenarateObjectActivatorCreator(sqlQuery);
-            CollectionObjectActivatorCreator ret = new CollectionObjectActivatorCreator(this._collectionType, this.OwnerType, elementActivatorCreator);
+            CollectionObjectActivatorCreator ret = new CollectionObjectActivatorCreator(this._collectionType, this.OwnerType, elementActivatorCreator, this.QueryOptions.BindTwoWay);
             return ret;
         }
 

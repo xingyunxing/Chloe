@@ -7,12 +7,15 @@ namespace Chloe.Query
 {
     public abstract class ObjectModelBase : IObjectModel
     {
-        protected ObjectModelBase(Type objectType)
+        protected ObjectModelBase(QueryOptions queryOptions, Type objectType)
         {
+            this.QueryOptions = queryOptions;
             this.ObjectType = objectType;
         }
 
+        public QueryOptions QueryOptions { get; private set; }
         public Type ObjectType { get; private set; }
+
         public abstract TypeKind TypeKind { get; }
 
         public virtual void AddConstructorParameter(ParameterInfo p, DbExpression primitiveExp)

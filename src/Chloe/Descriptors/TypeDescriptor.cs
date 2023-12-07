@@ -140,9 +140,9 @@ namespace Chloe.Descriptors
             return dbColumnAccessExpression;
         }
 
-        internal ComplexObjectModel GenObjectModel(DbTable table)
+        internal ComplexObjectModel GenObjectModel(DbTable table, QueryOptions queryOptions)
         {
-            ComplexObjectModel model = new ComplexObjectModel(this.Definition.Type, this.PrimitivePropertyDescriptors.Count);
+            ComplexObjectModel model = new ComplexObjectModel(queryOptions, this.Definition.Type, this.PrimitivePropertyDescriptors.Count);
             foreach (PrimitivePropertyDescriptor propertyDescriptor in this.PrimitivePropertyDescriptors)
             {
                 DbColumnAccessExpression columnAccessExpression = new DbColumnAccessExpression(table, propertyDescriptor.Column);

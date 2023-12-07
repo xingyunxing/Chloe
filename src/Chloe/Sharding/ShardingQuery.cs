@@ -1,4 +1,5 @@
-﻿using Chloe.QueryExpressions;
+﻿using Chloe.Query;
+using Chloe.QueryExpressions;
 using Chloe.Threading.Tasks;
 using System.Linq.Expressions;
 
@@ -57,6 +58,11 @@ namespace Chloe.Sharding
         }
 
         public IIncludableQuery<T, TCollectionItem> IncludeMany<TCollectionItem>(Expression<Func<T, IEnumerable<TCollectionItem>>> p)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IQuery<T> BindTwoWay()
         {
             throw new NotImplementedException();
         }

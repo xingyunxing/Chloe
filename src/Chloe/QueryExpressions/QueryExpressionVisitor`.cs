@@ -47,6 +47,10 @@
         {
             throw new NotImplementedException();
         }
+        public virtual T Visit(BindTwoWayExpression exp)
+        {
+            throw new NotImplementedException();
+        }
 
         public virtual T Visit(ExcludeExpression exp)
         {
@@ -62,9 +66,11 @@
         {
             throw new NotImplementedException();
         }
+
         public virtual T Visit(PagingExpression exp)
         {
             throw new NotImplementedException();
         }
+
     }
 }

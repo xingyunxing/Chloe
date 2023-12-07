@@ -12,17 +12,19 @@ namespace Chloe.Query
     class SelectorResolver : ExpressionVisitor<IObjectModel>
     {
         ExpressionVisitorBase _visitor;
+        QueryOptions _queryOptions;
         ScopeParameterDictionary _scopeParameters;
         StringSet _scopeTables;
-        SelectorResolver(ScopeParameterDictionary scopeParameters, StringSet scopeTables)
+        SelectorResolver(QueryOptions queryOptions, ScopeParameterDictionary scopeParameters, StringSet scopeTables)
         {
+            this._queryOptions = queryOptions;
             this._scopeParameters = scopeParameters;
             this._scopeTables = scopeTables;
         }
 
-        public static IObjectModel Resolve(LambdaExpression selector, ScopeParameterDictionary scopeParameters, StringSet scopeTables)
+        public static IObjectModel Resolve(LambdaExpression selector, QueryOptions queryOptions, ScopeParameterDictionary scopeParameters, StringSet scopeTables)
         {
-            SelectorResolver resolver = new SelectorResolver(scopeParameters, scopeTables);
+            SelectorResolver resolver = new SelectorResolver(queryOptions, scopeParameters, scopeTables);
             return resolver.Visit(selector);
         }
 
@@ -77,7 +79,7 @@ namespace Chloe.Query
         }
         protected override IObjectModel VisitNew(NewExpression exp)
         {
-            IObjectModel result = new ComplexObjectModel(exp.Constructor);
+            IObjectModel result = new ComplexObjectModel(this._queryOptions, exp.Constructor);
             ParameterInfo[] parames = exp.Constructor.GetParameters();
             for (int i = 0; i < parames.Length; i++)
             {
@@ -139,7 +141,7 @@ namespace Chloe.Query
             if (MappingTypeSystem.IsMappingType(exp.Type))
             {
                 DbExpression dbExp = this.ResolveExpression(exp);
-                PrimitiveObjectModel ret = new PrimitiveObjectModel(exp.Type, dbExp);
+                PrimitiveObjectModel ret = new PrimitiveObjectModel(this._queryOptions, exp.Type, dbExp);
                 return ret;
             }
 
@@ -160,7 +162,7 @@ namespace Chloe.Query
             }
 
             DbExpression dbExp = this.ResolveExpression(exp);
-            PrimitiveObjectModel ret = new PrimitiveObjectModel(exp.Type, dbExp);
+            PrimitiveObjectModel ret = new PrimitiveObjectModel(this._queryOptions, exp.Type, dbExp);
             return ret;
         }
     }

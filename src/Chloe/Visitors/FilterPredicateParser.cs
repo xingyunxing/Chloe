@@ -15,7 +15,12 @@ namespace Chloe.Visitors
 
         public static DbExpression Parse(LambdaExpression filterPredicate, TypeDescriptor typeDescriptor, DbTable dbTable)
         {
-            ComplexObjectModel objectModel = typeDescriptor.GenObjectModel(dbTable);
+            return Parse(filterPredicate, typeDescriptor, dbTable, new QueryOptions());
+        }
+
+        public static DbExpression Parse(LambdaExpression filterPredicate, TypeDescriptor typeDescriptor, DbTable dbTable, QueryOptions queryOptions)
+        {
+            ComplexObjectModel objectModel = typeDescriptor.GenObjectModel(dbTable, queryOptions);
             ScopeParameterDictionary scopeParameters = new ScopeParameterDictionary(1);
             scopeParameters.Add(filterPredicate.Parameters[0], objectModel);
 

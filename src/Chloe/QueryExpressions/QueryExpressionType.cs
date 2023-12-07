@@ -18,6 +18,10 @@ namespace Chloe.QueryExpressions
         /// </summary>
         Include,
         /// <summary>
+        /// 导航查询时，子对象将父对象设置到子对象对应的属性上
+        /// </summary>
+        BindTwoWay,
+        /// <summary>
         /// Exclude field query.
         /// </summary>
         Exclude,
@@ -26,6 +30,6 @@ namespace Chloe.QueryExpressions
         GroupingQuery,
         Distinct,
         IgnoreAllFilters,
-        Tracking,
+        Tracking
     }
 }

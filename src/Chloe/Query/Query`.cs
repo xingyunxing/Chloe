@@ -178,6 +178,12 @@ namespace Chloe.Query
             return new IncludableQuery<T, TCollectionItem>(this.QueryExpression, navigationPath);
         }
 
+        public IQuery<T> BindTwoWay()
+        {
+            BindTwoWayExpression e = new BindTwoWayExpression(typeof(T), this.QueryExpression);
+            return new Query<T>(e);
+        }
+
         public IQuery<T> Exclude<TField>(Expression<Func<T, TField>> field)
         {
             PublicHelper.CheckNull(field);

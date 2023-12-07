@@ -8,7 +8,7 @@ namespace Chloe.Query
 {
     public class PrimitiveObjectModel : ObjectModelBase
     {
-        public PrimitiveObjectModel(Type primitiveType, DbExpression exp) : base(primitiveType)
+        public PrimitiveObjectModel(QueryOptions queryOptions, Type primitiveType, DbExpression exp) : base(queryOptions, primitiveType)
         {
             this.Expression = exp;
         }
@@ -54,7 +54,7 @@ namespace Chloe.Query
         {
             DbColumnAccessExpression cae = ObjectModelHelper.ParseColumnAccessExpression(sqlQuery, table, this.Expression);
 
-            PrimitiveObjectModel objectModel = new PrimitiveObjectModel(this.ObjectType, cae);
+            PrimitiveObjectModel objectModel = new PrimitiveObjectModel(this.QueryOptions, this.ObjectType, cae);
 
             objectModel.NullChecking = ObjectModelHelper.TryGetOrAddNullChecking(sqlQuery, table, this.NullChecking);
 

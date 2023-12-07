@@ -7,11 +7,12 @@ namespace Chloe.Query.Mapping
 {
     public class CollectionObjectActivatorCreator : IObjectActivatorCreator
     {
-        public CollectionObjectActivatorCreator(Type collectionType, Type ownerType, IObjectActivatorCreator elementActivatorCreator)
+        public CollectionObjectActivatorCreator(Type collectionType, Type ownerType, IObjectActivatorCreator elementActivatorCreator, bool bindTwoWay)
         {
             this.CollectionType = collectionType;
             this.OwnerType = ownerType;
             this.ElementActivatorCreator = elementActivatorCreator;
+            this.BindTwoWay = bindTwoWay;
         }
 
         public Type ObjectType { get { return this.CollectionType; } }
@@ -19,6 +20,11 @@ namespace Chloe.Query.Mapping
         public Type CollectionType { get; private set; }
         public Type OwnerType { get; private set; }
         public IObjectActivatorCreator ElementActivatorCreator { get; private set; }
+
+        /// <summary>
+        /// 是否将 owner 设置到对应的导航属性上
+        /// </summary>
+        public bool BindTwoWay { get; private set; }
 
         public IObjectActivator CreateObjectActivator()
         {
@@ -45,7 +51,9 @@ namespace Chloe.Query.Mapping
 
             IEntityKey entityKey = new EntityKey(elementTypeDescriptor, keys);
 
-            PropertyDescriptor elementOwnerProperty = elementTypeDescriptor.ComplexPropertyDescriptors.Where(a => a.Definition.Property.PropertyType == this.OwnerType).First();
+            PropertyDescriptor elementOwnerProperty = null;
+            if (this.BindTwoWay)
+                elementOwnerProperty = elementTypeDescriptor.ComplexPropertyDescriptors.Where(a => a.Definition.Property.PropertyType == this.OwnerType).First();
 
             CollectionObjectFitter fitter = new CollectionObjectFitter(this.ElementActivatorCreator.CreateObjectActivator(dbContextProvider), entityKey, elementFitter, elementOwnerProperty);
             return fitter;

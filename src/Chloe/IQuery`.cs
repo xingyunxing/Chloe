@@ -23,6 +23,12 @@ namespace Chloe
         IIncludableQuery<T, TCollectionItem> IncludeMany<TCollectionItem>(Expression<Func<T, IEnumerable<TCollectionItem>>> navigationProperty);
 
         /// <summary>
+        /// 导航查询时，子对象将父对象设置到子对象对应的属性上
+        /// </summary>
+        /// <returns></returns>
+        IQuery<T> BindTwoWay();
+
+        /// <summary>
         /// Exclude specified field
         /// </summary>
         /// <typeparam name="TField"></typeparam>

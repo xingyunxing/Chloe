@@ -87,7 +87,11 @@ namespace Chloe.Mapper
                 entity = await this._elementActivator.CreateInstance(reader, @async);
                 if (entity != null)
                 {
-                    this._elementOwnerProperty.SetValue(entity, owner); //entity.XX = owner
+                    if (this._elementOwnerProperty != null)
+                    {
+                        this._elementOwnerProperty.SetValue(entity, owner); //entity.XX = owner
+                    }
+
                     entityContainer.Add(entity);
                     this._keySet.Add(keyValue);
                 }

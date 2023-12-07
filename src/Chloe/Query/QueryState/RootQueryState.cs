@@ -22,12 +22,11 @@ namespace Chloe.Query.QueryState
 
         public override QueryModel ToFromQueryModel()
         {
-            QueryModel newQueryModel = new QueryModel(this.QueryModel.ScopeParameters, this.QueryModel.ScopeTables, this.QueryModel.IgnoreFilters);
-            newQueryModel.IsTracking = this.QueryModel.IsTracking;
+            QueryModel newQueryModel = new QueryModel(this.QueryModel.Options, this.QueryModel.ScopeParameters, this.QueryModel.ScopeTables);
             newQueryModel.FromTable = this.QueryModel.FromTable;
             newQueryModel.ResultModel = this.QueryModel.ResultModel;
             newQueryModel.Condition = this.QueryModel.Condition;
-            if (!this.QueryModel.IgnoreFilters)
+            if (!this.QueryModel.Options.IgnoreFilters)
             {
                 newQueryModel.GlobalFilters.AppendRange(this.QueryModel.GlobalFilters);
                 newQueryModel.ContextFilters.AppendRange(this.QueryModel.ContextFilters);
@@ -45,7 +44,7 @@ namespace Chloe.Query.QueryState
         }
         public override IQueryState Accept(IgnoreAllFiltersExpression exp)
         {
-            this.QueryModel.IgnoreFilters = true;
+            this.QueryModel.Options.IgnoreFilters = true;
             return this;
         }
 
@@ -60,7 +59,7 @@ namespace Chloe.Query.QueryState
             DbExpression condition = GeneralExpressionParser.Parse(conditionExpression, scopeParameters, scopeTables);
             DbJoinTableExpression joinTable = new DbJoinTableExpression(joinType.AsDbJoinType(), this.QueryModel.FromTable.Table, condition);
 
-            if (!this.QueryModel.IgnoreFilters)
+            if (!this.QueryModel.Options.IgnoreFilters)
             {
                 joinTable.Condition = joinTable.Condition.And(this.QueryModel.ContextFilters).And(this.QueryModel.GlobalFilters);
             }
@@ -94,7 +93,7 @@ namespace Chloe.Query.QueryState
             queryModel.FromTable = CreateRootTable(dbTable, alias, rootQueryExp.Lock);
 
             DbTable aliasTable = new DbTable(alias);
-            ComplexObjectModel model = typeDescriptor.GenObjectModel(aliasTable);
+            ComplexObjectModel model = typeDescriptor.GenObjectModel(aliasTable, queryModel.Options);
             model.DependentTable = queryModel.FromTable;
 
             queryModel.ResultModel = model;

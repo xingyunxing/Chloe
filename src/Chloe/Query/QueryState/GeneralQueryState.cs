@@ -9,12 +9,11 @@ namespace Chloe.Query.QueryState
 
         public override QueryModel ToFromQueryModel()
         {
-            QueryModel newQueryModel = new QueryModel(this.QueryModel.ScopeParameters, this.QueryModel.ScopeTables, this.QueryModel.IgnoreFilters);
-            newQueryModel.IsTracking = this.QueryModel.IsTracking;
+            QueryModel newQueryModel = new QueryModel(this.QueryModel.Options, this.QueryModel.ScopeParameters, this.QueryModel.ScopeTables);
             newQueryModel.FromTable = this.QueryModel.FromTable;
             newQueryModel.ResultModel = this.QueryModel.ResultModel;
             newQueryModel.Condition = this.QueryModel.Condition;
-            if (!this.QueryModel.IgnoreFilters)
+            if (!this.QueryModel.Options.IgnoreFilters)
             {
                 newQueryModel.GlobalFilters.AppendRange(this.QueryModel.GlobalFilters);
                 newQueryModel.ContextFilters.AppendRange(this.QueryModel.ContextFilters);
