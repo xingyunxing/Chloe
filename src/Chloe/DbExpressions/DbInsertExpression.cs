@@ -10,11 +10,16 @@
         }
 
         public DbTable Table { get; private set; }
-        public Dictionary<DbColumn, DbExpression> InsertColumns { get; private set; } = new Dictionary<DbColumn, DbExpression>();
+        public List<DbColumnValuePair> InsertColumns { get; private set; } = new List<DbColumnValuePair>();
         public List<DbColumn> Returns { get; private set; } = new List<DbColumn>();
         public override T Accept<T>(DbExpressionVisitor<T> visitor)
         {
             return visitor.Visit(this);
+        }
+
+        public void AppendInsertColumn(DbColumn column, DbExpression value)
+        {
+            this.InsertColumns.Add(new DbColumnValuePair(column, value));
         }
     }
 }

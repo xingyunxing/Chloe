@@ -258,7 +258,7 @@ namespace Chloe.MySql
             DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
             DbExpression conditionExp = FilterPredicateParser.Parse(condition, typeDescriptor, dbTable);
 
-            MySqlDbUpdateExpression e = new MySqlDbUpdateExpression(dbTable, conditionExp);
+            MySqlDbUpdateExpression updateExpression = new MySqlDbUpdateExpression(dbTable, conditionExp);
 
             UpdateColumnExpressionParser expressionParser = typeDescriptor.GetUpdateColumnExpressionParser(dbTable, content.Parameters[0]);
             foreach (var kv in updateColumns)
@@ -272,15 +272,15 @@ namespace Chloe.MySql
                 if (propertyDescriptor.IsAutoIncrement)
                     throw new ChloeException(string.Format("Could not update the identity column '{0}'.", propertyDescriptor.Column.Name));
 
-                e.UpdateColumns.Add(propertyDescriptor.Column, expressionParser.Parse(kv.Value));
+                updateExpression.AppendUpdateColumn(propertyDescriptor.Column, expressionParser.Parse(kv.Value));
             }
 
-            e.Limits = limits;
+            updateExpression.Limits = limits;
 
-            if (e.UpdateColumns.Count == 0)
+            if (updateExpression.UpdateColumns.Count == 0)
                 return 0;
 
-            return await this.ExecuteNonQuery(e, @async);
+            return await this.ExecuteNonQuery(updateExpression, @async);
         }
 
         public virtual int Delete<TEntity>(Expression<Func<TEntity, bool>> condition, int limits)

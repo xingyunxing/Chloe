@@ -266,7 +266,7 @@ namespace Chloe.Oracle
                     this.SqlBuilder.Append(",");
                 }
 
-                this.QuoteName(item.Key.Name);
+                this.QuoteName(item.Column.Name);
             }
 
             this.SqlBuilder.Append(")");
@@ -283,7 +283,7 @@ namespace Chloe.Oracle
                 }
 
                 DbExpression valExp = item.Value.StripInvalidConvert();
-                PublicHelper.AmendDbInfo(item.Key, valExp);
+                PublicHelper.AmendDbInfo(item.Column, valExp);
                 DbValueExpressionTransformer.Transform(valExp).Accept(this);
             }
 
@@ -332,11 +332,11 @@ namespace Chloe.Oracle
                 else
                     this.SqlBuilder.Append(",");
 
-                this.QuoteName(item.Key.Name);
+                this.QuoteName(item.Column.Name);
                 this.SqlBuilder.Append("=");
 
                 DbExpression valExp = item.Value.StripInvalidConvert();
-                PublicHelper.AmendDbInfo(item.Key, valExp);
+                PublicHelper.AmendDbInfo(item.Column, valExp);
                 DbValueExpressionTransformer.Transform(valExp).Accept(this);
             }
 

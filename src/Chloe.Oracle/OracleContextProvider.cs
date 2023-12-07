@@ -89,8 +89,6 @@ namespace Chloe.Oracle
 
             TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(TEntity));
 
-            DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
-
             bool ignoreNullValueInsert = (this.Options.InsertStrategy & InsertStrategy.IgnoreNull) == InsertStrategy.IgnoreNull;
             bool ignoreEmptyStringValueInsert = (this.Options.InsertStrategy & InsertStrategy.IgnoreEmptyString) == InsertStrategy.IgnoreEmptyString;
             PrimitivePropertyDescriptor firstIgnoreProperty = null;
@@ -110,8 +108,10 @@ namespace Chloe.Oracle
                 return false;
             };
 
+            DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
+            DbInsertExpression insertExpression = new DbInsertExpression(dbTable);
+
             List<PrimitivePropertyDescriptor> outputColumns = new List<PrimitivePropertyDescriptor>();
-            Dictionary<PrimitivePropertyDescriptor, DbExpression> insertColumns = new Dictionary<PrimitivePropertyDescriptor, DbExpression>();
             foreach (PrimitivePropertyDescriptor propertyDescriptor in typeDescriptor.PrimitivePropertyDescriptors)
             {
                 if (propertyDescriptor.IsAutoIncrement)
@@ -123,7 +123,7 @@ namespace Chloe.Oracle
                 if (propertyDescriptor.HasSequence())
                 {
                     DbMethodCallExpression getNextValueForSequenceExp = PublicHelper.MakeNextValueForSequenceDbExpression(propertyDescriptor, dbTable.Schema);
-                    insertColumns.Add(propertyDescriptor, getNextValueForSequenceExp);
+                    insertExpression.AppendInsertColumn(propertyDescriptor.Column, getNextValueForSequenceExp);
                     outputColumns.Add(propertyDescriptor);
                     continue;
                 }
@@ -145,25 +145,18 @@ namespace Chloe.Oracle
                 }
 
                 DbParameterExpression valExp = DbExpression.Parameter(val, propertyDescriptor.PropertyType, propertyDescriptor.Column.DbType);
-                insertColumns.Add(propertyDescriptor, valExp);
+                insertExpression.AppendInsertColumn(propertyDescriptor.Column, valExp);
             }
 
-            if (insertColumns.Count == 0 && firstIgnoreProperty != null)
+            if (insertExpression.InsertColumns.Count == 0 && firstIgnoreProperty != null)
             {
                 DbExpression valExp = DbExpression.Parameter(firstIgnorePropertyValue, firstIgnoreProperty.PropertyType, firstIgnoreProperty.Column.DbType);
-                insertColumns.Add(firstIgnoreProperty, valExp);
+                insertExpression.AppendInsertColumn(firstIgnoreProperty.Column, valExp);
             }
 
-            DbInsertExpression e = new DbInsertExpression(dbTable);
+            insertExpression.Returns.AddRange(outputColumns.Select(a => a.Column));
 
-            foreach (var kv in insertColumns)
-            {
-                e.InsertColumns.Add(kv.Key.Column, kv.Value);
-            }
-
-            e.Returns.AddRange(outputColumns.Select(a => a.Column));
-
-            DbCommandInfo dbCommandInfo = this.Translate(e);
+            DbCommandInfo dbCommandInfo = this.Translate(insertExpression);
             await this.ExecuteNonQuery(dbCommandInfo, @async);
 
             List<DbParam> outputParams = dbCommandInfo.Parameters.Where(a => a.Direction == ParamDirection.Output).ToList();
@@ -198,7 +191,7 @@ namespace Chloe.Oracle
             DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
 
             DefaultExpressionParser expressionParser = typeDescriptor.GetExpressionParser(dbTable);
-            DbInsertExpression insertExp = new DbInsertExpression(dbTable);
+            DbInsertExpression insertExpression = new DbInsertExpression(dbTable);
 
             object keyVal = null;
 
@@ -216,35 +209,33 @@ namespace Chloe.Oracle
                 if (propertyDescriptor.IsPrimaryKey)
                 {
                     object val = ExpressionEvaluator.Evaluate(kv.Value);
-                    if (val == null)
-                        throw new ChloeException(string.Format("The primary key '{0}' could not be null.", propertyDescriptor.Property.Name));
-                    else
-                    {
-                        keyVal = val;
-                        insertExp.InsertColumns.Add(propertyDescriptor.Column, DbExpression.Parameter(keyVal, propertyDescriptor.PropertyType, propertyDescriptor.Column.DbType));
-                        continue;
-                    }
+                    PublicHelper.EnsurePrimaryKeyNotNull(propertyDescriptor, val);
+
+                    keyVal = val;
+                    insertExpression.AppendInsertColumn(propertyDescriptor.Column, DbExpression.Parameter(keyVal, propertyDescriptor.PropertyType, propertyDescriptor.Column.DbType));
+
+                    continue;
                 }
 
-                insertExp.InsertColumns.Add(propertyDescriptor.Column, expressionParser.Parse(kv.Value));
+                insertExpression.AppendInsertColumn(propertyDescriptor.Column, expressionParser.Parse(kv.Value));
             }
 
             foreach (PrimitivePropertyDescriptor propertyDescriptor in typeDescriptor.PrimitivePropertyDescriptors)
             {
                 if (propertyDescriptor.IsAutoIncrement && propertyDescriptor.IsPrimaryKey)
                 {
-                    insertExp.Returns.Add(propertyDescriptor.Column);
+                    insertExpression.Returns.Add(propertyDescriptor.Column);
                     continue;
                 }
 
                 if (propertyDescriptor.HasSequence())
                 {
                     DbMethodCallExpression getNextValueForSequenceExp = PublicHelper.MakeNextValueForSequenceDbExpression(propertyDescriptor, dbTable.Schema);
-                    insertExp.InsertColumns.Add(propertyDescriptor.Column, getNextValueForSequenceExp);
+                    insertExpression.AppendInsertColumn(propertyDescriptor.Column, getNextValueForSequenceExp);
 
                     if (propertyDescriptor.IsPrimaryKey)
                     {
-                        insertExp.Returns.Add(propertyDescriptor.Column);
+                        insertExpression.Returns.Add(propertyDescriptor.Column);
                     }
 
                     continue;
@@ -260,7 +251,7 @@ namespace Chloe.Oracle
                 }
             }
 
-            DbCommandInfo dbCommandInfo = this.Translate(insertExp);
+            DbCommandInfo dbCommandInfo = this.Translate(insertExpression);
             await this.ExecuteNonQuery(dbCommandInfo, @async);
 
             if (keyPropertyDescriptor != null && (keyPropertyDescriptor.IsAutoIncrement || keyPropertyDescriptor.HasSequence()))
@@ -404,10 +395,13 @@ namespace Chloe.Oracle
             TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(TEntity));
             PublicHelper.EnsureHasPrimaryKey(typeDescriptor);
 
+            DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
+            DbUpdateExpression updateExpression = new DbUpdateExpression(dbTable);
+
             PairList<PrimitivePropertyDescriptor, object> keyValues = new PairList<PrimitivePropertyDescriptor, object>(typeDescriptor.PrimaryKeys.Count);
 
             IEntityState entityState = this.TryGetTrackedEntityState(entity);
-            Dictionary<PrimitivePropertyDescriptor, DbExpression> updateColumns = new Dictionary<PrimitivePropertyDescriptor, DbExpression>();
+
             foreach (PrimitivePropertyDescriptor propertyDescriptor in typeDescriptor.PrimitivePropertyDescriptors)
             {
                 if (propertyDescriptor.IsPrimaryKey)
@@ -429,7 +423,7 @@ namespace Chloe.Oracle
                 PublicHelper.NotNullCheck(propertyDescriptor, val);
 
                 DbExpression valExp = DbExpression.Parameter(val, propertyDescriptor.PropertyType, propertyDescriptor.Column.DbType);
-                updateColumns.Add(propertyDescriptor, valExp);
+                updateExpression.AppendUpdateColumn(propertyDescriptor.Column, valExp);
             }
 
             object rowVersionNewValue = null;
@@ -438,23 +432,17 @@ namespace Chloe.Oracle
                 var rowVersionDescriptor = typeDescriptor.RowVersion;
                 var rowVersionOldValue = rowVersionDescriptor.GetValue(entity);
                 rowVersionNewValue = PublicHelper.IncreaseRowVersionNumber(rowVersionOldValue);
-                updateColumns.Add(rowVersionDescriptor, DbExpression.Parameter(rowVersionNewValue, rowVersionDescriptor.PropertyType, rowVersionDescriptor.Column.DbType));
+                updateExpression.AppendUpdateColumn(rowVersionDescriptor.Column, DbExpression.Parameter(rowVersionNewValue, rowVersionDescriptor.PropertyType, rowVersionDescriptor.Column.DbType));
                 keyValues.Add(rowVersionDescriptor, rowVersionOldValue);
             }
 
-            if (updateColumns.Count == 0)
+            if (updateExpression.UpdateColumns.Count == 0)
                 return 0;
 
-            DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
             DbExpression conditionExp = PublicHelper.MakeCondition(keyValues, dbTable);
-            DbUpdateExpression e = new DbUpdateExpression(dbTable, conditionExp);
+            updateExpression.Condition = conditionExp;
 
-            foreach (var item in updateColumns)
-            {
-                e.UpdateColumns.Add(item.Key.Column, item.Value);
-            }
-
-            int rowsAffected = await this.ExecuteNonQuery(e, @async);
+            int rowsAffected = await this.ExecuteNonQuery(updateExpression, @async);
 
             if (typeDescriptor.HasRowVersion())
             {

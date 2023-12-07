@@ -418,7 +418,7 @@ namespace Chloe.RDBMS
             foreach (var item in exp.InsertColumns)
             {
                 this.SqlBuilder.Append(separator);
-                this.QuoteName(item.Key.Name);
+                this.QuoteName(item.Column.Name);
                 separator = ",";
             }
 
@@ -431,7 +431,7 @@ namespace Chloe.RDBMS
                 this.SqlBuilder.Append(separator);
 
                 DbExpression valExp = DbExpressionExtension.StripInvalidConvert(item.Value);
-                PublicHelper.AmendDbInfo(item.Key, valExp);
+                PublicHelper.AmendDbInfo(item.Column, valExp);
                 valExp.Accept(this);
                 separator = ",";
             }
@@ -451,11 +451,11 @@ namespace Chloe.RDBMS
             foreach (var item in exp.UpdateColumns)
             {
                 this.SqlBuilder.Append(separator);
-                this.QuoteName(item.Key.Name);
+                this.QuoteName(item.Column.Name);
                 this.SqlBuilder.Append("=");
 
                 DbExpression valExp = item.Value.StripInvalidConvert();
-                PublicHelper.AmendDbInfo(item.Key, valExp);
+                PublicHelper.AmendDbInfo(item.Column, valExp);
                 valExp.Accept(this);
 
                 separator = ",";

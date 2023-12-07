@@ -42,9 +42,9 @@ namespace Chloe.MySql
 
             MySqlDbUpdateExpression ret = new MySqlDbUpdateExpression(exp.Table, this.MakeNewExpression(exp.Condition));
 
-            foreach (var kv in exp.UpdateColumns)
+            foreach (var pair in exp.UpdateColumns)
             {
-                ret.UpdateColumns.Add(kv.Key, this.MakeNewExpression(kv.Value));
+                ret.AppendUpdateColumn(pair.Column, this.MakeNewExpression(pair.Value));
             }
 
             ret.Limits = (exp as MySqlDbUpdateExpression).Limits;

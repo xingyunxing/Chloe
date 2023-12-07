@@ -73,7 +73,7 @@ namespace Chloe.Dameng
             foreach (var item in exp.InsertColumns)
             {
                 this.SqlBuilder.Append(separator);
-                this.QuoteName(item.Key.Name);
+                this.QuoteName(item.Column.Name);
                 separator = ",";
             }
 
@@ -86,7 +86,7 @@ namespace Chloe.Dameng
                 this.SqlBuilder.Append(separator);
 
                 DbExpression valExp = DbExpressionExtension.StripInvalidConvert(item.Value);
-                PublicHelper.AmendDbInfo(item.Key, valExp);
+                PublicHelper.AmendDbInfo(item.Column, valExp);
                 DbValueExpressionTransformer.Transform(valExp).Accept(this);
                 separator = ",";
             }
@@ -107,11 +107,11 @@ namespace Chloe.Dameng
             {
                 this.SqlBuilder.Append(separator);
 
-                this.QuoteName(item.Key.Name);
+                this.QuoteName(item.Column.Name);
                 this.SqlBuilder.Append("=");
 
                 DbExpression valExp = DbExpressionExtension.StripInvalidConvert(item.Value);
-                PublicHelper.AmendDbInfo(item.Key, valExp);
+                PublicHelper.AmendDbInfo(item.Column, valExp);
                 DbValueExpressionTransformer.Transform(valExp).Accept(this);
 
                 separator = ",";

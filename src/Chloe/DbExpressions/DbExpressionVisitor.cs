@@ -172,9 +172,9 @@
         {
             DbInsertExpression ret = new DbInsertExpression(exp.Table);
 
-            foreach (var kv in exp.InsertColumns)
+            foreach (var pair in exp.InsertColumns)
             {
-                ret.InsertColumns.Add(kv.Key, this.MakeNewExpression(kv.Value));
+                ret.AppendInsertColumn(pair.Column, this.MakeNewExpression(pair.Value));
             }
 
             ret.Returns.AppendRange(exp.Returns);
@@ -185,9 +185,9 @@
         {
             DbUpdateExpression ret = new DbUpdateExpression(exp.Table, this.MakeNewExpression(exp.Condition));
 
-            foreach (var kv in exp.UpdateColumns)
+            foreach (var pair in exp.UpdateColumns)
             {
-                ret.UpdateColumns.Add(kv.Key, this.MakeNewExpression(kv.Value));
+                ret.AppendUpdateColumn(pair.Column, this.MakeNewExpression(pair.Value));
             }
 
             ret.Returns.AppendRange(exp.Returns);

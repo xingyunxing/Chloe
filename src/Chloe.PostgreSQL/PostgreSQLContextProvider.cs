@@ -90,8 +90,6 @@ namespace Chloe.PostgreSQL
 
             TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(TEntity));
 
-            DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
-
             bool ignoreNullValueInsert = (this.Options.InsertStrategy & InsertStrategy.IgnoreNull) == InsertStrategy.IgnoreNull;
             bool ignoreEmptyStringValueInsert = (this.Options.InsertStrategy & InsertStrategy.IgnoreEmptyString) == InsertStrategy.IgnoreEmptyString;
             PrimitivePropertyDescriptor firstIgnoreProperty = null;
@@ -111,7 +109,9 @@ namespace Chloe.PostgreSQL
                 return false;
             };
 
-            Dictionary<PrimitivePropertyDescriptor, DbExpression> insertColumns = new Dictionary<PrimitivePropertyDescriptor, DbExpression>();
+            DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
+            DbInsertExpression insertExpression = new DbInsertExpression(dbTable);
+
             foreach (PrimitivePropertyDescriptor propertyDescriptor in typeDescriptor.PrimitivePropertyDescriptors)
             {
                 if (propertyDescriptor.IsAutoIncrement)
@@ -120,7 +120,7 @@ namespace Chloe.PostgreSQL
                 if (propertyDescriptor.HasSequence())
                 {
                     DbMethodCallExpression getNextValueForSequenceExp = PublicHelper.MakeNextValueForSequenceDbExpression(propertyDescriptor, dbTable.Schema);
-                    insertColumns.Add(propertyDescriptor, getNextValueForSequenceExp);
+                    insertExpression.AppendInsertColumn(propertyDescriptor.Column, getNextValueForSequenceExp);
                     continue;
                 }
 
@@ -141,37 +141,30 @@ namespace Chloe.PostgreSQL
                 }
 
                 DbParameterExpression valExp = DbExpression.Parameter(val, propertyDescriptor.PropertyType, propertyDescriptor.Column.DbType);
-                insertColumns.Add(propertyDescriptor, valExp);
+                insertExpression.AppendInsertColumn(propertyDescriptor.Column, valExp);
             }
 
-            if (insertColumns.Count == 0 && firstIgnoreProperty != null)
+            if (insertExpression.InsertColumns.Count == 0 && firstIgnoreProperty != null)
             {
                 DbExpression valExp = DbExpression.Parameter(firstIgnorePropertyValue, firstIgnoreProperty.PropertyType, firstIgnoreProperty.Column.DbType);
-                insertColumns.Add(firstIgnoreProperty, valExp);
-            }
-
-            DbInsertExpression insertExp = new DbInsertExpression(dbTable);
-
-            foreach (var kv in insertColumns)
-            {
-                insertExp.InsertColumns.Add(kv.Key.Column, kv.Value);
+                insertExpression.AppendInsertColumn(firstIgnoreProperty.Column, valExp);
             }
 
             List<Action<TEntity, IDataReader>> mappers = new List<Action<TEntity, IDataReader>>();
             foreach (var item in typeDescriptor.PrimitivePropertyDescriptors.Where(a => a.IsAutoIncrement || a.HasSequence()))
             {
-                mappers.Add(PublicHelper.GetMapper<TEntity>(item, insertExp.Returns.Count));
-                insertExp.Returns.Add(item.Column);
+                mappers.Add(PublicHelper.GetMapper<TEntity>(item, insertExpression.Returns.Count));
+                insertExpression.Returns.Add(item.Column);
             }
 
             if (mappers.Count == 0)
             {
-                await this.ExecuteNonQuery(insertExp, @async);
+                await this.ExecuteNonQuery(insertExpression, @async);
                 return entity;
             }
 
             IDbExpressionTranslator translator = this.DatabaseProvider.CreateDbExpressionTranslator();
-            DbCommandInfo dbCommandInfo = translator.Translate(insertExp);
+            DbCommandInfo dbCommandInfo = translator.Translate(insertExpression);
 
             IDataReader dataReader = this.Session.ExecuteReader(dbCommandInfo.CommandText, dbCommandInfo.GetParameters());
             using (dataReader)
@@ -204,7 +197,7 @@ namespace Chloe.PostgreSQL
             DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
 
             DefaultExpressionParser expressionParser = typeDescriptor.GetExpressionParser(dbTable);
-            DbInsertExpression insertExp = new DbInsertExpression(dbTable);
+            DbInsertExpression insertExpression = new DbInsertExpression(dbTable);
 
             object keyVal = null;
 
@@ -227,18 +220,18 @@ namespace Chloe.PostgreSQL
                     else
                     {
                         keyVal = val;
-                        insertExp.InsertColumns.Add(propertyDescriptor.Column, DbExpression.Parameter(keyVal));
+                        insertExpression.AppendInsertColumn(propertyDescriptor.Column, DbExpression.Parameter(keyVal));
                         continue;
                     }
                 }
 
-                insertExp.InsertColumns.Add(propertyDescriptor.Column, expressionParser.Parse(kv.Value));
+                insertExpression.AppendInsertColumn(propertyDescriptor.Column, expressionParser.Parse(kv.Value));
             }
 
             foreach (var item in typeDescriptor.PrimitivePropertyDescriptors.Where(a => a.HasSequence()))
             {
                 DbMethodCallExpression getNextValueForSequenceExp = PublicHelper.MakeNextValueForSequenceDbExpression(item, dbTable.Schema);
-                insertExp.InsertColumns.Add(item.Column, getNextValueForSequenceExp);
+                insertExpression.AppendInsertColumn(item.Column, getNextValueForSequenceExp);
             }
 
             if (keyPropertyDescriptor != null)
@@ -252,19 +245,19 @@ namespace Chloe.PostgreSQL
 
             if (keyPropertyDescriptor == null)
             {
-                await this.ExecuteNonQuery(insertExp, @async);
+                await this.ExecuteNonQuery(insertExpression, @async);
                 return keyVal; /* It will return null if an entity does not define primary key. */
             }
             if (!keyPropertyDescriptor.IsAutoIncrement && !keyPropertyDescriptor.HasSequence())
             {
-                await this.ExecuteNonQuery(insertExp, @async);
+                await this.ExecuteNonQuery(insertExpression, @async);
                 return keyVal;
             }
 
-            insertExp.Returns.Add(keyPropertyDescriptor.Column);
+            insertExpression.Returns.Add(keyPropertyDescriptor.Column);
 
             IDbExpressionTranslator translator = this.DatabaseProvider.CreateDbExpressionTranslator();
-            DbCommandInfo dbCommandInfo = translator.Translate(insertExp);
+            DbCommandInfo dbCommandInfo = translator.Translate(insertExpression);
 
             object ret = this.Session.ExecuteScalar(dbCommandInfo.CommandText, dbCommandInfo.GetParameters());
             if (ret == null || ret == DBNull.Value)
