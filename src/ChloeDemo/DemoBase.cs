@@ -227,6 +227,9 @@ namespace ChloeDemo
             ConsoleHelper.WriteLineAndReadKey(1);
         }
 
+        /// <summary>
+        /// 基础查询
+        /// </summary>
         public virtual void BasicQuery()
         {
             IQuery<Person> q = this.DbContext.Query<Person>();
@@ -294,6 +297,10 @@ namespace ChloeDemo
 
             ConsoleHelper.WriteLineAndReadKey();
         }
+
+        /// <summary>
+        /// 连接查询
+        /// </summary>
         public virtual void JoinQuery()
         {
             var person_city_province = this.DbContext.Query<Person>()
@@ -337,6 +344,10 @@ namespace ChloeDemo
 
             ConsoleHelper.WriteLineAndReadKey();
         }
+
+        /// <summary>
+        /// 排除字段查询
+        /// </summary>
         public virtual void ExcludeFieldQuery()
         {
             IQuery<Person> q = this.DbContext.Query<Person>();
@@ -450,6 +461,10 @@ namespace ChloeDemo
 
             ConsoleHelper.WriteLineAndReadKey();
         }
+
+        /// <summary>
+        /// 聚合查询
+        /// </summary>
         public virtual void AggregateQuery()
         {
             IQuery<Person> q = this.DbContext.Query<Person>();
@@ -497,6 +512,10 @@ namespace ChloeDemo
 
             ConsoleHelper.WriteLineAndReadKey();
         }
+
+        /// <summary>
+        /// 分组查询
+        /// </summary>
         public virtual void GroupQuery()
         {
             IQuery<Person> q = this.DbContext.Query<Person>();
@@ -527,7 +546,10 @@ namespace ChloeDemo
 
             ConsoleHelper.WriteLineAndReadKey();
         }
-        /*复杂查询*/
+
+        /// <summary>
+        /// 复杂查询
+        /// </summary>
         public virtual void ComplexQuery()
         {
             /*
@@ -610,22 +632,66 @@ namespace ChloeDemo
 
             ConsoleHelper.WriteLineAndReadKey();
         }
-        /* 贪婪加载导航属性 */
+
+        /// <summary>
+        /// 导航属性查询
+        /// </summary>
         public virtual void QueryWithNavigation()
         {
             object result = null;
             result = this.DbContext.Query<Person>().Include(a => a.City).ThenInclude(a => a.Province).ToList();
-            result = this.DbContext.Query<Person>().IgnoreAllFilters().Include(a => a.City).ThenInclude(a => a.Province).ToList();
-            result = this.DbContext.Query<City>().Include(a => a.Province).IncludeMany(a => a.Persons).Filter(a => a.Age >= 18).ToList();
-            result = this.DbContext.Query<Province>().IncludeMany(a => a.Cities).ThenIncludeMany(a => a.Persons).ToList();
 
+            //忽略所有过滤器
+            result = this.DbContext.Query<Person>().IgnoreAllFilters().Include(a => a.City).ThenInclude(a => a.Province).ToList();
+
+            List<City> cities = this.DbContext.Query<City>().Include(a => a.Province).IncludeMany(a => a.Persons).Filter(a => a.Age >= 18).ToList();
+
+            cities.ForEach(city =>
+            {
+                city.Persons.ForEach(person =>
+                {
+                    Debug.Assert(person.Age >= 18);
+                    Debug.Assert(person.City == null);
+                });
+            });
+
+            List<Province> provinces = this.DbContext.Query<Province>().IncludeMany(a => a.Cities).ThenIncludeMany(a => a.Persons).ToList();
+
+            provinces.ForEach(province =>
+            {
+                province.Cities.ForEach(city =>
+                {
+                    Debug.Assert(city.Province == null);
+
+                    city.Persons.ForEach(person =>
+                    {
+                        Debug.Assert(person.City == null);
+                    });
+                });
+            });
+
+            provinces = this.DbContext.Query<Province>().IncludeMany(a => a.Cities).ThenIncludeMany(a => a.Persons).BindTwoWay().ToList(); //调用 BindTwoWay() 方法，子对象会将父对象设置到子对象对应的属性上
+
+            provinces.ForEach(province =>
+            {
+                province.Cities.ForEach(city =>
+                {
+                    Debug.Assert(city.Province != null);
+
+                    city.Persons.ForEach(person =>
+                    {
+                        Debug.Assert(person.City != null);
+                    });
+                });
+            });
+
+            //分页
             result = this.DbContext.Query<Province>().IncludeMany(a => a.Cities).ThenIncludeMany(a => a.Persons).Where(a => a.Id > 0).TakePage(1, 20).ToList();
 
             result = this.DbContext.Query<City>().IncludeMany(a => a.Persons).Filter(a => a.Age > 18).ToList();
 
             ConsoleHelper.WriteLineAndReadKey();
         }
-
 
         public virtual void Insert()
         {
@@ -781,6 +847,9 @@ namespace ChloeDemo
             ConsoleHelper.WriteLineAndReadKey(1);
         }
 
+        /// <summary>
+        /// 常用方法使用
+        /// </summary>
         public virtual void Method()
         {
             IQuery<Person> q = this.DbContext.Query<Person>();
@@ -858,6 +927,9 @@ namespace ChloeDemo
             ConsoleHelper.WriteLineAndReadKey();
         }
 
+        /// <summary>
+        /// 执行原生sql
+        /// </summary>
         public virtual void ExecuteCommandText()
         {
             List<Person> persons = this.DbContext.SqlQuery<Person>("select * from Person where Age > @age", DbParam.Create("@age", 1)).ToList();
@@ -873,6 +945,9 @@ namespace ChloeDemo
             ConsoleHelper.WriteLineAndReadKey();
         }
 
+        /// <summary>
+        /// 事务
+        /// </summary>
         public virtual void DoWithTransaction()
         {
             /*--------------1--------------*/
