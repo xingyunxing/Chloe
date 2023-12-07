@@ -131,6 +131,7 @@ namespace Chloe.Oracle
                 object val = propertyDescriptor.GetValue(entity);
 
                 PublicHelper.NotNullCheck(propertyDescriptor, val);
+                PublicHelper.EnsurePrimaryKeyNotNull(propertyDescriptor, val);
 
                 if (canIgnoreInsert(val))
                 {
@@ -412,7 +413,7 @@ namespace Chloe.Oracle
                 if (propertyDescriptor.IsPrimaryKey)
                 {
                     var keyValue = propertyDescriptor.GetValue(entity);
-                    PrimaryKeyHelper.KeyValueNotNull(propertyDescriptor, keyValue);
+                    PublicHelper.EnsurePrimaryKeyNotNull(propertyDescriptor, keyValue);
                     keyValues.Add(propertyDescriptor, keyValue);
                     continue;
                 }

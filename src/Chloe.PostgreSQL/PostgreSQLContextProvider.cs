@@ -92,8 +92,6 @@ namespace Chloe.PostgreSQL
 
             DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
 
-            Dictionary<PrimitivePropertyDescriptor, object> keyValueMap = PrimaryKeyHelper.CreateKeyValueMap(typeDescriptor);
-
             bool ignoreNullValueInsert = (this.Options.InsertStrategy & InsertStrategy.IgnoreNull) == InsertStrategy.IgnoreNull;
             bool ignoreEmptyStringValueInsert = (this.Options.InsertStrategy & InsertStrategy.IgnoreEmptyString) == InsertStrategy.IgnoreEmptyString;
             PrimitivePropertyDescriptor firstIgnoreProperty = null;
@@ -129,11 +127,7 @@ namespace Chloe.PostgreSQL
                 object val = propertyDescriptor.GetValue(entity);
 
                 PublicHelper.NotNullCheck(propertyDescriptor, val);
-
-                if (propertyDescriptor.IsPrimaryKey)
-                {
-                    keyValueMap[propertyDescriptor] = val;
-                }
+                PublicHelper.EnsurePrimaryKeyNotNull(propertyDescriptor, val);
 
                 if (canIgnoreInsert(val))
                 {
@@ -154,13 +148,6 @@ namespace Chloe.PostgreSQL
             {
                 DbExpression valExp = DbExpression.Parameter(firstIgnorePropertyValue, firstIgnoreProperty.PropertyType, firstIgnoreProperty.Column.DbType);
                 insertColumns.Add(firstIgnoreProperty, valExp);
-            }
-
-            PrimitivePropertyDescriptor nullValueKey = keyValueMap.Where(a => a.Value == null && !a.Key.IsAutoIncrement).Select(a => a.Key).FirstOrDefault();
-            if (nullValueKey != null)
-            {
-                /* 主键为空并且主键又不是自增列 */
-                throw new ChloeException(string.Format("The primary key '{0}' could not be null.", nullValueKey.Property.Name));
             }
 
             DbInsertExpression insertExp = new DbInsertExpression(dbTable);

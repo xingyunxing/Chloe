@@ -2,8 +2,7 @@
 {
     public class DbInsertExpression : DbExpression
     {
-        public DbInsertExpression(DbTable table)
-            : base(DbExpressionType.Insert, PublicConstants.TypeOfVoid)
+        public DbInsertExpression(DbTable table) : base(DbExpressionType.Insert, PublicConstants.TypeOfVoid)
         {
             PublicHelper.CheckNull(table);
 

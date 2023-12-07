@@ -9,11 +9,6 @@ namespace Chloe.Utility
 {
     public static class PrimaryKeyHelper
     {
-        public static void KeyValueNotNull(PrimitivePropertyDescriptor keyPropertyDescriptor, object keyValue)
-        {
-            if (keyValue == null)
-                throw new ArgumentException(string.Format("The primary key '{0}' can not be null.", keyPropertyDescriptor.Property.Name));
-        }
         public static Expression<Func<TEntity, bool>> BuildCondition<TEntity>(object key)
         {
             /*
@@ -87,16 +82,6 @@ namespace Chloe.Utility
 
             Expression<Func<TEntity, bool>> condition = Expression.Lambda<Func<TEntity, bool>>(conditionBody, parameter);
             return condition;
-        }
-        public static Dictionary<PrimitivePropertyDescriptor, object> CreateKeyValueMap(TypeDescriptor typeDescriptor)
-        {
-            Dictionary<PrimitivePropertyDescriptor, object> keyValueMap = new Dictionary<PrimitivePropertyDescriptor, object>(typeDescriptor.PrimaryKeys.Count);
-            foreach (PrimitivePropertyDescriptor keyPropertyDescriptor in typeDescriptor.PrimaryKeys)
-            {
-                keyValueMap.Add(keyPropertyDescriptor, null);
-            }
-
-            return keyValueMap;
         }
     }
 }

@@ -261,6 +261,13 @@ namespace Chloe
                 throw new ChloeException($"The property '{propertyDescriptor.Property.Name}' can not be null.");
             }
         }
+        public static void EnsurePrimaryKeyNotNull(PrimitivePropertyDescriptor propertyDescriptor, object val)
+        {
+            if (propertyDescriptor.IsPrimaryKey && val == null)
+            {
+                throw new ChloeException(string.Format("The primary key '{0}' could not be null.", propertyDescriptor.Property.Name));
+            }
+        }
 
         public static object IncreaseRowVersionNumber(object val)
         {

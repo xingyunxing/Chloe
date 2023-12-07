@@ -146,8 +146,6 @@ namespace Chloe
 
             TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(TEntity));
 
-            Dictionary<PrimitivePropertyDescriptor, object> keyValueMap = PrimaryKeyHelper.CreateKeyValueMap(typeDescriptor);
-
             bool ignoreNullValueInsert = (this.Options.InsertStrategy & InsertStrategy.IgnoreNull) == InsertStrategy.IgnoreNull;
             bool ignoreEmptyStringValueInsert = (this.Options.InsertStrategy & InsertStrategy.IgnoreEmptyString) == InsertStrategy.IgnoreEmptyString;
             PrimitivePropertyDescriptor firstIgnoreProperty = null;
@@ -175,12 +173,8 @@ namespace Chloe
 
                 object val = propertyDescriptor.GetValue(entity);
 
-                if (propertyDescriptor.IsPrimaryKey)
-                {
-                    keyValueMap[propertyDescriptor] = val;
-                }
-
                 PublicHelper.NotNullCheck(propertyDescriptor, val);
+                PublicHelper.EnsurePrimaryKeyNotNull(propertyDescriptor, val);
 
                 if (canIgnoreInsert(val))
                 {
@@ -201,13 +195,6 @@ namespace Chloe
             {
                 DbExpression valExp = DbExpression.Parameter(firstIgnorePropertyValue, firstIgnoreProperty.PropertyType, firstIgnoreProperty.Column.DbType);
                 insertColumns.Add(firstIgnoreProperty, valExp);
-            }
-
-            PrimitivePropertyDescriptor nullValueKey = keyValueMap.Where(a => a.Value == null && !a.Key.IsAutoIncrement).Select(a => a.Key).FirstOrDefault();
-            if (nullValueKey != null)
-            {
-                /* 主键为空并且主键又不是自增列 */
-                throw new ChloeException(string.Format("The primary key '{0}' could not be null.", nullValueKey.Property.Name));
             }
 
             DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
@@ -365,7 +352,7 @@ namespace Chloe
                 if (propertyDescriptor.IsPrimaryKey)
                 {
                     var keyValue = propertyDescriptor.GetValue(entity);
-                    PrimaryKeyHelper.KeyValueNotNull(propertyDescriptor, keyValue);
+                    PublicHelper.EnsurePrimaryKeyNotNull(propertyDescriptor, keyValue);
                     keyValues.Add(propertyDescriptor, keyValue);
                     continue;
                 }
@@ -482,7 +469,7 @@ namespace Chloe
             foreach (PrimitivePropertyDescriptor keyPropertyDescriptor in typeDescriptor.PrimaryKeys)
             {
                 object keyValue = keyPropertyDescriptor.GetValue(entity);
-                PrimaryKeyHelper.KeyValueNotNull(keyPropertyDescriptor, keyValue);
+                PublicHelper.EnsurePrimaryKeyNotNull(keyPropertyDescriptor, keyValue);
                 keyValues.Add(keyPropertyDescriptor, keyValue);
             }
 
