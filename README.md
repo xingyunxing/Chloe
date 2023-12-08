@@ -14,6 +14,7 @@ The query interface is similar to LINQ. You can query data like LINQ and do any 
 | SQLite  | Install-Package Chloe.SQLite  |
 | PostgreSQL  | Install-Package Chloe.PostgreSQL  |
 | 达梦  | Install-Package Chloe.Dameng  |
+| 人大金仓  | Install-Package Chloe.KingbaseES  |
 
 # License
 [MIT](http://opensource.org/licenses/MIT) License
