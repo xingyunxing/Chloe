@@ -13,7 +13,7 @@ namespace Chloe.Core
 
     class EntityState : IEntityState
     {
-        Dictionary<MemberInfo, object> _fakes;
+        Dictionary<MemberInfo, object> _copies;
         object _entity;
         TypeDescriptor _typeDescriptor;
 
@@ -30,7 +30,7 @@ namespace Chloe.Core
         public bool HasChanged(PrimitivePropertyDescriptor propertyDescriptor, object val)
         {
             object oldVal;
-            if (!this._fakes.TryGetValue(propertyDescriptor.Property, out oldVal))
+            if (!this._copies.TryGetValue(propertyDescriptor.Property, out oldVal))
             {
                 return true;
             }
@@ -45,13 +45,13 @@ namespace Chloe.Core
         }
         public void Refresh()
         {
-            if (this._fakes == null)
+            if (this._copies == null)
             {
-                this._fakes = new Dictionary<MemberInfo, object>(this.TypeDescriptor.PrimitivePropertyDescriptors.Count);
+                this._copies = new Dictionary<MemberInfo, object>(this.TypeDescriptor.PrimitivePropertyDescriptors.Count);
             }
             else
             {
-                this._fakes.Clear();
+                this._copies.Clear();
             }
 
             object entity = this._entity;
@@ -65,7 +65,7 @@ namespace Chloe.Core
                     val = Clone((byte[])val);
                 }
 
-                this._fakes[propertyDescriptor.Definition.Property] = val;
+                this._copies[propertyDescriptor.Definition.Property] = val;
             }
         }
 
@@ -74,13 +74,7 @@ namespace Chloe.Core
             if (arr == null)
                 return null;
 
-            byte[] ret = new byte[arr.Length];
-            for (int i = 0; i < arr.Length; i++)
-            {
-                ret[i] = arr[i];
-            }
-
-            return ret;
+            return (byte[])arr.Clone();
         }
         static bool AreEqual(byte[] obj1, byte[] obj2)
         {
