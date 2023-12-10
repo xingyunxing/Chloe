@@ -729,11 +729,12 @@ namespace ChloeDemo
             person.Gender = Gender.Female;
             person.CityId = 1;
             person.CreateTime = DateTime.Now;
+            person.EditTime = null;
 
-            //null 和字符串空值不参与插入
+            //设置属性值为 null 和字符串空值不参与插入
             (this.DbContext as DbContext).Options.InsertStrategy = InsertStrategy.IgnoreNull | InsertStrategy.IgnoreEmptyString;
 
-            //插入时 null 和空字符串属性不参与插入
+            //插入时 Name 和 EditTime 属性不会生成到 sql 语句中
             person = this.DbContext.Insert(person);
             /*
              * Input Int32 @P_0 = 2;
