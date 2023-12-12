@@ -269,6 +269,23 @@ namespace Chloe
             }
         }
 
+        public static bool CanIgnoreInsert(InsertStrategy insertStrategy, object value)
+        {
+            bool ignoreNullValueInsert = (insertStrategy & InsertStrategy.IgnoreNull) == InsertStrategy.IgnoreNull;
+            if (ignoreNullValueInsert && value == null)
+            {
+                return true;
+            }
+
+            bool ignoreEmptyStringValueInsert = (insertStrategy & InsertStrategy.IgnoreEmptyString) == InsertStrategy.IgnoreEmptyString;
+            if (ignoreEmptyStringValueInsert && string.Empty.Equals(value))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         public static object IncreaseRowVersionNumber(object val)
         {
             if (val.GetType() == PublicConstants.TypeOfInt32)

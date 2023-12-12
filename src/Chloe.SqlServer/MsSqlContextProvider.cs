@@ -103,24 +103,9 @@ namespace Chloe.SqlServer
 
             TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(TEntity));
 
-            bool ignoreNullValueInsert = (this.Options.InsertStrategy & InsertStrategy.IgnoreNull) == InsertStrategy.IgnoreNull;
-            bool ignoreEmptyStringValueInsert = (this.Options.InsertStrategy & InsertStrategy.IgnoreEmptyString) == InsertStrategy.IgnoreEmptyString;
+            InsertStrategy insertStrategy = this.Options.InsertStrategy;
             PrimitivePropertyDescriptor firstIgnoredProperty = null;
             object firstIgnoredPropertyValue = null;
-
-            Func<object, bool> canIgnoreInsert = value =>
-            {
-                if (ignoreNullValueInsert && value == null)
-                {
-                    return true;
-                }
-                if (ignoreEmptyStringValueInsert && string.Empty.Equals(value))
-                {
-                    return true;
-                }
-
-                return false;
-            };
 
             DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
             DbInsertExpression insertExpression = new DbInsertExpression(dbTable);
@@ -147,7 +132,7 @@ namespace Chloe.SqlServer
                 PublicHelper.NotNullCheck(propertyDescriptor, val);
                 PublicHelper.EnsurePrimaryKeyNotNull(propertyDescriptor, val);
 
-                if (canIgnoreInsert(val))
+                if (PublicHelper.CanIgnoreInsert(insertStrategy, val))
                 {
                     if (firstIgnoredProperty == null)
                     {
@@ -267,7 +252,7 @@ namespace Chloe.SqlServer
                 //主键为空并且主键又不是自增列
                 if (keyVal == null && !keyPropertyDescriptor.IsAutoIncrement && !keyPropertyDescriptor.HasSequence())
                 {
-                    throw new ChloeException(string.Format("The primary key '{0}' could not be null.", keyPropertyDescriptor.Property.Name));
+                    PublicHelper.EnsurePrimaryKeyNotNull(keyPropertyDescriptor, keyVal);
                 }
             }
 
