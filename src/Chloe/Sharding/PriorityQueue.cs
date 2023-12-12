@@ -50,7 +50,7 @@ namespace Chloe.Sharding
         public T Peek()
         {
             if (heapLength == 0)
-                throw new OverflowException("queu is empty no element can return");
+                throw new OverflowException("Queue is empty.");
 
             return buffer[0];
         }
@@ -69,7 +69,7 @@ namespace Chloe.Sharding
         public void Pop()
         {
             if (heapLength == 0)
-                throw new OverflowException("优先队列为空时无法执行出队操作");
+                throw new OverflowException("Queue is empty.");
 
             --heapLength;
             swap(0, heapLength);

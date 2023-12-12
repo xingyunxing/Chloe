@@ -77,7 +77,7 @@ namespace Chloe.Sharding
 
                 if (shardingKeyValue == null)
                 {
-                    throw new ArgumentException($"The sharding key '{shardingPropertyDescriptor.Property.Name.ToString()}' value can not be null.");
+                    throw new ArgumentException($"The sharding key '{shardingPropertyDescriptor.Property.Name}' value can not be null.");
                 }
 
                 ShardingKey shardingKey = new ShardingKey() { Member = shardingKeyMember, Value = shardingKeyValue };
