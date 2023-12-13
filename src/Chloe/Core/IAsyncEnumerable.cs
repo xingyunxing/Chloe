@@ -512,6 +512,8 @@ namespace System.Collections.Generic
 
                 public async Task<bool> MoveNextAsync()
                 {
+                    bool hasNext;
+
                     if (this._enumerator == null)
                     {
                         this._enumerator = this._enumerable._source.GetAsyncEnumerator(this._cancellationToken);
@@ -519,12 +521,19 @@ namespace System.Collections.Generic
                         int skips = 0;
                         while (this._enumerable._count > skips)
                         {
-                            await this._enumerator.MoveNextAsync();
+                            hasNext = await this._enumerator.MoveNextAsync();
+
+                            if (!hasNext)
+                            {
+                                this._current = default;
+                                return false;
+                            }
+
                             skips++;
                         }
                     }
 
-                    bool hasNext = await this._enumerator.MoveNextAsync();
+                    hasNext = await this._enumerator.MoveNextAsync();
                     if (hasNext)
                     {
                         this._current = this._enumerator.Current;
