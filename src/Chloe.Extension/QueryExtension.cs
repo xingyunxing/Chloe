@@ -314,9 +314,6 @@ namespace Chloe
                 currType = exp.Type;
             }
 
-            if (exp == parameterExp)
-                throw new Exception("Oh,god!You are so lucky!");
-
             Type delegateType = null;
 
             delegateType = typeof(Func<,>).MakeGenericType(new Type[] { typeof(T), exp.Type });
