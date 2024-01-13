@@ -207,12 +207,6 @@ namespace Chloe.Query
                             continue;
                         }
                     }
-
-                    if (ret != null)
-                    {
-                        /* This case and case #110 will not appear in normal, if you meet,please email me(so_while@163.com) or call 911 for help. */
-                        throw new InvalidOperationException(memberExpressionDeriveFromParameter.ToString());
-                    }
                 }
                 else
                 {
@@ -220,6 +214,7 @@ namespace Chloe.Query
                         throw new InvalidOperationException(memberExpressionDeriveFromParameter.ToString());
 
                     ret = e;
+                    model = null;
                 }
             }
 
