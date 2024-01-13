@@ -13,7 +13,7 @@
 		<description>
 			A lightweight and high-performance Object/Relational Mapping(ORM) library.
 		</description>
-		<copyright>Copyright 2016-2023</copyright>
+		<copyright>Copyright 2016-2024</copyright>
 		<tags>Chloe,ORM,Data,PostgreSQL,.NET Core</tags>
 
 		<dependencies>

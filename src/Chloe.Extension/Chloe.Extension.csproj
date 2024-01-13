@@ -9,7 +9,7 @@
 		<PackageId>Chloe.Extension</PackageId>
 		<Product>Chloe.ORM</Product>
 		<Authors>Shuxin Qin</Authors>
-		<Copyright>Copyright 2016-2023.</Copyright>
+		<Copyright>Copyright 2016-2024.</Copyright>
 		<GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
 	</PropertyGroup>
 
