@@ -9,7 +9,7 @@ namespace Chloe.Entity
 
         }
 
-        public EntityTypeBuilder(bool useAnnotationMapping) : base(typeof(TEntity), useAnnotationMapping)
+        public EntityTypeBuilder(bool initializeWithAnnotationMapping) : base(typeof(TEntity), initializeWithAnnotationMapping)
         {
 
         }
