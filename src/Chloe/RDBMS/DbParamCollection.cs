@@ -1,8 +1,8 @@
 ﻿using System.Data;
 
-namespace Chloe.Dameng
+namespace Chloe.RDBMS
 {
-    class DbParamCollection
+    public class DbParamCollection : IDbParamCollection
     {
         /* 以参数值为 key，DbParam 或 List<DbParam> 为 value */
         Dictionary<object, object> _dbParams = new Dictionary<object, object>();
@@ -68,7 +68,6 @@ namespace Chloe.Dameng
                 this.Count++;
             }
         }
-
 
         public List<DbParam> ToParameterList()
         {
