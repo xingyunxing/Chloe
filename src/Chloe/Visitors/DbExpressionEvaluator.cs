@@ -98,7 +98,7 @@ namespace Chloe.Visitors
                 if (underlyingType == operandValueType)
                 {
                     var constructor = exp.Type.GetConstructor(new Type[] { operandValueType });
-                    var val = constructor.Invoke(new object[] { operandValue });
+                    var val = constructor.FastCreateInstance(new object[] { operandValue });
                     return val;
                 }
                 else
@@ -116,7 +116,7 @@ namespace Chloe.Visitors
                 if (underlyingType == exp.Type)
                 {
                     var pro = operandValueType.GetProperty("Value");
-                    var val = pro.GetValue(operandValue, null);
+                    var val = pro.FastGetMemberValue(operandValue);
                     return val;
                 }
                 else
