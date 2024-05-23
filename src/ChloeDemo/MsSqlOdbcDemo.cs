@@ -29,7 +29,7 @@ namespace ChloeDemo
 
         protected override IDbContext CreateDbContext()
         {
-            string connStr = "Driver={ODBC Driver 17 for SQL Server};Server=.;Database=Chloe;UID=sa;PWD=sa;";
+            string connStr = "Driver={SQL Server};Server=.;Database=Chloe;UID=;PWD=;";
             MsSqlContext dbContext = new MsSqlContext(() => new OdbcConnection(connStr));
             dbContext.Options.PagingMode = PagingMode.ROW_NUMBER;
             dbContext.Options.BindParameterByName = false;
