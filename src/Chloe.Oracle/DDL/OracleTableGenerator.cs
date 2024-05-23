@@ -77,9 +77,7 @@ namespace Chloe.Oracle.DDL
 
                 string triggerName = $"{seqName.ToUpper()}_TRIGGER";
                 string createTrigger = $@"create or replace trigger {triggerName} before insert on {tableName.ToUpper()} for each row 
-begin 
-select {seqName.ToUpper()}.nextval into :new.{typeDescriptor.AutoIncrement.Column.Name} from dual;
-end;";
+begin select {seqName.ToUpper()}.nextval into :new.{typeDescriptor.AutoIncrement.Column.Name} from dual;end;";
 
                 sqlList.Add(createTrigger);
             }
