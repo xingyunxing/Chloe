@@ -27,6 +27,10 @@ namespace ChloeDemo
              */
 
             OracleConnection oracleConnection = new OracleConnection(this._connString);
+#if NETCORE
+
+            oracleConnection.SqlNetAllowedLogonVersionClient = OracleAllowedLogonVersionClient.Version8;
+#endif
             OracleConnectionDecorator conn = new OracleConnectionDecorator(oracleConnection);
             return conn;
         }

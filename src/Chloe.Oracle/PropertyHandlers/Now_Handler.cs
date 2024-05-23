@@ -8,7 +8,7 @@ namespace Chloe.Oracle.PropertyHandlers
     {
         public override void Process(DbMemberExpression exp, SqlGeneratorBase generator)
         {
-            generator.SqlBuilder.Append("SYSTIMESTAMP");
+            generator.SqlBuilder.Append("SYSDATE");
         }
     }
 }
