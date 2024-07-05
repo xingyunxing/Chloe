@@ -119,39 +119,26 @@ namespace Chloe
         }
 
         /// <summary>
-        /// dbContext.Query&lt;User&gt;().Ignore&lt;User&gt;(a => new { a.Name, a.Age }) or dbContext.Query&lt;User&gt;().Ignore&lt;User&gt;(a => new object[] { a.Name, a.Age })
+        /// dbContext.Query&lt;User&gt;().Exclude&lt;User&gt;("Name,Age", "NickName")
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="source"></param>
         /// <param name="fields"></param>
         /// <returns></returns>
-        [Obsolete("Instead of using IQuery<T>.Exclude() method.")]
-        public static IQuery<TEntity> Ignore<TEntity>(this IQuery<TEntity> source, Expression<Func<TEntity, object>> fields)
-        {
-            return source.Exclude(fields);
-        }
-        /// <summary>
-        /// dbContext.Query&lt;User&gt;().Ignore&lt;User&gt;("Name,Age", "NickName")
-        /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
-        /// <param name="source"></param>
-        /// <param name="fields"></param>
-        /// <returns></returns>
-        [Obsolete("Instead of using IQuery<T>.Exclude() method.")]
-        public static IQuery<TEntity> Ignore<TEntity>(this IQuery<TEntity> source, params string[] fields)
+        /// <exception cref="ArgumentException"></exception>
+        public static IQuery<TEntity> Exclude<TEntity>(this IQuery<TEntity> source, params string[] fields)
         {
             PublicHelper.CheckNull(source);
 
             if (fields == null)
                 return source;
 
-            /* 支持 source.Ignore<User>("Name,Age", "NickName"); */
             fields = fields.SelectMany(a => a.Split(',')).Select(a => a.Trim()).ToArray();
 
             if (fields.Length == 0)
                 return source;
 
-            List<MemberBinding> bindings = new List<MemberBinding>();
+            List<Expression> initializers = new List<Expression>();
 
             Type entityType = source.ElementType;
 
@@ -159,25 +146,26 @@ namespace Chloe
             var mappingPropertyDescriptors = typeDescriptor.PrimitivePropertyDescriptors.ToList();
 
             ParameterExpression parameter = Expression.Parameter(entityType, "a");
-            foreach (var mappingPropertyDescriptor in mappingPropertyDescriptors)
+
+            foreach (var field in fields)
             {
-                if (fields.Any(a => a == mappingPropertyDescriptor.Property.Name))
-                    continue;
+                var mappingPropertyDescriptor = mappingPropertyDescriptors.FirstOrDefault(a => a.Property.Name == field);
+
+                if (mappingPropertyDescriptor == null)
+                {
+                    throw new ArgumentException(string.Format("The member '{0}' does not map any column.", field));
+                }
 
                 Expression sourceMemberAccess = Expression.MakeMemberAccess(parameter, mappingPropertyDescriptor.Property);
-                MemberAssignment bind = Expression.Bind(mappingPropertyDescriptor.Property, sourceMemberAccess);
-                bindings.Add(bind);
+                initializers.Add(Expression.Convert(sourceMemberAccess, typeof(object)));
             }
 
-            if (bindings.Count == 0)
-                throw new Exception("There are no fields to map after ignore.");
+            NewArrayExpression newExp = Expression.NewArrayInit(typeof(object), initializers);
 
-            NewExpression newExp = Expression.New(entityType);
-            Expression selectorBody = Expression.MemberInit(newExp, bindings);
+            //a => new object[] { a.Name, a.Age, a.NickName }
+            Expression<Func<TEntity, object[]>> excludedFieldsSelector = Expression.Lambda<Func<TEntity, object[]>>(newExp, parameter);
 
-            Expression<Func<TEntity, TEntity>> selector = Expression.Lambda<Func<TEntity, TEntity>>(selectorBody, parameter);
-
-            return source.Select(selector);
+            return source.Exclude(excludedFieldsSelector);
         }
 
         /// <summary>
