@@ -30,11 +30,13 @@ namespace ChloeDemo.Sharding
             await InitData();
 
             ShardingQueryTest queryTest = new ShardingQueryTest(this);
-            await queryTest.Run();
+            await queryTest.Run();  //运行查询测试
 
+
+            //增删查改测试
             ShardingConfigBuilder<Order> shardingConfigBuilder = new ShardingConfigBuilder<Order>();
             shardingConfigBuilder.HasShardingKey(a => a.CreateTime);     //配置分片字段
-            shardingConfigBuilder.HasRoute(new OrderShardingRoute(this, new List<int>() { 2020, 2021 })); //设置分片路由
+            shardingConfigBuilder.HasRoute(new OrderShardingRoute(this, new List<int>() { 2020, 2021 })); //设置分片路由。此测试使用 2020, 2021 两个分库
 
             ShardingConfigContainer.Add(shardingConfigBuilder.Build());     //注册分片配置信息
 
@@ -46,6 +48,11 @@ namespace ChloeDemo.Sharding
             Console.ReadKey();
         }
 
+        /// <summary>
+        /// 根据年份，获取分库的 DbContext 对象
+        /// </summary>
+        /// <param name="year"></param>
+        /// <returns></returns>
         public abstract DbContext CreateInitDataDbContext(int year);
 
         /// <summary>
@@ -54,6 +61,13 @@ namespace ChloeDemo.Sharding
         /// <param name="year"></param>
         /// <returns></returns>
         public abstract IDbContextProvider CreateDbContextProvider(int year);
+
+        /// <summary>
+        /// 根据表名生成分表
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="dbContext"></param>
+        /// <param name="table"></param>
         public abstract void CreateTable<TEntity>(DbContext dbContext, string table);
 
         public IDbContext CreateDbContext()
@@ -69,10 +83,13 @@ namespace ChloeDemo.Sharding
             return dbContext;
         }
 
+        /// <summary>
+        /// 初始化测试数据
+        /// </summary>
+        /// <returns></returns>
         public async Task InitData()
         {
             /*
-             * 初始化测试数据：
              * 按年分库，按月分表
              * 每天两条数据
              * 注：运行程序前请手动创建好四个数据库（order2018、order2019、order2020、order2021），然后修改 ShardingTestImpl.cs 里的数据库连接字符串
@@ -84,15 +101,20 @@ namespace ChloeDemo.Sharding
             await InitData(2021);
             Console.WriteLine("InitData over");
         }
+
+        /// <summary>
+        /// 初始化分库测试数据。根据年份，初始化指定分库中的各个分表数据
+        /// </summary>
+        /// <param name="year"></param>
+        /// <returns></returns>
         public async Task InitData(int year)
         {
             /*
-             * 初始化测试数据：
              * 按月分表
              * 每天两条数据
              * 注：需要手动建库
              */
-            DbContext dbContext = this.CreateInitDataDbContext(year);
+            using DbContext dbContext = this.CreateInitDataDbContext(year);
             dbContext.ShardingEnabled = false;
 
 
@@ -101,6 +123,10 @@ namespace ChloeDemo.Sharding
                 string table = BuildTableName(month);
 
                 this.CreateTable<Order>(dbContext, table);
+
+                /*
+                 * 初始化分表数据
+                 */
 
                 bool hasData = dbContext.Query<Order>(table).Any();
                 if (hasData)
@@ -140,7 +166,7 @@ namespace ChloeDemo.Sharding
         }
 
         /// <summary>
-        /// 根据月份构造表名
+        /// 根据月份构造表名。此 demo 分表表名规则为 order+月份，你可以根据你自己喜好，拼接适合你自己的表名
         /// </summary>
         /// <param name="month"></param>
         /// <returns></returns>
@@ -164,7 +190,7 @@ namespace ChloeDemo.Sharding
             /*
              * 增删查改
              */
-            IDbContext dbContext = this.CreateDbContext();
+            using IDbContext dbContext = this.CreateDbContext();
 
             int rowsAffected = 0;
             DateTime createTime = new DateTime(2021, 1, 1, 1, 1, 1);
@@ -211,7 +237,7 @@ namespace ChloeDemo.Sharding
             /*
              * 按条件更新
              */
-            IDbContext dbContext = this.CreateDbContext();
+            using IDbContext dbContext = this.CreateDbContext();
 
             await InitData(2021);
 
@@ -243,7 +269,7 @@ namespace ChloeDemo.Sharding
             /*
              * 按条件删除
              */
-            IDbContext dbContext = this.CreateDbContext();
+            using IDbContext dbContext = this.CreateDbContext();
 
             int rowsAffected = 0;
 

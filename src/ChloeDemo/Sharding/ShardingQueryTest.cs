@@ -23,7 +23,7 @@ namespace ChloeDemo.Sharding
         {
             ShardingConfigBuilder<Order> shardingConfigBuilder = new ShardingConfigBuilder<Order>();
             shardingConfigBuilder.HasShardingKey(a => a.CreateTime);  //配置分片字段
-            shardingConfigBuilder.HasRoute(new OrderShardingRoute(this._shardingTest, new List<int>() { 2018, 2019 }));  //设置分片路由
+            shardingConfigBuilder.HasRoute(new OrderShardingRoute(this._shardingTest, new List<int>() { 2018, 2019 }));  //设置分片路由。此测试使用 2018, 2019 两个分库
 
             ShardingConfigContainer.Add(shardingConfigBuilder.Build());  //注册分片配置信息
 
@@ -60,7 +60,7 @@ namespace ChloeDemo.Sharding
 
         async Task NormalQueryTest()
         {
-            IDbContext dbContext = this.CreateDbContext();
+            using IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             var orders = await q.ToListAsync();
@@ -107,7 +107,7 @@ namespace ChloeDemo.Sharding
         /// <returns></returns>
         async Task PageQueryByShardingKeyOrderByAscTest()
         {
-            IDbContext dbContext = this.CreateDbContext();
+            using IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
             q = q.OrderBy(a => a.CreateTime);
 
@@ -152,7 +152,7 @@ namespace ChloeDemo.Sharding
         /// <returns></returns>
         async Task PageQueryByShardingKeyOrderByDescTest()
         {
-            IDbContext dbContext = this.CreateDbContext();
+            using IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
             q = q.OrderByDesc(a => a.CreateTime);
 
@@ -196,7 +196,7 @@ namespace ChloeDemo.Sharding
         /// <returns></returns>
         async Task PageQueryInSingleTableTest()
         {
-            IDbContext dbContext = this.CreateDbContext();
+            using IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             int pageSize = 10;
@@ -225,7 +225,7 @@ namespace ChloeDemo.Sharding
         /// <returns></returns>
         async Task PageQueryByShardingKeyInSingleDatabaseOrderByDescTest()
         {
-            IDbContext dbContext = this.CreateDbContext();
+            using IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             DateTime dt = new DateTime(2019, 12, 2);
@@ -254,7 +254,7 @@ namespace ChloeDemo.Sharding
         /// <returns></returns>
         async Task QueryOrderByShardingKeyTest()
         {
-            IDbContext dbContext = this.CreateDbContext();
+            using IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             DateTime dt = new DateTime(2018, 12, 31);
@@ -286,7 +286,7 @@ namespace ChloeDemo.Sharding
             PagingResult<Order> result;
             List<Order> dataList;
 
-            IDbContext dbContext = this.CreateDbContext();
+            using IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             q = q.OrderBy(a => a.Amount).ThenBy(a => a.Id);
@@ -332,7 +332,7 @@ namespace ChloeDemo.Sharding
         /// <returns></returns>
         async Task QueryByPrimaryKeyTest()
         {
-            IDbContext dbContext = this.CreateDbContext();
+            using IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             string id = "2019-12-01 10:00";
@@ -351,7 +351,7 @@ namespace ChloeDemo.Sharding
         /// <returns></returns>
         async Task QueryByPrimaryKeyAndShardingKeyTest()
         {
-            IDbContext dbContext = this.CreateDbContext();
+            using IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             /*
@@ -377,7 +377,7 @@ namespace ChloeDemo.Sharding
              * 根据非分片字段路由
              */
 
-            IDbContext dbContext = this.CreateDbContext();
+            using IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             //根据 CreateYear 查询，虽然 CreateYear 不是分片字段，但是可以给 CreateYear 字段设置路由规则
@@ -405,7 +405,7 @@ namespace ChloeDemo.Sharding
         {
             List<Order> orders = new List<Order>();
 
-            IDbContext dbContext = this.CreateDbContext();
+            using IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             List<int> createDates = new List<int>() { 20180101, 20190201 };
@@ -432,7 +432,7 @@ namespace ChloeDemo.Sharding
         /// <returns></returns>
         async Task ProjectionTest()
         {
-            IDbContext dbContext = this.CreateDbContext();
+            using IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             var results = await q.Where(a => a.CreateMonth == 4 || a.CreateMonth == 6).OrderBy(a => a.CreateMonth).Select(a => new { Id = a.Id, CreateMonth = a.CreateMonth, Order = a }).ToListAsync();
@@ -451,7 +451,7 @@ namespace ChloeDemo.Sharding
         {
             List<Order> orders = new List<Order>();
 
-            IDbContext dbContext = this.CreateDbContext();
+            using IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             bool hasData = false;
@@ -477,7 +477,7 @@ namespace ChloeDemo.Sharding
         /// <returns></returns>
         async Task CountQueryTest()
         {
-            IDbContext dbContext = this.CreateDbContext();
+            using IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             long count = await q.LongCountAsync();
@@ -493,7 +493,7 @@ namespace ChloeDemo.Sharding
         /// <returns></returns>
         async Task SumQueryTest()
         {
-            IDbContext dbContext = this.CreateDbContext();
+            using IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             decimal? sum = 0;
@@ -517,7 +517,7 @@ namespace ChloeDemo.Sharding
         /// <returns></returns>
         async Task SumNullQueryTest()
         {
-            IDbContext dbContext = this.CreateDbContext();
+            using IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             decimal? sum = 0;
@@ -536,7 +536,7 @@ namespace ChloeDemo.Sharding
         /// <returns></returns>
         async Task AvgQueryTest()
         {
-            IDbContext dbContext = this.CreateDbContext();
+            using IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             decimal? avg = 0;
@@ -560,7 +560,7 @@ namespace ChloeDemo.Sharding
         /// <returns></returns>
         async Task AvgNullQueryTest()
         {
-            IDbContext dbContext = this.CreateDbContext();
+            using IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             decimal? avg = 0;
@@ -579,7 +579,7 @@ namespace ChloeDemo.Sharding
         /// <returns></returns>
         async Task MaxMinQueryTest()
         {
-            IDbContext dbContext = this.CreateDbContext();
+            using IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             int maxMonth = await q.MaxAsync(a => a.CreateMonth);
@@ -598,7 +598,7 @@ namespace ChloeDemo.Sharding
         /// <returns></returns>
         async Task GroupQueryTest()
         {
-            IDbContext dbContext = this.CreateDbContext();
+            using IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             var results = await q.Where(a => a.Amount > 0)
@@ -634,7 +634,7 @@ namespace ChloeDemo.Sharding
         /// <returns></returns>
         async Task ExcludeFieldQueryTest()
         {
-            IDbContext dbContext = this.CreateDbContext();
+            using IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
             var orders = await q.Exclude(a => new { a.UserId, a.Amount }).OrderByDesc(a => a.CreateTime).Take(10).ToListAsync();
