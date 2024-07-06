@@ -13,6 +13,7 @@ namespace ChloeDemo.Sharding
     internal class ShardingQueryTest
     {
         ShardingTest _shardingTest;
+
         public ShardingQueryTest(ShardingTest shardingTest)
         {
             this._shardingTest = shardingTest;
@@ -54,15 +55,7 @@ namespace ChloeDemo.Sharding
 
         IDbContext CreateDbContext()
         {
-            /*
-             * 创建一个普通的 DbContext。
-             * 注：实际应用中应该使用 MsSqlContext、MySqlContext、OracleContext 等上下文类，但因为这只是演示 sharding 功能，操作的全是分表，
-             * 由于最终创建分表数据库连接以及分表操作（增删查改）调用的是 OrderShardingRoute.cs 里 AllTables 集合中的 RouteTable 对象的 RouteTable.DataSource.DbContextProviderFactory 这个工厂创建出来的 IDbContextProvider 对象，
-             * 所以只使用普通的 DbContext（如果有非分表，请使用 MsSqlContext、MySqlContext、OracleContext 等上下文类）
-             */
-            DbContext dbContext = new DbContext();
-            dbContext.ShardingOptions.MaxConnectionsPerDataSource = 6;
-            return dbContext;
+            return this._shardingTest.CreateDbContext();
         }
 
         async Task NormalQueryTest()
