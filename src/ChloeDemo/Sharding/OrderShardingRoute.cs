@@ -104,10 +104,16 @@ namespace ChloeDemo.Sharding
 
             for (int month = 1; month <= 12; month++)
             {
-                var dbContextProviderFactory = new OrderDbContextProviderFactory(this._shardingTest, year);  //根据年份创建连接数据库对象
+                /*
+                 * 根据年份创建连接数据库对象。
+                 * 注：最终创建分表数据库连接以及分表操作（增删查改）调用的是 OrderDbContextProviderFactory 这个工厂创建出来的 IDbContextProvider 对象方法。
+                 */
+                var dbContextProviderFactory = new OrderDbContextProviderFactory(this._shardingTest, year);
                 RouteTable table = new OrderRouteTable(month)
                 {
-                    /* 设置 RouteTable 所在的数据库 */
+                    /* 
+                     * 设置 RouteTable 所在的数据库。即绑定分表所在的数据库。
+                     */
                     DataSource = new OrderRouteDataSource(year)
                     {
                         DbContextProviderFactory = dbContextProviderFactory
