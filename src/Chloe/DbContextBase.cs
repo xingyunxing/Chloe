@@ -30,6 +30,11 @@ namespace Chloe
 
         }
 
+        public virtual object Clone()
+        {
+            throw new NotImplementedException();
+        }
+
         public virtual void TrackEntity(object entity)
         {
             throw new NotImplementedException();

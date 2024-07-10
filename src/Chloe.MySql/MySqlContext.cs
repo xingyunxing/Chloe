@@ -23,6 +23,22 @@ namespace Chloe.MySql
 
         public new MySqlOptions Options { get; private set; }
 
+        public override DbContext CloneImpl()
+        {
+            MySqlOptions options = new MySqlOptions()
+            {
+                DbConnectionFactory = this.Options.DbConnectionFactory,
+                InsertStrategy = this.Options.InsertStrategy,
+                MaxInItems = this.Options.MaxInItems
+            };
+
+            MySqlContext dbContext = new MySqlContext(options);
+            dbContext.ShardingEnabled = this.ShardingEnabled;
+            dbContext.ShardingOptions.MaxConnectionsPerDataSource = this.ShardingOptions.MaxConnectionsPerDataSource;
+
+            return dbContext;
+        }
+
         /// <summary>
         /// 设置属性解析器。
         /// </summary>

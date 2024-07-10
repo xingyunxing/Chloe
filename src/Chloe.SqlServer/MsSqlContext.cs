@@ -29,6 +29,24 @@ namespace Chloe.SqlServer
 
         public new MsSqlOptions Options { get; private set; }
 
+        public override DbContext CloneImpl()
+        {
+            MsSqlOptions options = new MsSqlOptions()
+            {
+                DbConnectionFactory = this.Options.DbConnectionFactory,
+                InsertStrategy = this.Options.InsertStrategy,
+                MaxInItems = this.Options.MaxInItems,
+                PagingMode = this.Options.PagingMode,
+                BindParameterByName = this.Options.BindParameterByName
+            };
+
+            MsSqlContext dbContext = new MsSqlContext(options);
+            dbContext.ShardingEnabled = this.ShardingEnabled;
+            dbContext.ShardingOptions.MaxConnectionsPerDataSource = this.ShardingOptions.MaxConnectionsPerDataSource;
+
+            return dbContext;
+        }
+
         /// <summary>
         /// 设置属性解析器。
         /// </summary>

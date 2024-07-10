@@ -84,6 +84,34 @@ namespace Chloe
             this.Butler.Dispose();
         }
 
+        public override object Clone()
+        {
+            DbContext dbContext = this.CloneImpl();
+            foreach (var entityQueryFilterKV in this.Butler.QueryFilters)
+            {
+                foreach (LambdaExpression queryFilter in entityQueryFilterKV.Value)
+                {
+                    dbContext.HasQueryFilter(entityQueryFilterKV.Key, queryFilter);
+                }
+            }
+
+            foreach (var entityShardingConfigKV in this.Butler.ContextShardingConfigs)
+            {
+                dbContext.HasShardingConfig(entityShardingConfigKV.Key, entityShardingConfigKV.Value);
+            }
+
+            return dbContext;
+        }
+
+        public virtual DbContext CloneImpl()
+        {
+            DbContext dbContext = new DbContext(this.Options, this.DbContextProviderFactory);
+            dbContext.ShardingEnabled = this.ShardingEnabled;
+            dbContext.ShardingOptions.MaxConnectionsPerDataSource = this.ShardingOptions.MaxConnectionsPerDataSource;
+
+            return dbContext;
+        }
+
         public override void TrackEntity(object entity)
         {
             PublicHelper.CheckNull(entity);

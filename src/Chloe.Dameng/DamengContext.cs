@@ -24,6 +24,22 @@ namespace Chloe.Dameng
 
         public new DamengOptions Options { get; private set; }
 
+        public override DbContext CloneImpl()
+        {
+            DamengOptions options = new DamengOptions()
+            {
+                DbConnectionFactory = this.Options.DbConnectionFactory,
+                InsertStrategy = this.Options.InsertStrategy,
+                MaxInItems = this.Options.MaxInItems
+            };
+
+            DamengContext dbContext = new DamengContext(options);
+            dbContext.ShardingEnabled = this.ShardingEnabled;
+            dbContext.ShardingOptions.MaxConnectionsPerDataSource = this.ShardingOptions.MaxConnectionsPerDataSource;
+
+            return dbContext;
+        }
+
         /// <summary>
         /// 设置属性解析器。
         /// </summary>

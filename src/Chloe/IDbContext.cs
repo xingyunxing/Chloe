@@ -7,7 +7,7 @@ namespace Chloe
     /// <summary>
     /// 注：DbContext 对象非线程安全，多线程不能共享一个 DbContext 对象。
     /// </summary>
-    public interface IDbContext : IDisposable
+    public interface IDbContext : IDisposable, ICloneable
     {
         IDbSession Session { get; }
 

@@ -26,7 +26,7 @@ namespace Chloe
         public List<IDbCommandInterceptor> Interceptors { get; } = new List<IDbCommandInterceptor>();
         public Dictionary<Type, List<LambdaExpression>> QueryFilters { get; } = new Dictionary<Type, List<LambdaExpression>>();
 
-        Dictionary<Type, IShardingConfig> ContextShardingConfigs
+        public Dictionary<Type, IShardingConfig> ContextShardingConfigs
         {
             get
             {

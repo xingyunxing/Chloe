@@ -23,6 +23,23 @@ namespace Chloe.Oracle
 
         public new OracleOptions Options { get; private set; }
 
+        public override DbContext CloneImpl()
+        {
+            OracleOptions options = new OracleOptions()
+            {
+                DbConnectionFactory = this.Options.DbConnectionFactory,
+                InsertStrategy = this.Options.InsertStrategy,
+                MaxInItems = this.Options.MaxInItems,
+                ConvertToUppercase = this.Options.ConvertToUppercase
+            };
+
+            OracleContext dbContext = new OracleContext(options);
+            dbContext.ShardingEnabled = this.ShardingEnabled;
+            dbContext.ShardingOptions.MaxConnectionsPerDataSource = this.ShardingOptions.MaxConnectionsPerDataSource;
+
+            return dbContext;
+        }
+
         /// <summary>
         /// 设置属性解析器。
         /// </summary>

@@ -23,6 +23,23 @@ namespace Chloe.KingbaseES
 
         public new KingbaseESOptions Options { get; private set; }
 
+        public override DbContext CloneImpl()
+        {
+            KingbaseESOptions options = new KingbaseESOptions()
+            {
+                DbConnectionFactory = this.Options.DbConnectionFactory,
+                InsertStrategy = this.Options.InsertStrategy,
+                MaxInItems = this.Options.MaxInItems,
+                ConvertToLowercase = this.Options.ConvertToLowercase
+            };
+
+            KingbaseESContext dbContext = new KingbaseESContext(options);
+            dbContext.ShardingEnabled = this.ShardingEnabled;
+            dbContext.ShardingOptions.MaxConnectionsPerDataSource = this.ShardingOptions.MaxConnectionsPerDataSource;
+
+            return dbContext;
+        }
+
         /// <summary>
         /// 设置属性解析器。
         /// </summary>

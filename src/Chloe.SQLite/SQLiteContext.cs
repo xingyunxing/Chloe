@@ -23,6 +23,23 @@ namespace Chloe.SQLite
 
         public new SQLiteOptions Options { get; private set; }
 
+        public override DbContext CloneImpl()
+        {
+            SQLiteOptions options = new SQLiteOptions()
+            {
+                DbConnectionFactory = this.Options.DbConnectionFactory,
+                InsertStrategy = this.Options.InsertStrategy,
+                MaxInItems = this.Options.MaxInItems,
+                ConcurrencyMode = this.Options.ConcurrencyMode
+            };
+
+            SQLiteContext dbContext = new SQLiteContext(options);
+            dbContext.ShardingEnabled = this.ShardingEnabled;
+            dbContext.ShardingOptions.MaxConnectionsPerDataSource = this.ShardingOptions.MaxConnectionsPerDataSource;
+
+            return dbContext;
+        }
+
         /// <summary>
         /// 设置属性解析器。
         /// </summary>

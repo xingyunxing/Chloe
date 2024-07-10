@@ -23,6 +23,23 @@ namespace Chloe.PostgreSQL
 
         public new PostgreSQLOptions Options { get; private set; }
 
+        public override DbContext CloneImpl()
+        {
+            PostgreSQLOptions options = new PostgreSQLOptions()
+            {
+                DbConnectionFactory = this.Options.DbConnectionFactory,
+                InsertStrategy = this.Options.InsertStrategy,
+                MaxInItems = this.Options.MaxInItems,
+                ConvertToLowercase = this.Options.ConvertToLowercase
+            };
+
+            PostgreSQLContext dbContext = new PostgreSQLContext(options);
+            dbContext.ShardingEnabled = this.ShardingEnabled;
+            dbContext.ShardingOptions.MaxConnectionsPerDataSource = this.ShardingOptions.MaxConnectionsPerDataSource;
+
+            return dbContext;
+        }
+
         /// <summary>
         /// 设置属性解析器。
         /// </summary>
