@@ -1,4 +1,5 @@
-﻿using Chloe.Sharding;
+﻿using Chloe.Infrastructure.Interception;
+using Chloe.Sharding;
 using System.Data;
 using System.Linq.Expressions;
 
@@ -102,6 +103,12 @@ namespace Chloe
             foreach (var entityShardingConfigKV in this.Butler.ContextShardingConfigs)
             {
                 dbContext.HasShardingConfig(entityShardingConfigKV.Key, entityShardingConfigKV.Value);
+            }
+
+            dbContext.Session.CommandTimeout = this.Session.CommandTimeout;
+            foreach (IDbCommandInterceptor interceptor in this.Butler.Interceptors)
+            {
+                dbContext.Session.AddInterceptor(interceptor);
             }
 
             return dbContext;
