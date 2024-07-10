@@ -20,6 +20,11 @@ namespace Chloe
             this.PersistedDbContext.Dispose();
         }
 
+        public override object Clone()
+        {
+            return this.PersistedDbContext.Clone();
+        }
+
         public override void TrackEntity(object entity)
         {
             this.PersistedDbContext.TrackEntity(entity);
