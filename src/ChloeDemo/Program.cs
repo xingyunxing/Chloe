@@ -49,6 +49,11 @@ namespace ChloeDemo
             DbConfiguration.UseTypeBuilders(typeof(ProvinceMap));
             DbConfiguration.UseTypeBuilders(typeof(TestEntityMap));
 
+
+            /*
+             * 运行##分库分表测试##前请手动创建好四个数据库（order2018、order2019、order2020、order2021，不用建表，程序会生成相应的表并初始化数据），然后修改 Sharding/ShardingTestImpl.cs 里的数据库连接字符串
+             */
+
             //sqlserver 分库分表测试
             MsSqlShardingTest msSqlShardingTest = new MsSqlShardingTest();
             msSqlShardingTest.Run().GetAwaiter().GetResult();
@@ -72,6 +77,11 @@ namespace ChloeDemo
             //KingbaseES 分库分表测试
             KingbaseESShardingTest kingbaseESShardingTest = new KingbaseESShardingTest();
             kingbaseESShardingTest.Run().GetAwaiter().GetResult();
+
+
+            /*
+             * 运行以下测试前请手动创建好数据库(不用建表，程序会生成相应的表并初始化数据)，然后修改各个 XXXDemo.cs 文件里的数据库连接字符串
+             */
 
             RunDemo<SQLiteDemo>();
             RunDemo<MsSqlDemo>();

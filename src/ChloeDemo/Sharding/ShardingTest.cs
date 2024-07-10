@@ -23,8 +23,7 @@ namespace ChloeDemo.Sharding
         {
             /*
              * 注：
-             * Chloe.ORM 不负责创建数据库和表，
-             * 运行此测试前请手动创建好四个数据库（order2018、order2019、order2020、order2021），然后修改 ShardingTestImpl.cs 里的数据库连接字符串
+             * 运行此测试前请手动创建好四个数据库（order2018、order2019、order2020、order2021，不用建表，程序会生成相应的表并初始化数据），然后修改 ShardingTestImpl.cs 里的数据库连接字符串
              */
 
             await InitData();
