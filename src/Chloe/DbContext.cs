@@ -45,6 +45,14 @@ namespace Chloe
         public IDbContextProvider DefaultDbContextProvider { get { return this.Butler.GetDefaultDbContextProvider(); } }
         internal IDbContextProvider ShardingDbContextProvider { get { return this.Butler.GetShardingDbContextProvider(); } }
 
+        public virtual string DatabaseType
+        {
+            get
+            {
+                return (this.DefaultDbContextProvider as DbContextProvider).DatabaseProvider.DatabaseType;
+            }
+        }
+
         bool IsShardingType(Type entityType)
         {
             IShardingConfig shardingConfig = this.GetShardingConfig(entityType);
