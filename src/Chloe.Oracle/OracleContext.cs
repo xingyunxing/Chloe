@@ -23,7 +23,7 @@ namespace Chloe.Oracle
 
         public new OracleOptions Options { get; private set; }
 
-        public override DbContext CloneImpl()
+        protected override DbContext CloneImpl()
         {
             OracleOptions options = new OracleOptions()
             {
@@ -34,9 +34,6 @@ namespace Chloe.Oracle
             };
 
             OracleContext dbContext = new OracleContext(options);
-            dbContext.ShardingEnabled = this.ShardingEnabled;
-            dbContext.ShardingOptions.MaxConnectionsPerDataSource = this.ShardingOptions.MaxConnectionsPerDataSource;
-
             return dbContext;
         }
 

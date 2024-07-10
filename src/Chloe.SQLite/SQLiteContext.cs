@@ -23,7 +23,7 @@ namespace Chloe.SQLite
 
         public new SQLiteOptions Options { get; private set; }
 
-        public override DbContext CloneImpl()
+        protected override DbContext CloneImpl()
         {
             SQLiteOptions options = new SQLiteOptions()
             {
@@ -34,9 +34,6 @@ namespace Chloe.SQLite
             };
 
             SQLiteContext dbContext = new SQLiteContext(options);
-            dbContext.ShardingEnabled = this.ShardingEnabled;
-            dbContext.ShardingOptions.MaxConnectionsPerDataSource = this.ShardingOptions.MaxConnectionsPerDataSource;
-
             return dbContext;
         }
 

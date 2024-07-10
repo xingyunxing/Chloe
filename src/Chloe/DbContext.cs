@@ -87,6 +87,10 @@ namespace Chloe
         public override object Clone()
         {
             DbContext dbContext = this.CloneImpl();
+
+            dbContext.ShardingEnabled = this.ShardingEnabled;
+            dbContext.ShardingOptions.MaxConnectionsPerDataSource = this.ShardingOptions.MaxConnectionsPerDataSource;
+
             foreach (var entityQueryFilterKV in this.Butler.QueryFilters)
             {
                 foreach (LambdaExpression queryFilter in entityQueryFilterKV.Value)
@@ -103,12 +107,9 @@ namespace Chloe
             return dbContext;
         }
 
-        public virtual DbContext CloneImpl()
+        protected virtual DbContext CloneImpl()
         {
             DbContext dbContext = new DbContext(this.Options, this.DbContextProviderFactory);
-            dbContext.ShardingEnabled = this.ShardingEnabled;
-            dbContext.ShardingOptions.MaxConnectionsPerDataSource = this.ShardingOptions.MaxConnectionsPerDataSource;
-
             return dbContext;
         }
 

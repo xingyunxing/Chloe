@@ -29,7 +29,7 @@ namespace Chloe.SqlServer
 
         public new MsSqlOptions Options { get; private set; }
 
-        public override DbContext CloneImpl()
+        protected override DbContext CloneImpl()
         {
             MsSqlOptions options = new MsSqlOptions()
             {
@@ -41,9 +41,6 @@ namespace Chloe.SqlServer
             };
 
             MsSqlContext dbContext = new MsSqlContext(options);
-            dbContext.ShardingEnabled = this.ShardingEnabled;
-            dbContext.ShardingOptions.MaxConnectionsPerDataSource = this.ShardingOptions.MaxConnectionsPerDataSource;
-
             return dbContext;
         }
 

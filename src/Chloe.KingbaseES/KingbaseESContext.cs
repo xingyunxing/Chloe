@@ -23,7 +23,7 @@ namespace Chloe.KingbaseES
 
         public new KingbaseESOptions Options { get; private set; }
 
-        public override DbContext CloneImpl()
+        protected override DbContext CloneImpl()
         {
             KingbaseESOptions options = new KingbaseESOptions()
             {
@@ -34,9 +34,6 @@ namespace Chloe.KingbaseES
             };
 
             KingbaseESContext dbContext = new KingbaseESContext(options);
-            dbContext.ShardingEnabled = this.ShardingEnabled;
-            dbContext.ShardingOptions.MaxConnectionsPerDataSource = this.ShardingOptions.MaxConnectionsPerDataSource;
-
             return dbContext;
         }
 

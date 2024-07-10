@@ -23,7 +23,7 @@ namespace Chloe.MySql
 
         public new MySqlOptions Options { get; private set; }
 
-        public override DbContext CloneImpl()
+        protected override DbContext CloneImpl()
         {
             MySqlOptions options = new MySqlOptions()
             {
@@ -33,9 +33,6 @@ namespace Chloe.MySql
             };
 
             MySqlContext dbContext = new MySqlContext(options);
-            dbContext.ShardingEnabled = this.ShardingEnabled;
-            dbContext.ShardingOptions.MaxConnectionsPerDataSource = this.ShardingOptions.MaxConnectionsPerDataSource;
-
             return dbContext;
         }
 

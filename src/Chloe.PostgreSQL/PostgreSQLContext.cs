@@ -23,7 +23,7 @@ namespace Chloe.PostgreSQL
 
         public new PostgreSQLOptions Options { get; private set; }
 
-        public override DbContext CloneImpl()
+        protected override DbContext CloneImpl()
         {
             PostgreSQLOptions options = new PostgreSQLOptions()
             {
@@ -34,9 +34,6 @@ namespace Chloe.PostgreSQL
             };
 
             PostgreSQLContext dbContext = new PostgreSQLContext(options);
-            dbContext.ShardingEnabled = this.ShardingEnabled;
-            dbContext.ShardingOptions.MaxConnectionsPerDataSource = this.ShardingOptions.MaxConnectionsPerDataSource;
-
             return dbContext;
         }
 

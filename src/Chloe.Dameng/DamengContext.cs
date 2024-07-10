@@ -24,7 +24,7 @@ namespace Chloe.Dameng
 
         public new DamengOptions Options { get; private set; }
 
-        public override DbContext CloneImpl()
+        protected override DbContext CloneImpl()
         {
             DamengOptions options = new DamengOptions()
             {
@@ -34,9 +34,6 @@ namespace Chloe.Dameng
             };
 
             DamengContext dbContext = new DamengContext(options);
-            dbContext.ShardingEnabled = this.ShardingEnabled;
-            dbContext.ShardingOptions.MaxConnectionsPerDataSource = this.ShardingOptions.MaxConnectionsPerDataSource;
-
             return dbContext;
         }
 
