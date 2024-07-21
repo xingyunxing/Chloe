@@ -151,23 +151,66 @@ namespace Chloe.Extensions
 
         static object WrapValue(object value)
         {
+            if (value == null)
+            {
+                return null;
+            }
+
             Type valueType = value.GetType();
 
             if (valueType == PublicConstants.TypeOfString)
             {
                 return new ConstantWrapper<string>((string)value);
             }
-            else if (valueType == PublicConstants.TypeOfInt32)
+
+            if (valueType == PublicConstants.TypeOfInt32)
             {
                 return new ConstantWrapper<int>((int)value);
             }
-            else if (valueType == PublicConstants.TypeOfInt64)
+
+            if (valueType == PublicConstants.TypeOfInt64)
             {
                 return new ConstantWrapper<long>((long)value);
             }
-            else if (valueType == PublicConstants.TypeOfGuid)
+
+            if (valueType == PublicConstants.TypeOfByte)
+            {
+                return new ConstantWrapper<byte>((byte)value);
+            }
+
+            if (valueType == PublicConstants.TypeOfSingle)
+            {
+                return new ConstantWrapper<float>((float)value);
+            }
+
+            if (valueType == PublicConstants.TypeOfDouble)
+            {
+                return new ConstantWrapper<double>((double)value);
+            }
+
+            if (valueType == PublicConstants.TypeOfDecimal)
+            {
+                return new ConstantWrapper<decimal>((decimal)value);
+            }
+
+            if (valueType == PublicConstants.TypeOfGuid)
             {
                 return new ConstantWrapper<Guid>((Guid)value);
+            }
+
+            if (valueType == PublicConstants.TypeOfDateTime)
+            {
+                return new ConstantWrapper<DateTime>((DateTime)value);
+            }
+
+            if (valueType == PublicConstants.TypeOfBoolean)
+            {
+                return new ConstantWrapper<bool>((bool)value);
+            }
+
+            if (valueType == PublicConstants.TypeOfChar)
+            {
+                return new ConstantWrapper<char>((char)value);
             }
 
             Type wrapperType = typeof(ConstantWrapper<>).MakeGenericType(valueType);
