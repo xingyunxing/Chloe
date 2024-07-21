@@ -17,7 +17,7 @@ namespace Chloe.Sharding
         public IDbConnection CurrentConnection => throw new NotSupportedException();
         public IDbTransaction CurrentTransaction => throw new NotSupportedException();
 
-        public bool IsInTransaction => throw new NotSupportedException();
+        public bool IsInTransaction => this._dbContextProvider.DbContext.Session.IsInTransaction;
         public int CommandTimeout { get; set; }
 
         public int ExecuteNonQuery(string cmdText, params DbParam[] parameters)
