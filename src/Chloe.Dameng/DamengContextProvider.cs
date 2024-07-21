@@ -78,39 +78,36 @@ namespace Chloe.Dameng
             get { return this._databaseProvider; }
         }
 
-        protected override async Task InsertRange<TEntity>(List<TEntity> entities, string table, bool @async)
+        protected override async Task InsertRange<TEntity>(List<TEntity> entities, int? insertCountPerBatch, string table, bool @async)
         {
             /*
              * 将 entities 分批插入数据库
              * 每批生成 insert into TableName(...) values(...),(...)... 
-             * 该方法相对循环一条一条插入，速度提升 2/3 这样
              */
 
             PublicHelper.CheckNull(entities);
             if (entities.Count == 0)
                 return;
 
-            int maxParameters = 2100;
-            int batchSize = 50; /* 每批实体大小，此值通过测试得出相对插入速度比较快的一个值 */
+            int countPerBatch = insertCountPerBatch ?? this.Options.DefaultInsertCountPerBatchForInsertRange; /* 每批实体个数 */
 
             TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(TEntity));
 
             List<PrimitivePropertyDescriptor> mappingPropertyDescriptors = typeDescriptor.PrimitivePropertyDescriptors.Where(a => a.IsAutoIncrement == false).ToList();
-            int maxDbParamsCount = maxParameters - mappingPropertyDescriptors.Count; /* 控制一个 sql 的参数个数 */
 
             DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
             string sqlTemplate = AppendInsertRangeSqlTemplate(dbTable, mappingPropertyDescriptors);
 
             Func<Task> insertAction = async () =>
             {
-                int batchCount = 0;
+                int countOfCurrentBatch = 0;
                 List<DbParam> dbParams = new List<DbParam>();
                 StringBuilder sqlBuilder = new StringBuilder();
                 for (int i = 0; i < entities.Count; i++)
                 {
                     var entity = entities[i];
 
-                    if (batchCount > 0)
+                    if (countOfCurrentBatch > 0)
                         sqlBuilder.Append(",");
 
                     sqlBuilder.Append("(");
@@ -177,9 +174,9 @@ namespace Chloe.Dameng
                     }
                     sqlBuilder.Append(")");
 
-                    batchCount++;
+                    countOfCurrentBatch++;
 
-                    if ((batchCount >= 20 && dbParams.Count >= 120/*参数个数太多也会影响速度*/) || dbParams.Count >= maxDbParamsCount || batchCount >= batchSize || (i + 1) == entities.Count)
+                    if (countOfCurrentBatch >= countPerBatch || (i + 1) == entities.Count)
                     {
                         sqlBuilder.Insert(0, sqlTemplate);
                         string sql = sqlBuilder.ToString();
@@ -187,7 +184,7 @@ namespace Chloe.Dameng
 
                         sqlBuilder.Clear();
                         dbParams.Clear();
-                        batchCount = 0;
+                        countOfCurrentBatch = 0;
                     }
                 }
             };

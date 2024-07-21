@@ -29,7 +29,8 @@ namespace Chloe.MySql
             {
                 DbConnectionFactory = this.Options.DbConnectionFactory,
                 InsertStrategy = this.Options.InsertStrategy,
-                MaxInItems = this.Options.MaxInItems
+                MaxInItems = this.Options.MaxInItems,
+                DefaultInsertCountPerBatchForInsertRange = this.Options.DefaultInsertCountPerBatchForInsertRange
             };
 
             MySqlContext dbContext = new MySqlContext(options);

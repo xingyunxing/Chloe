@@ -36,6 +36,7 @@ namespace Chloe.SqlServer
                 DbConnectionFactory = this.Options.DbConnectionFactory,
                 InsertStrategy = this.Options.InsertStrategy,
                 MaxInItems = this.Options.MaxInItems,
+                DefaultInsertCountPerBatchForInsertRange = this.Options.DefaultInsertCountPerBatchForInsertRange,
                 PagingMode = this.Options.PagingMode,
                 BindParameterByName = this.Options.BindParameterByName
             };

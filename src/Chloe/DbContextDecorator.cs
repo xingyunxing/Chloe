@@ -116,14 +116,14 @@ namespace Chloe
 
             return Task.FromResult(this.PersistedDbContext.Insert(content, table));
         }
-        protected override Task InsertRange<TEntity>(List<TEntity> entities, string table, bool @async)
+        protected override Task InsertRange<TEntity>(List<TEntity> entities, int? insertCountPerBatch, string table, bool @async)
         {
             if (@async)
             {
-                return this.PersistedDbContext.InsertRangeAsync(entities, table);
+                return this.PersistedDbContext.InsertRangeAsync(entities, insertCountPerBatch, table);
             }
 
-            this.PersistedDbContext.InsertRange(entities, table);
+            this.PersistedDbContext.InsertRange(entities, insertCountPerBatch, table);
             return Task.CompletedTask;
         }
 

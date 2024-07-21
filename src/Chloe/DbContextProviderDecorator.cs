@@ -99,14 +99,14 @@ namespace Chloe
             return this.HoldDbContextProvider.InsertAsync<TEntity>(content, table);
         }
 
-        public virtual void InsertRange<TEntity>(List<TEntity> entities, string table)
+        public virtual void InsertRange<TEntity>(List<TEntity> entities, int? insertCountPerBatch, string table)
         {
-            this.HoldDbContextProvider.InsertRange<TEntity>(entities, table);
+            this.HoldDbContextProvider.InsertRange<TEntity>(entities, insertCountPerBatch, table);
         }
 
-        public virtual Task InsertRangeAsync<TEntity>(List<TEntity> entities, string table)
+        public virtual Task InsertRangeAsync<TEntity>(List<TEntity> entities, int? insertCountPerBatch, string table)
         {
-            return this.HoldDbContextProvider.InsertRangeAsync<TEntity>(entities, table);
+            return this.HoldDbContextProvider.InsertRangeAsync<TEntity>(entities, insertCountPerBatch, table);
         }
 
         public virtual int Update<TEntity>(TEntity entity, string table)

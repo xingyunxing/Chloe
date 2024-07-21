@@ -30,6 +30,7 @@ namespace Chloe.KingbaseES
                 DbConnectionFactory = this.Options.DbConnectionFactory,
                 InsertStrategy = this.Options.InsertStrategy,
                 MaxInItems = this.Options.MaxInItems,
+                DefaultInsertCountPerBatchForInsertRange = this.Options.DefaultInsertCountPerBatchForInsertRange,
                 ConvertToLowercase = this.Options.ConvertToLowercase
             };
 

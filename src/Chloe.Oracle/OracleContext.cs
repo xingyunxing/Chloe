@@ -30,6 +30,7 @@ namespace Chloe.Oracle
                 DbConnectionFactory = this.Options.DbConnectionFactory,
                 InsertStrategy = this.Options.InsertStrategy,
                 MaxInItems = this.Options.MaxInItems,
+                DefaultInsertCountPerBatchForInsertRange = this.Options.DefaultInsertCountPerBatchForInsertRange,
                 ConvertToUppercase = this.Options.ConvertToUppercase
             };
 

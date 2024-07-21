@@ -53,12 +53,12 @@ namespace Chloe
             }
         }
 
-        bool IsShardingType(Type entityType)
+        protected bool IsShardingType(Type entityType)
         {
             IShardingConfig shardingConfig = this.GetShardingConfig(entityType);
             return shardingConfig != null;
         }
-        internal IShardingConfig GetShardingConfig(Type entityType)
+        protected internal IShardingConfig GetShardingConfig(Type entityType)
         {
             IShardingConfig shardingConfig = this.Butler.FindShardingConfig(entityType);
             if (shardingConfig == null)
@@ -67,7 +67,7 @@ namespace Chloe
             return shardingConfig;
         }
 
-        IDbContextProvider GetDbContextProvider(Type entityType)
+        protected IDbContextProvider GetDbContextProvider(Type entityType)
         {
             if (!this.ShardingEnabled)
             {
@@ -82,7 +82,7 @@ namespace Chloe
 
             return this.DefaultDbContextProvider;
         }
-        IDbContextProvider GetDbContextProvider<TEntity>()
+        protected IDbContextProvider GetDbContextProvider<TEntity>()
         {
             return this.GetDbContextProvider(typeof(TEntity));
         }
@@ -201,15 +201,15 @@ namespace Chloe
 
             return Task.FromResult(dbContextProvider.Insert(content, table));
         }
-        protected override Task InsertRange<TEntity>(List<TEntity> entities, string table, bool @async)
+        protected override Task InsertRange<TEntity>(List<TEntity> entities, int? insertCountPerBatch, string table, bool @async)
         {
             var dbContextProvider = this.GetDbContextProvider<TEntity>();
             if (@async)
             {
-                return dbContextProvider.InsertRangeAsync(entities, table);
+                return dbContextProvider.InsertRangeAsync(entities, insertCountPerBatch, table);
             }
 
-            dbContextProvider.InsertRange(entities, table);
+            dbContextProvider.InsertRange(entities, insertCountPerBatch, table);
             return Task.CompletedTask;
         }
 

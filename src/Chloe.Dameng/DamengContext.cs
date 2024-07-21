@@ -30,7 +30,8 @@ namespace Chloe.Dameng
             {
                 DbConnectionFactory = this.Options.DbConnectionFactory,
                 InsertStrategy = this.Options.InsertStrategy,
-                MaxInItems = this.Options.MaxInItems
+                MaxInItems = this.Options.MaxInItems,
+                DefaultInsertCountPerBatchForInsertRange = this.Options.DefaultInsertCountPerBatchForInsertRange
             };
 
             DamengContext dbContext = new DamengContext(options);

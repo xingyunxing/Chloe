@@ -30,6 +30,7 @@ namespace Chloe.SQLite
                 DbConnectionFactory = this.Options.DbConnectionFactory,
                 InsertStrategy = this.Options.InsertStrategy,
                 MaxInItems = this.Options.MaxInItems,
+                DefaultInsertCountPerBatchForInsertRange = this.Options.DefaultInsertCountPerBatchForInsertRange,
                 ConcurrencyMode = this.Options.ConcurrencyMode
             };
 
