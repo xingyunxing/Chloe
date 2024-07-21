@@ -1,13 +1,9 @@
 ﻿using Chloe;
-using Chloe.MySql;
-using Chloe.MySql.DDL;
 using Chloe.Sharding;
-using Chloe.SqlServer;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace ChloeDemo.Sharding
@@ -40,6 +36,7 @@ namespace ChloeDemo.Sharding
             ShardingConfigContainer.Add(shardingConfigBuilder.Build());     //注册分片配置信息
 
             await this.CrudTest();
+            await this.InsertRangeTest();
             await this.UpdateByLambdaTest();
             await this.DeleteByLambdaTest();
 
@@ -231,6 +228,38 @@ namespace ChloeDemo.Sharding
             Helpers.PrintSplitLine();
         }
 
+        async Task InsertRangeTest()
+        {
+            using IDbContext dbContext = this.CreateDbContext();
+
+            List<Order> orders = this.CreateOrders(2020).Concat(this.CreateOrders(2021)).ToList();
+
+            //批量插入
+            await dbContext.InsertRangeAsync(orders);
+
+            List<string> ids = orders.Select(a => a.Id).ToList();
+
+            //从分表中查出刚刚插入的数据
+            List<Order> orders1 = await dbContext.Query<Order>(a => ids.Contains(a.Id)).ToListAsync();
+
+            orders1 = orders1.OrderBy(a => a.Id).ToList();
+            orders = orders.OrderBy(a => a.Id).ToList();
+
+            Debug.Assert(orders1.Count == orders.Count);
+
+            for (int i = 0; i < orders1.Count; i++)
+            {
+                Debug.Assert(orders1[i].Id == orders[i].Id);
+            }
+
+            //删除刚刚插入的数据
+            int rowsAffected = await dbContext.DeleteAsync<Order>(a => ids.Contains(a.Id));
+
+            Debug.Assert(rowsAffected == orders.Count);
+
+            Helpers.PrintSplitLine();
+        }
+
         async Task UpdateByLambdaTest()
         {
             /*
@@ -242,23 +271,26 @@ namespace ChloeDemo.Sharding
 
             int rowsAffected = 0;
 
+            List<Order> orders = await dbContext.Query<Order>(a => a.CreateYear == 2021).ToListAsync();
+
             string newUserId = "chloe2021";
             rowsAffected = await dbContext.UpdateAsync<Order>(a => a.CreateYear == 2021, a => new Order()
             {
                 UserId = newUserId,
             });
 
-            Debug.Assert(rowsAffected == 730);
+            Debug.Assert(rowsAffected == orders.Count);
 
-            List<Order> orders = await dbContext.Query<Order>().Where(a => a.CreateYear == 2021).ToListAsync();
+            orders = await dbContext.Query<Order>().Where(a => a.CreateYear == 2021).ToListAsync();
             Debug.Assert(orders.All(a => a.UserId == newUserId));
 
+            orders = await dbContext.Query<Order>().Where(a => a.CreateYear == 2021 && a.CreateMonth == 12).ToListAsync();
             rowsAffected = await dbContext.UpdateAsync<Order>(a => a.CreateYear == 2021 && a.CreateMonth == 12, a => new Order()
             {
                 UserId = "chloe2021",
             });
 
-            Debug.Assert(rowsAffected == 62);
+            Debug.Assert(rowsAffected == orders.Count);
 
             Helpers.PrintSplitLine();
         }
@@ -281,6 +313,44 @@ namespace ChloeDemo.Sharding
             Debug.Assert(rowsAffected == orders.Count);
 
             Helpers.PrintSplitLine();
+        }
+
+        List<Order> CreateOrders(int year)
+        {
+            List<Order> orders = new List<Order>();
+
+            for (int month = 1; month <= 12; month++)
+            {
+                DateTime firstDate = new DateTime(year, month, 1);
+
+                int day = 0;
+                while (true)
+                {
+                    DateTime date = firstDate.AddDays(day);
+
+                    if (date.Month != month)
+                    {
+                        break;
+                    }
+
+                    Order order1 = new Order();
+                    order1.UserId = "chloe";
+                    order1.Amount = 10;
+                    order1.SetCreateTime(date.AddHours(10));
+
+                    Order order2 = new Order();
+                    order2.UserId = "shuxin";
+                    order2.Amount = 20;
+                    order2.SetCreateTime(date.AddHours(12));
+
+                    orders.Add(order1);
+                    orders.Add(order2);
+
+                    day++;
+                }
+            }
+
+            return orders;
         }
     }
 }

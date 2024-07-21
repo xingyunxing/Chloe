@@ -28,7 +28,6 @@ namespace ChloeDemo.Sharding
             this.CreateDate = int.Parse(this.CreateTime.ToString("yyyyMMdd"));
             this.CreateYear = int.Parse(this.CreateTime.ToString("yyyy"));
             this.CreateMonth = int.Parse(this.CreateTime.ToString("MM"));
-            this.Id = this.CreateTime.ToString("yyyy-MM-dd HH:mm");
         }
     }
 }
