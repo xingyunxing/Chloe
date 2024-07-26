@@ -5,7 +5,8 @@ namespace Chloe.PostgreSQL
     {
         public PostgreSQLOptions()
         {
-
+            this.MaxNumberOfParameters = 32767;
+            this.MaxInItems = 1000;
         }
 
         /// <summary>

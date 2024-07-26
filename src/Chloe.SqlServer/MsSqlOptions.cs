@@ -5,7 +5,8 @@ namespace Chloe.SqlServer
     {
         public MsSqlOptions()
         {
-
+            this.MaxNumberOfParameters = 2100;
+            this.MaxInItems = 2100;
         }
 
         /// <summary>

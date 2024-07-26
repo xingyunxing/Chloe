@@ -352,7 +352,7 @@ namespace Chloe.PostgreSQL
 
                     countOfCurrentBatch++;
 
-                    if (countOfCurrentBatch >= countPerBatch || (i + 1) == entities.Count)
+                    if (countOfCurrentBatch >= countPerBatch || (dbParams.Count + mappingPropertyDescriptors.Count)/*为确保参数个数不超过最大限制*/ >= this.Options.MaxNumberOfParameters || (i + 1) == entities.Count)
                     {
                         sqlBuilder.Insert(0, sqlTemplate);
                         string sql = sqlBuilder.ToString();

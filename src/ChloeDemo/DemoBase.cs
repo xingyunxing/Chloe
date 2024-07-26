@@ -78,8 +78,11 @@ namespace ChloeDemo
 
             provinces = this.DbContext.Query<Province>().IncludeAll().ToList();
 
+            //清空旧数据
+            this.DbContext.Delete<TestEntity>(a => true);
+
             List<TestEntity> testEntities = new List<TestEntity>();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 1.2 * 10000; i++)
             {
                 TestEntity testEntity = new TestEntity()
                 {

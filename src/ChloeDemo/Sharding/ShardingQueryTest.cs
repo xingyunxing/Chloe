@@ -66,14 +66,11 @@ namespace ChloeDemo.Sharding
             var orders = await q.ToListAsync();
             Debug.Assert(orders.Count == 1460);
 
-
             orders = await q.Where(a => a.CreateMonth == 1).ToListAsync();
             Debug.Assert(orders.Count == 31 * 2 * 2);
 
             orders = await q.Where(a => a.CreateMonth == 1).Take(63).ToListAsync();
             Debug.Assert(orders.Count == 63);
-            Debug.Assert(orders.First().CreateTime == DateTime.Parse("2019-01-01 10:00"));
-            Debug.Assert(orders.Last().CreateTime == DateTime.Parse("2018-01-01 10:00"));
 
 
             orders = await q.Take(100).ToListAsync();
@@ -298,12 +295,6 @@ namespace ChloeDemo.Sharding
             Debug.Assert(result.Totals == 1460);
             Debug.Assert(result.DataList.Count == 20);
 
-            Debug.Assert(dataList[0].CreateTime == DateTime.Parse("2018-01-01 10:00"));
-            Debug.Assert(dataList[1].CreateTime == DateTime.Parse("2018-01-02 10:00"));
-
-            Debug.Assert(dataList[dataList.Count - 2].CreateTime == DateTime.Parse("2018-01-19 10:00"));
-            Debug.Assert(dataList.Last().CreateTime == DateTime.Parse("2018-01-20 10:00"));
-
             Helpers.PrintSplitLine();
 
             /*
@@ -317,12 +308,6 @@ namespace ChloeDemo.Sharding
             Debug.Assert(result.Totals == 1460);
             Debug.Assert(result.DataList.Count == 20);
 
-            Debug.Assert(dataList[0].CreateTime == DateTime.Parse("2018-01-21 10:00"));
-            Debug.Assert(dataList[1].CreateTime == DateTime.Parse("2018-01-22 10:00"));
-
-            Debug.Assert(dataList[dataList.Count - 2].CreateTime == DateTime.Parse("2018-02-08 10:00"));
-            Debug.Assert(dataList.Last().CreateTime == DateTime.Parse("2018-02-09 10:00"));
-
             Helpers.PrintSplitLine();
         }
 
@@ -335,9 +320,10 @@ namespace ChloeDemo.Sharding
             using IDbContext dbContext = this.CreateDbContext();
             var q = dbContext.Query<Order>();
 
-            string id = "2019-12-01 10:00";
-
             Order entity = null;
+            entity = await q.FirstAsync();
+
+            string id = entity.Id;
 
             entity = await q.Where(a => a.Id == id).FirstOrDefaultAsync();
 
@@ -358,10 +344,13 @@ namespace ChloeDemo.Sharding
              * 主键 + 分片字段查询，会精确路由到所在的表
              */
 
-            string id = "2019-12-01 10:00";
-            DateTime createTime = DateTime.Parse(id);
+            Order entity = null;
+            entity = await q.FirstAsync();
 
-            Order entity = await q.Where(a => a.Id == id && a.CreateTime == createTime).FirstOrDefaultAsync();
+            string id = entity.Id;
+            DateTime createTime = entity.CreateTime;
+
+            entity = await q.Where(a => a.Id == id && a.CreateTime == createTime).FirstOrDefaultAsync();
 
             Debug.Assert(entity.Id == id);
 

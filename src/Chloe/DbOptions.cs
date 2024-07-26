@@ -26,6 +26,11 @@ namespace Chloe
         public InsertStrategy InsertStrategy { get; set; } = InsertStrategy.Default;
 
         /// <summary>
+        /// 参数最大个数
+        /// </summary>
+        public int MaxNumberOfParameters { get; set; } = int.MaxValue;
+
+        /// <summary>
         /// in 条件参数最大个数
         /// </summary>
         public int MaxInItems { get; set; } = int.MaxValue;

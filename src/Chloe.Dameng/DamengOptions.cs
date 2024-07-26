@@ -5,7 +5,8 @@ namespace Chloe.Dameng
     {
         public DamengOptions()
         {
-
+            this.MaxNumberOfParameters = 32767;
+            this.MaxInItems = 2048;
         }
     }
 }

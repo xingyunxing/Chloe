@@ -5,7 +5,8 @@ namespace Chloe.SQLite
     {
         public SQLiteOptions()
         {
-
+            this.MaxNumberOfParameters = 999;
+            this.MaxInItems = 999;
         }
 
         /// <summary>

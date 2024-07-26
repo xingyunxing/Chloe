@@ -5,6 +5,7 @@ namespace Chloe.Oracle
     {
         public OracleOptions()
         {
+            this.MaxNumberOfParameters = 32767;
             this.MaxInItems = 1000;
         }
 
