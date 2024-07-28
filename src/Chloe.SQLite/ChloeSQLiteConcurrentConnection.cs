@@ -1,6 +1,7 @@
 ﻿using Chloe.Data;
 using System.Data;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Chloe.SQLite
 {
@@ -46,6 +47,13 @@ namespace Chloe.SQLite
         internal ReaderWriterLockWrapper RWLock { get { return this._rwLock; } }
 
         public IDbConnection PersistedDbConnection { get { return this.PersistedConnection; } }
+
+        public override Task OpenAsync()
+        {
+            //由于 ChloeSQLiteConcurrentConnection 使用了 ReaderWriterLockSlim 读写锁，所以所有异步方法实现改成调用同步方法，防止异步调用时线程切换后无法释放锁！
+            base.Open();
+            return Task.CompletedTask;
+        }
 
         public override IDbTransaction BeginTransaction()
         {

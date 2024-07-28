@@ -1,5 +1,6 @@
 ﻿using Chloe.Data;
 using System.Data;
+using System.Threading.Tasks;
 
 namespace Chloe.SQLite
 {
@@ -57,6 +58,12 @@ namespace Chloe.SQLite
                 this._connection.RWLock.EndWrite();
             }
         }
+        public override Task<int> ExecuteNonQueryAsync()
+        {
+            //由于 ChloeSQLiteConcurrentConnection 使用了 ReaderWriterLockSlim 读写锁，所以所有异步方法实现改成调用同步方法，防止异步调用时线程切换后无法释放锁！
+            return Task.FromResult(this.ExecuteNonQuery());
+        }
+
         public override IDataReader ExecuteReader()
         {
             this._connection.RWLock.BeginRead();
@@ -85,6 +92,19 @@ namespace Chloe.SQLite
                 throw;
             }
         }
+
+        public override Task<IDataReader> ExecuteReaderAsync()
+        {
+            //由于 ChloeSQLiteConcurrentConnection 使用了 ReaderWriterLockSlim 读写锁，所以所有异步方法实现改成调用同步方法，防止异步调用时线程切换后无法释放锁！
+            return Task.FromResult(this.ExecuteReader());
+        }
+        public override Task<IDataReader> ExecuteReaderAsync(CommandBehavior behavior)
+        {
+            //由于 ChloeSQLiteConcurrentConnection 使用了 ReaderWriterLockSlim 读写锁，所以所有异步方法实现改成调用同步方法，防止异步调用时线程切换后无法释放锁！
+            return Task.FromResult(this.ExecuteReader(behavior));
+        }
+
+
         public override object ExecuteScalar()
         {
             this._connection.RWLock.BeginRead();
@@ -96,6 +116,11 @@ namespace Chloe.SQLite
             {
                 this._connection.RWLock.EndRead();
             }
+        }
+        public override Task<object> ExecuteScalarAsync()
+        {
+            //由于 ChloeSQLiteConcurrentConnection 使用了 ReaderWriterLockSlim 读写锁，所以所有异步方法实现改成调用同步方法，防止异步调用时线程切换后无法释放锁！
+            return Task.FromResult(this.ExecuteScalar());
         }
     }
 }
