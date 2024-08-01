@@ -201,15 +201,15 @@ namespace Chloe
 
             return Task.FromResult(dbContextProvider.Insert(content, table));
         }
-        protected override Task InsertRange<TEntity>(List<TEntity> entities, int? insertCountPerBatch, string table, bool @async)
+        protected override Task InsertRange<TEntity>(List<TEntity> entities, int? batchSize, string table, bool @async)
         {
             var dbContextProvider = this.GetDbContextProvider<TEntity>();
             if (@async)
             {
-                return dbContextProvider.InsertRangeAsync(entities, insertCountPerBatch, table);
+                return dbContextProvider.InsertRangeAsync(entities, batchSize, table);
             }
 
-            dbContextProvider.InsertRange(entities, insertCountPerBatch, table);
+            dbContextProvider.InsertRange(entities, batchSize, table);
             return Task.CompletedTask;
         }
 

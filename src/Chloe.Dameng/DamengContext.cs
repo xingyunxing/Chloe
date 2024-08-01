@@ -32,7 +32,7 @@ namespace Chloe.Dameng
                 InsertStrategy = this.Options.InsertStrategy,
                 MaxNumberOfParameters = this.Options.MaxNumberOfParameters,
                 MaxInItems = this.Options.MaxInItems,
-                DefaultInsertCountPerBatchForInsertRange = this.Options.DefaultInsertCountPerBatchForInsertRange
+                DefaultBatchSizeForInsertRange = this.Options.DefaultBatchSizeForInsertRange
             };
 
             DamengContext dbContext = new DamengContext(options);

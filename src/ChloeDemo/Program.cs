@@ -54,29 +54,29 @@ namespace ChloeDemo
              * 运行##分库分表测试##前请手动创建好四个数据库（order2018、order2019、order2020、order2021，不用建表，程序会生成相应的表并初始化数据），然后修改 Sharding/ShardingTestImpl.cs 里的数据库连接字符串
              */
 
-            //sqlserver 分库分表测试
+            ////sqlserver 分库分表测试
             MsSqlShardingTest msSqlShardingTest = new MsSqlShardingTest();
             msSqlShardingTest.Run().GetAwaiter().GetResult();
 
-            //mysql 分库分表测试
+            ////mysql 分库分表测试
             MySqlShardingTest mySqlShardingTest = new MySqlShardingTest();
             mySqlShardingTest.Run().GetAwaiter().GetResult();
 
-            //oracle 分库分表测试
-            OracleShardingTest oracleShardingTest = new OracleShardingTest();
-            oracleShardingTest.Run().GetAwaiter().GetResult();
+            ////oracle 分库分表测试
+            //OracleShardingTest oracleShardingTest = new OracleShardingTest();
+            //oracleShardingTest.Run().GetAwaiter().GetResult();
 
-            //postgreSQL 分库分表测试
-            PostgreSQLShardingTest postgreSQLShardingTest = new PostgreSQLShardingTest();
-            postgreSQLShardingTest.Run().GetAwaiter().GetResult();
+            ////postgreSQL 分库分表测试
+            //PostgreSQLShardingTest postgreSQLShardingTest = new PostgreSQLShardingTest();
+            //postgreSQLShardingTest.Run().GetAwaiter().GetResult();
 
-            //Dameng 需要装多个数据库实现多库，不过自带分区表，不大需要分库
-            //DamengShardingTest damengShardingTest = new DamengShardingTest();
-            //damengShardingTest.Run().GetAwaiter().GetResult();
+            ////Dameng 需要装多个数据库实现多库，不过自带分区表，不大需要分库
+            ////DamengShardingTest damengShardingTest = new DamengShardingTest();
+            ////damengShardingTest.Run().GetAwaiter().GetResult();
 
-            //KingbaseES 分库分表测试
-            KingbaseESShardingTest kingbaseESShardingTest = new KingbaseESShardingTest();
-            kingbaseESShardingTest.Run().GetAwaiter().GetResult();
+            ////KingbaseES 分库分表测试
+            //KingbaseESShardingTest kingbaseESShardingTest = new KingbaseESShardingTest();
+            //kingbaseESShardingTest.Run().GetAwaiter().GetResult();
 
 
             /*
@@ -87,10 +87,10 @@ namespace ChloeDemo
             RunDemo<MsSqlDemo>();
             RunDemo<MsSqlOdbcDemo>();
             RunDemo<MySqlDemo>();
-            RunDemo<PostgreSQLDemo>();
-            RunDemo<OracleDemo>();
-            RunDemo<DamengDemo>();
-            RunDemo<KingbaseESDemo>();
+            //RunDemo<PostgreSQLDemo>();
+            //RunDemo<OracleDemo>();
+            //RunDemo<DamengDemo>();
+            //RunDemo<KingbaseESDemo>();
         }
 
         static void RunDemo<TDemo>() where TDemo : DemoBase, new()

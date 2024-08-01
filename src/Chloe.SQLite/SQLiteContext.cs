@@ -31,7 +31,7 @@ namespace Chloe.SQLite
                 InsertStrategy = this.Options.InsertStrategy,
                 MaxNumberOfParameters = this.Options.MaxNumberOfParameters,
                 MaxInItems = this.Options.MaxInItems,
-                DefaultInsertCountPerBatchForInsertRange = this.Options.DefaultInsertCountPerBatchForInsertRange,
+                DefaultBatchSizeForInsertRange = this.Options.DefaultBatchSizeForInsertRange,
                 ConcurrencyMode = this.Options.ConcurrencyMode
             };
 

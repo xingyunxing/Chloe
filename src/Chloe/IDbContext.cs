@@ -130,9 +130,9 @@ namespace Chloe
         Task<object> InsertAsync<TEntity>(Expression<Func<TEntity>> content, string table);
 
         void InsertRange<TEntity>(List<TEntity> entities);
-        void InsertRange<TEntity>(List<TEntity> entities, int? insertCountPerBatch = null, string table = null);
+        void InsertRange<TEntity>(List<TEntity> entities, int? batchSize = null, string table = null);
         Task InsertRangeAsync<TEntity>(List<TEntity> entities);
-        Task InsertRangeAsync<TEntity>(List<TEntity> entities, int? insertCountPerBatch = null, string table = null);
+        Task InsertRangeAsync<TEntity>(List<TEntity> entities, int? batchSize = null, string table = null);
 
         int Update<TEntity>(TEntity entity);
         int Update<TEntity>(TEntity entity, string table);

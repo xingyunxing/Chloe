@@ -31,7 +31,7 @@ namespace Chloe.MySql
                 InsertStrategy = this.Options.InsertStrategy,
                 MaxNumberOfParameters = this.Options.MaxNumberOfParameters,
                 MaxInItems = this.Options.MaxInItems,
-                DefaultInsertCountPerBatchForInsertRange = this.Options.DefaultInsertCountPerBatchForInsertRange
+                DefaultBatchSizeForInsertRange = this.Options.DefaultBatchSizeForInsertRange
             };
 
             MySqlContext dbContext = new MySqlContext(options);

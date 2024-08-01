@@ -82,7 +82,7 @@ namespace Chloe.SQLite
             return "SELECT LAST_INSERT_ROWID()";
         }
 
-        protected override async Task InsertRange<TEntity>(List<TEntity> entities, int? insertCountPerBatch, string table, bool @async)
+        protected override async Task InsertRange<TEntity>(List<TEntity> entities, int? batchSize, string table, bool @async)
         {
             /*
              * 将 entities 分批插入数据库
@@ -93,7 +93,7 @@ namespace Chloe.SQLite
             if (entities.Count == 0)
                 return;
 
-            int countPerBatch = insertCountPerBatch ?? this.Options.DefaultInsertCountPerBatchForInsertRange; /* 每批实体个数 */
+            int countPerBatch = batchSize ?? this.Options.DefaultBatchSizeForInsertRange; /* 每批实体个数 */
 
             TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(TEntity));
 

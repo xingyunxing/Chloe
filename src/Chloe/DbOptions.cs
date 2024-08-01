@@ -38,6 +38,6 @@ namespace Chloe
         /// <summary>
         /// 执行 InsertRange 插入数据时，默认分批插入的数据条数
         /// </summary>
-        public int DefaultInsertCountPerBatchForInsertRange { get; set; } = 10000;
+        public int DefaultBatchSizeForInsertRange { get; set; } = 10000;
     }
 }

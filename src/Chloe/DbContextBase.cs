@@ -256,19 +256,19 @@ namespace Chloe
         {
             this.InsertRange(entities, null, null);
         }
-        public virtual void InsertRange<TEntity>(List<TEntity> entities, int? insertCountPerBatch, string table)
+        public virtual void InsertRange<TEntity>(List<TEntity> entities, int? batchSize, string table)
         {
-            this.InsertRange(entities, insertCountPerBatch, table, false).GetResult();
+            this.InsertRange(entities, batchSize, table, false).GetResult();
         }
         public virtual Task InsertRangeAsync<TEntity>(List<TEntity> entities)
         {
             return this.InsertRangeAsync(entities, null, null);
         }
-        public virtual Task InsertRangeAsync<TEntity>(List<TEntity> entities, int? insertCountPerBatch, string table)
+        public virtual Task InsertRangeAsync<TEntity>(List<TEntity> entities, int? batchSize, string table)
         {
-            return this.InsertRange(entities, insertCountPerBatch, table, true);
+            return this.InsertRange(entities, batchSize, table, true);
         }
-        protected virtual Task InsertRange<TEntity>(List<TEntity> entities, int? insertCountPerBatch, string table, bool @async)
+        protected virtual Task InsertRange<TEntity>(List<TEntity> entities, int? batchSize, string table, bool @async)
         {
             throw new NotImplementedException();
         }

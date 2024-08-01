@@ -166,15 +166,15 @@ namespace Chloe.Sharding
             return shardingKeys;
         }
 
-        public void InsertRange<TEntity>(List<TEntity> entities, int? insertCountPerBatch, string table)
+        public void InsertRange<TEntity>(List<TEntity> entities, int? batchSize, string table)
         {
-            this.InsertRange(entities, insertCountPerBatch, false).GetResult();
+            this.InsertRange(entities, batchSize, false).GetResult();
         }
-        public Task InsertRangeAsync<TEntity>(List<TEntity> entities, int? insertCountPerBatch, string table)
+        public Task InsertRangeAsync<TEntity>(List<TEntity> entities, int? batchSize, string table)
         {
-            return this.InsertRange(entities, insertCountPerBatch, true);
+            return this.InsertRange(entities, batchSize, true);
         }
-        protected virtual async Task InsertRange<TEntity>(List<TEntity> entities, int? insertCountPerBatch, bool @async)
+        protected virtual async Task InsertRange<TEntity>(List<TEntity> entities, int? batchSize, bool @async)
         {
             PublicHelper.CheckNull(entities, nameof(entities));
 
@@ -182,13 +182,13 @@ namespace Chloe.Sharding
 
             if (this.Session.IsInTransaction)
             {
-                await this.InsertRange(entityMap, insertCountPerBatch, @async);
+                await this.InsertRange(entityMap, batchSize, @async);
             }
             else
             {
                 using (var tran = this.DbContext.BeginTransaction())
                 {
-                    await this.InsertRange(entityMap, insertCountPerBatch, @async);
+                    await this.InsertRange(entityMap, batchSize, @async);
                     tran.Commit();
                 }
             }
@@ -207,7 +207,7 @@ namespace Chloe.Sharding
 
             return entityMap;
         }
-        async Task InsertRange<TEntity>(List<(TEntity Entity, IPhysicTable Table)> entityMap, int? insertCountPerBatch, bool @async)
+        async Task InsertRange<TEntity>(List<(TEntity Entity, IPhysicTable Table)> entityMap, int? batchSize, bool @async)
         {
             //TODO 对库排序，然后在对表排序
             var groupedEntities = entityMap.GroupBy(a => a.Table.DataSource.Name);
@@ -225,11 +225,11 @@ namespace Chloe.Sharding
 
                     if (@async)
                     {
-                        await dbContext.InsertRangeAsync(tableEntities, insertCountPerBatch, tableGroup.Key);
+                        await dbContext.InsertRangeAsync(tableEntities, batchSize, tableGroup.Key);
                     }
                     else
                     {
-                        dbContext.InsertRange(tableEntities, insertCountPerBatch, tableGroup.Key);
+                        dbContext.InsertRange(tableEntities, batchSize, tableGroup.Key);
                     }
                 }
             }
