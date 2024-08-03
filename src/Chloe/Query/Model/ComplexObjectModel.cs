@@ -591,8 +591,7 @@ namespace Chloe.Query
             string alias = queryModel.GenerateUniqueTableAlias(dbTable.Name);
             DbTableSegment joinTableSeg = new DbTableSegment(tableExp, alias, queryModel.FromTable.Table.Lock);
 
-            DbTable aliasTable = new DbTable(alias);
-            ComplexObjectModel navigationObjectModel = navigationTypeDescriptor.GenObjectModel(aliasTable, queryModel.Options);
+            ComplexObjectModel navigationObjectModel = navigationTypeDescriptor.GenObjectModel(alias, queryModel.Options);
             navigationObjectModel.NullChecking = navigationObjectModel.PrimaryKey;
 
             PrimitivePropertyDescriptor foreignKeyPropertyDescriptor = navigationDescriptor.ForeignKeyProperty;
@@ -636,8 +635,7 @@ namespace Chloe.Query
             string alias = queryModel.GenerateUniqueTableAlias(dbTable.Name);
             DbTableSegment joinTableSeg = new DbTableSegment(tableExp, alias, queryModel.FromTable.Table.Lock);
 
-            DbTable aliasTable = new DbTable(alias);
-            ComplexObjectModel elementObjectModel = elementTypeDescriptor.GenObjectModel(aliasTable, queryModel.Options);
+            ComplexObjectModel elementObjectModel = elementTypeDescriptor.GenObjectModel(alias, queryModel.Options);
             elementObjectModel.NullChecking = elementObjectModel.PrimaryKey;
 
             ComplexPropertyDescriptor navigationDescriptor = elementTypeDescriptor.ComplexPropertyDescriptors.Where(a => a.PropertyType == this.ObjectType).FirstOrDefault();

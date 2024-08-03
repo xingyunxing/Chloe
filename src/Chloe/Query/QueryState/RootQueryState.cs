@@ -92,8 +92,7 @@ namespace Chloe.Query.QueryState
 
             queryModel.FromTable = CreateRootTable(dbTable, alias, rootQueryExp.Lock);
 
-            DbTable aliasTable = new DbTable(alias);
-            ComplexObjectModel model = typeDescriptor.GenObjectModel(aliasTable, queryModel.Options);
+            ComplexObjectModel model = typeDescriptor.GenObjectModel(alias, queryModel.Options);
             model.DependentTable = queryModel.FromTable;
 
             queryModel.ResultModel = model;

@@ -19,6 +19,8 @@ namespace Chloe.Descriptors
 
         public TypeDescriptor(TypeDefinition definition)
         {
+            this.CacheDbTable = new DbTable(definition.Table.Name);
+
             this.Definition = definition;
             this.PrimitivePropertyDescriptors = this.Definition.PrimitiveProperties.Select(a => new PrimitivePropertyDescriptor(a, this)).ToList().AsReadOnly();
             this.ComplexPropertyDescriptors = this.Definition.ComplexProperties.Select(a => new ComplexPropertyDescriptor(a, this)).ToList().AsReadOnly();
@@ -36,6 +38,11 @@ namespace Chloe.Descriptors
             this._primitivePropertyDescriptorMap = PublicHelper.Clone(this.PrimitivePropertyDescriptors.ToDictionary(a => (MemberInfo)a.Definition.Property, a => a));
             this._primitivePropertyColumnMap = PublicHelper.Clone(this.PrimitivePropertyDescriptors.ToDictionary(a => (MemberInfo)a.Definition.Property, a => new DbColumnAccessExpression(this.Definition.Table, a.Definition.Column)));
         }
+
+        /// <summary>
+        /// 同名缓存，重用
+        /// </summary>
+        internal DbTable CacheDbTable { get; private set; }
 
         public TypeDefinition Definition { get; private set; }
         public ReadOnlyCollection<PrimitivePropertyDescriptor> PrimitivePropertyDescriptors { get; private set; }
@@ -154,6 +161,39 @@ namespace Chloe.Descriptors
 
             return model;
         }
+
+        internal ComplexObjectModel GenObjectModel(string tableName, QueryOptions queryOptions)
+        {
+            ComplexObjectModel model = new ComplexObjectModel(queryOptions, this.Definition.Type, this.PrimitivePropertyDescriptors.Count);
+
+            DbTable table = null;
+            if (this.CacheDbTable.Name != tableName)
+            {
+                table = new DbTable(tableName);
+            }
+
+            foreach (PrimitivePropertyDescriptor propertyDescriptor in this.PrimitivePropertyDescriptors)
+            {
+                DbColumnAccessExpression columnAccessExpression;
+                if (table != null)
+                {
+                    columnAccessExpression = new DbColumnAccessExpression(table, propertyDescriptor.Column);
+                }
+                else
+                {
+                    //重用
+                    columnAccessExpression = propertyDescriptor.CacheDbColumnAccessExpression;
+                }
+
+                model.AddPrimitiveMember(propertyDescriptor.Property, columnAccessExpression);
+
+                if (propertyDescriptor.IsPrimaryKey)
+                    model.PrimaryKey = columnAccessExpression;
+            }
+
+            return model;
+        }
+
         internal DbTable GenDbTable(string explicitTableName)
         {
             DbTable dbTable = this.Table;
