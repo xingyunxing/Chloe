@@ -5,8 +5,7 @@
     {
         string _name;
         string _schema;
-        public DbTable(string name)
-            : this(name, null)
+        public DbTable(string name) : this(name, null)
         {
         }
         public DbTable(string name, string schema)

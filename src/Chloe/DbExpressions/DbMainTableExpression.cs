@@ -4,8 +4,7 @@
     {
         DbTableSegment _table;
         List<DbJoinTableExpression> _joinTables;
-        protected DbMainTableExpression(DbExpressionType nodeType, DbTableSegment table)
-            : base(nodeType)
+        protected DbMainTableExpression(DbExpressionType nodeType, DbTableSegment table) : base(nodeType)
         {
             this._table = table;
             this._joinTables = new List<DbJoinTableExpression>();

@@ -8,8 +8,7 @@ namespace Chloe.DbExpressions
         DbExpression _object;
         MethodInfo _method;
         ReadOnlyCollection<DbExpression> _arguments;
-        public DbMethodCallExpression(DbExpression @object, MethodInfo method, IList<DbExpression> arguments)
-            : base(DbExpressionType.Call)
+        public DbMethodCallExpression(DbExpression @object, MethodInfo method, IList<DbExpression> arguments) : base(DbExpressionType.Call)
         {
             this._object = @object;
             this._method = method;

@@ -4,8 +4,7 @@
     {
         DbSqlQueryExpression _sqlQuery;
 
-        public DbSubQueryExpression(DbSqlQueryExpression sqlQuery)
-            : base(DbExpressionType.SubQuery)
+        public DbSubQueryExpression(DbSqlQueryExpression sqlQuery) : base(DbExpressionType.SubQuery)
         {
             this._sqlQuery = sqlQuery;
         }

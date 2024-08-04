@@ -13,8 +13,7 @@
         public static readonly DbConstantExpression True = new DbConstantExpression(true);
         public static readonly DbConstantExpression False = new DbConstantExpression(false);
 
-        public DbConstantExpression(object value)
-            : base(DbExpressionType.Constant)
+        public DbConstantExpression(object value) : base(DbExpressionType.Constant)
         {
             this._value = value;
 
@@ -24,8 +23,7 @@
                 this._type = PublicConstants.TypeOfObject;
         }
 
-        public DbConstantExpression(object value, Type type)
-            : base(DbExpressionType.Constant)
+        public DbConstantExpression(object value, Type type) : base(DbExpressionType.Constant)
         {
             PublicHelper.CheckNull(type);
 

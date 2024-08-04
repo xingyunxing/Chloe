@@ -4,13 +4,11 @@ namespace Chloe.DbExpressions
 {
     public class DbGreaterThanOrEqualExpression : DbBinaryExpression
     {
-        public DbGreaterThanOrEqualExpression(DbExpression left, DbExpression right)
-            : this(left, right, null)
+        public DbGreaterThanOrEqualExpression(DbExpression left, DbExpression right) : this(left, right, null)
         {
 
         }
-        public DbGreaterThanOrEqualExpression(DbExpression left, DbExpression right, MethodInfo method)
-            : base(DbExpressionType.GreaterThanOrEqual, PublicConstants.TypeOfBoolean, left, right, method)
+        public DbGreaterThanOrEqualExpression(DbExpression left, DbExpression right, MethodInfo method) : base(DbExpressionType.GreaterThanOrEqual, PublicConstants.TypeOfBoolean, left, right, method)
         {
 
         }

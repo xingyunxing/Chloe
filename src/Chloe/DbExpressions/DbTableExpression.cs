@@ -3,8 +3,7 @@
     public class DbTableExpression : DbExpression
     {
         DbTable _table;
-        public DbTableExpression(DbTable table)
-            : base(DbExpressionType.Table, PublicConstants.TypeOfVoid)
+        public DbTableExpression(DbTable table) : base(DbExpressionType.Table, PublicConstants.TypeOfVoid)
         {
             this._table = table;
         }

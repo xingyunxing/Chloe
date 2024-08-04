@@ -4,8 +4,7 @@
     {
         DbExpression _operand;
 
-        public DbNegateExpression(Type type, DbExpression operand)
-            : base(DbExpressionType.Negate, type)
+        public DbNegateExpression(Type type, DbExpression operand) : base(DbExpressionType.Negate, type)
         {
             this._operand = operand;
         }

@@ -4,8 +4,7 @@
     {
         DbSqlQueryExpression _sqlQuery;
 
-        public DbExistsExpression(DbSqlQueryExpression sqlQuery)
-            : base(DbExpressionType.Exists, PublicConstants.TypeOfBoolean)
+        public DbExistsExpression(DbSqlQueryExpression sqlQuery) : base(DbExpressionType.Exists, PublicConstants.TypeOfBoolean)
         {
             this._sqlQuery = sqlQuery;
         }

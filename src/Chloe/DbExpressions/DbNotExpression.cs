@@ -5,8 +5,7 @@ namespace Chloe.DbExpressions
     {
         DbExpression _exp;
 
-        public DbNotExpression(DbExpression exp)
-            : base(DbExpressionType.Not, PublicConstants.TypeOfBoolean)
+        public DbNotExpression(DbExpression exp) : base(DbExpressionType.Not, PublicConstants.TypeOfBoolean)
         {
             this._exp = exp;
         }

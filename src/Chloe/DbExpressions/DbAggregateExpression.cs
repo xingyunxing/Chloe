@@ -7,8 +7,7 @@ namespace Chloe.DbExpressions
     {
         MethodInfo _method;
         ReadOnlyCollection<DbExpression> _arguments;
-        public DbAggregateExpression(Type type, MethodInfo method, IList<DbExpression> arguments)
-            : base(DbExpressionType.Aggregate, type)
+        public DbAggregateExpression(Type type, MethodInfo method, IList<DbExpression> arguments) : base(DbExpressionType.Aggregate, type)
         {
             this._method = method;
             this._arguments = new ReadOnlyCollection<DbExpression>(arguments);

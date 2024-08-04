@@ -6,8 +6,7 @@ namespace Chloe.DbExpressions
     {
         ReadOnlyCollection<WhenThenExpressionPair> _whenThenPairs;
         DbExpression _else;
-        public DbCaseWhenExpression(Type type, IList<WhenThenExpressionPair> whenThenPairs, DbExpression @else)
-            : base(DbExpressionType.CaseWhen, type)
+        public DbCaseWhenExpression(Type type, IList<WhenThenExpressionPair> whenThenPairs, DbExpression @else) : base(DbExpressionType.CaseWhen, type)
         {
             this._whenThenPairs = new ReadOnlyCollection<WhenThenExpressionPair>(whenThenPairs);
             this._else = @else;

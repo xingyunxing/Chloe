@@ -2,8 +2,7 @@
 {
     public class DbBitOrExpression : DbBinaryExpression
     {
-        public DbBitOrExpression(Type type, DbExpression left, DbExpression right)
-            : base(DbExpressionType.BitOr, type, left, right)
+        public DbBitOrExpression(Type type, DbExpression left, DbExpression right) : base(DbExpressionType.BitOr, type, left, right)
         {
         }
 

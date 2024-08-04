@@ -5,12 +5,10 @@ namespace Chloe.DbExpressions
     {
         DbJoinType _joinType;
 
-        public DbJoinTableExpression(DbJoinType joinType, DbTableSegment table)
-          : this(joinType, table, null)
+        public DbJoinTableExpression(DbJoinType joinType, DbTableSegment table) : this(joinType, table, null)
         {
         }
-        public DbJoinTableExpression(DbJoinType joinType, DbTableSegment table, DbExpression condition)
-            : base(DbExpressionType.JoinTable, table)
+        public DbJoinTableExpression(DbJoinType joinType, DbTableSegment table, DbExpression condition) : base(DbExpressionType.JoinTable, table)
         {
             this._joinType = joinType;
             this.Condition = condition;

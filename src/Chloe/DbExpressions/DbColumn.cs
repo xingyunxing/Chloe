@@ -5,8 +5,7 @@ namespace Chloe.DbExpressions
     [System.Diagnostics.DebuggerDisplay("Name = {Name}")]
     public class DbColumn
     {
-        public DbColumn(string name, Type type)
-            : this(name, type, null, null, null, null)
+        public DbColumn(string name, Type type) : this(name, type, null, null, null, null)
         {
         }
         public DbColumn(string name, Type type, DbType? dbType, int? size, byte? scale, byte? precision)

@@ -4,13 +4,11 @@ namespace Chloe.DbExpressions
 {
     public class DbAndExpression : DbBinaryExpression
     {
-        public DbAndExpression(DbExpression left, DbExpression right)
-            : this(left, right, null)
+        public DbAndExpression(DbExpression left, DbExpression right) : this(left, right, null)
         {
 
         }
-        public DbAndExpression(DbExpression left, DbExpression right, MethodInfo method)
-            : base(DbExpressionType.And, PublicConstants.TypeOfBoolean, left, right, method)
+        public DbAndExpression(DbExpression left, DbExpression right, MethodInfo method) : base(DbExpressionType.And, PublicConstants.TypeOfBoolean, left, right, method)
         {
 
         }

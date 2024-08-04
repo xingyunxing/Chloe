@@ -4,8 +4,7 @@
     {
         DbExpression _operand;
 
-        public DbConvertExpression(Type type, DbExpression operand)
-            : base(DbExpressionType.Convert, type)
+        public DbConvertExpression(Type type, DbExpression operand) : base(DbExpressionType.Convert, type)
         {
             this._operand = operand;
         }

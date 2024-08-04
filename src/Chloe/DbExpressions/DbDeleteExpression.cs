@@ -4,12 +4,10 @@
     {
         DbTable _table;
         DbExpression _condition;
-        public DbDeleteExpression(DbTable table)
-            : this(table, null)
+        public DbDeleteExpression(DbTable table) : this(table, null)
         {
         }
-        public DbDeleteExpression(DbTable table, DbExpression condition)
-            : base(DbExpressionType.Delete, PublicConstants.TypeOfVoid)
+        public DbDeleteExpression(DbTable table, DbExpression condition) : base(DbExpressionType.Delete, PublicConstants.TypeOfVoid)
         {
             PublicHelper.CheckNull(table);
 

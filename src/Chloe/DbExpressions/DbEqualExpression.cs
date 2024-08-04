@@ -7,12 +7,10 @@ namespace Chloe.DbExpressions
         public static readonly DbEqualExpression True = new DbEqualExpression(new DbConstantExpression(1), new DbConstantExpression(1));
         public static readonly DbEqualExpression False = new DbEqualExpression(new DbConstantExpression(1), new DbConstantExpression(0));
 
-        public DbEqualExpression(DbExpression left, DbExpression right)
-            : this(left, right, null)
+        public DbEqualExpression(DbExpression left, DbExpression right) : this(left, right, null)
         {
         }
-        public DbEqualExpression(DbExpression left, DbExpression right, MethodInfo method)
-            : base(DbExpressionType.Equal, PublicConstants.TypeOfBoolean, left, right, method)
+        public DbEqualExpression(DbExpression left, DbExpression right, MethodInfo method) : base(DbExpressionType.Equal, PublicConstants.TypeOfBoolean, left, right, method)
         {
         }
 

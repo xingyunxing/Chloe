@@ -8,8 +8,7 @@
         DbTable _table;
         DbColumn _column;
 
-        public DbColumnAccessExpression(DbTable table, DbColumn column)
-            : base(DbExpressionType.ColumnAccess, column.Type)
+        public DbColumnAccessExpression(DbTable table, DbColumn column) : base(DbExpressionType.ColumnAccess, column.Type)
         {
             this._table = table;
             this._column = column;

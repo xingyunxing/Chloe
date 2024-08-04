@@ -7,8 +7,7 @@ namespace Chloe.DbExpressions
         DbExpressionType _nodeType;
         Type _type;
 
-        protected DbExpression(DbExpressionType nodeType)
-            : this(nodeType, PublicConstants.TypeOfVoid)
+        protected DbExpression(DbExpressionType nodeType) : this(nodeType, PublicConstants.TypeOfVoid)
         {
         }
         protected DbExpression(DbExpressionType nodeType, Type type)

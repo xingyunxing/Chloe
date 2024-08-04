@@ -2,8 +2,7 @@
 {
     public class DbCoalesceExpression : DbExpression
     {
-        public DbCoalesceExpression(DbExpression checkExpression, DbExpression replacementValue)
-            : base(DbExpressionType.Coalesce, replacementValue.Type)
+        public DbCoalesceExpression(DbExpression checkExpression, DbExpression replacementValue) : base(DbExpressionType.Coalesce, replacementValue.Type)
         {
             PublicHelper.CheckNull(checkExpression);
             PublicHelper.CheckNull(replacementValue);

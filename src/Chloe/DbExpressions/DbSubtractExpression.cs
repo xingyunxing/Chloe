@@ -4,13 +4,11 @@ namespace Chloe.DbExpressions
 {
     public class DbSubtractExpression : DbBinaryExpression
     {
-        public DbSubtractExpression(Type type, DbExpression left, DbExpression right)
-            : this(type, left, right, null)
+        public DbSubtractExpression(Type type, DbExpression left, DbExpression right) : this(type, left, right, null)
         {
 
         }
-        public DbSubtractExpression(Type type, DbExpression left, DbExpression right, MethodInfo method)
-            : base(DbExpressionType.Subtract, type, left, right, method)
+        public DbSubtractExpression(Type type, DbExpression left, DbExpression right, MethodInfo method) : base(DbExpressionType.Subtract, type, left, right, method)
         {
 
         }
