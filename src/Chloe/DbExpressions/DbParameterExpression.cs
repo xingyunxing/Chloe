@@ -8,8 +8,7 @@ namespace Chloe.DbExpressions
         object _value;
         Type _type;
 
-        public DbParameterExpression(object value)
-            : base(DbExpressionType.Parameter)
+        public DbParameterExpression(object value) : base(DbExpressionType.Parameter)
         {
             this._value = value;
 
@@ -19,8 +18,12 @@ namespace Chloe.DbExpressions
                 this._type = PublicConstants.TypeOfObject;
         }
 
-        public DbParameterExpression(object value, Type type)
-            : base(DbExpressionType.Parameter)
+        public DbParameterExpression(object value, Type type) : this(value, type, null)
+        {
+
+        }
+
+        public DbParameterExpression(object value, Type type, DbType? dbType) : base(DbExpressionType.Parameter)
         {
             PublicHelper.CheckNull(type);
 
@@ -34,6 +37,7 @@ namespace Chloe.DbExpressions
 
             this._value = value;
             this._type = type;
+            this.DbType = dbType;
         }
 
         public override Type Type { get { return this._type; } }

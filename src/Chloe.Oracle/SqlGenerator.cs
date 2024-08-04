@@ -453,7 +453,7 @@ namespace Chloe.Oracle
                 this.SqlBuilder.Append(Convert.ChangeType(exp.Value, Enum.GetUnderlyingType(objType)).ToString());
                 return exp;
             }
-            else if (PublicHelper.IsNumericType(exp.Value.GetType()))
+            else if (PublicHelper.IsToStringableNumericType(exp.Value.GetType()))
             {
                 this.SqlBuilder.Append(exp.Value);
                 return exp;
@@ -468,6 +468,7 @@ namespace Chloe.Oracle
         {
             object paramValue = exp.Value;
             Type paramType = exp.Type.GetUnderlyingType();
+            DbType? dbType = exp.DbType;
 
             if (paramType.IsEnum)
             {
@@ -483,16 +484,16 @@ namespace Chloe.Oracle
                     paramValue = (bool)paramValue ? Boxed_1 : Boxed_0;
                 }
 
-                if (exp.DbType == null || exp.DbType == DbType.Boolean)
+                if (dbType == null || dbType == DbType.Boolean)
                 {
-                    exp.DbType = DbType.Int32;
+                    dbType = DbType.Int32;
                 }
             }
 
             if (paramValue == null)
                 paramValue = DBNull.Value;
 
-            DbParam p = this._parameters.Find(paramValue, paramType, exp.DbType);
+            DbParam p = this._parameters.Find(paramValue, paramType, dbType);
 
             if (p != null)
             {
@@ -505,14 +506,14 @@ namespace Chloe.Oracle
 
             if (paramValue.GetType() == PublicConstants.TypeOfString)
             {
-                if (exp.DbType == DbType.AnsiStringFixedLength || exp.DbType == DbType.StringFixedLength)
+                if (dbType == DbType.AnsiStringFixedLength || dbType == DbType.StringFixedLength)
                     p.Size = ((string)paramValue).Length;
                 else if (((string)paramValue).Length <= 4000)
                     p.Size = 4000;
             }
 
-            if (exp.DbType != null)
-                p.DbType = exp.DbType;
+            if (dbType != null)
+                p.DbType = dbType;
 
             this._parameters.Add(p);
             this.SqlBuilder.Append(paramName);

@@ -146,11 +146,10 @@ namespace Chloe.DbExpressions
         {
             DbParameterExpression exp = null;
             if (value == null)
-                exp = new DbParameterExpression(value, defaultType);
+                exp = new DbParameterExpression(value, defaultType, dbType);
             else
-                exp = new DbParameterExpression(value, value.GetType());
+                exp = new DbParameterExpression(value, value.GetType(), dbType);
 
-            exp.DbType = dbType;
             return exp;
         }
     }

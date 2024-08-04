@@ -119,7 +119,7 @@
 
         public override DbExpression Visit(DbParameterExpression exp)
         {
-            return new DbParameterExpression(exp.Value, exp.Type) { DbType = exp.DbType };
+            return new DbParameterExpression(exp.Value, exp.Type, exp.DbType);
         }
         public override DbExpression Visit(DbSubQueryExpression exp)
         {
