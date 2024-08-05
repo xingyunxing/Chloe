@@ -8,13 +8,13 @@ namespace Chloe.Descriptors
         public PrimitivePropertyDescriptor(PrimitivePropertyDefinition definition, TypeDescriptor declaringTypeDescriptor) : base(definition, declaringTypeDescriptor)
         {
             this.Definition = definition;
-            this.CacheDbColumnAccessExpression = new DbColumnAccessExpression(declaringTypeDescriptor.CacheDbTable, definition.Column);
+            this.CachedDbColumnAccessExpression = new DbColumnAccessExpression(declaringTypeDescriptor.CachedDbTable, definition.Column);
         }
 
         /// <summary>
         /// 同名缓存，避免重复创建对象
         /// </summary>
-        internal DbColumnAccessExpression CacheDbColumnAccessExpression { get; private set; }
+        internal DbColumnAccessExpression CachedDbColumnAccessExpression { get; private set; }
 
         public new PrimitivePropertyDefinition Definition { get; private set; }
 

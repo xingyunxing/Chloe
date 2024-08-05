@@ -168,14 +168,8 @@ namespace ChloeDemo.Sharding
         /// <returns></returns>
         public static string BuildTableName(int month)
         {
-            string suffix = month.ToString();
-            if (suffix.Length == 1)
-            {
-                suffix = $"0{suffix}";
-            }
-
+            string suffix = month.ToString("00");
             string table = $"order{suffix}";
-
             return table;
         }
 

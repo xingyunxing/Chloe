@@ -19,7 +19,7 @@ namespace Chloe.Descriptors
 
         public TypeDescriptor(TypeDefinition definition)
         {
-            this.CacheDbTable = new DbTable(definition.Table.Name);
+            this.CachedDbTable = new DbTable(definition.Table.Name);
 
             this.Definition = definition;
             this.PrimitivePropertyDescriptors = this.Definition.PrimitiveProperties.Select(a => new PrimitivePropertyDescriptor(a, this)).ToList().AsReadOnly();
@@ -42,7 +42,7 @@ namespace Chloe.Descriptors
         /// <summary>
         /// 同名缓存，重用
         /// </summary>
-        internal DbTable CacheDbTable { get; private set; }
+        internal DbTable CachedDbTable { get; private set; }
 
         public TypeDefinition Definition { get; private set; }
         public ReadOnlyCollection<PrimitivePropertyDescriptor> PrimitivePropertyDescriptors { get; private set; }
@@ -167,7 +167,7 @@ namespace Chloe.Descriptors
             ComplexObjectModel model = new ComplexObjectModel(queryOptions, this.Definition.Type, this.PrimitivePropertyDescriptors.Count);
 
             DbTable table = null;
-            if (this.CacheDbTable.Name != tableName)
+            if (this.CachedDbTable.Name != tableName)
             {
                 table = new DbTable(tableName);
             }
@@ -182,7 +182,7 @@ namespace Chloe.Descriptors
                 else
                 {
                     //重用
-                    columnAccessExpression = propertyDescriptor.CacheDbColumnAccessExpression;
+                    columnAccessExpression = propertyDescriptor.CachedDbColumnAccessExpression;
                 }
 
                 model.AddPrimitiveMember(propertyDescriptor.Property, columnAccessExpression);
