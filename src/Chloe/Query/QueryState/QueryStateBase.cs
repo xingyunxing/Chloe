@@ -192,7 +192,7 @@ namespace Chloe.Query.QueryState
 
             DbSqlQueryExpression sqlQuery = this.CreateSqlQuery();
 
-            var objectActivatorCreator = this._queryModel.ResultModel.GenarateObjectActivatorCreator(sqlQuery);
+            var objectActivatorCreator = this._queryModel.ResultModel.GenarateObjectActivatorCreator(sqlQuery.ColumnSegments, new HashSet<string>());
             objectActivatorCreator.IsRoot = true;
 
             data.Context = this.Context;
@@ -217,8 +217,11 @@ namespace Chloe.Query.QueryState
 
             DbTable aliasTable = new DbTable(tableSeg.Alias);
 
+            //用于存储列别名
+            HashSet<string> columnAliasSet = new HashSet<string>();
+
             //根据旧的生成新 ResultModel
-            IObjectModel newResultModel = this.QueryModel.ResultModel.ToNewObjectModel(sqlQuery, aliasTable, fromTable);
+            IObjectModel newResultModel = this.QueryModel.ResultModel.ToNewObjectModel(sqlQuery.ColumnSegments, columnAliasSet, aliasTable, fromTable);
             newQueryModel.ResultModel = newResultModel;
 
             //得将 subQuery.SqlQuery.Orders 告诉 以下创建的 result
@@ -239,7 +242,7 @@ namespace Chloe.Query.QueryState
                 }
                 else
                 {
-                    alias = Utils.GenerateUniqueColumnAlias(sqlQuery);
+                    alias = Utils.GenerateUniqueColumnAlias(columnAliasSet);
                     DbColumnSegment columnSeg = new DbColumnSegment(orderingExp, alias);
                     sqlQuery.ColumnSegments.Add(columnSeg);
                 }
@@ -293,7 +296,7 @@ namespace Chloe.Query.QueryState
             DbFromTableExpression fromTable = new DbFromTableExpression(tableSeg);
 
             DbTable aliasTable = new DbTable(tableSeg.Alias);
-            IObjectModel newModel = this.QueryModel.ResultModel.ToNewObjectModel(sqlQuery, aliasTable, fromTable);
+            IObjectModel newModel = this.QueryModel.ResultModel.ToNewObjectModel(sqlQuery.ColumnSegments, new HashSet<string>(), aliasTable, fromTable);
 
             newQueryModel.FromTable = fromTable;
             newQueryModel.ResultModel = newModel;
@@ -310,7 +313,7 @@ namespace Chloe.Query.QueryState
             DbJoinTableExpression joinTable = new DbJoinTableExpression(joinType.AsDbJoinType(), tableSeg);
 
             DbTable aliasTable = new DbTable(tableSeg.Alias);
-            IObjectModel newModel = this.QueryModel.ResultModel.ToNewObjectModel(sqlQuery, aliasTable, joinTable);
+            IObjectModel newModel = this.QueryModel.ResultModel.ToNewObjectModel(sqlQuery.ColumnSegments, new HashSet<string>(), aliasTable, joinTable);
 
             scopeParameters[conditionExpression.Parameters[conditionExpression.Parameters.Count - 1]] = newModel;
 

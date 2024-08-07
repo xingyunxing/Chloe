@@ -39,24 +39,26 @@ namespace Chloe.Query
             return ret;
         }
 
-        public override IObjectActivatorCreator GenarateObjectActivatorCreator(DbSqlQueryExpression sqlQuery)
+        public override IObjectActivatorCreator GenarateObjectActivatorCreator(List<DbColumnSegment> columns, HashSet<string> aliasSet)
         {
-            int ordinal = ObjectModelHelper.TryGetOrAddColumn(sqlQuery, this.Expression).Value;
+            int ordinal = ObjectModelHelper.AddColumn(columns, aliasSet, this.Expression);
 
             PrimitiveObjectActivatorCreator activatorCreator = new PrimitiveObjectActivatorCreator(this.ObjectType, ordinal);
 
-            activatorCreator.CheckNullOrdinal = ObjectModelHelper.TryGetOrAddColumn(sqlQuery, this.NullChecking);
+            if (this.NullChecking != null)
+                activatorCreator.CheckNullOrdinal = ObjectModelHelper.AddColumn(columns, aliasSet, this.NullChecking);
 
             return activatorCreator;
         }
 
-        public override IObjectModel ToNewObjectModel(DbSqlQueryExpression sqlQuery, DbTable table, DbMainTableExpression dependentTable)
+        public override IObjectModel ToNewObjectModel(List<DbColumnSegment> columns, HashSet<string> aliasSet, DbTable table, DbMainTableExpression dependentTable)
         {
-            DbColumnAccessExpression cae = ObjectModelHelper.ParseColumnAccessExpression(sqlQuery, table, this.Expression);
+            DbColumnAccessExpression cae = ObjectModelHelper.ParseColumnAccessExpression(columns, aliasSet, table, this.Expression);
 
             PrimitiveObjectModel objectModel = new PrimitiveObjectModel(this.QueryOptions, this.ObjectType, cae);
 
-            objectModel.NullChecking = ObjectModelHelper.TryGetOrAddNullChecking(sqlQuery, table, this.NullChecking);
+            if (this.NullChecking != null)
+                objectModel.NullChecking = ObjectModelHelper.AddNullCheckingColumn(columns, aliasSet, table, this.NullChecking);
 
             return objectModel;
         }

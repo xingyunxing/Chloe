@@ -4,14 +4,19 @@ namespace Chloe
 {
     static class Utils
     {
-        public static string GenerateUniqueColumnAlias(DbSqlQueryExpression sqlQuery, string defaultAlias = UtilConstants.DefaultColumnAlias)
+        public static string GenerateUniqueColumnAlias(HashSet<string> aliasSet, bool autoAddToAliasSet = true, string defaultAlias = UtilConstants.DefaultColumnAlias)
         {
             string alias = defaultAlias;
             int i = 0;
-            while (sqlQuery.ColumnSegments.Any(a => string.Equals(a.Alias, alias, StringComparison.OrdinalIgnoreCase)))
+            while (aliasSet.Contains(alias)) //HasSet 查找效率快
             {
                 alias = defaultAlias + i.ToString();
                 i++;
+            }
+
+            if (autoAddToAliasSet)
+            {
+                aliasSet.Add(alias);
             }
 
             return alias;

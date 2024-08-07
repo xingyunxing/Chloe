@@ -21,9 +21,9 @@ namespace Chloe.Query
         public Type OwnerType { get; private set; }
         public PropertyInfo AssociatedProperty { get; private set; }
 
-        public override IObjectActivatorCreator GenarateObjectActivatorCreator(DbSqlQueryExpression sqlQuery)
+        public override IObjectActivatorCreator GenarateObjectActivatorCreator(List<DbColumnSegment> columns, HashSet<string> aliasSet)
         {
-            IObjectActivatorCreator elementActivatorCreator = this.ElementModel.GenarateObjectActivatorCreator(sqlQuery);
+            IObjectActivatorCreator elementActivatorCreator = this.ElementModel.GenarateObjectActivatorCreator(columns, aliasSet);
             CollectionObjectActivatorCreator ret = new CollectionObjectActivatorCreator(this._collectionType, this.OwnerType, elementActivatorCreator, this.QueryOptions.BindTwoWay);
             return ret;
         }

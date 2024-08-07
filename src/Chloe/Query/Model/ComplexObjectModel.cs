@@ -250,7 +250,7 @@ namespace Chloe.Query
 
             return ret;
         }
-        public IObjectActivatorCreator GenarateObjectActivatorCreator(DbSqlQueryExpression sqlQuery)
+        public IObjectActivatorCreator GenarateObjectActivatorCreator(List<DbColumnSegment> columns, HashSet<string> aliasSet)
         {
             ComplexObjectActivatorCreator activatorCreator = new ComplexObjectActivatorCreator(this.ConstructorDescriptor);
 
@@ -264,7 +264,7 @@ namespace Chloe.Query
                     continue;
                 }
 
-                int ordinal = ObjectModelHelper.TryGetOrAddColumn(sqlQuery, exp, pi.Name).Value;
+                int ordinal = ObjectModelHelper.AddColumn(columns, aliasSet, exp, pi.Name);
 
                 if (exp == this.NullChecking)
                     activatorCreator.CheckNullOrdinal = ordinal;
@@ -277,7 +277,7 @@ namespace Chloe.Query
                 ParameterInfo pi = kv.Key;
                 IObjectModel val = kv.Value;
 
-                IObjectActivatorCreator complexMappingMember = val.GenarateObjectActivatorCreator(sqlQuery);
+                IObjectActivatorCreator complexMappingMember = val.GenarateObjectActivatorCreator(columns, aliasSet);
                 activatorCreator.ConstructorComplexParameters.Add(pi, complexMappingMember);
             }
 
@@ -291,7 +291,7 @@ namespace Chloe.Query
                     continue;
                 }
 
-                int ordinal = ObjectModelHelper.TryGetOrAddColumn(sqlQuery, exp, member.Name).Value;
+                int ordinal = ObjectModelHelper.AddColumn(columns, aliasSet, exp, member.Name);
 
                 if (exp == this.NullChecking)
                     activatorCreator.CheckNullOrdinal = ordinal;
@@ -301,23 +301,23 @@ namespace Chloe.Query
 
             foreach (var kv in this.ComplexMembers)
             {
-                IObjectActivatorCreator complexMemberActivatorCreator = kv.Value.GenarateObjectActivatorCreator(sqlQuery);
+                IObjectActivatorCreator complexMemberActivatorCreator = kv.Value.GenarateObjectActivatorCreator(columns, aliasSet);
                 activatorCreator.ComplexMembers.Add(kv.Key, complexMemberActivatorCreator);
             }
 
             foreach (var kv in this.CollectionMembers)
             {
-                IObjectActivatorCreator collectionMemberActivatorCreator = kv.Value.GenarateObjectActivatorCreator(sqlQuery);
+                IObjectActivatorCreator collectionMemberActivatorCreator = kv.Value.GenarateObjectActivatorCreator(columns, aliasSet);
                 activatorCreator.CollectionMembers.Add(kv.Key, collectionMemberActivatorCreator);
             }
 
-            if (activatorCreator.CheckNullOrdinal == null)
-                activatorCreator.CheckNullOrdinal = ObjectModelHelper.TryGetOrAddColumn(sqlQuery, this.NullChecking);
+            if (this.NullChecking != null && activatorCreator.CheckNullOrdinal == null)
+                activatorCreator.CheckNullOrdinal = ObjectModelHelper.AddColumn(columns, aliasSet, this.NullChecking);
 
             return activatorCreator;
         }
 
-        public IObjectModel ToNewObjectModel(DbSqlQueryExpression sqlQuery, DbTable table, DbMainTableExpression dependentTable)
+        public IObjectModel ToNewObjectModel(List<DbColumnSegment> columns, HashSet<string> aliasSet, DbTable table, DbMainTableExpression dependentTable)
         {
             ComplexObjectModel newModel = new ComplexObjectModel(this.QueryOptions, this.ConstructorDescriptor, this.PrimitiveMembers.Count);
             newModel.DependentTable = dependentTable;
@@ -339,7 +339,7 @@ namespace Chloe.Query
                 }
 
                 DbColumnAccessExpression cae = null;
-                cae = ObjectModelHelper.ParseColumnAccessExpression(sqlQuery, table, exp, pi.Name);
+                cae = ObjectModelHelper.ParseColumnAccessExpression(columns, aliasSet, table, exp, pi.Name);
 
                 newModel.AddConstructorParameter(pi, cae);
             }
@@ -349,7 +349,7 @@ namespace Chloe.Query
                 ParameterInfo pi = kv.Key;
                 IObjectModel val = kv.Value;
 
-                ComplexObjectModel complexMemberModel = val.ToNewObjectModel(sqlQuery, table, dependentTable) as ComplexObjectModel;
+                ComplexObjectModel complexMemberModel = val.ToNewObjectModel(columns, aliasSet, table, dependentTable) as ComplexObjectModel;
                 newModel.AddConstructorParameter(pi, complexMemberModel);
             }
 
@@ -363,7 +363,7 @@ namespace Chloe.Query
                     continue;
                 }
 
-                DbColumnAccessExpression cae = ObjectModelHelper.ParseColumnAccessExpression(sqlQuery, table, exp, member.Name);
+                DbColumnAccessExpression cae = ObjectModelHelper.ParseColumnAccessExpression(columns, aliasSet, table, exp, member.Name);
 
                 newModel.AddPrimitiveMember(member, cae);
 
@@ -380,12 +380,12 @@ namespace Chloe.Query
                 MemberInfo member = kv.Key;
                 IObjectModel val = kv.Value;
 
-                ComplexObjectModel complexMemberModel = val.ToNewObjectModel(sqlQuery, table, dependentTable) as ComplexObjectModel;
+                ComplexObjectModel complexMemberModel = val.ToNewObjectModel(columns, aliasSet, table, dependentTable) as ComplexObjectModel;
                 newModel.AddComplexMember(member, complexMemberModel);
             }
 
-            if (newModel.NullChecking == null)
-                newModel.NullChecking = ObjectModelHelper.TryGetOrAddNullChecking(sqlQuery, table, this.NullChecking);
+            if (this.NullChecking != null && newModel.NullChecking == null)
+                newModel.NullChecking = ObjectModelHelper.AddNullCheckingColumn(columns, aliasSet, table, this.NullChecking);
 
             return newModel;
         }

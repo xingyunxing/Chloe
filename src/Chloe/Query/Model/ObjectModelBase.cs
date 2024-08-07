@@ -62,12 +62,12 @@ namespace Chloe.Query
             throw new NotSupportedException();
         }
 
-        public virtual IObjectActivatorCreator GenarateObjectActivatorCreator(DbSqlQueryExpression sqlQuery)
+        public virtual IObjectActivatorCreator GenarateObjectActivatorCreator(List<DbColumnSegment> columns, HashSet<string> aliasSet)
         {
             throw new NotSupportedException();
         }
 
-        public virtual IObjectModel ToNewObjectModel(DbSqlQueryExpression sqlQuery, DbTable table, DbMainTableExpression dependentTable)
+        public virtual IObjectModel ToNewObjectModel(List<DbColumnSegment> columns, HashSet<string> aliasSet, DbTable table, DbMainTableExpression dependentTable)
         {
             throw new NotImplementedException();
         }

@@ -9,8 +9,24 @@ namespace Chloe.Query
     {
         Type ObjectType { get; }
         TypeKind TypeKind { get; }
-        IObjectActivatorCreator GenarateObjectActivatorCreator(DbSqlQueryExpression sqlQuery);
-        IObjectModel ToNewObjectModel(DbSqlQueryExpression sqlQuery, DbTable table, DbMainTableExpression dependentTable);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="columns">生成新的 ObjectActivatorCreator 的同时会将相应的列填充到 colums 集合中</param>
+        /// <param name="aliasSet"></param>
+        /// <returns></returns>
+        IObjectActivatorCreator GenarateObjectActivatorCreator(List<DbColumnSegment> columns, HashSet<string> aliasSet);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="columns">生成新的 ObjectModel 的同时会将相应的列填充到 colums 集合中</param>
+        /// <param name="aliasSet"></param>
+        /// <param name="table"></param>
+        /// <param name="dependentTable"></param>
+        /// <returns></returns>
+        IObjectModel ToNewObjectModel(List<DbColumnSegment> columns, HashSet<string> aliasSet, DbTable table, DbMainTableExpression dependentTable);
         void AddConstructorParameter(ParameterInfo p, DbExpression primitiveExp);
         void AddConstructorParameter(ParameterInfo p, ComplexObjectModel complexModel);
 
@@ -42,64 +58,39 @@ namespace Chloe.Query
 
     public static class ObjectModelHelper
     {
-        public static DbExpression TryGetOrAddNullChecking(DbSqlQueryExpression sqlQuery, DbTable table, DbExpression exp)
+        public static DbExpression AddNullCheckingColumn(List<DbColumnSegment> columns, HashSet<string> aliasSet, DbTable table, DbExpression nullCheckingExp)
         {
-            if (exp == null)
-                return null;
-
-            List<DbColumnSegment> columnList = sqlQuery.ColumnSegments;
-            DbColumnSegment columnSeg = null;
-
-            columnSeg = columnList.Where(a => DbExpressionEqualityComparer.EqualsCompare(a.Body, exp)).FirstOrDefault();
+            DbColumnSegment columnSeg = columns.Where(a => DbExpressionEqualityComparer.EqualsCompare(a.Body, nullCheckingExp)).FirstOrDefault();
 
             if (columnSeg == null)
             {
-                string alias = Utils.GenerateUniqueColumnAlias(sqlQuery);
-                columnSeg = new DbColumnSegment(exp, alias);
+                string alias = Utils.GenerateUniqueColumnAlias(aliasSet);
+                columnSeg = new DbColumnSegment(nullCheckingExp, alias);
 
-                columnList.Add(columnSeg);
+                columns.Add(columnSeg);
             }
 
             DbColumnAccessExpression cae = new DbColumnAccessExpression(table, DbColumn.MakeColumn(columnSeg.Body, columnSeg.Alias));
             return cae;
         }
-        public static int? TryGetOrAddColumn(DbSqlQueryExpression sqlQuery, DbExpression exp, string addDefaultAlias = UtilConstants.DefaultColumnAlias)
+
+        public static int AddColumn(List<DbColumnSegment> columns, HashSet<string> aliasSet, DbExpression exp, string addDefaultAlias = UtilConstants.DefaultColumnAlias)
         {
-            if (exp == null)
-                return null;
-
-            List<DbColumnSegment> columnList = sqlQuery.ColumnSegments;
-            DbColumnSegment columnSeg = null;
-
-            int? ordinal = null;
-            for (int i = 0; i < columnList.Count; i++)
-            {
-                var item = columnList[i];
-                if (DbExpressionEqualityComparer.EqualsCompare(item.Body, exp))
-                {
-                    ordinal = i;
-                    columnSeg = item;
-                    break;
-                }
-            }
-
-            if (ordinal == null)
-            {
-                string alias = Utils.GenerateUniqueColumnAlias(sqlQuery, addDefaultAlias);
-                columnSeg = new DbColumnSegment(exp, alias);
-
-                columnList.Add(columnSeg);
-                ordinal = columnList.Count - 1;
-            }
-
-            return ordinal.Value;
-        }
-        public static DbColumnAccessExpression ParseColumnAccessExpression(DbSqlQueryExpression sqlQuery, DbTable table, DbExpression exp, string defaultAlias = UtilConstants.DefaultColumnAlias)
-        {
-            string alias = Utils.GenerateUniqueColumnAlias(sqlQuery, defaultAlias);
+            string alias = Utils.GenerateUniqueColumnAlias(aliasSet, true, addDefaultAlias);
             DbColumnSegment columnSeg = new DbColumnSegment(exp, alias);
 
-            sqlQuery.ColumnSegments.Add(columnSeg);
+            columns.Add(columnSeg);
+            int ordinal = columns.Count - 1;
+
+            return ordinal;
+        }
+
+        public static DbColumnAccessExpression ParseColumnAccessExpression(List<DbColumnSegment> columns, HashSet<string> aliasSet, DbTable table, DbExpression exp, string defaultAlias = UtilConstants.DefaultColumnAlias)
+        {
+            string alias = Utils.GenerateUniqueColumnAlias(aliasSet, true, defaultAlias);
+            DbColumnSegment columnSeg = new DbColumnSegment(exp, alias);
+
+            columns.Add(columnSeg);
 
             DbColumnAccessExpression cae = new DbColumnAccessExpression(table, DbColumn.MakeColumn(exp, alias));
             return cae;
