@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using Chloe.Query;
+using System.Data;
 
 namespace Chloe.Mapper.Activators
 {
@@ -8,6 +9,9 @@ namespace Chloe.Mapper.Activators
         {
 
         }
-        public abstract ObjectResultTask CreateInstance(IDataReader reader, bool @async);
+
+        public abstract ObjectResultTask CreateInstance(QueryContext queryContext, IDataReader reader, bool @async);
+
+        public abstract IObjectActivator Clone();
     }
 }

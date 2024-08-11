@@ -8,12 +8,18 @@ namespace Chloe.Mapper
     {
         object GetKeyValue(IDataReader reader);
         bool IsEntityRow(object entity, IDataReader reader);
+        IEntityKey Clone();
     }
     public class EntityKey : IEntityKey
     {
         List<Tuple<PropertyDescriptor, int, IDbValueReader>> _keys;
         object _entity;
         object[] _keyValues;
+
+        EntityKey()
+        {
+
+        }
 
         public EntityKey(TypeDescriptor entityTypeDescriptor, List<Tuple<PropertyDescriptor, int>> keys)
         {
@@ -91,6 +97,15 @@ namespace Chloe.Mapper
             this._entity = entity;
 
             return this._keyValues;
+        }
+
+        public IEntityKey Clone()
+        {
+            EntityKey entityKey = new EntityKey();
+            entityKey._keys = this._keys;
+            entityKey._keyValues = new object[this._keyValues.Length];
+
+            return entityKey;
         }
     }
 }

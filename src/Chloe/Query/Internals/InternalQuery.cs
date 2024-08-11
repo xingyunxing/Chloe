@@ -17,24 +17,21 @@ namespace Chloe.Query.Internals
     class InternalQuery<T> : FeatureEnumerable<T>, IEnumerable<T>, IAsyncEnumerable<T>
     {
         Query<T> _query;
+        QueryContext _queryContext;
 
         internal InternalQuery(Query<T> query)
         {
             this._query = query;
+            this._queryContext = new QueryContext(this._query.DbContextProvider);
         }
 
         DbCommandFactor GenerateCommandFactor()
         {
-            QueryContext queryContext = new QueryContext(this._query.DbContextProvider);
             QueryExpression queryExpression = QueryObjectExpressionTransformer.Transform(this._query.QueryExpression);
-            QueryStateBase qs = QueryExpressionResolver.Resolve(queryContext, queryExpression, new ScopeParameterDictionary(), new StringSet());
+            QueryStateBase qs = QueryExpressionResolver.Resolve(this._queryContext, queryExpression, new ScopeParameterDictionary(), new StringSet());
             MappingData data = qs.GenerateMappingData();
 
-            IObjectActivator objectActivator;
-            if (data.IsTrackingQuery)
-                objectActivator = data.ObjectActivatorCreator.CreateObjectActivator(data.Context.DbContextProvider);
-            else
-                objectActivator = data.ObjectActivatorCreator.CreateObjectActivator();
+            IObjectActivator objectActivator = data.ObjectActivatorCreator.CreateObjectActivator(data.IsTrackingQuery);
 
             IDbExpressionTranslator translator = data.Context.DbContextProvider.DatabaseProvider.CreateDbExpressionTranslator();
             DbCommandInfo dbCommandInfo = translator.Translate(data.SqlQuery);
@@ -114,7 +111,7 @@ namespace Chloe.Query.Internals
         public override IFeatureEnumerator<T> GetFeatureEnumerator(CancellationToken cancellationToken = default)
         {
             DbCommandFactor commandFactor = this.GenerateCommandFactor();
-            QueryEnumerator<T> enumerator = new QueryEnumerator<T>(async (@async) =>
+            QueryEnumerator<T> enumerator = new QueryEnumerator<T>(this._queryContext, async (@async) =>
             {
                 IDataReader dataReader = await commandFactor.DbContext.Session.ExecuteReader(commandFactor.CommandText, CommandType.Text, commandFactor.Parameters, @async);
 

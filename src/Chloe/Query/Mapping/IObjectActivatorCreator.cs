@@ -6,8 +6,7 @@ namespace Chloe.Query.Mapping
     {
         Type ObjectType { get; }
         bool IsRoot { get; set; }
-        IObjectActivator CreateObjectActivator();
-        IObjectActivator CreateObjectActivator(IDbContextProvider dbContextProvider);
-        IFitter CreateFitter(IDbContextProvider dbContextProvider);
+        IObjectActivator CreateObjectActivator(bool isTrackingQuery);
+        IFitter CreateFitter(bool isTrackingQuery);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Chloe.Descriptors;
+using Chloe.Query;
 using System.Collections;
 using System.Data;
 
@@ -10,7 +11,8 @@ namespace Chloe.Mapper
     public interface IFitter
     {
         void Prepare(IDataReader reader);
-        ValueTask Fill(object obj, object owner, IDataReader reader, bool @async);
+        ValueTask Fill(QueryContext queryContext, object obj, object owner, IDataReader reader, bool @async);
+        IFitter Clone();
     }
 
     public class ComplexObjectFitter : IFitter
@@ -31,7 +33,7 @@ namespace Chloe.Mapper
             }
         }
 
-        public async ValueTask Fill(object entity, object owner, IDataReader reader, bool @async)
+        public async ValueTask Fill(QueryContext queryContext, object entity, object owner, IDataReader reader, bool @async)
         {
             for (int i = 0; i < this._includings.Count; i++)
             {
@@ -41,10 +43,19 @@ namespace Chloe.Mapper
                 if (propertyValue == null)
                     continue;
 
-                await kv.Item2.Fill(propertyValue, entity, reader, @async);
+                await kv.Item2.Fill(queryContext, propertyValue, entity, reader, @async);
             }
         }
+
+        public IFitter Clone()
+        {
+            List<Tuple<PropertyDescriptor, IFitter>> includings = new List<Tuple<PropertyDescriptor, IFitter>>(this._includings.Count);
+            includings.AddRange(this._includings.Select(a => new Tuple<PropertyDescriptor, IFitter>(a.Item1, a.Item2.Clone())));
+            ComplexObjectFitter complexObjectFitter = new ComplexObjectFitter(includings);
+            return complexObjectFitter;
+        }
     }
+
     public class CollectionObjectFitter : IFitter
     {
         IObjectActivator _elementActivator;
@@ -69,7 +80,7 @@ namespace Chloe.Mapper
             this._elementFitter.Prepare(reader);
         }
 
-        public async ValueTask Fill(object collection, object owner, IDataReader reader, bool @async)
+        public async ValueTask Fill(QueryContext queryContext, object collection, object owner, IDataReader reader, bool @async)
         {
             if (this._collection != collection)
             {
@@ -84,7 +95,7 @@ namespace Chloe.Mapper
             var keyValue = this._entityKey.GetKeyValue(reader);
             if (!this._keySet.Contains(keyValue))
             {
-                entity = await this._elementActivator.CreateInstance(reader, @async);
+                entity = await this._elementActivator.CreateInstance(queryContext, reader, @async);
                 if (entity != null)
                 {
                     if (this._elementOwnerProperty != null)
@@ -100,8 +111,14 @@ namespace Chloe.Mapper
             if (entityContainer.Count > 0)
             {
                 entity = entityContainer[entityContainer.Count - 1];
-                await this._elementFitter.Fill(entity, null, reader, @async);
+                await this._elementFitter.Fill(queryContext, entity, null, reader, @async);
             }
+        }
+
+        public IFitter Clone()
+        {
+            CollectionObjectFitter collectionObjectFitter = new CollectionObjectFitter(this._elementActivator.Clone(), this._entityKey.Clone(), this._elementFitter.Clone(), this._elementOwnerProperty);
+            return collectionObjectFitter;
         }
     }
 }

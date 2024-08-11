@@ -107,12 +107,12 @@ namespace Chloe
         public virtual List<T> SqlQuery<T>(string sql, CommandType cmdType, params DbParam[] parameters)
         {
             PublicHelper.CheckNull(sql, "sql");
-            return new InternalSqlQuery<T>(this, sql, cmdType, parameters).AsIEnumerable().ToList();
+            return new InternalSqlQuery<T>(new QueryContext(this), sql, cmdType, parameters).AsIEnumerable().ToList();
         }
         public virtual Task<List<T>> SqlQueryAsync<T>(string sql, CommandType cmdType, params DbParam[] parameters)
         {
             PublicHelper.CheckNull(sql, "sql");
-            return new InternalSqlQuery<T>(this, sql, cmdType, parameters).AsIAsyncEnumerable().ToListAsync().AsTask();
+            return new InternalSqlQuery<T>(new QueryContext(this), sql, cmdType, parameters).AsIAsyncEnumerable().ToListAsync().AsTask();
         }
 
         public List<T> SqlQuery<T>(string sql, CommandType cmdType, object parameter)

@@ -1,10 +1,13 @@
-﻿using System.Data;
+﻿using Chloe.Query;
+using System.Data;
 
 namespace Chloe.Mapper
 {
     public interface IObjectActivator
     {
         void Prepare(IDataReader reader);
-        ObjectResultTask CreateInstance(IDataReader reader, bool @async);
+        ObjectResultTask CreateInstance(QueryContext queryContext, IDataReader reader, bool @async);
+
+        IObjectActivator Clone();
     }
 }

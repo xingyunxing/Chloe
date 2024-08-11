@@ -15,14 +15,14 @@ namespace Chloe.Query.Internals
 {
     class InternalSqlQuery<T> : IEnumerable<T>, IAsyncEnumerable<T>
     {
-        DbContextProvider _dbContext;
+        QueryContext _queryContext;
         string _sql;
         CommandType _cmdType;
         DbParam[] _parameters;
 
-        public InternalSqlQuery(DbContextProvider dbContext, string sql, CommandType cmdType, DbParam[] parameters)
+        public InternalSqlQuery(QueryContext queryContext, string sql, CommandType cmdType, DbParam[] parameters)
         {
-            this._dbContext = dbContext;
+            this._queryContext = queryContext;
             this._sql = sql;
             this._cmdType = cmdType;
             this._parameters = parameters;
@@ -39,7 +39,7 @@ namespace Chloe.Query.Internals
 
         public IEnumerator<T> GetEnumerator()
         {
-            return new QueryEnumerator<T>(this.ExecuteReader, this.CreateObjectActivator, CancellationToken.None);
+            return new QueryEnumerator<T>(this._queryContext, this.ExecuteReader, this.CreateObjectActivator, CancellationToken.None);
         }
         IEnumerator IEnumerable.GetEnumerator()
         {
@@ -59,7 +59,7 @@ namespace Chloe.Query.Internals
             if (type != PublicConstants.TypeOfObject && MappingTypeSystem.IsMappingType(type))
             {
                 PrimitiveObjectActivatorCreator activatorCreator = new PrimitiveObjectActivatorCreator(type, 0);
-                return activatorCreator.CreateObjectActivator();
+                return activatorCreator.CreateObjectActivator(false);
             }
 
             return GetObjectActivator(type, dataReader);
@@ -67,7 +67,7 @@ namespace Chloe.Query.Internals
 
         async Task<IDataReader> ExecuteReader(bool @async)
         {
-            IDataReader reader = await this._dbContext.AdoSession.ExecuteReader(this._sql, this._parameters, this._cmdType, @async);
+            IDataReader reader = await this._queryContext.DbContextProvider.AdoSession.ExecuteReader(this._sql, this._parameters, this._cmdType, @async);
             return reader;
         }
 
@@ -125,7 +125,7 @@ namespace Chloe.Query.Internals
             InstanceCreator instanceCreator = constructorDescriptor.GetInstanceCreator();
             List<IMemberBinder> memberBinders = PrepareMemberBinders(type, reader, mapper);
 
-            ComplexObjectActivator objectActivator = new ComplexObjectActivator(instanceCreator, new List<IObjectActivator>(), memberBinders, null);
+            ComplexObjectActivator objectActivator = new ComplexObjectActivator(instanceCreator, new List<IObjectActivator>(), memberBinders, null, false);
             objectActivator.Prepare(reader);
 
             return objectActivator;

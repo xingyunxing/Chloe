@@ -1,6 +1,8 @@
 ﻿using Chloe.Exceptions;
 using Chloe.Mapper.Binders;
+using Chloe.Query;
 using Chloe.Reflection;
+using System.Collections.Generic;
 using System.Data;
 
 namespace Chloe.Mapper.Activators
@@ -12,12 +14,15 @@ namespace Chloe.Mapper.Activators
         List<IMemberBinder> _memberBinders;
         int? _checkNullOrdinal;
 
-        public ComplexObjectActivator(InstanceCreator instanceCreator, List<IObjectActivator> argumentActivators, List<IMemberBinder> memberBinders, int? checkNullOrdinal)
+        bool _shouldTrackEntity;
+
+        public ComplexObjectActivator(InstanceCreator instanceCreator, List<IObjectActivator> argumentActivators, List<IMemberBinder> memberBinders, int? checkNullOrdinal, bool shouldTrackEntity)
         {
             this._instanceCreator = instanceCreator;
             this._argumentActivators = argumentActivators;
             this._memberBinders = memberBinders;
             this._checkNullOrdinal = checkNullOrdinal;
+            this._shouldTrackEntity = shouldTrackEntity;
         }
 
         public override void Prepare(IDataReader reader)
@@ -33,7 +38,7 @@ namespace Chloe.Mapper.Activators
                 binder.Prepare(reader);
             }
         }
-        public override async ObjectResultTask CreateInstance(IDataReader reader, bool @async)
+        public override async ObjectResultTask CreateInstance(QueryContext queryContext, IDataReader reader, bool @async)
         {
             if (this._checkNullOrdinal != null)
             {
@@ -41,12 +46,11 @@ namespace Chloe.Mapper.Activators
                     return null;
             }
 
-
             object[] arguments = this._argumentActivators.Count == 0 ? PublicConstants.EmptyArray : new object[this._argumentActivators.Count];
 
             for (int i = 0; i < this._argumentActivators.Count; i++)
             {
-                arguments[i] = await this._argumentActivators[i].CreateInstance(reader, @async);
+                arguments[i] = await this._argumentActivators[i].CreateInstance(queryContext, reader, @async);
             }
 
             object obj = this._instanceCreator(arguments);
@@ -58,7 +62,7 @@ namespace Chloe.Mapper.Activators
                 for (int i = 0; i < count; i++)
                 {
                     memberBinder = this._memberBinders[i];
-                    await memberBinder.Bind(obj, reader, @async);
+                    await memberBinder.Bind(queryContext, obj, reader, @async);
                 }
             }
             catch (ChloeException)
@@ -74,6 +78,11 @@ namespace Chloe.Mapper.Activators
                 }
 
                 throw;
+            }
+
+            if (this._shouldTrackEntity)
+            {
+                queryContext.DbContextProvider.TrackEntity(obj);
             }
 
             return obj;
@@ -94,25 +103,19 @@ namespace Chloe.Mapper.Activators
                 msg = string.Format("An error occurred while mapping the column '{0}'({1},{2},{3}). For details please see the inner exception.", reader.GetName(ordinal), ordinal.ToString(), reader.GetDataTypeName(ordinal), reader.GetFieldType(ordinal).FullName);
             return msg;
         }
-    }
 
-    public class ObjectActivatorWithTracking : ComplexObjectActivator
-    {
-        IDbContextProvider _dbContextProvider;
-        public ObjectActivatorWithTracking(InstanceCreator instanceCreator, List<IObjectActivator> argumentActivators, List<IMemberBinder> memberBinders, int? checkNullOrdinal, IDbContextProvider dbContextProvider)
-            : base(instanceCreator, argumentActivators, memberBinders, checkNullOrdinal)
+        public override IObjectActivator Clone()
         {
-            this._dbContextProvider = dbContextProvider;
-        }
+            List<IObjectActivator> argumentActivators = new List<IObjectActivator>(this._argumentActivators.Count);
+            argumentActivators.AddRange(this._argumentActivators.Select(a => a.Clone()));
 
-        public override async ObjectResultTask CreateInstance(IDataReader reader, bool @async)
-        {
-            object obj = await base.CreateInstance(reader, @async);
+            List<IMemberBinder> memberBinders = new List<IMemberBinder>(this._memberBinders.Count);
+            memberBinders.AddRange(this._memberBinders.Select(a => a.Clone()));
 
-            if (obj != null)
-                this._dbContextProvider.TrackEntity(obj);
+            ComplexObjectActivator complexObjectActivator = new ComplexObjectActivator(this._instanceCreator, argumentActivators, memberBinders, this._checkNullOrdinal, this._shouldTrackEntity);
 
-            return obj;
+            return complexObjectActivator;
         }
     }
+
 }

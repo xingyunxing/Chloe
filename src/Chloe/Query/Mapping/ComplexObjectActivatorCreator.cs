@@ -38,23 +38,14 @@ namespace Chloe.Query.Mapping
         public Dictionary<MemberInfo, IObjectActivatorCreator> ComplexMembers { get; private set; }
         public Dictionary<MemberInfo, IObjectActivatorCreator> CollectionMembers { get; private set; }
 
-
-        public IObjectActivator CreateObjectActivator()
-        {
-            return this.CreateObjectActivator(null);
-        }
-        public IObjectActivator CreateObjectActivator(IDbContextProvider dbContextProvider)
+        public IObjectActivator CreateObjectActivator(bool isTrackingQuery)
         {
             InstanceCreator instanceCreator = this.ConstructorDescriptor.GetInstanceCreator();
 
-            List<IObjectActivator> argumentActivators = this.CreateArgumentActivators(dbContextProvider);
-            List<IMemberBinder> memberBinders = this.CreateMemberBinders(dbContextProvider);
+            List<IObjectActivator> argumentActivators = this.CreateArgumentActivators(isTrackingQuery);
+            List<IMemberBinder> memberBinders = this.CreateMemberBinders(isTrackingQuery);
 
-            IObjectActivator objectActivator;
-            if (dbContextProvider != null)
-                objectActivator = new ObjectActivatorWithTracking(instanceCreator, argumentActivators, memberBinders, this.CheckNullOrdinal, dbContextProvider);
-            else
-                objectActivator = new ComplexObjectActivator(instanceCreator, argumentActivators, memberBinders, this.CheckNullOrdinal);
+            IObjectActivator objectActivator = new ComplexObjectActivator(instanceCreator, argumentActivators, memberBinders, this.CheckNullOrdinal, isTrackingQuery);
 
             if (this.IsRoot && this.HasMany())
             {
@@ -66,13 +57,13 @@ namespace Chloe.Query.Mapping
                 }
 
                 IEntityKey entityKey = new EntityKey(entityTypeDescriptor, keys);
-                objectActivator = new RootEntityActivator(objectActivator, this.CreateFitter(dbContextProvider), entityKey);
+                objectActivator = new RootEntityActivator(objectActivator, this.CreateFitter(isTrackingQuery), entityKey);
             }
 
             return objectActivator;
         }
 
-        List<IMemberBinder> CreateMemberBinders(IDbContextProvider dbContextProvider)
+        List<IMemberBinder> CreateMemberBinders(bool isTrackingQuery)
         {
             ObjectMemberMapper mapper = this.ConstructorDescriptor.GetEntityMemberMapper();
             List<IMemberBinder> memberBinders = new List<IMemberBinder>(this.PrimitiveMembers.Count + this.ComplexMembers.Count + this.CollectionMembers.Count);
@@ -86,7 +77,7 @@ namespace Chloe.Query.Mapping
             foreach (var kv in this.ComplexMembers)
             {
                 MemberSetter setter = mapper.GetMemberSetter(kv.Key);
-                IObjectActivator memberActivtor = kv.Value.CreateObjectActivator(dbContextProvider);
+                IObjectActivator memberActivtor = kv.Value.CreateObjectActivator(isTrackingQuery);
                 ComplexMemberBinder binder = new ComplexMemberBinder(setter, memberActivtor);
                 memberBinders.Add(binder);
             }
@@ -94,14 +85,14 @@ namespace Chloe.Query.Mapping
             foreach (var kv in this.CollectionMembers)
             {
                 MemberSetter setter = mapper.GetMemberSetter(kv.Key);
-                IObjectActivator memberActivtor = kv.Value.CreateObjectActivator(dbContextProvider);
+                IObjectActivator memberActivtor = kv.Value.CreateObjectActivator(isTrackingQuery);
                 CollectionMemberBinder binder = new CollectionMemberBinder(setter, memberActivtor);
                 memberBinders.Add(binder);
             }
 
             return memberBinders;
         }
-        List<IObjectActivator> CreateArgumentActivators(IDbContextProvider dbContextProvider)
+        List<IObjectActivator> CreateArgumentActivators(bool isTrackingQuery)
         {
             ParameterInfo[] parameters = this.ConstructorDescriptor.ConstructorInfo.GetParameters();
             List<IObjectActivator> argumentActivators = new List<IObjectActivator>(parameters.Length);
@@ -116,7 +107,7 @@ namespace Chloe.Query.Mapping
                 }
                 else if (this.ConstructorComplexParameters.TryGetValue(parameter, out IObjectActivatorCreator argumentActivatorCreator))
                 {
-                    argumentActivator = argumentActivatorCreator.CreateObjectActivator(dbContextProvider);
+                    argumentActivator = argumentActivatorCreator.CreateObjectActivator(isTrackingQuery);
                 }
                 else
                 {
@@ -130,13 +121,13 @@ namespace Chloe.Query.Mapping
             return argumentActivators;
         }
 
-        public IFitter CreateFitter(IDbContextProvider dbContextProvider)
+        public IFitter CreateFitter(bool isTrackingQuery)
         {
             List<Tuple<PropertyDescriptor, IFitter>> includings = new List<Tuple<PropertyDescriptor, IFitter>>();
             TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(this.ConstructorDescriptor.ConstructorInfo.DeclaringType);
             foreach (var item in this.ComplexMembers.Concat(this.CollectionMembers))
             {
-                IFitter propFitter = item.Value.CreateFitter(dbContextProvider);
+                IFitter propFitter = item.Value.CreateFitter(isTrackingQuery);
                 includings.Add(new Tuple<PropertyDescriptor, IFitter>(typeDescriptor.GetPropertyDescriptor(item.Key), propFitter));
             }
 

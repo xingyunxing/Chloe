@@ -1,4 +1,5 @@
-﻿using Chloe.Reflection;
+﻿using Chloe.Query;
+using Chloe.Reflection;
 using System.Data;
 using System.Reflection;
 
@@ -31,9 +32,15 @@ namespace Chloe.Mapper.Binders
 
             this._mMapper = this._mrmTuple.SafeMRM.Value;
         }
-        public virtual async ValueTask Bind(object obj, IDataReader reader, bool @async)
+        public virtual async ValueTask Bind(QueryContext queryContext, object obj, IDataReader reader, bool @async)
         {
             this._mMapper.Map(obj, reader, this._ordinal);
+        }
+
+        public IMemberBinder Clone()
+        {
+            PrimitiveMemberBinder memberBinder = new PrimitiveMemberBinder(this._member, this._mrmTuple, this._ordinal);
+            return memberBinder;
         }
     }
 }

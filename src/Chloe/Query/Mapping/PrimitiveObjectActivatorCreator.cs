@@ -16,17 +16,13 @@ namespace Chloe.Query.Mapping
         public int ReaderOrdinal { get; private set; }
         public int? CheckNullOrdinal { get; set; }
 
-        public IObjectActivator CreateObjectActivator()
-        {
-            return this.CreateObjectActivator(null);
-        }
-        public IObjectActivator CreateObjectActivator(IDbContextProvider dbContextProvider)
+        public IObjectActivator CreateObjectActivator(bool isTrackingQuery)
         {
             PrimitiveObjectActivator activator = new PrimitiveObjectActivator(this.ObjectType, this.ReaderOrdinal);
             return activator;
         }
 
-        public IFitter CreateFitter(IDbContextProvider dbContextProvider)
+        public IFitter CreateFitter(bool isTrackingQuery)
         {
             throw new NotSupportedException();
         }

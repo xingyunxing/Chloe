@@ -26,19 +26,15 @@ namespace Chloe.Query.Mapping
         /// </summary>
         public bool BindTwoWay { get; private set; }
 
-        public IObjectActivator CreateObjectActivator()
-        {
-            return this.CreateObjectActivator(null);
-        }
-        public IObjectActivator CreateObjectActivator(IDbContextProvider dbContextProvider)
+        public IObjectActivator CreateObjectActivator(bool isTrackingQuery)
         {
             CollectionObjectActivator ret = new CollectionObjectActivator(this.CollectionType);
             return ret;
         }
 
-        public IFitter CreateFitter(IDbContextProvider dbContextProvider)
+        public IFitter CreateFitter(bool isTrackingQuery)
         {
-            IFitter elementFitter = this.ElementActivatorCreator.CreateFitter(dbContextProvider);
+            IFitter elementFitter = this.ElementActivatorCreator.CreateFitter(isTrackingQuery);
 
             ComplexObjectActivatorCreator elementActivatorCreator = (ComplexObjectActivatorCreator)this.ElementActivatorCreator;
             TypeDescriptor elementTypeDescriptor = EntityTypeContainer.GetDescriptor(elementActivatorCreator.ObjectType);
@@ -55,7 +51,7 @@ namespace Chloe.Query.Mapping
             if (this.BindTwoWay)
                 elementOwnerProperty = elementTypeDescriptor.ComplexPropertyDescriptors.Where(a => a.Definition.Property.PropertyType == this.OwnerType).First();
 
-            CollectionObjectFitter fitter = new CollectionObjectFitter(this.ElementActivatorCreator.CreateObjectActivator(dbContextProvider), entityKey, elementFitter, elementOwnerProperty);
+            CollectionObjectFitter fitter = new CollectionObjectFitter(this.ElementActivatorCreator.CreateObjectActivator(isTrackingQuery), entityKey, elementFitter, elementOwnerProperty);
             return fitter;
         }
     }

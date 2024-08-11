@@ -11,7 +11,7 @@ namespace Chloe.Query.Internals
         {
         }
 
-        public override async ObjectResultTask CreateInstance(IDataReader reader, bool @async)
+        public override async ObjectResultTask CreateInstance(QueryContext queryContext, IDataReader reader, bool @async)
         {
             int effectiveFieldCount = reader.FieldCount;
             if (this._table == null)
@@ -33,5 +33,11 @@ namespace Chloe.Query.Internals
             var row = new DapperRow(this._table, values);
             return row;
         }
+
+        public override IObjectActivator Clone()
+        {
+            return new DapperRowObjectActivator();
+        }
+
     }
 }

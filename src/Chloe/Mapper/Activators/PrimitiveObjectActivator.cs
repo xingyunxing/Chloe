@@ -1,5 +1,6 @@
 ﻿using Chloe.Data;
 using Chloe.Exceptions;
+using Chloe.Query;
 using System.Data;
 
 namespace Chloe.Mapper.Activators
@@ -10,6 +11,11 @@ namespace Chloe.Mapper.Activators
         int _readerOrdinal;
         IDbValueReader _dbValueReader;
 
+        PrimitiveObjectActivator()
+        {
+
+        }
+
         public PrimitiveObjectActivator(Type primitiveType, int readerOrdinal)
         {
             this._primitiveType = primitiveType;
@@ -17,7 +23,7 @@ namespace Chloe.Mapper.Activators
             this._dbValueReader = DataReaderConstant.GetDbValueReader(primitiveType);
         }
 
-        public override async ObjectResultTask CreateInstance(IDataReader reader, bool @async)
+        public override async ObjectResultTask CreateInstance(QueryContext queryContext, IDataReader reader, bool @async)
         {
             try
             {
@@ -28,5 +34,16 @@ namespace Chloe.Mapper.Activators
                 throw new ChloeException(ComplexObjectActivator.AppendErrorMsg(reader, this._readerOrdinal, ex), ex);
             }
         }
+
+        public override IObjectActivator Clone()
+        {
+            PrimitiveObjectActivator primitiveObjectActivator = new PrimitiveObjectActivator();
+            primitiveObjectActivator._primitiveType = this._primitiveType;
+            primitiveObjectActivator._readerOrdinal = this._readerOrdinal;
+            primitiveObjectActivator._dbValueReader = this._dbValueReader;
+
+            return primitiveObjectActivator;
+        }
+
     }
 }

@@ -9,18 +9,21 @@ namespace Chloe.Query.Internals
     internal class QueryEnumerator<T> : IFeatureEnumerator<T>, IEnumerator<T>, IAsyncEnumerator<T>
     {
         bool _disposed;
+        QueryContext _queryContext;
         DataReaderEnumerator _dataReaderEnumerator;
         Func<IDataReader, IObjectActivator> _objectActivatorCreator;
         IObjectActivator _objectActivator;
         CancellationToken _cancellationToken;
         T _current;
 
-        public QueryEnumerator(Func<bool, Task<IDataReader>> dataReaderCreator, IObjectActivator objectActivator, CancellationToken cancellationToken) : this(dataReaderCreator, dataReader => objectActivator, cancellationToken)
+        public QueryEnumerator(QueryContext queryContext, Func<bool, Task<IDataReader>> dataReaderCreator, IObjectActivator objectActivator, CancellationToken cancellationToken)
+            : this(queryContext, dataReaderCreator, dataReader => objectActivator, cancellationToken)
         {
 
         }
-        public QueryEnumerator(Func<bool, Task<IDataReader>> dataReaderCreator, Func<IDataReader, IObjectActivator> objectActivatorCreator, CancellationToken cancellationToken)
+        public QueryEnumerator(QueryContext queryContext, Func<bool, Task<IDataReader>> dataReaderCreator, Func<IDataReader, IObjectActivator> objectActivatorCreator, CancellationToken cancellationToken)
         {
+            this._queryContext = queryContext;
             this._dataReaderEnumerator = new DataReaderEnumerator(dataReaderCreator);
             this._objectActivatorCreator = objectActivatorCreator;
             this._cancellationToken = cancellationToken;
@@ -53,7 +56,7 @@ namespace Chloe.Query.Internals
                     this._objectActivator = this._objectActivatorCreator(this._dataReaderEnumerator.Current);
                 }
 
-                this._current = (T)(await this._objectActivator.CreateInstance(this._dataReaderEnumerator.Current, @async));
+                this._current = (T)(await this._objectActivator.CreateInstance(this._queryContext, this._dataReaderEnumerator.Current, @async));
             }
             else
             {
