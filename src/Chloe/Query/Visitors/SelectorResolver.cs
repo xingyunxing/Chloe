@@ -11,20 +11,22 @@ namespace Chloe.Query
 {
     class SelectorResolver : ExpressionVisitor<IObjectModel>
     {
+        QueryContext _queryContext;
         ExpressionVisitorBase _visitor;
         QueryOptions _queryOptions;
         ScopeParameterDictionary _scopeParameters;
         StringSet _scopeTables;
-        SelectorResolver(QueryOptions queryOptions, ScopeParameterDictionary scopeParameters, StringSet scopeTables)
+        SelectorResolver(QueryContext queryContext, QueryOptions queryOptions, ScopeParameterDictionary scopeParameters, StringSet scopeTables)
         {
+            this._queryContext = queryContext;
             this._queryOptions = queryOptions;
             this._scopeParameters = scopeParameters;
             this._scopeTables = scopeTables;
         }
 
-        public static IObjectModel Resolve(LambdaExpression selector, QueryOptions queryOptions, ScopeParameterDictionary scopeParameters, StringSet scopeTables)
+        public static IObjectModel Resolve(QueryContext queryContext, LambdaExpression selector, QueryOptions queryOptions, ScopeParameterDictionary scopeParameters, StringSet scopeTables)
         {
-            SelectorResolver resolver = new SelectorResolver(queryOptions, scopeParameters, scopeTables);
+            SelectorResolver resolver = new SelectorResolver(queryContext, queryOptions, scopeParameters, scopeTables);
             return resolver.Visit(selector);
         }
 
@@ -74,12 +76,12 @@ namespace Chloe.Query
 
         protected override IObjectModel VisitLambda(LambdaExpression exp)
         {
-            this._visitor = new GeneralExpressionParser(this._scopeParameters, this._scopeTables);
+            this._visitor = new GeneralExpressionParser(this._queryContext, this._scopeParameters, this._scopeTables);
             return this.Visit(exp.Body);
         }
         protected override IObjectModel VisitNew(NewExpression exp)
         {
-            IObjectModel result = new ComplexObjectModel(this._queryOptions, exp.Constructor);
+            IObjectModel result = new ComplexObjectModel(this._queryContext, this._queryOptions, exp.Constructor);
             ParameterInfo[] parames = exp.Constructor.GetParameters();
             for (int i = 0; i < parames.Length; i++)
             {

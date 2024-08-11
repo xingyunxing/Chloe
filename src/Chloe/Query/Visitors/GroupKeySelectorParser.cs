@@ -7,17 +7,19 @@ namespace Chloe.Query.Visitors
 {
     class GroupKeySelectorParser : ExpressionVisitor<DbExpression[]>
     {
+        QueryContext _queryContext;
         ScopeParameterDictionary _scopeParameters;
         StringSet _scopeTables;
-        public GroupKeySelectorParser(ScopeParameterDictionary scopeParameters, StringSet scopeTables)
+        public GroupKeySelectorParser(QueryContext queryContext, ScopeParameterDictionary scopeParameters, StringSet scopeTables)
         {
+            this._queryContext = queryContext;
             this._scopeParameters = scopeParameters;
             this._scopeTables = scopeTables;
         }
 
-        public static DbExpression[] Parse(Expression keySelector, ScopeParameterDictionary scopeParameters, StringSet scopeTables)
+        public static DbExpression[] Parse(QueryContext queryContext, Expression keySelector, ScopeParameterDictionary scopeParameters, StringSet scopeTables)
         {
-            return new GroupKeySelectorParser(scopeParameters, scopeTables).Visit(keySelector);
+            return new GroupKeySelectorParser(queryContext, scopeParameters, scopeTables).Visit(keySelector);
         }
 
         public override DbExpression[] Visit(Expression exp)
@@ -30,7 +32,7 @@ namespace Chloe.Query.Visitors
                     return this.VisitNew((NewExpression)exp);
                 default:
                     {
-                        var dbExp = GeneralExpressionParser.Parse(exp, this._scopeParameters, this._scopeTables);
+                        var dbExp = GeneralExpressionParser.Parse(this._queryContext, exp, this._scopeParameters, this._scopeTables);
                         return new DbExpression[1] { dbExp };
                     }
             }
@@ -45,7 +47,7 @@ namespace Chloe.Query.Visitors
             DbExpression[] ret = new DbExpression[exp.Arguments.Count];
             for (int i = 0; i < exp.Arguments.Count; i++)
             {
-                var dbExp = GeneralExpressionParser.Parse(exp.Arguments[i], this._scopeParameters, this._scopeTables);
+                var dbExp = GeneralExpressionParser.Parse(this._queryContext, exp.Arguments[i], this._scopeParameters, this._scopeTables);
                 ret[i] = dbExp;
             }
 

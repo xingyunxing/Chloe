@@ -76,9 +76,9 @@ namespace Chloe.Descriptors
             return new DefaultExpressionParser(this, dbTable);
         }
 
-        public UpdateColumnExpressionParser GetUpdateColumnExpressionParser(DbTable dbTable, ParameterExpression parameterExp)
+        public UpdateColumnExpressionParser GetUpdateColumnExpressionParser(DbTable dbTable, ParameterExpression parameterExp, QueryContext queryContext)
         {
-            return new UpdateColumnExpressionParser(this, dbTable, parameterExp);
+            return new UpdateColumnExpressionParser(this, dbTable, parameterExp, queryContext);
         }
 
         public bool HasPrimaryKey()
@@ -147,9 +147,9 @@ namespace Chloe.Descriptors
             return dbColumnAccessExpression;
         }
 
-        internal ComplexObjectModel GenObjectModel(DbTable table, QueryOptions queryOptions)
+        internal ComplexObjectModel GenObjectModel(DbTable table, QueryContext queryContext, QueryOptions queryOptions)
         {
-            ComplexObjectModel model = new ComplexObjectModel(queryOptions, this.Definition.Type, this.PrimitivePropertyDescriptors.Count);
+            ComplexObjectModel model = new ComplexObjectModel(queryContext, queryOptions, this.Definition.Type, this.PrimitivePropertyDescriptors.Count);
             foreach (PrimitivePropertyDescriptor propertyDescriptor in this.PrimitivePropertyDescriptors)
             {
                 DbColumnAccessExpression columnAccessExpression = new DbColumnAccessExpression(table, propertyDescriptor.Column);
@@ -162,9 +162,9 @@ namespace Chloe.Descriptors
             return model;
         }
 
-        internal ComplexObjectModel GenObjectModel(string tableName, QueryOptions queryOptions)
+        internal ComplexObjectModel GenObjectModel(string tableName, QueryContext queryContext, QueryOptions queryOptions)
         {
-            ComplexObjectModel model = new ComplexObjectModel(queryOptions, this.Definition.Type, this.PrimitivePropertyDescriptors.Count);
+            ComplexObjectModel model = new ComplexObjectModel(queryContext, queryOptions, this.Definition.Type, this.PrimitivePropertyDescriptors.Count);
 
             DbTable table = null;
             if (this.CachedDbTable.Name != tableName)

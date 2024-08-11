@@ -44,12 +44,12 @@ namespace Chloe.Query.QueryState
         }
         public override IQueryState Accept(TakeExpression exp)
         {
-            var state = new LimitQueryState(this.Context, this.QueryModel, this.Count, exp.Count);
+            var state = new LimitQueryState(this.QueryContext, this.QueryModel, this.Count, exp.Count);
             return state;
         }
         public override IQueryState CreateQueryState(QueryModel result)
         {
-            return new SkipQueryState(this.Context, result, this.Count);
+            return new SkipQueryState(this.QueryContext, result, this.Count);
         }
 
         public override DbSqlQueryExpression CreateSqlQuery()

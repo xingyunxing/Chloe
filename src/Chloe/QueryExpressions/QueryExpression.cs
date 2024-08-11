@@ -35,6 +35,6 @@
             }
         }
 
-        public abstract T Accept<T>(QueryExpressionVisitor<T> visitor);
+        public abstract T Accept<T>(IQueryExpressionVisitor<T> visitor);
     }
 }

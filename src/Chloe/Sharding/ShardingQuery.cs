@@ -7,20 +7,27 @@ namespace Chloe.Sharding
 {
     internal partial class ShardingQuery<T> : IQuery<T>
     {
-        public ShardingQuery(ShardingDbContextProvider dbContextProvider, string explicitTable, LockType @lock) : this(CreateRootQueryExpression(dbContextProvider, explicitTable, @lock))
+        ShardingDbContextProvider _dbContextProvider;
+
+        public ShardingQuery(ShardingDbContextProvider dbContextProvider, string explicitTable, LockType @lock) : this(dbContextProvider, CreateRootQueryExpression(explicitTable, @lock))
         {
+
         }
-        public ShardingQuery(QueryExpression exp)
+
+        public ShardingQuery(ShardingDbContextProvider dbContextProvider, QueryExpression exp)
         {
+            this._dbContextProvider = dbContextProvider;
             this.QueryExpression = exp;
         }
 
-        static RootQueryExpression CreateRootQueryExpression(ShardingDbContextProvider dbContextProvider, string explicitTable, LockType @lock)
+        static RootQueryExpression CreateRootQueryExpression(string explicitTable, LockType @lock)
         {
             Type entityType = typeof(T);
-            RootQueryExpression ret = new RootQueryExpression(entityType, dbContextProvider, explicitTable, @lock);
+            RootQueryExpression ret = new RootQueryExpression(entityType, explicitTable, @lock);
             return ret;
         }
+
+        public ShardingDbContextProvider DbContextProvider { get { return this._dbContextProvider; } }
 
         Type IQuery.ElementType { get { return typeof(T); } }
         public QueryExpression QueryExpression { get; private set; }
@@ -33,7 +40,7 @@ namespace Chloe.Sharding
         public IQuery<T> AsTracking()
         {
             TrackingExpression e = new TrackingExpression(typeof(T), this.QueryExpression);
-            return new ShardingQuery<T>(e);
+            return new ShardingQuery<T>(this._dbContextProvider, e);
         }
 
         public IQuery<T> Distinct()
@@ -44,7 +51,7 @@ namespace Chloe.Sharding
         public IQuery<T> IgnoreAllFilters()
         {
             IgnoreAllFiltersExpression e = new IgnoreAllFiltersExpression(typeof(T), this.QueryExpression);
-            return new ShardingQuery<T>(e);
+            return new ShardingQuery<T>(this._dbContextProvider, e);
         }
 
         public IIncludableQuery<T, TProperty> Include<TProperty>(Expression<Func<T, TProperty>> p)
@@ -71,7 +78,7 @@ namespace Chloe.Sharding
         {
             PublicHelper.CheckNull(field);
             ExcludeExpression e = new ExcludeExpression(typeof(T), this.QueryExpression, field);
-            return new ShardingQuery<T>(e);
+            return new ShardingQuery<T>(this._dbContextProvider, e);
         }
 
         public IJoinQuery<T, TOther> InnerJoin<TOther>(Expression<Func<T, TOther, bool>> on)
@@ -133,37 +140,37 @@ namespace Chloe.Sharding
         {
             PublicHelper.CheckNull(keySelector);
             OrderExpression e = new OrderExpression(typeof(T), this.QueryExpression, QueryExpressionType.OrderBy, keySelector);
-            return new ShardingOrderedQuery<T>(e);
+            return new ShardingOrderedQuery<T>(this._dbContextProvider, e);
         }
         public IOrderedQuery<T> OrderByDesc<K>(Expression<Func<T, K>> keySelector)
         {
             PublicHelper.CheckNull(keySelector);
             OrderExpression e = new OrderExpression(typeof(T), this.QueryExpression, QueryExpressionType.OrderByDesc, keySelector);
-            return new ShardingOrderedQuery<T>(e);
+            return new ShardingOrderedQuery<T>(this._dbContextProvider, e);
         }
 
         public IQuery<TResult> Select<TResult>(Expression<Func<T, TResult>> selector)
         {
             PublicHelper.CheckNull(selector);
             SelectExpression e = new SelectExpression(typeof(TResult), this.QueryExpression, selector);
-            return new ShardingQuery<TResult>(e);
+            return new ShardingQuery<TResult>(this._dbContextProvider, e);
         }
 
         public IQuery<T> Where(Expression<Func<T, bool>> predicate)
         {
             PublicHelper.CheckNull(predicate);
             WhereExpression e = new WhereExpression(typeof(T), this.QueryExpression, predicate);
-            return new ShardingQuery<T>(e);
+            return new ShardingQuery<T>(this._dbContextProvider, e);
         }
         public IQuery<T> Skip(int count)
         {
             SkipExpression e = new SkipExpression(typeof(T), this.QueryExpression, count);
-            return new ShardingQuery<T>(e);
+            return new ShardingQuery<T>(this._dbContextProvider, e);
         }
         public IQuery<T> Take(int count)
         {
             TakeExpression e = new TakeExpression(typeof(T), this.QueryExpression, count);
-            return new ShardingQuery<T>(e);
+            return new ShardingQuery<T>(this._dbContextProvider, e);
         }
         public IQuery<T> TakePage(int pageNumber, int pageSize)
         {
@@ -494,7 +501,7 @@ namespace Chloe.Sharding
         public async Task<PagingResult<T>> PagingAsync(int pageNumber, int pageSize)
         {
             PagingExpression pagingExpression = new PagingExpression(typeof(PagingResult<T>), this.QueryExpression, pageNumber, pageSize);
-            var shardingQuery = new ShardingQuery<PagingResult<T>>(pagingExpression);
+            var shardingQuery = new ShardingQuery<PagingResult<T>>(this._dbContextProvider, pagingExpression);
             var pagingResult = await shardingQuery.GenerateIterator().FirstAsync();
             return pagingResult;
         }

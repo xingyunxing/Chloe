@@ -49,6 +49,12 @@ namespace Chloe
         }
 
         internal Dictionary<Type, List<LambdaExpression>> QueryFilters { get { return this._queryFilters; } }
+        internal List<LambdaExpression> GetQueryFilters(Type entityType)
+        {
+            List<LambdaExpression> filters = this._queryFilters.FindValue(entityType);
+            return filters ?? new List<LambdaExpression>();
+        }
+
 
         internal InnerAdoSession AdoSession
         {
@@ -391,16 +397,18 @@ namespace Chloe
             PublicHelper.CheckNull(condition);
             PublicHelper.CheckNull(content);
 
+            QueryContext queryContext = new QueryContext(this);
+
             TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(TEntity));
 
             List<KeyValuePair<MemberInfo, Expression>> updateColumns = InitMemberExtractor.Extract(content);
 
             DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
             DbUpdateExpression updateExpression = new DbUpdateExpression(dbTable);
-            DbExpression conditionExp = FilterPredicateParser.Parse(condition, typeDescriptor, dbTable);
+            DbExpression conditionExp = FilterPredicateParser.Parse(queryContext, condition, typeDescriptor, dbTable);
             updateExpression.Condition = conditionExp;
 
-            UpdateColumnExpressionParser expressionParser = typeDescriptor.GetUpdateColumnExpressionParser(dbTable, content.Parameters[0]);
+            UpdateColumnExpressionParser expressionParser = typeDescriptor.GetUpdateColumnExpressionParser(dbTable, content.Parameters[0], queryContext);
             foreach (var kv in updateColumns)
             {
                 MemberInfo key = kv.Key;
@@ -480,7 +488,7 @@ namespace Chloe
             TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(TEntity));
 
             DbTable dbTable = typeDescriptor.GenDbTable(table);
-            DbExpression conditionExp = FilterPredicateParser.Parse(condition, typeDescriptor, dbTable);
+            DbExpression conditionExp = FilterPredicateParser.Parse(new QueryContext(this), condition, typeDescriptor, dbTable);
 
             DbDeleteExpression e = new DbDeleteExpression(dbTable, conditionExp);
 

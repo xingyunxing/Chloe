@@ -55,7 +55,7 @@ namespace Chloe.Query.QueryState
         }
         public override IQueryState CreateQueryState(QueryModel result)
         {
-            return new LimitQueryState(this.Context, result, this.SkipCount, this.TakeCount);
+            return new LimitQueryState(this.QueryContext, result, this.SkipCount, this.TakeCount);
         }
 
         public override DbSqlQueryExpression CreateSqlQuery()

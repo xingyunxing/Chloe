@@ -5,37 +5,38 @@ namespace Chloe.Infrastructure
 {
     public class EntityTypeContainer
     {
-        static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, TypeDescriptor> InstanceCache = new System.Collections.Concurrent.ConcurrentDictionary<Type, TypeDescriptor>();
+        static readonly Dictionary<Type, TypeDescriptor> Cache = new Dictionary<Type, TypeDescriptor>();
 
         public static TypeDescriptor GetDescriptor(Type type)
         {
             PublicHelper.CheckNull(type, nameof(type));
 
-            TypeDescriptor instance;
-            if (!InstanceCache.TryGetValue(type, out instance))
+            TypeDescriptor typeDescriptor;
+            if (!Cache.TryGetValue(type, out typeDescriptor))
             {
-                lock (type)
+                EntityTypeBuilder entityTypeBuilder = new EntityTypeBuilder(type, true);
+                TypeDefinition typeDefinition = entityTypeBuilder.EntityType.MakeDefinition();
+                lock (Cache)
                 {
-                    if (!InstanceCache.TryGetValue(type, out instance))
+                    if (!Cache.TryGetValue(type, out typeDescriptor))
                     {
-                        EntityTypeBuilder entityTypeBuilder = new EntityTypeBuilder(type, true);
-                        instance = new TypeDescriptor(entityTypeBuilder.EntityType.MakeDefinition());
-                        InstanceCache.GetOrAdd(type, instance);
+                        typeDescriptor = new TypeDescriptor(typeDefinition);
+                        Cache.Add(type, typeDescriptor);
                     }
                 }
             }
 
-            return instance;
+            return typeDescriptor;
         }
 
         public static TypeDescriptor TryGetDescriptor(Type type)
         {
             PublicHelper.CheckNull(type, nameof(type));
 
-            TypeDescriptor instance;
-            InstanceCache.TryGetValue(type, out instance);
+            TypeDescriptor typeDescriptor;
+            Cache.TryGetValue(type, out typeDescriptor);
 
-            return instance;
+            return typeDescriptor;
         }
 
         /// <summary>
@@ -73,25 +74,22 @@ namespace Chloe.Infrastructure
             if (typeDefinitions == null)
                 return;
 
-            foreach (var typeDefinition in typeDefinitions)
+            lock (Cache)
             {
-                InstanceCache.AddOrUpdate(typeDefinition.Type, key =>
+                foreach (var typeDefinition in typeDefinitions)
                 {
-                    return new TypeDescriptor(typeDefinition);
-                }, (key, oldValue) =>
-                {
-                    return new TypeDescriptor(typeDefinition);
-                });
+                    Cache[typeDefinition.Type] = new TypeDescriptor(typeDefinition);
+                }
             }
         }
 
         public static Type[] GetRegisteredTypes()
         {
-            return InstanceCache.Keys.ToArray();
+            return Cache.Keys.ToArray();
         }
         public static TypeDescriptor[] GetRegisteredTypeDescriptors()
         {
-            return InstanceCache.Values.ToArray();
+            return Cache.Values.ToArray();
         }
     }
 }

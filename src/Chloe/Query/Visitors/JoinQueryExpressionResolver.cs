@@ -7,29 +7,31 @@ namespace Chloe.Query.Visitors
 {
     class JoinQueryExpressionResolver : QueryExpressionVisitor<JoinQueryResult>
     {
+        QueryContext _queryContext;
         QueryModel _queryModel;
         JoinType _joinType;
 
         LambdaExpression _conditionExpression;
         ScopeParameterDictionary _scopeParameters;
 
-        JoinQueryExpressionResolver(QueryModel queryModel, JoinType joinType, LambdaExpression conditionExpression, ScopeParameterDictionary scopeParameters)
+        JoinQueryExpressionResolver(QueryContext queryContext, QueryModel queryModel, JoinType joinType, LambdaExpression conditionExpression, ScopeParameterDictionary scopeParameters)
         {
+            this._queryContext = queryContext;
             this._queryModel = queryModel;
             this._joinType = joinType;
             this._conditionExpression = conditionExpression;
             this._scopeParameters = scopeParameters;
         }
 
-        public static JoinQueryResult Resolve(JoinQueryInfo joinQueryInfo, QueryModel queryModel, ScopeParameterDictionary scopeParameters)
+        public static JoinQueryResult Resolve(QueryContext queryContext, JoinQueryInfo joinQueryInfo, QueryModel queryModel, ScopeParameterDictionary scopeParameters)
         {
-            JoinQueryExpressionResolver resolver = new JoinQueryExpressionResolver(queryModel, joinQueryInfo.JoinType, joinQueryInfo.Condition, scopeParameters);
+            JoinQueryExpressionResolver resolver = new JoinQueryExpressionResolver(queryContext, queryModel, joinQueryInfo.JoinType, joinQueryInfo.Condition, scopeParameters);
             return joinQueryInfo.Query.QueryExpression.Accept(resolver);
         }
 
         public override JoinQueryResult Visit(RootQueryExpression exp)
         {
-            QueryStateBase queryState = new RootQueryState(exp, this._scopeParameters, this._queryModel.ScopeTables, a => { return this._queryModel.GenerateUniqueTableAlias(a); });
+            QueryStateBase queryState = new RootQueryState(this._queryContext, exp, this._scopeParameters, this._queryModel.ScopeTables, a => { return this._queryModel.GenerateUniqueTableAlias(a); });
             JoinQueryResult result = queryState.ToJoinQueryResult(this._joinType, this._conditionExpression, this._scopeParameters, this._queryModel.ScopeTables, null);
             return result;
         }
@@ -86,7 +88,7 @@ namespace Chloe.Query.Visitors
 
         JoinQueryResult Visit(QueryExpression exp)
         {
-            QueryStateBase state = QueryExpressionResolver.Resolve(exp, this._scopeParameters, this._queryModel.ScopeTables);
+            QueryStateBase state = QueryExpressionResolver.Resolve(this._queryContext, exp, this._scopeParameters, this._queryModel.ScopeTables);
             JoinQueryResult ret = state.ToJoinQueryResult(this._joinType, this._conditionExpression, this._scopeParameters, this._queryModel.ScopeTables, a => { return this._queryModel.GenerateUniqueTableAlias(a); });
             return ret;
         }

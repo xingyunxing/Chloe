@@ -19,7 +19,7 @@ namespace Chloe.Query.QueryState
             if (this.QueryModel.Orderings.Count > 0)
             {
                 QueryModel queryModel = this.QueryModel.Clone(false);
-                GroupQueryState groupQueryState = new GroupQueryState(this.Context, queryModel);
+                GroupQueryState groupQueryState = new GroupQueryState(this.QueryContext, queryModel);
                 return groupQueryState.Accept(exp);
             }
 

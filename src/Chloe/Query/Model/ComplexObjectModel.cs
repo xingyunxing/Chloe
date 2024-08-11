@@ -10,36 +10,39 @@ using Chloe.Utility;
 using System.Linq.Expressions;
 using System.Reflection;
 using Chloe.Visitors;
+using System.Linq;
 
 namespace Chloe.Query
 {
     public class ComplexObjectModel : IObjectModel
     {
+        QueryContext _queryContext;
         HashSet<MemberInfo> _excludedFields = null;
 
-        public ComplexObjectModel(QueryOptions queryOptions, Type objectType) : this(queryOptions, GetDefaultConstructor(objectType), 0)
+        public ComplexObjectModel(QueryContext queryContext, QueryOptions queryOptions, Type objectType) : this(queryContext, queryOptions, GetDefaultConstructor(objectType), 0)
         {
         }
 
-        public ComplexObjectModel(QueryOptions queryOptions, Type objectType, int primitiveMemberCount) : this(queryOptions, GetDefaultConstructor(objectType), primitiveMemberCount)
+        public ComplexObjectModel(QueryContext queryContext, QueryOptions queryOptions, Type objectType, int primitiveMemberCount) : this(queryContext, queryOptions, GetDefaultConstructor(objectType), primitiveMemberCount)
         {
         }
 
-        public ComplexObjectModel(QueryOptions queryOptions, ConstructorInfo constructor) : this(queryOptions, ConstructorDescriptor.GetInstance(constructor), 0)
+        public ComplexObjectModel(QueryContext queryContext, QueryOptions queryOptions, ConstructorInfo constructor) : this(queryContext, queryOptions, ConstructorDescriptor.GetInstance(constructor), 0)
         {
         }
 
-        public ComplexObjectModel(QueryOptions queryOptions, ConstructorInfo constructor, int primitiveMemberCount) : this(queryOptions, ConstructorDescriptor.GetInstance(constructor), primitiveMemberCount)
+        public ComplexObjectModel(QueryContext queryContext, QueryOptions queryOptions, ConstructorInfo constructor, int primitiveMemberCount) : this(queryContext, queryOptions, ConstructorDescriptor.GetInstance(constructor), primitiveMemberCount)
         {
         }
 
-        public ComplexObjectModel(QueryOptions queryOptions, ConstructorDescriptor constructorDescriptor) : this(queryOptions, constructorDescriptor, 0)
+        public ComplexObjectModel(QueryContext queryContext, QueryOptions queryOptions, ConstructorDescriptor constructorDescriptor) : this(queryContext, queryOptions, constructorDescriptor, 0)
         {
 
         }
 
-        public ComplexObjectModel(QueryOptions queryOptions, ConstructorDescriptor constructorDescriptor, int primitiveMemberCount)
+        public ComplexObjectModel(QueryContext queryContext, QueryOptions queryOptions, ConstructorDescriptor constructorDescriptor, int primitiveMemberCount)
         {
+            this._queryContext = queryContext;
             this.QueryOptions = queryOptions;
 
             this.ObjectType = constructorDescriptor.ConstructorInfo.DeclaringType;
@@ -319,7 +322,7 @@ namespace Chloe.Query
 
         public IObjectModel ToNewObjectModel(List<DbColumnSegment> columns, HashSet<string> aliasSet, DbTable table, DbMainTableExpression dependentTable)
         {
-            ComplexObjectModel newModel = new ComplexObjectModel(this.QueryOptions, this.ConstructorDescriptor, this.PrimitiveMembers.Count);
+            ComplexObjectModel newModel = new ComplexObjectModel(this._queryContext, this.QueryOptions, this.ConstructorDescriptor, this.PrimitiveMembers.Count);
             newModel.DependentTable = dependentTable;
             newModel.IncludeCollections.AppendRange(this.IncludeCollections);
 
@@ -588,10 +591,10 @@ namespace Chloe.Query
 
             DbTable dbTable = navigationTypeDescriptor.Table;
             DbTableExpression tableExp = new DbTableExpression(dbTable);
-            string alias = queryModel.GenerateUniqueTableAlias(dbTable.Name);
+            string alias = queryModel.GenerateUniqueTableAlias();
             DbTableSegment joinTableSeg = new DbTableSegment(tableExp, alias, queryModel.FromTable.Table.Lock);
 
-            ComplexObjectModel navigationObjectModel = navigationTypeDescriptor.GenObjectModel(alias, queryModel.Options);
+            ComplexObjectModel navigationObjectModel = navigationTypeDescriptor.GenObjectModel(alias, this._queryContext, queryModel.Options);
             navigationObjectModel.NullChecking = navigationObjectModel.PrimaryKey;
 
             PrimitivePropertyDescriptor foreignKeyPropertyDescriptor = navigationDescriptor.ForeignKeyProperty;
@@ -624,7 +627,7 @@ namespace Chloe.Query
             //Filter 的条件放到 join 条件里去
             joinTableExp.AppendCondition(condition);
 
-            navigationObjectModel.Filters.AddRange(navigationNode.ContextFilters.Concat(navigationTypeDescriptor.Definition.Filters).Select(a => this.ParseCondition(a, navigationObjectModel, queryModel.ScopeTables)));
+            navigationObjectModel.Filters.AddRange(navigationNode.ContextFilters.Concat(navigationNode.GlobalFilters).Select(a => this.ParseCondition(a, navigationObjectModel, queryModel.ScopeTables)));
 
             return navigationObjectModel;
         }
@@ -632,10 +635,10 @@ namespace Chloe.Query
         {
             DbTable dbTable = elementTypeDescriptor.Table;
             DbTableExpression tableExp = new DbTableExpression(dbTable);
-            string alias = queryModel.GenerateUniqueTableAlias(dbTable.Name);
+            string alias = queryModel.GenerateUniqueTableAlias();
             DbTableSegment joinTableSeg = new DbTableSegment(tableExp, alias, queryModel.FromTable.Table.Lock);
 
-            ComplexObjectModel elementObjectModel = elementTypeDescriptor.GenObjectModel(alias, queryModel.Options);
+            ComplexObjectModel elementObjectModel = elementTypeDescriptor.GenObjectModel(alias, this._queryContext, queryModel.Options);
             elementObjectModel.NullChecking = elementObjectModel.PrimaryKey;
 
             ComplexPropertyDescriptor navigationDescriptor = elementTypeDescriptor.ComplexPropertyDescriptors.Where(a => a.PropertyType == this.ObjectType).FirstOrDefault();
@@ -655,7 +658,7 @@ namespace Chloe.Query
             //Filter 的条件放到 join 条件里去
             joinTableExp.AppendCondition(condition);
 
-            elementObjectModel.Filters.AddRange(navigationNode.ContextFilters.Concat(elementTypeDescriptor.Definition.Filters).Select(a => this.ParseCondition(a, elementObjectModel, queryModel.ScopeTables)));
+            elementObjectModel.Filters.AddRange(navigationNode.ContextFilters.Concat(navigationNode.GlobalFilters).Select(a => this.ParseCondition(a, elementObjectModel, queryModel.ScopeTables)));
 
             bool orderByPrimaryKeyExists = queryModel.Orderings.Where(a => a.Expression == this.PrimaryKey).Any();
             if (!orderByPrimaryKeyExists)
@@ -693,7 +696,7 @@ namespace Chloe.Query
         {
             if (condition == null)
                 return null;
-            return FilterPredicateParser.Parse(condition, new ScopeParameterDictionary(1) { { condition.Parameters[0], objectModel } }, scopeTables);
+            return FilterPredicateParser.Parse(this._queryContext, condition, new ScopeParameterDictionary(1) { { condition.Parameters[0], objectModel } }, scopeTables);
         }
         void SetupFilters()
         {

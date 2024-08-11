@@ -1,6 +1,8 @@
 ﻿using Chloe.Extensions;
+using Chloe.Infrastructure;
 using Chloe.QueryExpressions;
 using Chloe.Reflection;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -8,11 +10,11 @@ namespace Chloe.Query
 {
     class IncludableQuery<TEntity, TNavigation> : Query<TEntity>, IIncludableQuery<TEntity, TNavigation>
     {
-        public IncludableQuery(QueryExpression prevExpression, LambdaExpression navigationPath) : base(BuildIncludeExpression(prevExpression, navigationPath))
+        public IncludableQuery(DbContextProvider dbContextProvider, QueryExpression prevExpression, LambdaExpression navigationPath) : this(dbContextProvider, BuildIncludeExpression(dbContextProvider, prevExpression, navigationPath))
         {
 
         }
-        IncludableQuery(QueryExpression exp) : base(exp)
+        IncludableQuery(DbContextProvider dbContextProvider, QueryExpression exp) : base(dbContextProvider, exp)
         {
 
         }
@@ -37,7 +39,7 @@ namespace Chloe.Query
             members.Reverse();
             return members;
         }
-        static QueryExpression BuildIncludeExpression(QueryExpression prevExpression, LambdaExpression navigationPath)
+        static QueryExpression BuildIncludeExpression(DbContextProvider dbContextProvider, QueryExpression prevExpression, LambdaExpression navigationPath)
         {
             List<MemberExpression> memberExps = ExtractMemberAccessChain(navigationPath);
 
@@ -47,7 +49,6 @@ namespace Chloe.Query
             {
                 PropertyInfo member = memberExps[i].Member as PropertyInfo;
 
-                DbContextProvider dbContextProvider = prevExpression.GetRootDbContextProvider() as DbContextProvider;
                 NavigationNode navigation = InitNavigationNode(member, dbContextProvider);
 
                 if (startNavigation == null)
@@ -75,9 +76,12 @@ namespace Chloe.Query
                 elementType = member.PropertyType.GetGenericArguments()[0];
             }
 
-            List<LambdaExpression> filters = dbContextProvider.QueryFilters.FindValue(elementType);
-            if (filters != null)
-                navigation.ContextFilters.AppendRange(filters);
+            var typeDescriptor = EntityTypeContainer.GetDescriptor(elementType);
+            navigation.GlobalFilters.AppendRange(typeDescriptor.Definition.Filters);
+
+            List<LambdaExpression> contextFilters = dbContextProvider.QueryFilters.FindValue(elementType);
+            if (contextFilters != null)
+                navigation.ContextFilters.AppendRange(contextFilters);
 
             return navigation;
         }
@@ -94,7 +98,7 @@ namespace Chloe.Query
             {
                 PropertyInfo member = memberExps[i].Member as PropertyInfo;
 
-                DbContextProvider dbContextProvider = this.QueryExpression.GetRootDbContextProvider() as DbContextProvider;
+                DbContextProvider dbContextProvider = this.DbContextProvider;
                 NavigationNode navigation = InitNavigationNode(member, dbContextProvider);
 
                 lastNavigation.Next = navigation;
@@ -108,13 +112,13 @@ namespace Chloe.Query
         public IIncludableQuery<TEntity, TProperty> ThenInclude<TProperty>(Expression<Func<TNavigation, TProperty>> navigationPath)
         {
             IncludeExpression includeExpression = this.BuildThenIncludeExpression(navigationPath);
-            return new IncludableQuery<TEntity, TProperty>(includeExpression);
+            return new IncludableQuery<TEntity, TProperty>(this.DbContextProvider, includeExpression);
         }
 
         public IIncludableQuery<TEntity, TCollectionItem> ThenIncludeMany<TCollectionItem>(Expression<Func<TNavigation, IEnumerable<TCollectionItem>>> navigationPath)
         {
             IncludeExpression includeExpression = this.BuildThenIncludeExpression(navigationPath);
-            return new IncludableQuery<TEntity, TCollectionItem>(includeExpression);
+            return new IncludableQuery<TEntity, TCollectionItem>(this.DbContextProvider, includeExpression);
         }
 
         public IIncludableQuery<TEntity, TNavigation> Filter(Expression<Func<TNavigation, bool>> predicate)
@@ -126,7 +130,7 @@ namespace Chloe.Query
 
             IncludeExpression includeExpression = new IncludeExpression(typeof(TEntity), prevIncludeExpression.PrevExpression, startNavigation);
 
-            return new IncludableQuery<TEntity, TNavigation>(includeExpression);
+            return new IncludableQuery<TEntity, TNavigation>(this.DbContextProvider, includeExpression);
         }
 
         public IIncludableQuery<TEntity, TNavigation> ExcludeField<TField>(Expression<Func<TNavigation, TField>> field)
@@ -138,7 +142,7 @@ namespace Chloe.Query
 
             IncludeExpression includeExpression = new IncludeExpression(typeof(TEntity), prevIncludeExpression.PrevExpression, startNavigation);
 
-            return new IncludableQuery<TEntity, TNavigation>(includeExpression);
+            return new IncludableQuery<TEntity, TNavigation>(this.DbContextProvider, includeExpression);
         }
     }
 }

@@ -14,6 +14,7 @@ namespace Chloe.Visitors
     {
         static List<string> AggregateMethods;
 
+        QueryContext _queryContext;
         ScopeParameterDictionary _scopeParameters;
         StringSet _scopeTables;
 
@@ -30,14 +31,15 @@ namespace Chloe.Visitors
             AggregateMethods = aggregateMethods;
         }
 
-        public GeneralExpressionParser(ScopeParameterDictionary scopeParameters, StringSet scopeTables)
+        public GeneralExpressionParser(QueryContext queryContext, ScopeParameterDictionary scopeParameters, StringSet scopeTables)
         {
+            this._queryContext = queryContext;
             this._scopeParameters = scopeParameters;
             this._scopeTables = scopeTables;
         }
-        public static DbExpression Parse(Expression exp, ScopeParameterDictionary scopeParameters, StringSet scopeTables)
+        public static DbExpression Parse(QueryContext queryContext, Expression exp, ScopeParameterDictionary scopeParameters, StringSet scopeTables)
         {
-            GeneralExpressionParser visitor = new GeneralExpressionParser(scopeParameters, scopeTables);
+            GeneralExpressionParser visitor = new GeneralExpressionParser(queryContext, scopeParameters, scopeTables);
             return visitor.Visit(exp);
         }
 
@@ -235,7 +237,7 @@ namespace Chloe.Visitors
             }
 
             IQuery query = ExpressionEvaluator.Evaluate(exp) as IQuery;
-            QueryStateBase qs = QueryExpressionResolver.Resolve(query.QueryExpression, this._scopeParameters, this._scopeTables);
+            QueryStateBase qs = QueryExpressionResolver.Resolve(this._queryContext, query.QueryExpression, this._scopeParameters, this._scopeTables);
             MappingData mappingData = qs.GenerateMappingData();
 
             DbSqlQueryExpression sqlQueryExpression = mappingData.SqlQuery.Update(resultType);

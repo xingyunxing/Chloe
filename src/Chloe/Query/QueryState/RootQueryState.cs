@@ -11,11 +11,11 @@ namespace Chloe.Query.QueryState
     internal sealed class RootQueryState : QueryStateBase
     {
         RootQueryExpression _rootQueryExp;
-        public RootQueryState(RootQueryExpression rootQueryExp, ScopeParameterDictionary scopeParameters, StringSet scopeTables) : this(rootQueryExp, scopeParameters, scopeTables, null)
+        public RootQueryState(QueryContext queryContext, RootQueryExpression rootQueryExp, ScopeParameterDictionary scopeParameters, StringSet scopeTables) : this(queryContext, rootQueryExp, scopeParameters, scopeTables, null)
         {
         }
-        public RootQueryState(RootQueryExpression rootQueryExp, ScopeParameterDictionary scopeParameters, StringSet scopeTables, Func<string, string> tableAliasGenerator)
-          : base(new QueryContext((DbContextProvider)rootQueryExp.Provider), CreateQueryModel(rootQueryExp, scopeParameters, scopeTables, tableAliasGenerator))
+        public RootQueryState(QueryContext queryContext, RootQueryExpression rootQueryExp, ScopeParameterDictionary scopeParameters, StringSet scopeTables, Func<string, string> tableAliasGenerator)
+          : base(queryContext, CreateQueryModel(queryContext, rootQueryExp, scopeParameters, scopeTables, tableAliasGenerator))
         {
             this._rootQueryExp = rootQueryExp;
         }
@@ -56,7 +56,7 @@ namespace Chloe.Query.QueryState
             }
 
             scopeParameters = scopeParameters.Clone(conditionExpression.Parameters.Last(), this.QueryModel.ResultModel);
-            DbExpression condition = GeneralExpressionParser.Parse(conditionExpression, scopeParameters, scopeTables);
+            DbExpression condition = GeneralExpressionParser.Parse(this.QueryContext, conditionExpression, scopeParameters, scopeTables);
             DbJoinTableExpression joinTable = new DbJoinTableExpression(joinType.AsDbJoinType(), this.QueryModel.FromTable.Table, condition);
 
             if (!this.QueryModel.Options.IgnoreFilters)
@@ -71,9 +71,9 @@ namespace Chloe.Query.QueryState
             return result;
         }
 
-        static QueryModel CreateQueryModel(RootQueryExpression rootQueryExp, ScopeParameterDictionary scopeParameters, StringSet scopeTables, Func<string, string> tableAliasGenerator)
+        static QueryModel CreateQueryModel(QueryContext queryContext, RootQueryExpression rootQueryExp, ScopeParameterDictionary scopeParameters, StringSet scopeTables, Func<string, string> tableAliasGenerator)
         {
-            DbContextProvider dbContext = (DbContextProvider)rootQueryExp.Provider;
+            DbContextProvider dbContext = queryContext.DbContextProvider;
             Type entityType = rootQueryExp.ElementType;
 
             if (entityType.IsAbstract || entityType.IsInterface)
@@ -86,19 +86,18 @@ namespace Chloe.Query.QueryState
             DbTable dbTable = typeDescriptor.GenDbTable(rootQueryExp.ExplicitTable);
             string alias = null;
             if (tableAliasGenerator != null)
-                alias = tableAliasGenerator(dbTable.Name);
+                alias = tableAliasGenerator(UtilConstants.DefaultTableAlias);
             else
-                alias = queryModel.GenerateUniqueTableAlias(dbTable.Name);
+                alias = queryModel.GenerateUniqueTableAlias();
 
             queryModel.FromTable = CreateRootTable(dbTable, alias, rootQueryExp.Lock);
 
-            ComplexObjectModel model = typeDescriptor.GenObjectModel(alias, queryModel.Options);
+            ComplexObjectModel model = typeDescriptor.GenObjectModel(alias, queryContext, queryModel.Options);
             model.DependentTable = queryModel.FromTable;
 
             queryModel.ResultModel = model;
 
-            List<LambdaExpression> contextFilters = dbContext.QueryFilters.FindValue(entityType) ?? new List<LambdaExpression>();
-            ParseFilters(queryModel, typeDescriptor.Definition.Filters, contextFilters);
+            ParseFilters(queryContext, queryModel, rootQueryExp.GlobalFilters, rootQueryExp.ContextFilters);
 
             return queryModel;
         }
@@ -109,22 +108,22 @@ namespace Chloe.Query.QueryState
             var fromTableExp = new DbFromTableExpression(tableSeg);
             return fromTableExp;
         }
-        static void ParseFilters(QueryModel queryModel, IList<LambdaExpression> globalFilters, IList<LambdaExpression> contextFilters)
+        static void ParseFilters(QueryContext queryContext, QueryModel queryModel, IList<LambdaExpression> globalFilters, IList<LambdaExpression> contextFilters)
         {
             for (int i = 0; i < globalFilters.Count; i++)
             {
-                queryModel.GlobalFilters.Add(ParseFilter(queryModel, globalFilters[i]));
+                queryModel.GlobalFilters.Add(ParseFilter(queryContext, queryModel, globalFilters[i]));
             }
 
             for (int i = 0; i < contextFilters.Count; i++)
             {
-                queryModel.ContextFilters.Add(ParseFilter(queryModel, contextFilters[i]));
+                queryModel.ContextFilters.Add(ParseFilter(queryContext, queryModel, contextFilters[i]));
             }
         }
-        static DbExpression ParseFilter(QueryModel queryModel, LambdaExpression filter)
+        static DbExpression ParseFilter(QueryContext queryContext, QueryModel queryModel, LambdaExpression filter)
         {
             ScopeParameterDictionary scopeParameters = queryModel.ScopeParameters.Clone(filter.Parameters[0], queryModel.ResultModel);
-            DbExpression filterCondition = FilterPredicateParser.Parse(filter, scopeParameters, queryModel.ScopeTables);
+            DbExpression filterCondition = FilterPredicateParser.Parse(queryContext, filter, scopeParameters, queryModel.ScopeTables);
             return filterCondition;
         }
     }

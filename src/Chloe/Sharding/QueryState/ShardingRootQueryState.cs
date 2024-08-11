@@ -1,21 +1,16 @@
 ﻿using Chloe.Query;
 using Chloe.QueryExpressions;
+using Chloe.Sharding.Visitors;
 
 namespace Chloe.Sharding.QueryState
 {
     internal class ShardingRootQueryState : ShardingQueryStateBase
     {
-        public ShardingRootQueryState(RootQueryExpression exp) : base(CreateQueryContext(exp), CreateQueryModel(exp))
+        public ShardingRootQueryState(ShardingQueryContext queryContext, RootQueryExpression exp) : base(queryContext, CreateQueryModel(exp))
         {
 
         }
 
-        static ShardingQueryContext CreateQueryContext(RootQueryExpression exp)
-        {
-            var dbContextProvider = (ShardingDbContextProvider)exp.Provider;
-            ShardingQueryContext queryContext = new ShardingQueryContext(dbContextProvider);
-            return queryContext;
-        }
         static ShardingQueryModel CreateQueryModel(RootQueryExpression exp)
         {
             ShardingQueryModel queryModel = new ShardingQueryModel(exp.ElementType);

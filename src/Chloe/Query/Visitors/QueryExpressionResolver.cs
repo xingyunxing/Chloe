@@ -8,28 +8,31 @@ namespace Chloe.Query.Visitors
 {
     class QueryExpressionResolver : QueryExpressionVisitor
     {
+        QueryContext _queryContext;
         ScopeParameterDictionary _scopeParameters;
         StringSet _scopeTables;
-        QueryExpressionResolver(ScopeParameterDictionary scopeParameters, StringSet scopeTables)
+
+        QueryExpressionResolver(QueryContext queryContext, ScopeParameterDictionary scopeParameters, StringSet scopeTables)
         {
+            this._queryContext = queryContext;
             this._scopeParameters = scopeParameters;
             this._scopeTables = scopeTables;
         }
-        public static QueryStateBase Resolve(QueryExpression queryExpression, ScopeParameterDictionary scopeParameters, StringSet scopeTables)
+        public static QueryStateBase Resolve(QueryContext queryContext, QueryExpression queryExpression, ScopeParameterDictionary scopeParameters, StringSet scopeTables)
         {
-            QueryExpressionResolver resolver = new QueryExpressionResolver(scopeParameters, scopeTables);
+            QueryExpressionResolver resolver = new QueryExpressionResolver(queryContext, scopeParameters, scopeTables);
             return (QueryStateBase)queryExpression.Accept(resolver);
         }
 
         public override IQueryState Visit(RootQueryExpression exp)
         {
-            IQueryState queryState = new RootQueryState(exp, this._scopeParameters, this._scopeTables);
+            IQueryState queryState = new RootQueryState(this._queryContext, exp, this._scopeParameters, this._scopeTables);
             return queryState;
         }
 
         public override IQueryState Visit(JoinQueryExpression exp)
         {
-            QueryStateBase qs = QueryExpressionResolver.Resolve(exp.PrevExpression, this._scopeParameters, this._scopeTables);
+            QueryStateBase qs = QueryExpressionResolver.Resolve(this._queryContext, exp.PrevExpression, this._scopeParameters, this._scopeTables);
 
             QueryModel queryModel = qs.ToFromQueryModel();
 
@@ -45,7 +48,7 @@ namespace Chloe.Query.Visitors
                     scopeParameters[p] = modelList[i];
                 }
 
-                JoinQueryResult joinQueryResult = JoinQueryExpressionResolver.Resolve(joinQueryInfo, queryModel, scopeParameters);
+                JoinQueryResult joinQueryResult = JoinQueryExpressionResolver.Resolve(this._queryContext, joinQueryInfo, queryModel, scopeParameters);
 
                 var nullChecking = DbExpression.CaseWhen(new DbCaseWhenExpression.WhenThenExpressionPair(joinQueryResult.JoinTable.Condition, DbConstantExpression.One), DbConstantExpression.Null, DbConstantExpression.One.Type);
 
@@ -79,10 +82,10 @@ namespace Chloe.Query.Visitors
                 ParameterExpression p = exp.Selector.Parameters[i];
                 scopeParameters1[p] = modelList[i];
             }
-            IObjectModel model = SelectorResolver.Resolve(exp.Selector, queryModel.Options, scopeParameters1, queryModel.ScopeTables);
+            IObjectModel model = SelectorResolver.Resolve(this._queryContext, exp.Selector, queryModel.Options, scopeParameters1, queryModel.ScopeTables);
             queryModel.ResultModel = model;
 
-            GeneralQueryState queryState = new GeneralQueryState((qs as QueryStateBase).Context, queryModel);
+            GeneralQueryState queryState = new GeneralQueryState((qs as QueryStateBase).QueryContext, queryModel);
             return queryState;
         }
     }

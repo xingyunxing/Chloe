@@ -11,7 +11,7 @@ namespace Chloe.QueryExpressions
         }
         public NavigationNode NavigationNode { get; private set; }
 
-        public override T Accept<T>(QueryExpressionVisitor<T> visitor)
+        public override T Accept<T>(IQueryExpressionVisitor<T> visitor)
         {
             return visitor.Visit(this);
         }
@@ -29,14 +29,16 @@ namespace Chloe.QueryExpressions
         public PropertyInfo Property { get; set; }
         public List<LambdaExpression> ExcludedFields { get; private set; } = new List<LambdaExpression>();
         public LambdaExpression Condition { get; set; }
+
+        public List<LambdaExpression> GlobalFilters { get; private set; } = new List<LambdaExpression>();
         public List<LambdaExpression> ContextFilters { get; private set; } = new List<LambdaExpression>();
+
         public NavigationNode Next { get; set; }
 
         public NavigationNode Clone()
         {
             NavigationNode current = new NavigationNode(this.Property) { Condition = this.Condition };
             current.ExcludedFields.AppendRange(this.ExcludedFields);
-            current.ContextFilters.AppendRange(this.ContextFilters);
             if (this.Next != null)
             {
                 current.Next = this.Next.Clone();

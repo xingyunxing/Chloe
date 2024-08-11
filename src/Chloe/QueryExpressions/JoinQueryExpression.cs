@@ -16,7 +16,7 @@ namespace Chloe.QueryExpressions
         public List<JoinQueryInfo> JoinedQueries { get { return this._joinedQueries; } }
         public LambdaExpression Selector { get { return this._selector; } }
 
-        public override T Accept<T>(QueryExpressionVisitor<T> visitor)
+        public override T Accept<T>(IQueryExpressionVisitor<T> visitor)
         {
             return visitor.Visit(this);
         }
@@ -30,6 +30,8 @@ namespace Chloe.QueryExpressions
             this.JoinType = joinType;
             this.Condition = condition;
         }
+
+        //TODO 去掉
         public IQuery Query { get; set; }
         public JoinType JoinType { get; set; }
         public LambdaExpression Condition { get; set; }

@@ -5,6 +5,7 @@ using Chloe.Mapper;
 using Chloe.Mapper.Activators;
 using Chloe.Query.QueryState;
 using Chloe.Query.Visitors;
+using Chloe.QueryExpressions;
 using Chloe.Reflection;
 using Chloe.Utility;
 using System.Data;
@@ -23,7 +24,9 @@ namespace Chloe.Query.Internals
 
         DbCommandFactor GenerateCommandFactor()
         {
-            QueryStateBase qs = QueryExpressionResolver.Resolve(this._query.QueryExpression, new ScopeParameterDictionary(), new StringSet());
+            QueryContext queryContext = new QueryContext(this._query.DbContextProvider);
+
+            QueryStateBase qs = QueryExpressionResolver.Resolve(queryContext, this._query.QueryExpression, new ScopeParameterDictionary(), new StringSet());
             MappingData data = qs.GenerateMappingData();
 
             IObjectActivator objectActivator;
@@ -34,6 +37,22 @@ namespace Chloe.Query.Internals
 
             IDbExpressionTranslator translator = data.Context.DbContextProvider.DatabaseProvider.CreateDbExpressionTranslator();
             DbCommandInfo dbCommandInfo = translator.Translate(data.SqlQuery);
+
+
+//#if !NET46 && !NETSTANDARD2
+//            List<object> variables;
+//            QueryExpression queryExpression = ExpressionVariableReplacer.Replace(this._query.QueryExpression, out variables);
+//            int hashCode = QueryExpressionEqualityComparer.Instance.GetHashCode(queryExpression);
+
+//            var e = QueryExpressionEqualityComparer.Instance.Equals(this._query.QueryExpression, queryExpression);
+
+//            var dbExp = DbExpressionVariableInjector.Inject(data.SqlQuery, variables);
+
+//            dbCommandInfo = translator.Translate(dbExp);
+
+//            int a = 1;
+
+//#endif
 
             DbCommandFactor commandFactor = new DbCommandFactor(data.Context.DbContextProvider, objectActivator, dbCommandInfo.CommandText, dbCommandInfo.GetParameters());
             return commandFactor;

@@ -3,6 +3,11 @@ namespace Chloe.Query
 {
     public class QueryOptions
     {
+        public QueryOptions()
+        {
+
+        }
+
         public bool IsTracking { get; set; }
 
         public bool IgnoreFilters { get; set; }

@@ -35,7 +35,7 @@ namespace Chloe.Sharding
             var e = new GroupingQueryExpression(typeof(TResult), this._fromQuery.QueryExpression, selector);
             e.GroupKeySelectors.AppendRange(this._groupKeySelectors);
 
-            return new ShardingQuery<TResult>(e);
+            return new ShardingQuery<TResult>(this._fromQuery.DbContextProvider, e);
         }
     }
 }

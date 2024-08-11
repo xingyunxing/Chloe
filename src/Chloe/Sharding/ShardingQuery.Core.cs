@@ -33,7 +33,7 @@ namespace Chloe.Sharding
         ShardingQuery<TResult> CreateAggregateQuery<TResult>(MethodInfo method, List<Expression> arguments)
         {
             AggregateQueryExpression e = new AggregateQueryExpression(this.QueryExpression, method, arguments);
-            var shardingQuery = new ShardingQuery<TResult>(e);
+            var shardingQuery = new ShardingQuery<TResult>(this._dbContextProvider, e);
             return shardingQuery;
         }
         MethodInfo GetCalledMethod<TResult>(Expression<Func<TResult>> exp)

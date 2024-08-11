@@ -42,7 +42,7 @@ namespace Chloe.Query.QueryState
 
         public override IQueryState CreateQueryState(QueryModel result)
         {
-            return new TakeQueryState(this.Context, result, this.Count);
+            return new TakeQueryState(this.QueryContext, result, this.Count);
         }
 
         public override DbSqlQueryExpression CreateSqlQuery()

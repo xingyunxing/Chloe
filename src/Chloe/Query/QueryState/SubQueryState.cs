@@ -21,13 +21,13 @@ namespace Chloe.Query.QueryState
         public override IQueryState Accept(SkipExpression exp)
         {
             GeneralQueryState subQueryState = this.AsSubQueryState();
-            SkipQueryState state = new SkipQueryState(this.Context, subQueryState.QueryModel, exp.Count);
+            SkipQueryState state = new SkipQueryState(this.QueryContext, subQueryState.QueryModel, exp.Count);
             return state;
         }
         public override IQueryState Accept(TakeExpression exp)
         {
             GeneralQueryState subQueryState = this.AsSubQueryState();
-            TakeQueryState state = new TakeQueryState(this.Context, subQueryState.QueryModel, exp.Count);
+            TakeQueryState state = new TakeQueryState(this.QueryContext, subQueryState.QueryModel, exp.Count);
             return state;
         }
         public override IQueryState Accept(AggregateQueryExpression exp)

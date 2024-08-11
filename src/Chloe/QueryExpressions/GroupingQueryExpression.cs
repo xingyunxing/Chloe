@@ -5,12 +5,22 @@ namespace Chloe.QueryExpressions
 {
     public class GroupingQueryExpression : QueryExpression
     {
-        List<LambdaExpression> _groupKeySelectors = new List<LambdaExpression>();
-        List<LambdaExpression> _havingPredicates = new List<LambdaExpression>();
-        List<GroupingQueryOrdering> _orderings = new List<GroupingQueryOrdering>();
+        List<LambdaExpression> _groupKeySelectors;
+        List<LambdaExpression> _havingPredicates;
+        List<GroupingQueryOrdering> _orderings;
         LambdaExpression _selector;
-        public GroupingQueryExpression(Type elementType, QueryExpression prevExpression, LambdaExpression selector) : base(QueryExpressionType.GroupingQuery, elementType, prevExpression)
+
+        public GroupingQueryExpression(Type elementType, QueryExpression prevExpression, LambdaExpression selector)
+            : this(elementType, prevExpression, new List<LambdaExpression>(), new List<LambdaExpression>(), new List<GroupingQueryOrdering>(), selector)
         {
+
+        }
+
+        public GroupingQueryExpression(Type elementType, QueryExpression prevExpression, List<LambdaExpression> groupKeySelectors, List<LambdaExpression> havingPredicates, List<GroupingQueryOrdering> orderings, LambdaExpression selector) : base(QueryExpressionType.GroupingQuery, elementType, prevExpression)
+        {
+            this._groupKeySelectors = groupKeySelectors;
+            this._havingPredicates = havingPredicates;
+            this._orderings = orderings;
             this._selector = selector;
         }
 
@@ -19,7 +29,7 @@ namespace Chloe.QueryExpressions
         public List<GroupingQueryOrdering> Orderings { get { return this._orderings; } }
         public LambdaExpression Selector { get { return this._selector; } }
 
-        public override T Accept<T>(QueryExpressionVisitor<T> visitor)
+        public override T Accept<T>(IQueryExpressionVisitor<T> visitor)
         {
             return visitor.Visit(this);
         }

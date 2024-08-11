@@ -4,12 +4,16 @@ using Chloe.QueryExpressions;
 using Chloe.Reflection;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace Chloe.Query
 {
     partial class Query<T> : IQuery<T>, IQuery
     {
+        DbContextProvider _dbContextProvider;
         QueryExpression _expression;
+
+        public DbContextProvider DbContextProvider { get { return this._dbContextProvider; } }
 
         Type IQuery.ElementType { get { return typeof(T); } }
         public QueryExpression QueryExpression { get { return this._expression; } }
@@ -17,21 +21,31 @@ namespace Chloe.Query
         static RootQueryExpression CreateRootQueryExpression(DbContextProvider dbContextProvider, string explicitTable, LockType @lock)
         {
             Type entityType = typeof(T);
-            RootQueryExpression ret = new RootQueryExpression(entityType, dbContextProvider, explicitTable, @lock);
+            RootQueryExpression ret = new RootQueryExpression(entityType, explicitTable, @lock);
+
+            List<LambdaExpression> contextFilters = dbContextProvider.QueryFilters.FindValue(entityType);
+            if (contextFilters != null)
+                ret.ContextFilters.AddRange(contextFilters);
+
+            TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(entityType);
+            ret.GlobalFilters.AddRange(typeDescriptor.Definition.Filters);
+
             return ret;
         }
-        public Query(DbContextProvider dbContextProvider, string explicitTable, LockType @lock) : this(CreateRootQueryExpression(dbContextProvider, explicitTable, @lock))
+        public Query(DbContextProvider dbContextProvider, string explicitTable, LockType @lock) : this(dbContextProvider, CreateRootQueryExpression(dbContextProvider, explicitTable, @lock))
         {
+
         }
-        public Query(QueryExpression exp)
+        public Query(DbContextProvider dbContextProvider, QueryExpression exp)
         {
+            this._dbContextProvider = dbContextProvider;
             this._expression = exp;
         }
 
         public IQuery<T> AsTracking()
         {
             TrackingExpression e = new TrackingExpression(typeof(T), this.QueryExpression);
-            return new Query<T>(e);
+            return new Query<T>(this._dbContextProvider, e);
         }
         public IEnumerable<T> AsEnumerable()
         {
@@ -42,7 +56,7 @@ namespace Chloe.Query
         {
             PublicHelper.CheckNull(selector);
             SelectExpression e = new SelectExpression(typeof(TResult), _expression, selector);
-            return new Query<TResult>(e);
+            return new Query<TResult>(this._dbContextProvider, e);
         }
 
         public IQuery<T> IncludeAll()
@@ -171,53 +185,53 @@ namespace Chloe.Query
 
         public IIncludableQuery<T, TProperty> Include<TProperty>(Expression<Func<T, TProperty>> navigationPath)
         {
-            return new IncludableQuery<T, TProperty>(this.QueryExpression, navigationPath);
+            return new IncludableQuery<T, TProperty>(this._dbContextProvider, this.QueryExpression, navigationPath);
         }
         public IIncludableQuery<T, TCollectionItem> IncludeMany<TCollectionItem>(Expression<Func<T, IEnumerable<TCollectionItem>>> navigationPath)
         {
-            return new IncludableQuery<T, TCollectionItem>(this.QueryExpression, navigationPath);
+            return new IncludableQuery<T, TCollectionItem>(this._dbContextProvider, this.QueryExpression, navigationPath);
         }
 
         public IQuery<T> BindTwoWay()
         {
             BindTwoWayExpression e = new BindTwoWayExpression(typeof(T), this.QueryExpression);
-            return new Query<T>(e);
+            return new Query<T>(this._dbContextProvider, e);
         }
 
         public IQuery<T> Exclude<TField>(Expression<Func<T, TField>> field)
         {
             PublicHelper.CheckNull(field);
             ExcludeExpression e = new ExcludeExpression(typeof(T), this._expression, field);
-            return new Query<T>(e);
+            return new Query<T>(this._dbContextProvider, e);
         }
 
         public IQuery<T> Where(Expression<Func<T, bool>> predicate)
         {
             PublicHelper.CheckNull(predicate);
             WhereExpression e = new WhereExpression(typeof(T), this._expression, predicate);
-            return new Query<T>(e);
+            return new Query<T>(this._dbContextProvider, e);
         }
         public IOrderedQuery<T> OrderBy<K>(Expression<Func<T, K>> keySelector)
         {
             PublicHelper.CheckNull(keySelector);
             OrderExpression e = new OrderExpression(typeof(T), this._expression, QueryExpressionType.OrderBy, keySelector);
-            return new OrderedQuery<T>(e);
+            return new OrderedQuery<T>(this._dbContextProvider, e);
         }
         public IOrderedQuery<T> OrderByDesc<K>(Expression<Func<T, K>> keySelector)
         {
             PublicHelper.CheckNull(keySelector);
             OrderExpression e = new OrderExpression(typeof(T), this._expression, QueryExpressionType.OrderByDesc, keySelector);
-            return new OrderedQuery<T>(e);
+            return new OrderedQuery<T>(this._dbContextProvider, e);
         }
         public IQuery<T> Skip(int count)
         {
             SkipExpression e = new SkipExpression(typeof(T), this._expression, count);
-            return new Query<T>(e);
+            return new Query<T>(this._dbContextProvider, e);
         }
         public IQuery<T> Take(int count)
         {
             TakeExpression e = new TakeExpression(typeof(T), this._expression, count);
-            return new Query<T>(e);
+            return new Query<T>(this._dbContextProvider, e);
         }
         public IQuery<T> TakePage(int pageNumber, int pageSize)
         {
@@ -252,17 +266,17 @@ namespace Chloe.Query
         public IQuery<T> Distinct()
         {
             DistinctExpression e = new DistinctExpression(typeof(T), this._expression);
-            return new Query<T>(e);
+            return new Query<T>(this._dbContextProvider, e);
         }
         public IQuery<T> IgnoreAllFilters()
         {
             IgnoreAllFiltersExpression e = new IgnoreAllFiltersExpression(typeof(T), this._expression);
-            return new Query<T>(e);
+            return new Query<T>(this._dbContextProvider, e);
         }
 
         public IJoinQuery<T, TOther> Join<TOther>(JoinType joinType, Expression<Func<T, TOther, bool>> on)
         {
-            IDbContextProvider dbContextProvider = this.QueryExpression.GetRootDbContextProvider();
+            IDbContextProvider dbContextProvider = this._dbContextProvider;
             return this.Join<TOther>(dbContextProvider.Query<TOther>(), joinType, on);
         }
         public IJoinQuery<T, TOther> Join<TOther>(IQuery<TOther> q, JoinType joinType, Expression<Func<T, TOther, bool>> on)
@@ -274,22 +288,22 @@ namespace Chloe.Query
 
         public IJoinQuery<T, TOther> InnerJoin<TOther>(Expression<Func<T, TOther, bool>> on)
         {
-            IDbContextProvider dbContextProvider = this.QueryExpression.GetRootDbContextProvider();
+            IDbContextProvider dbContextProvider = this._dbContextProvider;
             return this.InnerJoin<TOther>(dbContextProvider.Query<TOther>(), on);
         }
         public IJoinQuery<T, TOther> LeftJoin<TOther>(Expression<Func<T, TOther, bool>> on)
         {
-            IDbContextProvider dbContextProvider = this.QueryExpression.GetRootDbContextProvider();
+            IDbContextProvider dbContextProvider = this._dbContextProvider;
             return this.LeftJoin<TOther>(dbContextProvider.Query<TOther>(), on);
         }
         public IJoinQuery<T, TOther> RightJoin<TOther>(Expression<Func<T, TOther, bool>> on)
         {
-            IDbContextProvider dbContextProvider = this.QueryExpression.GetRootDbContextProvider();
+            IDbContextProvider dbContextProvider = this._dbContextProvider;
             return this.RightJoin<TOther>(dbContextProvider.Query<TOther>(), on);
         }
         public IJoinQuery<T, TOther> FullJoin<TOther>(Expression<Func<T, TOther, bool>> on)
         {
-            IDbContextProvider dbContextProvider = this.QueryExpression.GetRootDbContextProvider();
+            IDbContextProvider dbContextProvider = this._dbContextProvider;
             return this.FullJoin<TOther>(dbContextProvider.Query<TOther>(), on);
         }
 

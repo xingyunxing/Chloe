@@ -7,15 +7,22 @@ namespace Chloe.Sharding.Visitors
 {
     class ShardingQueryExpressionResolver : QueryExpressionVisitor
     {
-        public static readonly ShardingQueryExpressionResolver Instance = new ShardingQueryExpressionResolver();
-        public static ShardingQueryStateBase Resolve(QueryExpression queryExpression)
+        ShardingQueryContext _queryContext;
+
+        public ShardingQueryExpressionResolver(ShardingQueryContext queryContext)
         {
-            return queryExpression.Accept(Instance) as ShardingQueryStateBase;
+            this._queryContext = queryContext;
+        }
+
+        public static ShardingQueryStateBase Resolve(ShardingQueryContext queryContext, QueryExpression queryExpression)
+        {
+            ShardingQueryExpressionResolver shardingQueryExpressionResolver = new ShardingQueryExpressionResolver(queryContext);
+            return queryExpression.Accept(shardingQueryExpressionResolver) as ShardingQueryStateBase;
         }
 
         public override IQueryState Visit(RootQueryExpression exp)
         {
-            IQueryState queryState = new ShardingRootQueryState(exp);
+            IQueryState queryState = new ShardingRootQueryState(this._queryContext, exp);
             return queryState;
         }
     }

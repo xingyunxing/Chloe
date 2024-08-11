@@ -41,7 +41,7 @@ namespace Chloe.Query
         internal Query<TResult> CreateAggregateQueryCore<TResult>(MethodInfo method, List<Expression> arguments)
         {
             AggregateQueryExpression e = new AggregateQueryExpression(this._expression, method, arguments);
-            var q = new Query<TResult>(e);
+            var q = new Query<TResult>(this._dbContextProvider, e);
             return q;
         }
         MethodInfo GetCalledMethod<TResult>(Expression<Func<TResult>> exp)

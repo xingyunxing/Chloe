@@ -9,6 +9,7 @@ using System.Data;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
+using Chloe.Query;
 
 namespace Chloe.MySql
 {
@@ -251,12 +252,14 @@ namespace Chloe.MySql
 
             List<KeyValuePair<MemberInfo, Expression>> updateColumns = InitMemberExtractor.Extract(content);
 
+            QueryContext queryContext = new QueryContext(this);
+
             DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
-            DbExpression conditionExp = FilterPredicateParser.Parse(condition, typeDescriptor, dbTable);
+            DbExpression conditionExp = FilterPredicateParser.Parse(queryContext, condition, typeDescriptor, dbTable);
 
             MySqlDbUpdateExpression updateExpression = new MySqlDbUpdateExpression(dbTable, conditionExp);
 
-            UpdateColumnExpressionParser expressionParser = typeDescriptor.GetUpdateColumnExpressionParser(dbTable, content.Parameters[0]);
+            UpdateColumnExpressionParser expressionParser = typeDescriptor.GetUpdateColumnExpressionParser(dbTable, content.Parameters[0], queryContext);
             foreach (var kv in updateColumns)
             {
                 MemberInfo key = kv.Key;
@@ -301,8 +304,10 @@ namespace Chloe.MySql
 
             TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(TEntity));
 
+            QueryContext queryContext = new QueryContext(this);
+
             DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
-            DbExpression conditionExp = FilterPredicateParser.Parse(condition, typeDescriptor, dbTable);
+            DbExpression conditionExp = FilterPredicateParser.Parse(queryContext, condition, typeDescriptor, dbTable);
 
             MySqlDbDeleteExpression e = new MySqlDbDeleteExpression(dbTable, conditionExp);
             e.Limits = limits;

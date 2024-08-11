@@ -19,7 +19,7 @@ namespace Chloe.QueryExpressions
         public ReadOnlyCollection<Expression> Arguments { get { return this._arguments; } }
 
 
-        public override T Accept<T>(QueryExpressionVisitor<T> visitor)
+        public override T Accept<T>(IQueryExpressionVisitor<T> visitor)
         {
             return visitor.Visit(this);
         }
