@@ -237,7 +237,7 @@ namespace Chloe
 
             PrimitivePropertyDescriptor keyPropertyDescriptor = typeDescriptor.PrimaryKeys.FirstOrDefault();
 
-            List<KeyValuePair<MemberInfo, Expression>> insertColumns = InitMemberExtractor.Extract(QueryObjectExpressionTransformer.Transform(content));
+            List<KeyValuePair<MemberInfo, Expression>> insertColumns = InitMemberExtractor.Extract(content);
 
             DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
             DefaultExpressionParser expressionParser = typeDescriptor.GetExpressionParser(dbTable);
