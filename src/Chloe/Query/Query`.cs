@@ -21,13 +21,14 @@ namespace Chloe.Query
         static RootQueryExpression CreateRootQueryExpression(DbContextProvider dbContextProvider, string explicitTable, LockType @lock)
         {
             Type entityType = typeof(T);
-            RootQueryExpression ret = new RootQueryExpression(entityType, explicitTable, @lock);
+            TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(entityType);
 
             List<LambdaExpression> contextFilters = dbContextProvider.QueryFilters.FindValue(entityType);
+            RootQueryExpression ret = new RootQueryExpression(entityType, explicitTable, @lock, typeDescriptor.Definition.Filters.Count, contextFilters == null ? 0 : contextFilters.Count);
+
             if (contextFilters != null)
                 ret.ContextFilters.AddRange(contextFilters);
 
-            TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(entityType);
             ret.GlobalFilters.AddRange(typeDescriptor.Definition.Filters);
 
             return ret;

@@ -19,26 +19,33 @@ namespace Chloe.QueryExpressions
 
     public class NavigationNode
     {
-        public NavigationNode()
+        public NavigationNode(PropertyInfo property) : this(property, 0, 0)
         {
+
         }
-        public NavigationNode(PropertyInfo property)
+
+        public NavigationNode(PropertyInfo property, int globalFilterCount, int contextFilterCount)
         {
             this.Property = property;
+            this.GlobalFilters = new List<LambdaExpression>(globalFilterCount);
+            this.ContextFilters = new List<LambdaExpression>(contextFilterCount);
         }
+
         public PropertyInfo Property { get; set; }
         public List<LambdaExpression> ExcludedFields { get; private set; } = new List<LambdaExpression>();
         public LambdaExpression Condition { get; set; }
 
-        public List<LambdaExpression> GlobalFilters { get; private set; } = new List<LambdaExpression>();
-        public List<LambdaExpression> ContextFilters { get; private set; } = new List<LambdaExpression>();
+        public List<LambdaExpression> GlobalFilters { get; private set; }
+        public List<LambdaExpression> ContextFilters { get; private set; }
 
         public NavigationNode Next { get; set; }
 
         public NavigationNode Clone()
         {
-            NavigationNode current = new NavigationNode(this.Property) { Condition = this.Condition };
+            NavigationNode current = new NavigationNode(this.Property, this.GlobalFilters.Count, this.ContextFilters.Count) { Condition = this.Condition };
             current.ExcludedFields.AppendRange(this.ExcludedFields);
+            current.GlobalFilters.AddRange(this.GlobalFilters);
+            current.ContextFilters.AddRange(this.ContextFilters);
             if (this.Next != null)
             {
                 current.Next = this.Next.Clone();

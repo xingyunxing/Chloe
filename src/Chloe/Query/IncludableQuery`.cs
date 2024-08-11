@@ -68,8 +68,6 @@ namespace Chloe.Query
         }
         static NavigationNode InitNavigationNode(PropertyInfo member, DbContextProvider dbContextProvider)
         {
-            NavigationNode navigation = new NavigationNode(member);
-
             Type elementType = member.PropertyType;
             if (member.PropertyType.IsGenericCollection())
             {
@@ -77,11 +75,15 @@ namespace Chloe.Query
             }
 
             var typeDescriptor = EntityTypeContainer.GetDescriptor(elementType);
-            navigation.GlobalFilters.AppendRange(typeDescriptor.Definition.Filters);
 
             List<LambdaExpression> contextFilters = dbContextProvider.QueryFilters.FindValue(elementType);
+
+            NavigationNode navigation = new NavigationNode(member, typeDescriptor.Definition.Filters.Count, contextFilters == null ? 0 : contextFilters.Count);
+
+            navigation.GlobalFilters.AppendRange(typeDescriptor.Definition.Filters);
             if (contextFilters != null)
                 navigation.ContextFilters.AppendRange(contextFilters);
+
 
             return navigation;
         }
