@@ -237,7 +237,7 @@ namespace Chloe
 
             PrimitivePropertyDescriptor keyPropertyDescriptor = typeDescriptor.PrimaryKeys.FirstOrDefault();
 
-            List<KeyValuePair<MemberInfo, Expression>> insertColumns = InitMemberExtractor.Extract(content);
+            List<KeyValuePair<MemberInfo, Expression>> insertColumns = InitMemberExtractor.Extract(QueryObjectExpressionTransformer.Transform(content));
 
             DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
             DefaultExpressionParser expressionParser = typeDescriptor.GetExpressionParser(dbTable);
@@ -401,11 +401,11 @@ namespace Chloe
 
             TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(TEntity));
 
-            List<KeyValuePair<MemberInfo, Expression>> updateColumns = InitMemberExtractor.Extract(content);
+            List<KeyValuePair<MemberInfo, Expression>> updateColumns = InitMemberExtractor.Extract(QueryObjectExpressionTransformer.Transform(content));
 
             DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
             DbUpdateExpression updateExpression = new DbUpdateExpression(dbTable);
-            DbExpression conditionExp = FilterPredicateParser.Parse(queryContext, condition, typeDescriptor, dbTable);
+            DbExpression conditionExp = FilterPredicateParser.Parse(queryContext, QueryObjectExpressionTransformer.Transform(condition), typeDescriptor, dbTable);
             updateExpression.Condition = conditionExp;
 
             UpdateColumnExpressionParser expressionParser = typeDescriptor.GetUpdateColumnExpressionParser(dbTable, content.Parameters[0], queryContext);
@@ -488,7 +488,7 @@ namespace Chloe
             TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(TEntity));
 
             DbTable dbTable = typeDescriptor.GenDbTable(table);
-            DbExpression conditionExp = FilterPredicateParser.Parse(new QueryContext(this), condition, typeDescriptor, dbTable);
+            DbExpression conditionExp = FilterPredicateParser.Parse(new QueryContext(this), QueryObjectExpressionTransformer.Transform(condition), typeDescriptor, dbTable);
 
             DbDeleteExpression e = new DbDeleteExpression(dbTable, conditionExp);
 

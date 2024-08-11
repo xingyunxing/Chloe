@@ -5,7 +5,6 @@ using Chloe.Descriptors;
 using Chloe.Exceptions;
 using Chloe.Infrastructure;
 using Chloe.RDBMS;
-using Chloe.Utility;
 using System.Data;
 using System.Linq.Expressions;
 using System.Reflection;

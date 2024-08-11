@@ -250,12 +250,12 @@ namespace Chloe.MySql
 
             TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(typeof(TEntity));
 
-            List<KeyValuePair<MemberInfo, Expression>> updateColumns = InitMemberExtractor.Extract(content);
+            List<KeyValuePair<MemberInfo, Expression>> updateColumns = InitMemberExtractor.Extract(QueryObjectExpressionTransformer.Transform(content));
 
             QueryContext queryContext = new QueryContext(this);
 
             DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
-            DbExpression conditionExp = FilterPredicateParser.Parse(queryContext, condition, typeDescriptor, dbTable);
+            DbExpression conditionExp = FilterPredicateParser.Parse(queryContext, QueryObjectExpressionTransformer.Transform(condition), typeDescriptor, dbTable);
 
             MySqlDbUpdateExpression updateExpression = new MySqlDbUpdateExpression(dbTable, conditionExp);
 
@@ -307,7 +307,7 @@ namespace Chloe.MySql
             QueryContext queryContext = new QueryContext(this);
 
             DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
-            DbExpression conditionExp = FilterPredicateParser.Parse(queryContext, condition, typeDescriptor, dbTable);
+            DbExpression conditionExp = FilterPredicateParser.Parse(queryContext, QueryObjectExpressionTransformer.Transform(condition), typeDescriptor, dbTable);
 
             MySqlDbDeleteExpression e = new MySqlDbDeleteExpression(dbTable, conditionExp);
             e.Limits = limits;

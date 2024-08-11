@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 
 namespace Chloe.Query.Visitors
 {
-    class QueryExpressionResolver : QueryExpressionVisitor
+    class QueryExpressionResolver : QueryExpressionResolverBase
     {
         QueryContext _queryContext;
         ScopeParameterDictionary _scopeParameters;

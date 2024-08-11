@@ -25,7 +25,7 @@ namespace ChloeDemo
 
         protected override IDbContext CreateDbContext()
         {
-            MsSqlContext dbContext = new MsSqlContext("Data Source = .;Initial Catalog = Chloe;Integrated Security = SSPI;");
+            MsSqlContext dbContext = new MsSqlContext("Data Source = .;Initial Catalog = Chloe;Integrated Security = SSPI;TrustServerCertificate=true");
             dbContext.Options.PagingMode = PagingMode.OFFSET_FETCH;
 
             return dbContext;

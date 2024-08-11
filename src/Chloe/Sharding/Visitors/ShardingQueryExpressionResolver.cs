@@ -5,7 +5,7 @@ using Chloe.Sharding.QueryState;
 
 namespace Chloe.Sharding.Visitors
 {
-    class ShardingQueryExpressionResolver : QueryExpressionVisitor
+    class ShardingQueryExpressionResolver : QueryExpressionResolverBase
     {
         ShardingQueryContext _queryContext;
 

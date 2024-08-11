@@ -2,7 +2,7 @@
 
 namespace Chloe.Query.Visitors
 {
-    class QueryExpressionVisitor : QueryExpressionVisitor<IQueryState>
+    class QueryExpressionResolverBase : QueryExpressionVisitor<IQueryState>
     {
         public override IQueryState Visit(WhereExpression exp)
         {
