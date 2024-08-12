@@ -111,7 +111,7 @@ namespace ChloeDemo
                 CaseWhen = Case.When(a.Id > 100).Then(1).Else(0) //case when
             }).ToList();
 
-            ConsoleHelper.WriteLineAndReadKey();
+            ConsoleHelper.WriteLineAndReadKey("PostgreSQLDemo.Method over...");
         }
 
     }

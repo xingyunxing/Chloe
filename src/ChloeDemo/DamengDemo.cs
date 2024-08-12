@@ -105,7 +105,7 @@ namespace ChloeDemo
                 CaseWhen = Case.When(a.Id > 100).Then(1).Else(0)
             }).ToList();
 
-            ConsoleHelper.WriteLineAndReadKey();
+            ConsoleHelper.WriteLineAndReadKey("DamengDemo.Method over...");
         }
 
         public override void ExecuteCommandText()
@@ -120,7 +120,7 @@ namespace ChloeDemo
              * rowsAffected = this.DbContext.Session.ExecuteNonQuery("Proc_UpdatePersonName", CommandType.StoredProcedure, DbParam.Create("@name", "Chloe"));
              */
 
-            ConsoleHelper.WriteLineAndReadKey();
+            ConsoleHelper.WriteLineAndReadKey("DamengDemo.ExecuteCommandText over...");
         }
 
     }

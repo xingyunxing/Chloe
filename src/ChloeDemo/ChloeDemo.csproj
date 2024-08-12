@@ -24,10 +24,10 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net462'">
-		<DefineConstants>NETFX</DefineConstants>
+		<DefineConstants>NETFX;NET46</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
-		<DefineConstants>NETCORE</DefineConstants>
+		<DefineConstants>NETCORE;NET8</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup>

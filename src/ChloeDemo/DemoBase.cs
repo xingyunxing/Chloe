@@ -53,7 +53,7 @@ namespace ChloeDemo
             this.ExecuteCommandText();
             this.DoWithTransaction();
 
-            ConsoleHelper.WriteLineAndReadKey();
+            ConsoleHelper.WriteLineAndReadKey("Run over...");
         }
 
         public virtual void InitDatabase()
@@ -180,7 +180,7 @@ namespace ChloeDemo
             //根据主键删除
             this._result = this.DbContext.DeleteByKey<Person>(insertedId);
 
-            ConsoleHelper.WriteLineAndReadKey(1);
+            ConsoleHelper.WriteLineAndReadKey("Crud over...");
         }
         public virtual async Task CrudAsync()
         {
@@ -227,7 +227,7 @@ namespace ChloeDemo
             //根据主键删除
             this._result = await this.DbContext.DeleteByKeyAsync<Person>(insertedId);
 
-            ConsoleHelper.WriteLineAndReadKey(1);
+            ConsoleHelper.WriteLineAndReadKey("CrudAsync over...");
         }
 
         /// <summary>
@@ -298,7 +298,7 @@ namespace ChloeDemo
              * SELECT DISTINCT [Person].[Name] AS [Name] FROM [Person] AS [Person]
              */
 
-            ConsoleHelper.WriteLineAndReadKey();
+            ConsoleHelper.WriteLineAndReadKey("BasicQuery over...");
         }
 
         /// <summary>
@@ -345,7 +345,7 @@ namespace ChloeDemo
             .TakePage(1, 20)                /* 分页 */
             .ToList();
 
-            ConsoleHelper.WriteLineAndReadKey();
+            ConsoleHelper.WriteLineAndReadKey("JoinQuery over...");
         }
 
         /// <summary>
@@ -462,7 +462,7 @@ namespace ChloeDemo
                 }
             }
 
-            ConsoleHelper.WriteLineAndReadKey();
+            ConsoleHelper.WriteLineAndReadKey("ExcludeFieldQuery over...");
         }
 
         /// <summary>
@@ -513,7 +513,7 @@ namespace ChloeDemo
              * SELECT CAST(AVG([Person].[Age]) AS REAL) AS [C] FROM [Person] AS [Person]
              */
 
-            ConsoleHelper.WriteLineAndReadKey();
+            ConsoleHelper.WriteLineAndReadKey("AggregateQuery over...");
         }
 
         /// <summary>
@@ -547,7 +547,7 @@ namespace ChloeDemo
              * GROUP BY [Person].[Age],[Person].[Id] HAVING ([Person].[Age] > 1 AND COUNT(1) > 0)
              */
 
-            ConsoleHelper.WriteLineAndReadKey();
+            ConsoleHelper.WriteLineAndReadKey("GroupQuery over...");
         }
 
         /// <summary>
@@ -633,7 +633,7 @@ namespace ChloeDemo
              * FROM [City] AS [City]
              */
 
-            ConsoleHelper.WriteLineAndReadKey();
+            ConsoleHelper.WriteLineAndReadKey("ComplexQuery over...");
         }
 
         /// <summary>
@@ -693,7 +693,7 @@ namespace ChloeDemo
 
             result = this.DbContext.Query<City>().IncludeMany(a => a.Persons).Filter(a => a.Age > 18).ToList();
 
-            ConsoleHelper.WriteLineAndReadKey();
+            ConsoleHelper.WriteLineAndReadKey("QueryWithNavigation over...");
         }
 
         public virtual void Insert()
@@ -751,7 +751,7 @@ namespace ChloeDemo
             person = this.DbContext.Query<Person>().Where(a => a.Id == person.Id).First();
             Debug.Assert(person.Name == null && person.EditTime == null);
 
-            ConsoleHelper.WriteLineAndReadKey();
+            ConsoleHelper.WriteLineAndReadKey("Insert over...");
         }
         public virtual void Update()
         {
@@ -814,7 +814,7 @@ namespace ChloeDemo
                UPDATE [Person] SET [Name]=@P_0,[RowVersion]=@P_1 WHERE ([Person].[Id] = @P_2 AND [Person].[RowVersion] = @P_2)
              */
 
-            ConsoleHelper.WriteLineAndReadKey();
+            ConsoleHelper.WriteLineAndReadKey("Update over...");
         }
         public virtual void Delete()
         {
@@ -848,7 +848,7 @@ namespace ChloeDemo
                DELETE FROM [Person] WHERE ([Person].[Id] = @P_0 AND [Person].[RowVersion] = @P_1)
              */
 
-            ConsoleHelper.WriteLineAndReadKey(1);
+            ConsoleHelper.WriteLineAndReadKey("Delete over...");
         }
 
         /// <summary>
@@ -928,7 +928,7 @@ namespace ChloeDemo
                 CaseWhen = Case.When(a.Id > 100).Then(1).Else(0) //case when
             }).ToList();
 
-            ConsoleHelper.WriteLineAndReadKey();
+            ConsoleHelper.WriteLineAndReadKey("Method over...");
         }
 
         /// <summary>
@@ -946,7 +946,7 @@ namespace ChloeDemo
              * rowsAffected = this.DbContext.Session.ExecuteNonQuery("Proc_UpdatePersonName", CommandType.StoredProcedure, DbParam.Create("@name", "Chloe"));
              */
 
-            ConsoleHelper.WriteLineAndReadKey();
+            ConsoleHelper.WriteLineAndReadKey("ExecuteCommandText over...");
         }
 
         /// <summary>
@@ -963,8 +963,6 @@ namespace ChloeDemo
 
                 tran.Commit();
             }
-            ConsoleHelper.WriteLineAndReadKey();
-
 
 
             /*--------------2--------------*/
@@ -973,8 +971,6 @@ namespace ChloeDemo
                 this.DbContext.Update<Person>(a => a.Id == 1, a => new Person() { Name = a.Name, Age = a.Age + 1, Gender = Gender.Male, EditTime = DateTime.Now });
                 this.DbContext.Delete<Person>(a => a.Id == 1024);
             });
-            ConsoleHelper.WriteLineAndReadKey();
-
 
 
             /*--------------3--------------*/
@@ -993,7 +989,8 @@ namespace ChloeDemo
                     this.DbContext.Session.RollbackTransaction();
                 throw;
             }
-            ConsoleHelper.WriteLineAndReadKey();
+
+            ConsoleHelper.WriteLineAndReadKey("DoWithTransaction over...");
         }
 
     }

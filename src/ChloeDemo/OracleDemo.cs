@@ -115,7 +115,7 @@ namespace ChloeDemo
                 CaseWhen = Case.When(a.Id > 100).Then(1).Else(0) //case when
             }).ToList();
 
-            ConsoleHelper.WriteLineAndReadKey();
+            ConsoleHelper.WriteLineAndReadKey("OracleDemo.Method over...");
         }
 
         public override void ExecuteCommandText()
@@ -130,7 +130,7 @@ namespace ChloeDemo
              * rowsAffected = context.Session.ExecuteNonQuery("Proc_UpdatePersonName", CommandType.StoredProcedure, DbParam.Create(":name", "Chloe"));
              */
 
-            ConsoleHelper.WriteLineAndReadKey();
+            ConsoleHelper.WriteLineAndReadKey("OracleDemo.ExecuteCommandText over...");
         }
     }
 }
