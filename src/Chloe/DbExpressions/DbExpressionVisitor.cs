@@ -104,7 +104,13 @@
         }
         public override DbExpression Visit(DbMethodCallExpression exp)
         {
-            IList<DbExpression> arguments = exp.Arguments.Select(a => this.MakeNewExpression(a)).ToList();
+            List<DbExpression> arguments = new List<DbExpression>(exp.Arguments.Count);
+
+            for (int i = 0; i < exp.Arguments.Count; i++)
+            {
+                arguments.Add(this.MakeNewExpression(exp.Arguments[i]));
+            }
+
             return new DbMethodCallExpression(this.MakeNewExpression(exp.Object), exp.Method, arguments);
         }
 
@@ -127,7 +133,7 @@
         }
         public override DbExpression Visit(DbSqlQueryExpression exp)
         {
-            DbSqlQueryExpression sqlQuery = new DbSqlQueryExpression(exp.Type)
+            DbSqlQueryExpression sqlQuery = new DbSqlQueryExpression(exp.Type, exp.ColumnSegments.Count, exp.GroupSegments.Count, exp.Orderings.Count)
             {
                 TakeCount = exp.TakeCount,
                 SkipCount = exp.SkipCount,
@@ -137,60 +143,85 @@
                 IsDistinct = exp.IsDistinct
             };
 
-            sqlQuery.ColumnSegments.AddRange(exp.ColumnSegments.Select(a => new DbColumnSegment(this.MakeNewExpression(a.Body), a.Alias)));
-            sqlQuery.GroupSegments.AddRange(exp.GroupSegments.Select(a => this.MakeNewExpression(a)));
-            sqlQuery.Orderings.AddRange(exp.Orderings.Select(a => new DbOrdering(this.MakeNewExpression(a.Expression), a.OrderType)));
+            for (int i = 0; i < exp.ColumnSegments.Count; i++)
+            {
+                sqlQuery.ColumnSegments.Add(new DbColumnSegment(this.MakeNewExpression(exp.ColumnSegments[i].Body), exp.ColumnSegments[i].Alias));
+            }
+
+            for (int i = 0; i < exp.GroupSegments.Count; i++)
+            {
+                sqlQuery.GroupSegments.Add(this.MakeNewExpression(exp.GroupSegments[i]));
+            }
+
+            for (int i = 0; i < exp.Orderings.Count; i++)
+            {
+                sqlQuery.Orderings.Add(new DbOrdering(this.MakeNewExpression(exp.Orderings[i].Expression), exp.Orderings[i].OrderType));
+            }
 
             return sqlQuery;
         }
         public override DbExpression Visit(DbFromTableExpression exp)
         {
             DbFromTableExpression ret = new DbFromTableExpression(new DbTableSegment(this.MakeNewExpression(exp.Table.Body), exp.Table.Alias, exp.Table.Lock));
-            foreach (var item in exp.JoinTables)
+            for (int i = 0; i < exp.JoinTables.Count; i++)
             {
-                ret.JoinTables.Add((DbJoinTableExpression)this.MakeNewExpression(item));
+                ret.JoinTables.Add((DbJoinTableExpression)this.MakeNewExpression(exp.JoinTables[i]));
             }
+
             return ret;
         }
         public override DbExpression Visit(DbJoinTableExpression exp)
         {
             DbJoinTableExpression ret = new DbJoinTableExpression(exp.JoinType, new DbTableSegment(this.MakeNewExpression(exp.Table.Body), exp.Table.Alias, exp.Table.Lock), this.MakeNewExpression(exp.Condition));
-            foreach (var item in exp.JoinTables)
+            for (int i = 0; i < exp.JoinTables.Count; i++)
             {
-                DbJoinTableExpression dbJoinTable = (DbJoinTableExpression)this.MakeNewExpression(item);
+                DbJoinTableExpression dbJoinTable = (DbJoinTableExpression)this.MakeNewExpression(exp.JoinTables[i]);
                 dbJoinTable.AppendTo(ret);
             }
+
             return ret;
         }
         public override DbExpression Visit(DbAggregateExpression exp)
         {
-            IList<DbExpression> arguments = exp.Arguments.Select(a => this.MakeNewExpression(a)).ToList();
+            List<DbExpression> arguments = new List<DbExpression>(exp.Arguments.Count);
+
+            for (int i = 0; i < exp.Arguments.Count; i++)
+            {
+                arguments.Add(this.MakeNewExpression(exp.Arguments[i]));
+            }
+
             return new DbAggregateExpression(exp.Type, exp.Method, arguments);
         }
 
         public override DbExpression Visit(DbInsertExpression exp)
         {
-            DbInsertExpression ret = new DbInsertExpression(exp.Table);
+            DbInsertExpression ret = new DbInsertExpression(exp.Table, exp.InsertColumns.Count, exp.Returns.Count);
 
-            foreach (var pair in exp.InsertColumns)
+            for (int i = 0; i < exp.InsertColumns.Count; i++)
             {
-                ret.AppendInsertColumn(pair.Column, this.MakeNewExpression(pair.Value));
+                ret.AppendInsertColumn(exp.InsertColumns[i].Column, this.MakeNewExpression(exp.InsertColumns[i].Value));
             }
 
-            ret.Returns.AppendRange(exp.Returns);
+            for (int i = 0; i < exp.Returns.Count; i++)
+            {
+                ret.Returns.Add(exp.Returns[i]);
+            }
 
             return ret;
         }
         public override DbExpression Visit(DbUpdateExpression exp)
         {
-            DbUpdateExpression ret = new DbUpdateExpression(exp.Table, this.MakeNewExpression(exp.Condition));
+            DbUpdateExpression ret = new DbUpdateExpression(exp.Table, this.MakeNewExpression(exp.Condition), exp.UpdateColumns.Count, exp.Returns.Count);
 
-            foreach (var pair in exp.UpdateColumns)
+            for (int i = 0; i < exp.UpdateColumns.Count; i++)
             {
-                ret.AppendUpdateColumn(pair.Column, this.MakeNewExpression(pair.Value));
+                ret.AppendUpdateColumn(exp.UpdateColumns[i].Column, this.MakeNewExpression(exp.UpdateColumns[i].Value));
             }
 
-            ret.Returns.AppendRange(exp.Returns);
+            for (int i = 0; i < exp.Returns.Count; i++)
+            {
+                ret.Returns.Add(exp.Returns[i]);
+            }
 
             return ret;
         }

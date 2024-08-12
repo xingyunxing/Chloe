@@ -62,7 +62,7 @@ namespace Chloe.Query
 
         public DbSqlQueryExpression CreateSqlQuery()
         {
-            DbSqlQueryExpression sqlQuery = new DbSqlQueryExpression();
+            DbSqlQueryExpression sqlQuery = new DbSqlQueryExpression(0, this.GroupSegments.Count, this.Orderings.Count);
 
             sqlQuery.Table = this.FromTable;
             sqlQuery.Orderings.AppendRange(this.Orderings);

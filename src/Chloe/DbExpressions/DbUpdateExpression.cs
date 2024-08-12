@@ -9,12 +9,19 @@
 
         }
 
-        public DbUpdateExpression(DbTable table, DbExpression condition) : base(DbExpressionType.Update, PublicConstants.TypeOfVoid)
+        public DbUpdateExpression(DbTable table, DbExpression condition) : this(table, condition, 0, 0)
+        {
+
+        }
+
+        public DbUpdateExpression(DbTable table, DbExpression condition, int updateColumnCount, int returnCount) : base(DbExpressionType.Update, PublicConstants.TypeOfVoid)
         {
             PublicHelper.CheckNull(table);
 
             this._table = table;
             this.Condition = condition;
+            this.UpdateColumns = new List<DbColumnValuePair>(updateColumnCount);
+            this.Returns = new List<DbColumn>(returnCount);
         }
 
         public DbTable Table { get { return this._table; } }

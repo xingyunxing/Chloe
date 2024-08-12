@@ -489,9 +489,11 @@ namespace Chloe.RDBMS
                 HavingCondition = rawSqlQuery.HavingCondition
             };
 
+            sqlQuery.GroupSegments.Capacity = rawSqlQuery.GroupSegments.Capacity;
             sqlQuery.GroupSegments.AddRange(rawSqlQuery.GroupSegments);
 
             DbColumnSegment columnSegment = new DbColumnSegment(DbExpression.Parameter("1"), "C");
+            sqlQuery.ColumnSegments.Capacity = 1;
             sqlQuery.ColumnSegments.Add(columnSegment);
 
             DbSubQueryExpression subQuery = new DbSubQueryExpression(sqlQuery);

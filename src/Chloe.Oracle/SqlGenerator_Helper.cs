@@ -202,7 +202,7 @@ namespace Chloe.Oracle
         {
             DbSubQueryExpression subQuery = new DbSubQueryExpression(sqlQuery);
 
-            DbSqlQueryExpression newSqlQuery = new DbSqlQueryExpression();
+            DbSqlQueryExpression newSqlQuery = new DbSqlQueryExpression(sqlQuery.Type, (columnSegments ?? subQuery.SqlQuery.ColumnSegments).Count, 0, 0);
 
             DbTableSegment tableSeg = new DbTableSegment(subQuery, table.Name, LockType.Unspecified);
             DbFromTableExpression fromTableExp = new DbFromTableExpression(tableSeg);
@@ -215,7 +215,7 @@ namespace Chloe.Oracle
         }
         static DbSqlQueryExpression CloneWithoutLimitInfo(DbSqlQueryExpression sqlQuery, string wraperTableName = "T")
         {
-            DbSqlQueryExpression newSqlQuery = new DbSqlQueryExpression();
+            DbSqlQueryExpression newSqlQuery = new DbSqlQueryExpression(sqlQuery.Type, sqlQuery.ColumnSegments.Count, sqlQuery.GroupSegments.Count, sqlQuery.Orderings.Count);
             newSqlQuery.Table = sqlQuery.Table;
             newSqlQuery.ColumnSegments.AddRange(sqlQuery.ColumnSegments);
             newSqlQuery.Condition = sqlQuery.Condition;
