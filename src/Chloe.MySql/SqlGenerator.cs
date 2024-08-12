@@ -153,7 +153,7 @@ namespace Chloe.MySql
                 this.SqlBuilder.Append(Convert.ChangeType(exp.Value, Enum.GetUnderlyingType(objType)).ToString());
                 return exp;
             }
-            else if (PublicHelper.IsToStringableNumericType(exp.Value.GetType()))
+            else if (PublicHelper.IsNumericType(exp.Value.GetType()))
             {
                 this.SqlBuilder.Append(exp.Value);
                 return exp;
