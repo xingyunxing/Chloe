@@ -1,5 +1,6 @@
 ﻿using Chloe.Core;
 using Chloe.Data;
+using Chloe.DbExpressions;
 using Chloe.Infrastructure;
 using Chloe.Mapper;
 using Chloe.Mapper.Activators;
@@ -25,6 +26,42 @@ namespace Chloe.Query.Internals
             this._queryContext = new QueryContext(this._query.DbContextProvider);
         }
 
+#if !NET46 && !NETSTANDARD2
+
+        DbCommandFactor GenerateCommandFactor()
+        {
+            QueryExpression queryExpression = QueryObjectExpressionTransformer.Transform(this._query.QueryExpression);
+
+            List<object> variables;
+            queryExpression = ExpressionVariableReplacer.Replace(queryExpression, out variables);
+
+            QueryPlan queryPlan = QueryPlanContainer.GetOrAdd(queryExpression, () =>
+            {
+                return MakeQueryPlan(this._queryContext, queryExpression);
+            });
+
+            DbExpression sqlQuery = queryPlan.SqlQuery;
+            IObjectActivator objectActivator = queryPlan.ObjectActivator.Clone();
+
+            IDbExpressionTranslator translator = this._queryContext.DbContextProvider.DatabaseProvider.CreateDbExpressionTranslator();
+            DbCommandInfo dbCommandInfo = translator.Translate(sqlQuery, variables);
+
+            DbCommandFactor commandFactor = new DbCommandFactor(this._queryContext.DbContextProvider, objectActivator, dbCommandInfo.CommandText, dbCommandInfo.GetParameters());
+            return commandFactor;
+        }
+
+        static QueryPlan MakeQueryPlan(QueryContext queryContext, QueryExpression queryExpression)
+        {
+            QueryStateBase qs = QueryExpressionResolver.Resolve(queryContext, queryExpression, new ScopeParameterDictionary(), new StringSet());
+            MappingData data = qs.GenerateMappingData();
+
+            IObjectActivator objectActivator = data.ObjectActivatorCreator.CreateObjectActivator(data.IsTrackingQuery);
+
+            return new QueryPlan() { KeyStub = queryExpression, ObjectActivator = objectActivator, SqlQuery = data.SqlQuery };
+        }
+
+#else
+
         DbCommandFactor GenerateCommandFactor()
         {
             QueryExpression queryExpression = QueryObjectExpressionTransformer.Transform(this._query.QueryExpression);
@@ -39,6 +76,8 @@ namespace Chloe.Query.Internals
             DbCommandFactor commandFactor = new DbCommandFactor(data.Context.DbContextProvider, objectActivator, dbCommandInfo.CommandText, dbCommandInfo.GetParameters());
             return commandFactor;
         }
+
+#endif
 
         public override string ToString()
         {

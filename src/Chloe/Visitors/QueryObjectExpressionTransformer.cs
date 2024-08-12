@@ -211,6 +211,7 @@ namespace Chloe.Visitors
 
             /* queryObjectExpression.Type 为 IQuery<T>，与 queryExpression 的 Type 不等，这里设计不合理，将就这样包装先。注意，在后续解析处理的时候要使用 Convert 与 Constant.Value.Type=QueryExpression 组合判断 */
             var wrapper = Expression.Convert(Expression.Constant(queryExpression, typeof(object)), queryObjectExpression.Type);
+
             return wrapper;
         }
         static MethodCallExpression OptimizeCondition(MethodCallExpression exp)

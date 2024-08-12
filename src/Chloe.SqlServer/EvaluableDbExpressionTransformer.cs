@@ -18,9 +18,19 @@ namespace Chloe.SqlServer
 
         }
 
-        public static DbExpression Transform(DbExpression exp)
+        public EvaluableDbExpressionTransformer(List<object> variables) : base(variables)
         {
-            return exp.Accept(_transformer);
+
+        }
+
+        public static DbExpression Transform(DbExpression exp, List<object>? variables = null)
+        {
+            if (variables == null || variables.Count == 0)
+            {
+                return exp.Accept(_transformer);
+            }
+
+            return exp.Accept(new EvaluableDbExpressionTransformer(variables));
         }
 
         protected override Dictionary<string, IPropertyHandler[]> GetPropertyHandlers()

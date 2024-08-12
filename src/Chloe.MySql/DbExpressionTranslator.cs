@@ -14,11 +14,11 @@ namespace Chloe.MySql
             this.ContextProvider = contextProvider;
         }
 
-        public DbCommandInfo Translate(DbExpression expression)
+        public DbCommandInfo Translate(DbExpression expression, List<object> variables)
         {
             SqlGeneratorOptions options = this.CreateOptions();
             SqlGenerator generator = new SqlGenerator(options);
-            expression = EvaluableDbExpressionTransformer.Transform(expression);
+            expression = EvaluableDbExpressionTransformer.Transform(expression, variables);
             expression.Accept(generator);
 
             DbCommandInfo dbCommandInfo = new DbCommandInfo();

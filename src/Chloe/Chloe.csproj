@@ -25,7 +25,7 @@
 		<DefineConstants>NETFX;NET46</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-		<DefineConstants>NETCORE</DefineConstants>
+		<DefineConstants>NETCORE;NETSTANDARD2</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net6.0'">
 		<DefineConstants>NETCORE;NET6</DefineConstants>

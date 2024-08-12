@@ -1,5 +1,6 @@
 ﻿using Chloe.Annotations;
 using Chloe.DbExpressions;
+using Chloe.Query;
 using Chloe.RDBMS;
 using System.Reflection;
 
@@ -10,8 +11,16 @@ namespace Chloe.Visitors
     /// </summary>
     public abstract class EvaluableDbExpressionTransformerBase : DbExpressionVisitor
     {
+        static List<object> EmptyVariables = new List<object>();
+        List<object> _variables = EmptyVariables;
+
         protected EvaluableDbExpressionTransformerBase()
         {
+        }
+
+        protected EvaluableDbExpressionTransformerBase(List<object> variables)  //如果要处理的 DbExpression 中包含了 插槽，务必将对应的变量传进来
+        {
+            this._variables = variables;
         }
 
         public static bool IsConstantOrParameter(DbExpression exp)
@@ -77,6 +86,21 @@ namespace Chloe.Visitors
 
         public override DbExpression Visit(DbMemberExpression exp)
         {
+#if !NET46 && !NETSTANDARD2
+            if (exp.Member.Name == nameof(VariableSlot<int>.Value))
+            {
+                if (exp.Expression is DbConstantExpression dbConstantExpression)
+                {
+                    VariableSlot solt = dbConstantExpression.Value as VariableSlot;
+                    if (solt != null)
+                    {
+                        object variable = this._variables[solt.Index];
+                        return DbExpression.Constant(variable);
+                    }
+                }
+            }
+#endif
+
             if (exp.Expression != null)
             {
                 DbExpression caller = exp.Expression.Accept(this);
