@@ -23,13 +23,23 @@ namespace Chloe.Query
             Type entityType = typeof(T);
             TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(entityType);
 
+            RootQueryExpression ret = new RootQueryExpression(entityType, explicitTable, @lock);
+
             List<LambdaExpression> contextFilters = dbContextProvider.QueryFilters.FindValue(entityType);
-            RootQueryExpression ret = new RootQueryExpression(entityType, explicitTable, @lock, typeDescriptor.Definition.Filters.Count, contextFilters == null ? 0 : contextFilters.Count);
-
             if (contextFilters != null)
-                ret.ContextFilters.AddRange(contextFilters);
+            {
+                ret.ContextFilters.Capacity = contextFilters.Count;
+                for (int i = 0; i < contextFilters.Count; i++)
+                {
+                    ret.ContextFilters.Add(contextFilters[i]);
+                }
+            }
 
-            ret.GlobalFilters.AddRange(typeDescriptor.Definition.Filters);
+            ret.GlobalFilters.Capacity = typeDescriptor.Definition.Filters.Count;
+            for (int i = 0; i < typeDescriptor.Definition.Filters.Count; i++)
+            {
+                ret.GlobalFilters.Add(typeDescriptor.Definition.Filters[i]);
+            }
 
             return ret;
         }
