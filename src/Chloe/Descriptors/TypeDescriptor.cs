@@ -7,6 +7,7 @@ using Chloe.Reflection;
 using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Linq.Expressions;
+using System.Collections.Concurrent;
 
 namespace Chloe.Descriptors
 {
@@ -19,8 +20,6 @@ namespace Chloe.Descriptors
 
         public TypeDescriptor(TypeDefinition definition)
         {
-            this.CachedDbTable = new DbTable(definition.Table.Name);
-
             this.Definition = definition;
             this.PrimitivePropertyDescriptors = this.Definition.PrimitiveProperties.Select(a => new PrimitivePropertyDescriptor(a, this)).ToList().AsReadOnly();
             this.ComplexPropertyDescriptors = this.Definition.ComplexProperties.Select(a => new ComplexPropertyDescriptor(a, this)).ToList().AsReadOnly();
@@ -42,7 +41,7 @@ namespace Chloe.Descriptors
         /// <summary>
         /// 同名缓存，重用
         /// </summary>
-        internal DbTable CachedDbTable { get; private set; }
+        ConcurrentDictionary<DbTable, List<Tuple<PrimitivePropertyDescriptor, DbColumnAccessExpression>>> CachedDbColumns { get; set; } = new ConcurrentDictionary<DbTable, List<Tuple<PrimitivePropertyDescriptor, DbColumnAccessExpression>>>();
 
         public TypeDefinition Definition { get; private set; }
         public ReadOnlyCollection<PrimitivePropertyDescriptor> PrimitivePropertyDescriptors { get; private set; }
@@ -149,14 +148,31 @@ namespace Chloe.Descriptors
 
         internal ComplexObjectModel GenObjectModel(DbTable table, QueryContext queryContext, QueryOptions queryOptions)
         {
-            ComplexObjectModel model = new ComplexObjectModel(queryContext, queryOptions, this.Definition.Type, this.PrimitivePropertyDescriptors.Count);
-            foreach (PrimitivePropertyDescriptor propertyDescriptor in this.PrimitivePropertyDescriptors)
+            List<Tuple<PrimitivePropertyDescriptor, DbColumnAccessExpression>> columns;
+            if (!this.CachedDbColumns.TryGetValue(table, out columns))
             {
-                DbColumnAccessExpression columnAccessExpression = new DbColumnAccessExpression(table, propertyDescriptor.Column);
-                model.AddPrimitiveMember(propertyDescriptor.Property, columnAccessExpression);
+                columns = new List<Tuple<PrimitivePropertyDescriptor, DbColumnAccessExpression>>(this.PrimitivePropertyDescriptors.Count);
+                for (int i = 0; i < this.PrimitivePropertyDescriptors.Count; i++)
+                {
+                    PrimitivePropertyDescriptor propertyDescriptor = this.PrimitivePropertyDescriptors[i];
+                    DbColumnAccessExpression columnAccessExpression = new DbColumnAccessExpression(table, propertyDescriptor.Column);
+                    columns.Add(new Tuple<PrimitivePropertyDescriptor, DbColumnAccessExpression>(propertyDescriptor, columnAccessExpression));
+                }
+
+                this.CachedDbColumns[table] = columns;
+            }
+
+            ComplexObjectModel model = new ComplexObjectModel(queryContext, queryOptions, this.Definition.Type, this.PrimitivePropertyDescriptors.Count);
+
+            for (int i = 0; i < columns.Count; i++)
+            {
+                var tuple = columns[i];
+                var propertyDescriptor = tuple.Item1;
+                var column = tuple.Item2;
+                model.AddPrimitiveMember(tuple.Item1.Property, column);
 
                 if (propertyDescriptor.IsPrimaryKey)
-                    model.PrimaryKey = columnAccessExpression;
+                    model.PrimaryKey = column;
             }
 
             return model;
@@ -164,34 +180,7 @@ namespace Chloe.Descriptors
 
         internal ComplexObjectModel GenObjectModel(string tableName, QueryContext queryContext, QueryOptions queryOptions)
         {
-            ComplexObjectModel model = new ComplexObjectModel(queryContext, queryOptions, this.Definition.Type, this.PrimitivePropertyDescriptors.Count);
-
-            DbTable table = null;
-            if (this.CachedDbTable.Name != tableName)
-            {
-                table = new DbTable(tableName);
-            }
-
-            foreach (PrimitivePropertyDescriptor propertyDescriptor in this.PrimitivePropertyDescriptors)
-            {
-                DbColumnAccessExpression columnAccessExpression;
-                if (table != null)
-                {
-                    columnAccessExpression = new DbColumnAccessExpression(table, propertyDescriptor.Column);
-                }
-                else
-                {
-                    //重用
-                    columnAccessExpression = propertyDescriptor.CachedDbColumnAccessExpression;
-                }
-
-                model.AddPrimitiveMember(propertyDescriptor.Property, columnAccessExpression);
-
-                if (propertyDescriptor.IsPrimaryKey)
-                    model.PrimaryKey = columnAccessExpression;
-            }
-
-            return model;
+            return GenObjectModel(new DbTable(tableName), queryContext, queryOptions);
         }
 
         internal DbTable GenDbTable(string explicitTableName)
