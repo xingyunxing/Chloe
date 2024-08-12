@@ -80,7 +80,7 @@ namespace Chloe.Visitors
              * query.Any() --> exists 查询
              */
 
-            if (exp.Object != null && IsIQueryType(exp.Object.Type))
+            if (exp.Object != null && Utils.IsIQueryType(exp.Object.Type))
             {
                 string methodName = exp.Method.Name;
                 if (methodName == nameof(IQuery<int>.First) || methodName == nameof(IQuery<int>.FirstOrDefault))
@@ -150,20 +150,5 @@ namespace Chloe.Visitors
             return (QueryExpression)constantExpression.Value;
         }
 
-        static bool IsIQueryType(Type type)
-        {
-            if (!type.IsGenericType)
-                return false;
-
-            Type queryType = typeof(IQuery<>);
-            if (queryType == type.GetGenericTypeDefinition())
-                return true;
-
-            Type implementedInterface = type.GetInterface("IQuery`1");
-            if (implementedInterface == null)
-                return false;
-            implementedInterface = implementedInterface.GetGenericTypeDefinition();
-            return queryType == implementedInterface;
-        }
     }
 }

@@ -29,16 +29,25 @@ namespace Chloe.Visitors
 
         public static QueryExpression Transform(QueryExpression queryExpression)
         {
+            if (!DoesQueryObjectExistJudgment.ExistsQueryObject(queryExpression))
+                return queryExpression;
+
             return queryExpression.Accept(Instance);
         }
 
         public static Expression Transform(Expression expression)
         {
+            if (!DoesQueryObjectExistJudgment.ExistsQueryObject(expression))
+                return expression;
+
             return Instance.Visit(expression);
         }
 
         public static LambdaExpression Transform(LambdaExpression expression)
         {
+            if (!DoesQueryObjectExistJudgment.ExistsQueryObject(expression))
+                return expression;
+
             return (LambdaExpression)Instance.Visit(expression);
         }
 
@@ -69,7 +78,7 @@ namespace Chloe.Visitors
              * IQuery<T>.Average()
              */
 
-            if (exp.Object != null && IsIQueryType(exp.Object.Type))
+            if (exp.Object != null && Utils.IsIQueryType(exp.Object.Type))
             {
                 string methodName = exp.Method.Name;
                 if (methodName == nameof(IQuery<int>.First) || methodName == nameof(IQuery<int>.FirstOrDefault))
@@ -182,7 +191,7 @@ namespace Chloe.Visitors
 
         static QueryExpression ExtractQueryExpression(Expression queryObjectExpression)
         {
-            if (!IsIQueryType(queryObjectExpression.Type))
+            if (!Utils.IsIQueryType(queryObjectExpression.Type))
             {
                 throw new NotSupportedException(queryObjectExpression.ToString());
             }
@@ -227,21 +236,7 @@ namespace Chloe.Visitors
             if (!MappingTypeSystem.IsMappingType(type))
                 throw new NotSupportedException(string.Format("The generic parameter type of method {0} must be mapping type.", exp.Method.Name));
         }
-        static bool IsIQueryType(Type type)
-        {
-            if (!type.IsGenericType)
-                return false;
 
-            Type queryType = typeof(IQuery<>);
-            if (queryType == type.GetGenericTypeDefinition())
-                return true;
-
-            Type implementedInterface = type.GetInterface("IQuery`1");
-            if (implementedInterface == null)
-                return false;
-            implementedInterface = implementedInterface.GetGenericTypeDefinition();
-            return queryType == implementedInterface;
-        }
         static Type ConvertToIQueryType(Type type)
         {
             Type queryType = typeof(IQuery<>);
@@ -271,7 +266,7 @@ namespace Chloe.Visitors
             if (methodCall.Method.Name != nameof(IQuery<int>.First) && methodCall.Method.Name != nameof(IQuery<int>.FirstOrDefault))
                 return false;
 
-            return IsIQueryType(methodCall.Object.Type);
+            return Utils.IsIQueryType(methodCall.Object.Type);
         }
     }
 }

@@ -70,5 +70,22 @@ namespace Chloe
         {
             return t == typeof(Int16) || t == typeof(Int32) || t == typeof(Int64);
         }
+
+        public static bool IsIQueryType(Type type)
+        {
+            if (!type.IsGenericType)
+                return false;
+
+            Type queryType = typeof(IQuery<>);
+            if (queryType == type.GetGenericTypeDefinition())
+                return true;
+
+            Type implementedInterface = type.GetInterface("IQuery`1");
+            if (implementedInterface == null)
+                return false;
+
+            implementedInterface = implementedInterface.GetGenericTypeDefinition();
+            return queryType == implementedInterface;
+        }
     }
 }
