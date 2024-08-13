@@ -78,7 +78,6 @@ namespace Chloe.Query
 
         public override int GetHashCode()
         {
-            //Console.WriteLine($"$hash code: {QueryExpressionEqualityComparer.Instance.GetHashCode(this._query)}");
             return QueryExpressionEqualityComparer.Instance.GetHashCode(this._query);
         }
 
