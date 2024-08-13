@@ -2,9 +2,9 @@
 
 namespace Chloe.Visitors
 {
-    public class ExpressionEvaluableJudge : ExpressionVisitor<bool>
+    public class ExpressionEvaluableJudgment : ExpressionVisitor<bool>
     {
-        static ExpressionEvaluableJudge _judge = new ExpressionEvaluableJudge();
+        static ExpressionEvaluableJudgment _judge = new ExpressionEvaluableJudgment();
 
         public static bool CanEvaluate(Expression exp)
         {

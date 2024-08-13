@@ -30,7 +30,9 @@ namespace Chloe.Visitors
         public static QueryExpression Transform(QueryExpression queryExpression)
         {
             if (!DoesQueryObjectExistJudgment.ExistsQueryObject(queryExpression))
+            {
                 return queryExpression;
+            }
 
             return queryExpression.Accept(Instance);
         }

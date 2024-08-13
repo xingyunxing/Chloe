@@ -25,6 +25,9 @@ namespace Chloe.Query
             QueryPlan queryPlan;
             if (!Cache.TryGetValue(key, out queryPlan))
             {
+#if DEBUG
+                Console.WriteLine("no query plan cache match ...");
+#endif
                 QueryPlan plan = planFactory();
                 lock (Cache)
                 {
@@ -35,6 +38,12 @@ namespace Chloe.Query
                     }
                 }
             }
+#if DEBUG
+            else
+            {
+                Console.WriteLine("match query plan cache...");
+            }
+#endif
 
             return queryPlan;
         }
