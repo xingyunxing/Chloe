@@ -7,7 +7,7 @@
         }
         public override T Accept<T>(IQueryExpressionVisitor<T> visitor)
         {
-            return visitor.Visit(this);
+            return visitor.VisitDistinct(this);
         }
     }
 }

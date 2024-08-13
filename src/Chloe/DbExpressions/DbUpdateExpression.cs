@@ -31,7 +31,7 @@
 
         public override T Accept<T>(DbExpressionVisitor<T> visitor)
         {
-            return visitor.Visit(this);
+            return visitor.VisitUpdate(this);
         }
 
         public void AppendUpdateColumn(DbColumn column, DbExpression value)

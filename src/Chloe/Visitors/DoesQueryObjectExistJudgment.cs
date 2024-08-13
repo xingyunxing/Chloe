@@ -166,7 +166,7 @@ namespace Chloe.Visitors
 
         #region QueryExpression
 
-        public bool Visit(RootQueryExpression exp)
+        public bool VisitRootQuery(RootQueryExpression exp)
         {
             List<LambdaExpression> globalFilters = exp.GlobalFilters;
             for (int i = 0; i < globalFilters.Count; i++)
@@ -184,7 +184,7 @@ namespace Chloe.Visitors
 
             return false;
         }
-        public bool Visit(WhereExpression exp)
+        public bool VisitWhere(WhereExpression exp)
         {
             if (exp.PrevExpression.Accept(this))
                 return true;
@@ -194,7 +194,7 @@ namespace Chloe.Visitors
 
             return false;
         }
-        public bool Visit(SelectExpression exp)
+        public bool VisitSelect(SelectExpression exp)
         {
             if (exp.PrevExpression.Accept(this))
                 return true;
@@ -204,15 +204,15 @@ namespace Chloe.Visitors
 
             return false;
         }
-        public bool Visit(TakeExpression exp)
+        public bool VisitTake(TakeExpression exp)
         {
             return exp.PrevExpression.Accept(this);
         }
-        public bool Visit(SkipExpression exp)
+        public bool VisitSkip(SkipExpression exp)
         {
             return exp.PrevExpression.Accept(this);
         }
-        public bool Visit(OrderExpression exp)
+        public bool VisitOrder(OrderExpression exp)
         {
             if (exp.PrevExpression.Accept(this))
                 return true;
@@ -222,7 +222,7 @@ namespace Chloe.Visitors
 
             return false;
         }
-        public bool Visit(AggregateQueryExpression exp)
+        public bool VisitAggregateQuery(AggregateQueryExpression exp)
         {
             if (exp.PrevExpression.Accept(this))
                 return true;
@@ -237,7 +237,7 @@ namespace Chloe.Visitors
 
             return false;
         }
-        public bool Visit(JoinQueryExpression exp)
+        public bool VisitJoinQuery(JoinQueryExpression exp)
         {
             if (exp.PrevExpression.Accept(this))
                 return true;
@@ -253,7 +253,7 @@ namespace Chloe.Visitors
 
             return false;
         }
-        public bool Visit(GroupingQueryExpression exp)
+        public bool VisitGroupingQuery(GroupingQueryExpression exp)
         {
             if (exp.PrevExpression.Accept(this))
                 return true;
@@ -282,14 +282,14 @@ namespace Chloe.Visitors
 
             return false;
         }
-        public bool Visit(DistinctExpression exp)
+        public bool VisitDistinct(DistinctExpression exp)
         {
             if (exp.PrevExpression.Accept(this))
                 return true;
 
             return false;
         }
-        public bool Visit(IncludeExpression exp)
+        public bool VisitInclude(IncludeExpression exp)
         {
             if (exp.PrevExpression.Accept(this))
                 return true;
@@ -299,14 +299,14 @@ namespace Chloe.Visitors
 
             return false;
         }
-        public bool Visit(BindTwoWayExpression exp)
+        public bool VisitBindTwoWay(BindTwoWayExpression exp)
         {
             if (exp.PrevExpression.Accept(this))
                 return true;
 
             return false;
         }
-        public bool Visit(ExcludeExpression exp)
+        public bool VisitExclude(ExcludeExpression exp)
         {
             if (exp.PrevExpression.Accept(this))
                 return true;
@@ -316,21 +316,21 @@ namespace Chloe.Visitors
 
             return false;
         }
-        public bool Visit(IgnoreAllFiltersExpression exp)
+        public bool VisitIgnoreAllFilters(IgnoreAllFiltersExpression exp)
         {
             if (exp.PrevExpression.Accept(this))
                 return true;
 
             return false;
         }
-        public bool Visit(TrackingExpression exp)
+        public bool VisitTracking(TrackingExpression exp)
         {
             if (exp.PrevExpression.Accept(this))
                 return true;
 
             return false;
         }
-        public bool Visit(PagingExpression exp)
+        public bool VisitPaging(PagingExpression exp)
         {
             if (exp.PrevExpression.Accept(this))
                 return true;

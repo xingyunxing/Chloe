@@ -84,7 +84,7 @@ namespace Chloe.Visitors
             return false;
         }
 
-        public override DbExpression Visit(DbMemberExpression exp)
+        public override DbExpression VisitMember(DbMemberExpression exp)
         {
 #if !NET46 && !NETSTANDARD2
             if (exp.Member.Name == nameof(VariableSlot<int>.Value))
@@ -120,7 +120,7 @@ namespace Chloe.Visitors
             return DbExpression.Parameter(exp.Evaluate(), exp.Type);
         }
 
-        public override DbExpression Visit(DbCoalesceExpression exp)
+        public override DbExpression VisitCoalesce(DbCoalesceExpression exp)
         {
             exp = new DbCoalesceExpression(exp.CheckExpression.Accept(this), exp.ReplacementValue.Accept(this));
 
@@ -132,7 +132,7 @@ namespace Chloe.Visitors
             return exp;
         }
 
-        public override DbExpression Visit(DbMethodCallExpression exp)
+        public override DbExpression VisitMethodCall(DbMethodCallExpression exp)
         {
             var args = exp.Arguments.Select(a => a.Accept(this)).ToList();
             DbExpression caller = exp.Object;
@@ -166,7 +166,7 @@ namespace Chloe.Visitors
             return DbExpression.Parameter(exp.Evaluate(), exp.Type);
         }
 
-        public override DbExpression Visit(DbParameterExpression exp)
+        public override DbExpression VisitParameter(DbParameterExpression exp)
         {
             return exp;
         }

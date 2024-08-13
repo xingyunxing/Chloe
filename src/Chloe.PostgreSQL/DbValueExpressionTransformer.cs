@@ -17,134 +17,134 @@ namespace Chloe.PostgreSQL
             return caseWhenExpression;
         }
 
-        public override DbExpression Visit(DbEqualExpression exp)
+        public override DbExpression VisitEqual(DbEqualExpression exp)
         {
             return this.ConvertDbBooleanExpression(exp);
         }
-        public override DbExpression Visit(DbNotEqualExpression exp)
+        public override DbExpression VisitNotEqual(DbNotEqualExpression exp)
         {
             return this.ConvertDbBooleanExpression(exp);
         }
-        public override DbExpression Visit(DbNotExpression exp)
-        {
-            return this.ConvertDbBooleanExpression(exp);
-        }
-
-        public override DbExpression Visit(DbBitAndExpression exp)
-        {
-            return exp;
-        }
-        public override DbExpression Visit(DbAndExpression exp)
-        {
-            return this.ConvertDbBooleanExpression(exp);
-        }
-        public override DbExpression Visit(DbBitOrExpression exp)
-        {
-            return exp;
-        }
-        public override DbExpression Visit(DbOrExpression exp)
+        public override DbExpression VisitNot(DbNotExpression exp)
         {
             return this.ConvertDbBooleanExpression(exp);
         }
 
-        public override DbExpression Visit(DbConvertExpression exp)
+        public override DbExpression VisitBitAnd(DbBitAndExpression exp)
+        {
+            return exp;
+        }
+        public override DbExpression VisitAnd(DbAndExpression exp)
+        {
+            return this.ConvertDbBooleanExpression(exp);
+        }
+        public override DbExpression VisitBitOr(DbBitOrExpression exp)
+        {
+            return exp;
+        }
+        public override DbExpression VisitOr(DbOrExpression exp)
+        {
+            return this.ConvertDbBooleanExpression(exp);
+        }
+
+        public override DbExpression VisitConvert(DbConvertExpression exp)
         {
             return exp;
         }
         // +
-        public override DbExpression Visit(DbAddExpression exp)
+        public override DbExpression VisitAdd(DbAddExpression exp)
         {
             return exp;
         }
         // -
-        public override DbExpression Visit(DbSubtractExpression exp)
+        public override DbExpression VisitSubtract(DbSubtractExpression exp)
         {
             return exp;
         }
         // *
-        public override DbExpression Visit(DbMultiplyExpression exp)
+        public override DbExpression VisitMultiply(DbMultiplyExpression exp)
         {
             return exp;
         }
         // /
-        public override DbExpression Visit(DbDivideExpression exp)
+        public override DbExpression VisitDivide(DbDivideExpression exp)
         {
             return exp;
         }
         // %
-        public override DbExpression Visit(DbModuloExpression exp)
+        public override DbExpression VisitModulo(DbModuloExpression exp)
         {
             return exp;
         }
-        public override DbExpression Visit(DbNegateExpression exp)
+        public override DbExpression VisitNegate(DbNegateExpression exp)
         {
             return exp;
         }
         // <
-        public override DbExpression Visit(DbLessThanExpression exp)
+        public override DbExpression VisitLessThan(DbLessThanExpression exp)
         {
             return this.ConvertDbBooleanExpression(exp);
         }
         // <=
-        public override DbExpression Visit(DbLessThanOrEqualExpression exp)
+        public override DbExpression VisitLessThanOrEqual(DbLessThanOrEqualExpression exp)
         {
             return this.ConvertDbBooleanExpression(exp);
         }
         // >
-        public override DbExpression Visit(DbGreaterThanExpression exp)
+        public override DbExpression VisitGreaterThan(DbGreaterThanExpression exp)
         {
             return this.ConvertDbBooleanExpression(exp);
         }
         // >=
-        public override DbExpression Visit(DbGreaterThanOrEqualExpression exp)
+        public override DbExpression VisitGreaterThanOrEqual(DbGreaterThanOrEqualExpression exp)
         {
             return this.ConvertDbBooleanExpression(exp);
         }
 
-        public override DbExpression Visit(DbConstantExpression exp)
+        public override DbExpression VisitConstant(DbConstantExpression exp)
         {
             return exp;
         }
 
-        public override DbExpression Visit(DbCoalesceExpression exp)
+        public override DbExpression VisitCoalesce(DbCoalesceExpression exp)
         {
             return exp;
         }
 
-        public override DbExpression Visit(DbCaseWhenExpression exp)
+        public override DbExpression VisitCaseWhen(DbCaseWhenExpression exp)
         {
             return exp;
         }
 
-        public override DbExpression Visit(DbTableExpression exp)
+        public override DbExpression VisitTable(DbTableExpression exp)
         {
             return exp;
         }
 
-        public override DbExpression Visit(DbColumnAccessExpression exp)
+        public override DbExpression VisitColumnAccess(DbColumnAccessExpression exp)
         {
             return exp;
         }
 
-        public override DbExpression Visit(DbMemberExpression exp)
+        public override DbExpression VisitMember(DbMemberExpression exp)
         {
             return exp;
         }
-        public override DbExpression Visit(DbParameterExpression exp)
-        {
-            return exp;
-        }
-
-        public override DbExpression Visit(DbSubQueryExpression exp)
-        {
-            return exp;
-        }
-        public override DbExpression Visit(DbSqlQueryExpression exp)
+        public override DbExpression VisitParameter(DbParameterExpression exp)
         {
             return exp;
         }
 
-        public override DbExpression Visit(DbMethodCallExpression exp)
+        public override DbExpression VisitSubQuery(DbSubQueryExpression exp)
+        {
+            return exp;
+        }
+        public override DbExpression VisitSqlQuery(DbSqlQueryExpression exp)
+        {
+            return exp;
+        }
+
+        public override DbExpression VisitMethodCall(DbMethodCallExpression exp)
         {
             if (exp.Type == PublicConstants.TypeOfBoolean || exp.Type == PublicConstants.TypeOfBoolean_Nullable)
                 return this.ConvertDbBooleanExpression(exp);
@@ -152,34 +152,34 @@ namespace Chloe.PostgreSQL
                 return exp;
         }
 
-        public override DbExpression Visit(DbFromTableExpression exp)
+        public override DbExpression VisitFromTable(DbFromTableExpression exp)
         {
             return exp;
         }
 
-        public override DbExpression Visit(DbJoinTableExpression exp)
+        public override DbExpression VisitJoinTable(DbJoinTableExpression exp)
         {
             return exp;
         }
-        public override DbExpression Visit(DbAggregateExpression exp)
-        {
-            return exp;
-        }
-
-        public override DbExpression Visit(DbInsertExpression exp)
-        {
-            return exp;
-        }
-        public override DbExpression Visit(DbUpdateExpression exp)
-        {
-            return exp;
-        }
-        public override DbExpression Visit(DbDeleteExpression exp)
+        public override DbExpression VisitAggregate(DbAggregateExpression exp)
         {
             return exp;
         }
 
-        public override DbExpression Visit(DbExistsExpression exp)
+        public override DbExpression VisitInsert(DbInsertExpression exp)
+        {
+            return exp;
+        }
+        public override DbExpression VisitUpdate(DbUpdateExpression exp)
+        {
+            return exp;
+        }
+        public override DbExpression VisitDelete(DbDeleteExpression exp)
+        {
+            return exp;
+        }
+
+        public override DbExpression VisitExists(DbExistsExpression exp)
         {
             return this.ConvertDbBooleanExpression(exp);
         }

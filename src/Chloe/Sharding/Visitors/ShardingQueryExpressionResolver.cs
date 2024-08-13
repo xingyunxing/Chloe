@@ -20,7 +20,7 @@ namespace Chloe.Sharding.Visitors
             return queryExpression.Accept(shardingQueryExpressionResolver) as ShardingQueryStateBase;
         }
 
-        public override IQueryState Visit(RootQueryExpression exp)
+        public override IQueryState VisitRootQuery(RootQueryExpression exp)
         {
             IQueryState queryState = new ShardingRootQueryState(this._queryContext, exp);
             return queryState;

@@ -24,13 +24,13 @@ namespace Chloe.Query.Visitors
             return (QueryStateBase)queryExpression.Accept(resolver);
         }
 
-        public override IQueryState Visit(RootQueryExpression exp)
+        public override IQueryState VisitRootQuery(RootQueryExpression exp)
         {
             IQueryState queryState = new RootQueryState(this._queryContext, exp, this._scopeParameters, this._scopeTables);
             return queryState;
         }
 
-        public override IQueryState Visit(JoinQueryExpression exp)
+        public override IQueryState VisitJoinQuery(JoinQueryExpression exp)
         {
             QueryStateBase qs = QueryExpressionResolver.Resolve(this._queryContext, exp.PrevExpression, this._scopeParameters, this._scopeTables);
 

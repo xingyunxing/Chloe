@@ -60,7 +60,7 @@ namespace Chloe.SqlServer
         protected override Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers { get; } = AggregateHandlerDic;
         protected override Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers { get; } = BinaryWithMethodHandlersDic;
 
-        public override DbExpression Visit(DbSqlQueryExpression exp)
+        public override DbExpression VisitSqlQuery(DbSqlQueryExpression exp)
         {
             if (exp.SkipCount != null)
             {
@@ -76,7 +76,7 @@ namespace Chloe.SqlServer
 
             throw new NotImplementedException();
         }
-        public override DbExpression Visit(DbInsertExpression exp)
+        public override DbExpression VisitInsert(DbInsertExpression exp)
         {
             string separator = "";
 
@@ -112,7 +112,7 @@ namespace Chloe.SqlServer
 
             return exp;
         }
-        public override DbExpression Visit(DbUpdateExpression exp)
+        public override DbExpression VisitUpdate(DbUpdateExpression exp)
         {
             this.SqlBuilder.Append("UPDATE ");
             this.AppendTable(exp.Table);
@@ -139,7 +139,7 @@ namespace Chloe.SqlServer
 
             return exp;
         }
-        public override DbExpression Visit(DbDeleteExpression exp)
+        public override DbExpression VisitDelete(DbDeleteExpression exp)
         {
             this.SqlBuilder.Append("DELETE ");
             this.AppendTable(exp.Table);
@@ -148,7 +148,7 @@ namespace Chloe.SqlServer
             return exp;
         }
 
-        public override DbExpression Visit(DbCoalesceExpression exp)
+        public override DbExpression VisitCoalesce(DbCoalesceExpression exp)
         {
             this.SqlBuilder.Append("ISNULL(");
             EnsureDbExpressionReturnCSharpBoolean(exp.CheckExpression).Accept(this);
@@ -159,7 +159,7 @@ namespace Chloe.SqlServer
             return exp;
         }
         // then 部分必须返回 C# type，所以得判断是否是诸如 a>1,a=b,in,like 等等的情况，如果是则将其构建成一个 case when 
-        public override DbExpression Visit(DbCaseWhenExpression exp)
+        public override DbExpression VisitCaseWhen(DbCaseWhenExpression exp)
         {
             this.SqlBuilder.Append("CASE");
             foreach (var whenThen in exp.WhenThenPairs)
@@ -177,7 +177,7 @@ namespace Chloe.SqlServer
 
             return exp;
         }
-        public override DbExpression Visit(DbConvertExpression exp)
+        public override DbExpression VisitConvert(DbConvertExpression exp)
         {
             DbExpression stripedExp = DbExpressionExtension.StripInvalidConvert(exp);
 
@@ -200,7 +200,7 @@ namespace Chloe.SqlServer
             return exp;
         }
 
-        public override DbExpression Visit(DbConstantExpression exp)
+        public override DbExpression VisitConstant(DbConstantExpression exp)
         {
             if (exp.Value == null || exp.Value == DBNull.Value)
             {
@@ -235,7 +235,7 @@ namespace Chloe.SqlServer
 
             return exp;
         }
-        public override DbExpression Visit(DbParameterExpression exp)
+        public override DbExpression VisitParameter(DbParameterExpression exp)
         {
             object paramValue = exp.Value;
             Type paramType = exp.Type.GetUnderlyingType();

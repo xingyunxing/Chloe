@@ -2,107 +2,107 @@
 {
     public class DbExpressionVisitor : DbExpressionVisitor<DbExpression>
     {
-        public override DbExpression Visit(DbEqualExpression exp)
+        public override DbExpression VisitEqual(DbEqualExpression exp)
         {
             return new DbEqualExpression(this.MakeNewExpression(exp.Left), this.MakeNewExpression(exp.Right), exp.Method);
         }
-        public override DbExpression Visit(DbNotEqualExpression exp)
+        public override DbExpression VisitNotEqual(DbNotEqualExpression exp)
         {
             return new DbNotEqualExpression(this.MakeNewExpression(exp.Left), this.MakeNewExpression(exp.Right), exp.Method);
         }
         // +            
-        public override DbExpression Visit(DbAddExpression exp)
+        public override DbExpression VisitAdd(DbAddExpression exp)
         {
             return new DbAddExpression(exp.Type, this.MakeNewExpression(exp.Left), this.MakeNewExpression(exp.Right), exp.Method);
         }
         // -            
-        public override DbExpression Visit(DbSubtractExpression exp)
+        public override DbExpression VisitSubtract(DbSubtractExpression exp)
         {
             return new DbSubtractExpression(exp.Type, this.MakeNewExpression(exp.Left), this.MakeNewExpression(exp.Right), exp.Method);
         }
         // *            
-        public override DbExpression Visit(DbMultiplyExpression exp)
+        public override DbExpression VisitMultiply(DbMultiplyExpression exp)
         {
             return new DbMultiplyExpression(exp.Type, this.MakeNewExpression(exp.Left), this.MakeNewExpression(exp.Right), exp.Method);
         }
         // /            
-        public override DbExpression Visit(DbDivideExpression exp)
+        public override DbExpression VisitDivide(DbDivideExpression exp)
         {
             return new DbDivideExpression(exp.Type, this.MakeNewExpression(exp.Left), this.MakeNewExpression(exp.Right), exp.Method);
         }
         // %            
-        public override DbExpression Visit(DbModuloExpression exp)
+        public override DbExpression VisitModulo(DbModuloExpression exp)
         {
             return new DbModuloExpression(exp.Type, this.MakeNewExpression(exp.Left), this.MakeNewExpression(exp.Right), exp.Method);
         }
 
-        public override DbExpression Visit(DbNegateExpression exp)
+        public override DbExpression VisitNegate(DbNegateExpression exp)
         {
             return new DbNegateExpression(exp.Type, this.MakeNewExpression(exp.Operand));
         }
 
         // <            
-        public override DbExpression Visit(DbLessThanExpression exp)
+        public override DbExpression VisitLessThan(DbLessThanExpression exp)
         {
             return new DbLessThanExpression(this.MakeNewExpression(exp.Left), this.MakeNewExpression(exp.Right), exp.Method);
         }
         // <=           
-        public override DbExpression Visit(DbLessThanOrEqualExpression exp)
+        public override DbExpression VisitLessThanOrEqual(DbLessThanOrEqualExpression exp)
         {
             return new DbLessThanOrEqualExpression(this.MakeNewExpression(exp.Left), this.MakeNewExpression(exp.Right), exp.Method);
         }
         // >            
-        public override DbExpression Visit(DbGreaterThanExpression exp)
+        public override DbExpression VisitGreaterThan(DbGreaterThanExpression exp)
         {
             return new DbGreaterThanExpression(this.MakeNewExpression(exp.Left), this.MakeNewExpression(exp.Right), exp.Method);
         }
         // >=           
-        public override DbExpression Visit(DbGreaterThanOrEqualExpression exp)
+        public override DbExpression VisitGreaterThanOrEqual(DbGreaterThanOrEqualExpression exp)
         {
             return new DbGreaterThanOrEqualExpression(this.MakeNewExpression(exp.Left), this.MakeNewExpression(exp.Right), exp.Method);
         }
-        public override DbExpression Visit(DbBitAndExpression exp)
+        public override DbExpression VisitBitAnd(DbBitAndExpression exp)
         {
             return new DbBitAndExpression(exp.Type, this.MakeNewExpression(exp.Left), this.MakeNewExpression(exp.Right));
         }
-        public override DbExpression Visit(DbAndExpression exp)
+        public override DbExpression VisitAnd(DbAndExpression exp)
         {
             return new DbAndExpression(this.MakeNewExpression(exp.Left), this.MakeNewExpression(exp.Right), exp.Method);
         }
-        public override DbExpression Visit(DbBitOrExpression exp)
+        public override DbExpression VisitBitOr(DbBitOrExpression exp)
         {
             return new DbBitOrExpression(exp.Type, this.MakeNewExpression(exp.Left), this.MakeNewExpression(exp.Right));
         }
-        public override DbExpression Visit(DbOrExpression exp)
+        public override DbExpression VisitOr(DbOrExpression exp)
         {
             return new DbOrExpression(this.MakeNewExpression(exp.Left), this.MakeNewExpression(exp.Right), exp.Method);
         }
-        public override DbExpression Visit(DbConstantExpression exp)
+        public override DbExpression VisitConstant(DbConstantExpression exp)
         {
             return exp;
         }
-        public override DbExpression Visit(DbMemberExpression exp)
+        public override DbExpression VisitMember(DbMemberExpression exp)
         {
             return new DbMemberExpression(exp.Member, this.MakeNewExpression(exp.Expression));
         }
-        public override DbExpression Visit(DbNotExpression exp)
+        public override DbExpression VisitNot(DbNotExpression exp)
         {
             return new DbNotExpression(this.MakeNewExpression(exp.Operand));
         }
-        public override DbExpression Visit(DbConvertExpression exp)
+        public override DbExpression VisitConvert(DbConvertExpression exp)
         {
             return new DbConvertExpression(exp.Type, this.MakeNewExpression(exp.Operand));
         }
-        public override DbExpression Visit(DbCoalesceExpression exp)
+        public override DbExpression VisitCoalesce(DbCoalesceExpression exp)
         {
             return new DbCoalesceExpression(this.MakeNewExpression(exp.CheckExpression), this.MakeNewExpression(exp.ReplacementValue));
         }
-        public override DbExpression Visit(DbCaseWhenExpression exp)
+        public override DbExpression VisitCaseWhen(DbCaseWhenExpression exp)
         {
             var whenThenPairs = exp.WhenThenPairs.Select(a => new DbCaseWhenExpression.WhenThenExpressionPair(this.MakeNewExpression(a.When), this.MakeNewExpression(a.Then))).ToList();
             return new DbCaseWhenExpression(exp.Type, whenThenPairs, this.MakeNewExpression(exp.Else));
         }
-        public override DbExpression Visit(DbMethodCallExpression exp)
+        public override DbExpression VisitMethodCall(DbMethodCallExpression exp)
         {
             List<DbExpression> arguments = new List<DbExpression>(exp.Arguments.Count);
 
@@ -114,24 +114,24 @@
             return new DbMethodCallExpression(this.MakeNewExpression(exp.Object), exp.Method, arguments);
         }
 
-        public override DbExpression Visit(DbTableExpression exp)
+        public override DbExpression VisitTable(DbTableExpression exp)
         {
             return exp;
         }
-        public override DbExpression Visit(DbColumnAccessExpression exp)
+        public override DbExpression VisitColumnAccess(DbColumnAccessExpression exp)
         {
             return exp;
         }
 
-        public override DbExpression Visit(DbParameterExpression exp)
+        public override DbExpression VisitParameter(DbParameterExpression exp)
         {
             return new DbParameterExpression(exp.Value, exp.Type, exp.DbType);
         }
-        public override DbExpression Visit(DbSubQueryExpression exp)
+        public override DbExpression VisitSubQuery(DbSubQueryExpression exp)
         {
             return new DbSubQueryExpression((DbSqlQueryExpression)this.MakeNewExpression(exp.SqlQuery));
         }
-        public override DbExpression Visit(DbSqlQueryExpression exp)
+        public override DbExpression VisitSqlQuery(DbSqlQueryExpression exp)
         {
             DbSqlQueryExpression sqlQuery = new DbSqlQueryExpression(exp.Type, exp.ColumnSegments.Count, exp.GroupSegments.Count, exp.Orderings.Count)
             {
@@ -160,7 +160,7 @@
 
             return sqlQuery;
         }
-        public override DbExpression Visit(DbFromTableExpression exp)
+        public override DbExpression VisitFromTable(DbFromTableExpression exp)
         {
             DbFromTableExpression ret = new DbFromTableExpression(new DbTableSegment(this.MakeNewExpression(exp.Table.Body), exp.Table.Alias, exp.Table.Lock));
             for (int i = 0; i < exp.JoinTables.Count; i++)
@@ -170,7 +170,7 @@
 
             return ret;
         }
-        public override DbExpression Visit(DbJoinTableExpression exp)
+        public override DbExpression VisitJoinTable(DbJoinTableExpression exp)
         {
             DbJoinTableExpression ret = new DbJoinTableExpression(exp.JoinType, new DbTableSegment(this.MakeNewExpression(exp.Table.Body), exp.Table.Alias, exp.Table.Lock), this.MakeNewExpression(exp.Condition));
             for (int i = 0; i < exp.JoinTables.Count; i++)
@@ -181,7 +181,7 @@
 
             return ret;
         }
-        public override DbExpression Visit(DbAggregateExpression exp)
+        public override DbExpression VisitAggregate(DbAggregateExpression exp)
         {
             List<DbExpression> arguments = new List<DbExpression>(exp.Arguments.Count);
 
@@ -193,7 +193,7 @@
             return new DbAggregateExpression(exp.Type, exp.Method, arguments);
         }
 
-        public override DbExpression Visit(DbInsertExpression exp)
+        public override DbExpression VisitInsert(DbInsertExpression exp)
         {
             DbInsertExpression ret = new DbInsertExpression(exp.Table, exp.InsertColumns.Count, exp.Returns.Count);
 
@@ -209,7 +209,7 @@
 
             return ret;
         }
-        public override DbExpression Visit(DbUpdateExpression exp)
+        public override DbExpression VisitUpdate(DbUpdateExpression exp)
         {
             DbUpdateExpression ret = new DbUpdateExpression(exp.Table, this.MakeNewExpression(exp.Condition), exp.UpdateColumns.Count, exp.Returns.Count);
 
@@ -225,12 +225,12 @@
 
             return ret;
         }
-        public override DbExpression Visit(DbDeleteExpression exp)
+        public override DbExpression VisitDelete(DbDeleteExpression exp)
         {
             return new DbDeleteExpression(exp.Table, this.MakeNewExpression(exp.Condition));
         }
 
-        public override DbExpression Visit(DbExistsExpression exp)
+        public override DbExpression VisitExists(DbExistsExpression exp)
         {
             return new DbExistsExpression((DbSqlQueryExpression)this.MakeNewExpression(exp.SqlQuery));
         }

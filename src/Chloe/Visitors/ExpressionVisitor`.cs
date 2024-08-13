@@ -77,7 +77,7 @@ namespace Chloe.Visitors
                     throw new Exception(string.Format("Unhandled expression type: '{0}'", exp.NodeType));
             }
         }
-
+            
         protected virtual T VisitExpression(Expression exp)
         {
             throw new NotImplementedException(exp.ToString());

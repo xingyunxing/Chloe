@@ -57,24 +57,24 @@ namespace Chloe.MySql
         protected override Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers { get; } = AggregateHandlerDic;
         protected override Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers { get; } = BinaryWithMethodHandlersDic;
 
-        public override DbExpression Visit(DbJoinTableExpression exp)
+        public override DbExpression VisitJoinTable(DbJoinTableExpression exp)
         {
             if (exp.JoinType == DbJoinType.FullJoin)
             {
                 throw new NotSupportedException("JoinType: " + exp.JoinType);
             }
 
-            return base.Visit(exp);
+            return base.VisitJoinTable(exp);
         }
 
-        public override DbExpression Visit(DbSqlQueryExpression exp)
+        public override DbExpression VisitSqlQuery(DbSqlQueryExpression exp)
         {
             //构建常规的查询
             this.BuildGeneralSql(exp);
             return exp;
         }
 
-        public override DbExpression Visit(DbCoalesceExpression exp)
+        public override DbExpression VisitCoalesce(DbCoalesceExpression exp)
         {
             this.SqlBuilder.Append("IFNULL(");
             exp.CheckExpression.Accept(this);
@@ -85,7 +85,7 @@ namespace Chloe.MySql
             return exp;
         }
 
-        public override DbExpression Visit(DbConvertExpression exp)
+        public override DbExpression VisitConvert(DbConvertExpression exp)
         {
             DbExpression stripedExp = DbExpressionExtension.StripInvalidConvert(exp);
 
@@ -129,7 +129,7 @@ namespace Chloe.MySql
             return exp;
         }
 
-        public override DbExpression Visit(DbConstantExpression exp)
+        public override DbExpression VisitConstant(DbConstantExpression exp)
         {
             if (exp.Value == null || exp.Value == DBNull.Value)
             {
@@ -164,7 +164,7 @@ namespace Chloe.MySql
 
             return exp;
         }
-        public override DbExpression Visit(DbParameterExpression exp)
+        public override DbExpression VisitParameter(DbParameterExpression exp)
         {
             object paramValue = exp.Value;
             Type paramType = exp.Type.GetUnderlyingType();
@@ -207,9 +207,9 @@ namespace Chloe.MySql
             return exp;
         }
 
-        public override DbExpression Visit(DbUpdateExpression exp)
+        public override DbExpression VisitUpdate(DbUpdateExpression exp)
         {
-            base.Visit(exp);
+            base.VisitUpdate(exp);
             if (exp is MySqlDbUpdateExpression)
             {
                 this.SqlBuilder.Append(" LIMIT ", (exp as MySqlDbUpdateExpression).Limits.ToString());
@@ -217,9 +217,9 @@ namespace Chloe.MySql
 
             return exp;
         }
-        public override DbExpression Visit(DbDeleteExpression exp)
+        public override DbExpression VisitDelete(DbDeleteExpression exp)
         {
-            base.Visit(exp);
+            base.VisitDelete(exp);
             if (exp is MySqlDbDeleteExpression)
             {
                 this.SqlBuilder.Append(" LIMIT ", (exp as MySqlDbDeleteExpression).Limits.ToString());

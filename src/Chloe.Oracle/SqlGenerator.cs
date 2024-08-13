@@ -61,7 +61,7 @@ namespace Chloe.Oracle
         protected override Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers { get; } = AggregateHandlerDic;
         protected override Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers { get; } = BinaryWithMethodHandlersDic;
 
-        public override DbExpression Visit(DbNotEqualExpression exp)
+        public override DbExpression VisitNotEqual(DbNotEqualExpression exp)
         {
             DbExpression left = exp.Left;
             DbExpression right = exp.Right;
@@ -171,7 +171,7 @@ namespace Chloe.Oracle
             return exp;
         }
 
-        public override DbExpression Visit(DbBitAndExpression exp)
+        public override DbExpression VisitBitAnd(DbBitAndExpression exp)
         {
             this.SqlBuilder.Append("BITAND(");
             exp.Left.Accept(this);
@@ -181,13 +181,13 @@ namespace Chloe.Oracle
 
             return exp;
         }
-        public override DbExpression Visit(DbBitOrExpression exp)
+        public override DbExpression VisitBitOr(DbBitOrExpression exp)
         {
             throw new NotSupportedException("'|' operator is not supported.");
         }
 
         // %
-        public override DbExpression Visit(DbModuloExpression exp)
+        public override DbExpression VisitModulo(DbModuloExpression exp)
         {
             this.SqlBuilder.Append("MOD(");
             exp.Left.Accept(this);
@@ -198,7 +198,7 @@ namespace Chloe.Oracle
             return exp;
         }
 
-        public override DbExpression Visit(DbAggregateExpression exp)
+        public override DbExpression VisitAggregate(DbAggregateExpression exp)
         {
             Action<DbAggregateExpression, SqlGeneratorBase> aggregateHandler;
             if (!AggregateHandlers.TryGetValue(exp.Method.Name, out aggregateHandler))
@@ -210,7 +210,7 @@ namespace Chloe.Oracle
             return exp;
         }
 
-        public override DbExpression Visit(DbSqlQueryExpression exp)
+        public override DbExpression VisitSqlQuery(DbSqlQueryExpression exp)
         {
             if (exp.TakeCount != null)
             {
@@ -250,7 +250,7 @@ namespace Chloe.Oracle
             this.BuildGeneralSql(exp);
             return exp;
         }
-        public override DbExpression Visit(DbInsertExpression exp)
+        public override DbExpression VisitInsert(DbInsertExpression exp)
         {
             this.SqlBuilder.Append("INSERT INTO ");
             this.AppendTable(exp.Table);
@@ -318,7 +318,7 @@ namespace Chloe.Oracle
 
             return exp;
         }
-        public override DbExpression Visit(DbUpdateExpression exp)
+        public override DbExpression VisitUpdate(DbUpdateExpression exp)
         {
             this.SqlBuilder.Append("UPDATE ");
             this.AppendTable(exp.Table);
@@ -345,7 +345,7 @@ namespace Chloe.Oracle
             return exp;
         }
 
-        public override DbExpression Visit(DbCoalesceExpression exp)
+        public override DbExpression VisitCoalesce(DbCoalesceExpression exp)
         {
             this.SqlBuilder.Append("NVL(");
             EnsureDbExpressionReturnCSharpBoolean(exp.CheckExpression).Accept(this);
@@ -356,7 +356,7 @@ namespace Chloe.Oracle
             return exp;
         }
         // then 部分必须返回 C# type，所以得判断是否是诸如 a>1,a=b,in,like 等等的情况，如果是则将其构建成一个 case when 
-        public override DbExpression Visit(DbCaseWhenExpression exp)
+        public override DbExpression VisitCaseWhen(DbCaseWhenExpression exp)
         {
             this.LeftBracket();
 
@@ -378,7 +378,7 @@ namespace Chloe.Oracle
 
             return exp;
         }
-        public override DbExpression Visit(DbConvertExpression exp)
+        public override DbExpression VisitConvert(DbConvertExpression exp)
         {
             DbExpression stripedExp = DbExpressionExtension.StripInvalidConvert(exp);
 
@@ -417,16 +417,16 @@ namespace Chloe.Oracle
             return exp;
         }
 
-        public override DbExpression Visit(DbMemberExpression exp)
+        public override DbExpression VisitMember(DbMemberExpression exp)
         {
             if (this.IsDateSubtract(exp))
             {
                 return exp;
             }
 
-            return base.Visit(exp);
+            return base.VisitMember(exp);
         }
-        public override DbExpression Visit(DbConstantExpression exp)
+        public override DbExpression VisitConstant(DbConstantExpression exp)
         {
             if (exp.Value == null || exp.Value == DBNull.Value)
             {
@@ -464,7 +464,7 @@ namespace Chloe.Oracle
 
             return exp;
         }
-        public override DbExpression Visit(DbParameterExpression exp)
+        public override DbExpression VisitParameter(DbParameterExpression exp)
         {
             object paramValue = exp.Value;
             Type paramType = exp.Type.GetUnderlyingType();

@@ -9,7 +9,7 @@ namespace Chloe.QueryExpressions
 
         }
 
-        public virtual QueryExpression Visit(RootQueryExpression exp)
+        public virtual QueryExpression VisitRootQuery(RootQueryExpression exp)
         {
             RootQueryExpression rootQueryExpression = new RootQueryExpression(exp.ElementType, exp.ExplicitTable, exp.Lock, exp.GlobalFilters.Count, exp.ContextFilters.Count);
 
@@ -27,35 +27,35 @@ namespace Chloe.QueryExpressions
 
             return rootQueryExpression;
         }
-        public virtual QueryExpression Visit(WhereExpression exp)
+        public virtual QueryExpression VisitWhere(WhereExpression exp)
         {
             QueryExpression prevExp = exp.PrevExpression.Accept(this);
             LambdaExpression predicate = (LambdaExpression)this.Visit(exp.Predicate);
             return new WhereExpression(exp.ElementType, prevExp, predicate);
         }
-        public virtual QueryExpression Visit(SelectExpression exp)
+        public virtual QueryExpression VisitSelect(SelectExpression exp)
         {
             QueryExpression prevExp = exp.PrevExpression.Accept(this);
             LambdaExpression selector = (LambdaExpression)this.Visit(exp.Selector);
             return new SelectExpression(exp.ElementType, prevExp, selector);
         }
-        public virtual QueryExpression Visit(TakeExpression exp)
+        public virtual QueryExpression VisitTake(TakeExpression exp)
         {
             QueryExpression prevExp = exp.PrevExpression.Accept(this);
             return new TakeExpression(exp.ElementType, prevExp, exp.Count);
         }
-        public virtual QueryExpression Visit(SkipExpression exp)
+        public virtual QueryExpression VisitSkip(SkipExpression exp)
         {
             QueryExpression prevExp = exp.PrevExpression.Accept(this);
             return new SkipExpression(exp.ElementType, prevExp, exp.Count);
         }
-        public virtual QueryExpression Visit(OrderExpression exp)
+        public virtual QueryExpression VisitOrder(OrderExpression exp)
         {
             QueryExpression prevExp = exp.PrevExpression.Accept(this);
             LambdaExpression keySelector = (LambdaExpression)this.Visit(exp.KeySelector);
             return new OrderExpression(exp.ElementType, prevExp, exp.NodeType, keySelector);
         }
-        public virtual QueryExpression Visit(AggregateQueryExpression exp)
+        public virtual QueryExpression VisitAggregateQuery(AggregateQueryExpression exp)
         {
             QueryExpression prevExp = exp.PrevExpression.Accept(this);
 
@@ -68,7 +68,7 @@ namespace Chloe.QueryExpressions
 
             return new AggregateQueryExpression(prevExp, exp.Method, arguments);
         }
-        public virtual QueryExpression Visit(JoinQueryExpression exp)
+        public virtual QueryExpression VisitJoinQuery(JoinQueryExpression exp)
         {
             QueryExpression prevExp = exp.PrevExpression.Accept(this);
             LambdaExpression selector = (LambdaExpression)this.Visit(exp.Selector);
@@ -84,7 +84,7 @@ namespace Chloe.QueryExpressions
 
             return new JoinQueryExpression(exp.ElementType, prevExp, joinedQueries, selector);
         }
-        public virtual QueryExpression Visit(GroupingQueryExpression exp)
+        public virtual QueryExpression VisitGroupingQuery(GroupingQueryExpression exp)
         {
             QueryExpression prevExp = exp.PrevExpression.Accept(this);
             LambdaExpression selector = (LambdaExpression)this.Visit(exp.Selector);
@@ -109,36 +109,36 @@ namespace Chloe.QueryExpressions
 
             return new GroupingQueryExpression(exp.ElementType, prevExp, groupKeySelectors, havingPredicates, orderings, selector);
         }
-        public virtual QueryExpression Visit(DistinctExpression exp)
+        public virtual QueryExpression VisitDistinct(DistinctExpression exp)
         {
             return new DistinctExpression(exp.ElementType, exp.PrevExpression.Accept(this));
         }
 
-        public virtual QueryExpression Visit(IncludeExpression exp)
+        public virtual QueryExpression VisitInclude(IncludeExpression exp)
         {
             return new IncludeExpression(exp.ElementType, exp.PrevExpression.Accept(this), this.ProcessNavigationNode(exp.NavigationNode));
         }
-        public virtual QueryExpression Visit(BindTwoWayExpression exp)
+        public virtual QueryExpression VisitBindTwoWay(BindTwoWayExpression exp)
         {
             return new BindTwoWayExpression(exp.ElementType, exp.PrevExpression.Accept(this));
         }
 
-        public virtual QueryExpression Visit(ExcludeExpression exp)
+        public virtual QueryExpression VisitExclude(ExcludeExpression exp)
         {
             return new ExcludeExpression(exp.ElementType, exp.PrevExpression.Accept(this), (LambdaExpression)this.Visit(exp.Field));
         }
 
-        public virtual QueryExpression Visit(IgnoreAllFiltersExpression exp)
+        public virtual QueryExpression VisitIgnoreAllFilters(IgnoreAllFiltersExpression exp)
         {
             return new IgnoreAllFiltersExpression(exp.ElementType, exp.PrevExpression.Accept(this));
         }
 
-        public virtual QueryExpression Visit(TrackingExpression exp)
+        public virtual QueryExpression VisitTracking(TrackingExpression exp)
         {
             return new IgnoreAllFiltersExpression(exp.ElementType, exp.PrevExpression.Accept(this));
         }
 
-        public virtual QueryExpression Visit(PagingExpression exp)
+        public virtual QueryExpression VisitPaging(PagingExpression exp)
         {
             return new PagingExpression(exp.ElementType, exp.PrevExpression.Accept(this), exp.PageNumber, exp.PageSize);
         }

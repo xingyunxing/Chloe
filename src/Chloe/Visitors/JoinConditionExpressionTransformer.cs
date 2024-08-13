@@ -11,7 +11,7 @@ namespace Chloe.Visitors
         {
             return exp.Accept(_joinConditionExpressionParser);
         }
-        public override DbExpression Visit(DbEqualExpression exp)
+        public override DbExpression VisitEqual(DbEqualExpression exp)
         {
             /*
              * join 的条件不考虑 null 问题
@@ -27,7 +27,7 @@ namespace Chloe.Visitors
 
             return left_equals_right;
         }
-        public override DbExpression Visit(DbNotEqualExpression exp)
+        public override DbExpression VisitNotEqual(DbNotEqualExpression exp)
         {
             /*
              * join 的条件不考虑 null 问题

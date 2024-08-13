@@ -29,58 +29,58 @@ namespace Chloe.Query.Visitors
             return joinQueryInfo.Query.QueryExpression.Accept(resolver);
         }
 
-        public override JoinQueryResult Visit(RootQueryExpression exp)
+        public override JoinQueryResult VisitRootQuery(RootQueryExpression exp)
         {
             QueryStateBase queryState = new RootQueryState(this._queryContext, exp, this._scopeParameters, this._queryModel.ScopeTables, a => { return this._queryModel.GenerateUniqueTableAlias(a); });
             JoinQueryResult result = queryState.ToJoinQueryResult(this._joinType, this._conditionExpression, this._scopeParameters, this._queryModel.ScopeTables, null);
             return result;
         }
-        public override JoinQueryResult Visit(WhereExpression exp)
+        public override JoinQueryResult VisitWhere(WhereExpression exp)
         {
             JoinQueryResult ret = this.Visit(exp);
             return ret;
         }
-        public override JoinQueryResult Visit(OrderExpression exp)
+        public override JoinQueryResult VisitOrder(OrderExpression exp)
         {
             JoinQueryResult ret = this.Visit(exp);
             return ret;
         }
-        public override JoinQueryResult Visit(SelectExpression exp)
+        public override JoinQueryResult VisitSelect(SelectExpression exp)
         {
             JoinQueryResult ret = this.Visit(exp);
             return ret;
         }
-        public override JoinQueryResult Visit(SkipExpression exp)
+        public override JoinQueryResult VisitSkip(SkipExpression exp)
         {
             JoinQueryResult ret = this.Visit(exp);
             return ret;
         }
-        public override JoinQueryResult Visit(TakeExpression exp)
+        public override JoinQueryResult VisitTake(TakeExpression exp)
         {
             JoinQueryResult ret = this.Visit(exp);
             return ret;
         }
-        public override JoinQueryResult Visit(AggregateQueryExpression exp)
+        public override JoinQueryResult VisitAggregateQuery(AggregateQueryExpression exp)
         {
             JoinQueryResult ret = this.Visit(exp);
             return ret;
         }
-        public override JoinQueryResult Visit(JoinQueryExpression exp)
+        public override JoinQueryResult VisitJoinQuery(JoinQueryExpression exp)
         {
             JoinQueryResult ret = this.Visit(exp);
             return ret;
         }
-        public override JoinQueryResult Visit(GroupingQueryExpression exp)
+        public override JoinQueryResult VisitGroupingQuery(GroupingQueryExpression exp)
         {
             JoinQueryResult ret = this.Visit(exp);
             return ret;
         }
-        public override JoinQueryResult Visit(DistinctExpression exp)
+        public override JoinQueryResult VisitDistinct(DistinctExpression exp)
         {
             JoinQueryResult ret = this.Visit(exp);
             return ret;
         }
-        public override JoinQueryResult Visit(IncludeExpression exp)
+        public override JoinQueryResult VisitInclude(IncludeExpression exp)
         {
             JoinQueryResult ret = this.Visit(exp);
             return ret;
@@ -92,11 +92,6 @@ namespace Chloe.Query.Visitors
             JoinQueryResult ret = state.ToJoinQueryResult(this._joinType, this._conditionExpression, this._scopeParameters, this._queryModel.ScopeTables, a => { return this._queryModel.GenerateUniqueTableAlias(a); });
             return ret;
         }
-        static DbTableSegment CreateTableSegment(DbTable table, string alias, LockType @lock)
-        {
-            DbTableExpression tableExp = new DbTableExpression(table);
-            DbTableSegment tableSeg = new DbTableSegment(tableExp, alias, @lock);
-            return tableSeg;
-        }
+
     }
 }

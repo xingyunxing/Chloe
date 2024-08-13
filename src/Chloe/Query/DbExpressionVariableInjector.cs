@@ -23,7 +23,7 @@ namespace Chloe.Query
             return exp.Accept(injector);
         }
 
-        public override DbExpression Visit(DbMemberExpression exp)
+        public override DbExpression VisitMember(DbMemberExpression exp)
         {
             if (exp.Member.Name == nameof(VariableSlot<int>.Value))
             {
@@ -38,7 +38,7 @@ namespace Chloe.Query
                 }
             }
 
-            return base.Visit(exp);
+            return base.VisitMember(exp);
         }
     }
 }

@@ -43,11 +43,11 @@ namespace Chloe.MySql
             return SqlGenerator.MethodHandlerDic;
         }
 
-        public override DbExpression Visit(DbUpdateExpression exp)
+        public override DbExpression VisitUpdate(DbUpdateExpression exp)
         {
             if (!(exp is MySqlDbUpdateExpression))
             {
-                return base.Visit(exp);
+                return base.VisitUpdate(exp);
             }
 
             MySqlDbUpdateExpression ret = new MySqlDbUpdateExpression(exp.Table, this.MakeNewExpression(exp.Condition));
@@ -61,11 +61,11 @@ namespace Chloe.MySql
 
             return ret;
         }
-        public override DbExpression Visit(DbDeleteExpression exp)
+        public override DbExpression VisitDelete(DbDeleteExpression exp)
         {
             if (!(exp is MySqlDbDeleteExpression))
             {
-                return base.Visit(exp);
+                return base.VisitDelete(exp);
             }
 
             var ret = new MySqlDbDeleteExpression(exp.Table, this.MakeNewExpression(exp.Condition));

@@ -28,7 +28,7 @@ namespace Chloe.RDBMS
         protected abstract Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers { get; }
         protected abstract Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers { get; }
 
-        public override DbExpression Visit(DbEqualExpression exp)
+        public override DbExpression VisitEqual(DbEqualExpression exp)
         {
             DbExpression left = exp.Left;
             DbExpression right = exp.Right;
@@ -75,7 +75,7 @@ namespace Chloe.RDBMS
             return exp;
         }
 
-        public override DbExpression Visit(DbNotEqualExpression exp)
+        public override DbExpression VisitNotEqual(DbNotEqualExpression exp)
         {
             DbExpression left = exp.Left;
             DbExpression right = exp.Right;
@@ -185,7 +185,7 @@ namespace Chloe.RDBMS
             return exp;
         }
 
-        public override DbExpression Visit(DbNotExpression exp)
+        public override DbExpression VisitNot(DbNotExpression exp)
         {
             this.SqlBuilder.Append("NOT ");
             this.SqlBuilder.Append("(");
@@ -195,28 +195,28 @@ namespace Chloe.RDBMS
             return exp;
         }
 
-        public override DbExpression Visit(DbBitAndExpression exp)
+        public override DbExpression VisitBitAnd(DbBitAndExpression exp)
         {
             Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
             this.ConcatOperands(operands, " & ");
 
             return exp;
         }
-        public override DbExpression Visit(DbAndExpression exp)
+        public override DbExpression VisitAnd(DbAndExpression exp)
         {
             Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
             this.ConcatOperands(operands, " AND ");
 
             return exp;
         }
-        public override DbExpression Visit(DbBitOrExpression exp)
+        public override DbExpression VisitBitOr(DbBitOrExpression exp)
         {
             Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
             this.ConcatOperands(operands, " | ");
 
             return exp;
         }
-        public override DbExpression Visit(DbOrExpression exp)
+        public override DbExpression VisitOr(DbOrExpression exp)
         {
             Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
             this.ConcatOperands(operands, " OR ");
@@ -225,7 +225,7 @@ namespace Chloe.RDBMS
         }
 
         // +
-        public override DbExpression Visit(DbAddExpression exp)
+        public override DbExpression VisitAdd(DbAddExpression exp)
         {
             MethodInfo method = exp.Method;
             if (method != null)
@@ -244,7 +244,7 @@ namespace Chloe.RDBMS
             return exp;
         }
         // -
-        public override DbExpression Visit(DbSubtractExpression exp)
+        public override DbExpression VisitSubtract(DbSubtractExpression exp)
         {
             Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
             this.ConcatOperands(operands, " - ");
@@ -252,7 +252,7 @@ namespace Chloe.RDBMS
             return exp;
         }
         // *
-        public override DbExpression Visit(DbMultiplyExpression exp)
+        public override DbExpression VisitMultiply(DbMultiplyExpression exp)
         {
             Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
             this.ConcatOperands(operands, " * ");
@@ -260,7 +260,7 @@ namespace Chloe.RDBMS
             return exp;
         }
         // /
-        public override DbExpression Visit(DbDivideExpression exp)
+        public override DbExpression VisitDivide(DbDivideExpression exp)
         {
             Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
             this.ConcatOperands(operands, " / ");
@@ -268,7 +268,7 @@ namespace Chloe.RDBMS
             return exp;
         }
         // %
-        public override DbExpression Visit(DbModuloExpression exp)
+        public override DbExpression VisitModulo(DbModuloExpression exp)
         {
             Stack<DbExpression> operands = PublicHelper.GatherBinaryExpressionOperand(exp);
             this.ConcatOperands(operands, " % ");
@@ -277,7 +277,7 @@ namespace Chloe.RDBMS
         }
 
 
-        public override DbExpression Visit(DbNegateExpression exp)
+        public override DbExpression VisitNegate(DbNegateExpression exp)
         {
             this.SqlBuilder.Append("(");
 
@@ -288,7 +288,7 @@ namespace Chloe.RDBMS
             return exp;
         }
         // <
-        public override DbExpression Visit(DbLessThanExpression exp)
+        public override DbExpression VisitLessThan(DbLessThanExpression exp)
         {
             var amendResult = PublicHelper.AmendExpDbInfo(exp.Left, exp.Right);
 
@@ -299,7 +299,7 @@ namespace Chloe.RDBMS
             return exp;
         }
         // <=
-        public override DbExpression Visit(DbLessThanOrEqualExpression exp)
+        public override DbExpression VisitLessThanOrEqual(DbLessThanOrEqualExpression exp)
         {
             var amendResult = PublicHelper.AmendExpDbInfo(exp.Left, exp.Right);
 
@@ -310,7 +310,7 @@ namespace Chloe.RDBMS
             return exp;
         }
         // >
-        public override DbExpression Visit(DbGreaterThanExpression exp)
+        public override DbExpression VisitGreaterThan(DbGreaterThanExpression exp)
         {
             var amendResult = PublicHelper.AmendExpDbInfo(exp.Left, exp.Right);
 
@@ -321,7 +321,7 @@ namespace Chloe.RDBMS
             return exp;
         }
         // >=
-        public override DbExpression Visit(DbGreaterThanOrEqualExpression exp)
+        public override DbExpression VisitGreaterThanOrEqual(DbGreaterThanOrEqualExpression exp)
         {
             var amendResult = PublicHelper.AmendExpDbInfo(exp.Left, exp.Right);
 
@@ -332,7 +332,7 @@ namespace Chloe.RDBMS
             return exp;
         }
 
-        public override DbExpression Visit(DbAggregateExpression exp)
+        public override DbExpression VisitAggregate(DbAggregateExpression exp)
         {
             Action<DbAggregateExpression, SqlGeneratorBase> aggregateHandler;
             if (!AggregateHandlers.TryGetValue(exp.Method.Name, out aggregateHandler))
@@ -344,12 +344,12 @@ namespace Chloe.RDBMS
             return exp;
         }
 
-        public override DbExpression Visit(DbTableExpression exp)
+        public override DbExpression VisitTable(DbTableExpression exp)
         {
             this.AppendTable(exp.Table);
             return exp;
         }
-        public override DbExpression Visit(DbColumnAccessExpression exp)
+        public override DbExpression VisitColumnAccess(DbColumnAccessExpression exp)
         {
             this.QuoteName(exp.Table.Name);
             this.SqlBuilder.Append(".");
@@ -357,7 +357,7 @@ namespace Chloe.RDBMS
 
             return exp;
         }
-        public override DbExpression Visit(DbFromTableExpression exp)
+        public override DbExpression VisitFromTable(DbFromTableExpression exp)
         {
             this.AppendTableSegment(exp.Table);
             this.VisitDbJoinTableExpressions(exp.JoinTables);
@@ -366,7 +366,7 @@ namespace Chloe.RDBMS
         }
 
 
-        public override DbExpression Visit(DbJoinTableExpression exp)
+        public override DbExpression VisitJoinTable(DbJoinTableExpression exp)
         {
             DbJoinTableExpression joinTablePart = exp;
             string joinString = null;
@@ -399,7 +399,7 @@ namespace Chloe.RDBMS
             return exp;
         }
 
-        public override DbExpression Visit(DbSubQueryExpression exp)
+        public override DbExpression VisitSubQuery(DbSubQueryExpression exp)
         {
             this.SqlBuilder.Append("(");
             exp.SqlQuery.Accept(this);
@@ -408,7 +408,7 @@ namespace Chloe.RDBMS
             return exp;
         }
 
-        public override DbExpression Visit(DbInsertExpression exp)
+        public override DbExpression VisitInsert(DbInsertExpression exp)
         {
             this.SqlBuilder.Append("INSERT INTO ");
             this.AppendTable(exp.Table);
@@ -441,7 +441,7 @@ namespace Chloe.RDBMS
             return exp;
         }
 
-        public override DbExpression Visit(DbUpdateExpression exp)
+        public override DbExpression VisitUpdate(DbUpdateExpression exp)
         {
             this.SqlBuilder.Append("UPDATE ");
             this.AppendTable(exp.Table);
@@ -466,7 +466,7 @@ namespace Chloe.RDBMS
             return exp;
         }
 
-        public override DbExpression Visit(DbDeleteExpression exp)
+        public override DbExpression VisitDelete(DbDeleteExpression exp)
         {
             this.SqlBuilder.Append("DELETE FROM ");
             this.AppendTable(exp.Table);
@@ -475,7 +475,7 @@ namespace Chloe.RDBMS
             return exp;
         }
 
-        public override DbExpression Visit(DbExistsExpression exp)
+        public override DbExpression VisitExists(DbExistsExpression exp)
         {
             this.SqlBuilder.Append("Exists ");
 
@@ -500,7 +500,7 @@ namespace Chloe.RDBMS
             return subQuery.Accept(this);
         }
 
-        public override DbExpression Visit(DbCaseWhenExpression exp)
+        public override DbExpression VisitCaseWhen(DbCaseWhenExpression exp)
         {
             this.SqlBuilder.Append("CASE");
             foreach (var whenThen in exp.WhenThenPairs)
@@ -518,7 +518,7 @@ namespace Chloe.RDBMS
             return exp;
         }
 
-        public override DbExpression Visit(DbMethodCallExpression exp)
+        public override DbExpression VisitMethodCall(DbMethodCallExpression exp)
         {
             Dictionary<string, IMethodHandler[]> methodHandlerMap = this.MethodHandlers;
             IMethodHandler[] methodHandlers;
@@ -551,7 +551,7 @@ namespace Chloe.RDBMS
             throw PublicHelper.MakeNotSupportedMethodException(exp.Method);
         }
 
-        public override DbExpression Visit(DbMemberExpression exp)
+        public override DbExpression VisitMember(DbMemberExpression exp)
         {
             MemberInfo member = exp.Member;
 

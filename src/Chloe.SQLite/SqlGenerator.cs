@@ -55,23 +55,23 @@ namespace Chloe.SQLite
         protected override Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers { get; } = AggregateHandlerDic;
         protected override Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers { get; } = BinaryWithMethodHandlersDic;
 
-        public override DbExpression Visit(DbJoinTableExpression exp)
+        public override DbExpression VisitJoinTable(DbJoinTableExpression exp)
         {
             if (exp.JoinType == DbJoinType.InnerJoin || exp.JoinType == DbJoinType.LeftJoin)
             {
-                return base.Visit(exp);
+                return base.VisitJoinTable(exp);
             }
 
             throw new NotSupportedException("JoinType: " + exp.JoinType);
         }
 
-        public override DbExpression Visit(DbSqlQueryExpression exp)
+        public override DbExpression VisitSqlQuery(DbSqlQueryExpression exp)
         {
             this.BuildGeneralSql(exp);
             return exp;
         }
 
-        public override DbExpression Visit(DbCoalesceExpression exp)
+        public override DbExpression VisitCoalesce(DbCoalesceExpression exp)
         {
             this.SqlBuilder.Append("IFNULL(");
             exp.CheckExpression.Accept(this);
@@ -82,7 +82,7 @@ namespace Chloe.SQLite
             return exp;
         }
 
-        public override DbExpression Visit(DbConvertExpression exp)
+        public override DbExpression VisitConvert(DbConvertExpression exp)
         {
             DbExpression stripedExp = DbExpressionExtension.StripInvalidConvert(exp);
 
@@ -137,7 +137,7 @@ namespace Chloe.SQLite
             return exp;
         }
 
-        public override DbExpression Visit(DbConstantExpression exp)
+        public override DbExpression VisitConstant(DbConstantExpression exp)
         {
             if (exp.Value == null || exp.Value == DBNull.Value)
             {
@@ -172,7 +172,7 @@ namespace Chloe.SQLite
 
             return exp;
         }
-        public override DbExpression Visit(DbParameterExpression exp)
+        public override DbExpression VisitParameter(DbParameterExpression exp)
         {
             object paramValue = exp.Value;
             Type paramType = exp.Type.GetUnderlyingType();

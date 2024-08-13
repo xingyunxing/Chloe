@@ -19,11 +19,11 @@ namespace Chloe.Visitors
             return exp.Accept(_evaluator);
         }
 
-        public override object Visit(DbConstantExpression exp)
+        public override object VisitConstant(DbConstantExpression exp)
         {
             return exp.Value;
         }
-        public override object Visit(DbMemberExpression exp)
+        public override object VisitMember(DbMemberExpression exp)
         {
             object instance = null;
             if (exp.Expression != null)
@@ -43,7 +43,7 @@ namespace Chloe.Visitors
 
             return exp.Member.FastGetMemberValue(instance);
         }
-        public override object Visit(DbMethodCallExpression exp)
+        public override object VisitMethodCall(DbMethodCallExpression exp)
         {
             object instance = null;
             if (exp.Object != null)
@@ -60,7 +60,7 @@ namespace Chloe.Visitors
 
             return exp.Method.FastInvoke(instance, arguments);
         }
-        public override object Visit(DbNotExpression exp)
+        public override object VisitNot(DbNotExpression exp)
         {
             var operandValue = exp.Operand.Accept(this);
 
@@ -69,7 +69,7 @@ namespace Chloe.Visitors
 
             return true;
         }
-        public override object Visit(DbConvertExpression exp)
+        public override object VisitConvert(DbConvertExpression exp)
         {
             object operandValue = exp.Operand.Accept(this);
 
@@ -141,11 +141,11 @@ namespace Chloe.Visitors
 
             throw new NotSupportedException(string.Format("Does not support the type '{0}' converted to type '{1}'.", operandValueType.FullName, exp.Type.FullName));
         }
-        public override object Visit(DbParameterExpression exp)
+        public override object VisitParameter(DbParameterExpression exp)
         {
             return exp.Value;
         }
-        public override object Visit(DbCoalesceExpression exp)
+        public override object VisitCoalesce(DbCoalesceExpression exp)
         {
             object left = exp.CheckExpression.Accept(this);
             if (left == null)

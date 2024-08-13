@@ -39,7 +39,7 @@
 
         public override T Accept<T>(DbExpressionVisitor<T> visitor)
         {
-            return visitor.Visit(this);
+            return visitor.VisitSqlQuery(this);
         }
 
         public DbSqlQueryExpression Update(Type type)

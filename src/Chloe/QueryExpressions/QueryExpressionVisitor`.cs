@@ -4,107 +4,107 @@ namespace Chloe.QueryExpressions
 {
     public interface IQueryExpressionVisitor<T>
     {
-        T Visit(RootQueryExpression exp);
+        T VisitRootQuery(RootQueryExpression exp);
 
-        T Visit(WhereExpression exp);
+        T VisitWhere(WhereExpression exp);
 
-        T Visit(SelectExpression exp);
+        T VisitSelect(SelectExpression exp);
 
-        T Visit(TakeExpression exp);
+        T VisitTake(TakeExpression exp);
 
-        T Visit(SkipExpression exp);
+        T VisitSkip(SkipExpression exp);
 
-        T Visit(OrderExpression exp);
+        T VisitOrder(OrderExpression exp);
 
-        T Visit(AggregateQueryExpression exp);
+        T VisitAggregateQuery(AggregateQueryExpression exp);
 
-        T Visit(JoinQueryExpression exp);
+        T VisitJoinQuery(JoinQueryExpression exp);
 
-        T Visit(GroupingQueryExpression exp);
+        T VisitGroupingQuery(GroupingQueryExpression exp);
 
-        T Visit(DistinctExpression exp);
+        T VisitDistinct(DistinctExpression exp);
 
-        T Visit(IncludeExpression exp);
+        T VisitInclude(IncludeExpression exp);
 
-        T Visit(BindTwoWayExpression exp);
+        T VisitBindTwoWay(BindTwoWayExpression exp);
 
-        T Visit(ExcludeExpression exp);
+        T VisitExclude(ExcludeExpression exp);
 
-        T Visit(IgnoreAllFiltersExpression exp);
+        T VisitIgnoreAllFilters(IgnoreAllFiltersExpression exp);
 
-        T Visit(TrackingExpression exp);
+        T VisitTracking(TrackingExpression exp);
 
-        T Visit(PagingExpression exp);
+        T VisitPaging(PagingExpression exp);
     }
 
     public abstract class QueryExpressionVisitor<T> : IQueryExpressionVisitor<T>
     {
-        public virtual T Visit(RootQueryExpression exp)
+        public virtual T VisitRootQuery(RootQueryExpression exp)
         {
             throw new NotImplementedException();
         }
-        public virtual T Visit(WhereExpression exp)
+        public virtual T VisitWhere(WhereExpression exp)
         {
             throw new NotImplementedException();
         }
-        public virtual T Visit(SelectExpression exp)
+        public virtual T VisitSelect(SelectExpression exp)
         {
             throw new NotImplementedException();
         }
-        public virtual T Visit(TakeExpression exp)
+        public virtual T VisitTake(TakeExpression exp)
         {
             throw new NotImplementedException();
         }
-        public virtual T Visit(SkipExpression exp)
+        public virtual T VisitSkip(SkipExpression exp)
         {
             throw new NotImplementedException();
         }
-        public virtual T Visit(OrderExpression exp)
+        public virtual T VisitOrder(OrderExpression exp)
         {
             throw new NotImplementedException();
         }
-        public virtual T Visit(AggregateQueryExpression exp)
+        public virtual T VisitAggregateQuery(AggregateQueryExpression exp)
         {
             throw new NotImplementedException();
         }
-        public virtual T Visit(JoinQueryExpression exp)
+        public virtual T VisitJoinQuery(JoinQueryExpression exp)
         {
             throw new NotImplementedException();
         }
-        public virtual T Visit(GroupingQueryExpression exp)
+        public virtual T VisitGroupingQuery(GroupingQueryExpression exp)
         {
             throw new NotImplementedException();
         }
-        public virtual T Visit(DistinctExpression exp)
-        {
-            throw new NotImplementedException();
-        }
-
-        public virtual T Visit(IncludeExpression exp)
-        {
-            throw new NotImplementedException();
-        }
-        public virtual T Visit(BindTwoWayExpression exp)
+        public virtual T VisitDistinct(DistinctExpression exp)
         {
             throw new NotImplementedException();
         }
 
-        public virtual T Visit(ExcludeExpression exp)
+        public virtual T VisitInclude(IncludeExpression exp)
+        {
+            throw new NotImplementedException();
+        }
+        public virtual T VisitBindTwoWay(BindTwoWayExpression exp)
         {
             throw new NotImplementedException();
         }
 
-        public virtual T Visit(IgnoreAllFiltersExpression exp)
+        public virtual T VisitExclude(ExcludeExpression exp)
         {
             throw new NotImplementedException();
         }
 
-        public virtual T Visit(TrackingExpression exp)
+        public virtual T VisitIgnoreAllFilters(IgnoreAllFiltersExpression exp)
         {
             throw new NotImplementedException();
         }
 
-        public virtual T Visit(PagingExpression exp)
+        public virtual T VisitTracking(TrackingExpression exp)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual T VisitPaging(PagingExpression exp)
         {
             throw new NotImplementedException();
         }

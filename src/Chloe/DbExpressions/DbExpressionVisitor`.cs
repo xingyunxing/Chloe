@@ -2,158 +2,158 @@
 {
     public abstract class DbExpressionVisitor<T>
     {
-        public virtual T Visit(DbEqualExpression exp)
+        public virtual T VisitEqual(DbEqualExpression exp)
         {
             throw new NotImplementedException();
         }
-        public virtual T Visit(DbNotEqualExpression exp)
+        public virtual T VisitNotEqual(DbNotEqualExpression exp)
         {
             throw new NotImplementedException();
         }
         // +
-        public virtual T Visit(DbAddExpression exp)
+        public virtual T VisitAdd(DbAddExpression exp)
         {
             throw new NotImplementedException();
         }
         // -
-        public virtual T Visit(DbSubtractExpression exp)
+        public virtual T VisitSubtract(DbSubtractExpression exp)
         {
             throw new NotImplementedException();
         }
         // *
-        public virtual T Visit(DbMultiplyExpression exp)
+        public virtual T VisitMultiply(DbMultiplyExpression exp)
         {
             throw new NotImplementedException();
         }
         // /
-        public virtual T Visit(DbDivideExpression exp)
+        public virtual T VisitDivide(DbDivideExpression exp)
         {
             throw new NotImplementedException();
         }
         // %
-        public virtual T Visit(DbModuloExpression exp)
+        public virtual T VisitModulo(DbModuloExpression exp)
         {
             throw new NotImplementedException();
         }
 
-        public virtual T Visit(DbNegateExpression exp)
+        public virtual T VisitNegate(DbNegateExpression exp)
         {
             throw new NotImplementedException();
         }
 
         // <
-        public virtual T Visit(DbLessThanExpression exp)
+        public virtual T VisitLessThan(DbLessThanExpression exp)
         {
             throw new NotImplementedException();
         }
         // <=
-        public virtual T Visit(DbLessThanOrEqualExpression exp)
+        public virtual T VisitLessThanOrEqual(DbLessThanOrEqualExpression exp)
         {
             throw new NotImplementedException();
         }
         // >
-        public virtual T Visit(DbGreaterThanExpression exp)
+        public virtual T VisitGreaterThan(DbGreaterThanExpression exp)
         {
             throw new NotImplementedException();
         }
         // >=
-        public virtual T Visit(DbGreaterThanOrEqualExpression exp)
+        public virtual T VisitGreaterThanOrEqual(DbGreaterThanOrEqualExpression exp)
         {
             throw new NotImplementedException();
         }
-        public virtual T Visit(DbBitAndExpression exp)
+        public virtual T VisitBitAnd(DbBitAndExpression exp)
         {
             throw new NotImplementedException();
         }
-        public virtual T Visit(DbAndExpression exp)
+        public virtual T VisitAnd(DbAndExpression exp)
         {
             throw new NotImplementedException();
         }
-        public virtual T Visit(DbBitOrExpression exp)
+        public virtual T VisitBitOr(DbBitOrExpression exp)
         {
             throw new NotImplementedException();
         }
-        public virtual T Visit(DbOrExpression exp)
+        public virtual T VisitOr(DbOrExpression exp)
         {
             throw new NotImplementedException();
         }
-        public virtual T Visit(DbConstantExpression exp)
+        public virtual T VisitConstant(DbConstantExpression exp)
         {
             throw new NotImplementedException();
         }
-        public virtual T Visit(DbMemberExpression exp)
+        public virtual T VisitMember(DbMemberExpression exp)
         {
             throw new NotImplementedException();
         }
-        public virtual T Visit(DbNotExpression exp)
+        public virtual T VisitNot(DbNotExpression exp)
         {
             throw new NotImplementedException();
         }
-        public virtual T Visit(DbConvertExpression exp)
+        public virtual T VisitConvert(DbConvertExpression exp)
         {
             throw new NotImplementedException();
         }
-        public virtual T Visit(DbCoalesceExpression exp)
+        public virtual T VisitCoalesce(DbCoalesceExpression exp)
         {
             throw new NotImplementedException();
         }
-        public virtual T Visit(DbCaseWhenExpression exp)
+        public virtual T VisitCaseWhen(DbCaseWhenExpression exp)
         {
             throw new NotImplementedException();
         }
-        public virtual T Visit(DbMethodCallExpression exp)
-        {
-            throw new NotImplementedException();
-        }
-
-        public virtual T Visit(DbTableExpression exp)
-        {
-            throw new NotImplementedException();
-        }
-        public virtual T Visit(DbColumnAccessExpression exp)
+        public virtual T VisitMethodCall(DbMethodCallExpression exp)
         {
             throw new NotImplementedException();
         }
 
-        public virtual T Visit(DbParameterExpression exp)
+        public virtual T VisitTable(DbTableExpression exp)
         {
             throw new NotImplementedException();
         }
-        public virtual T Visit(DbSubQueryExpression exp)
-        {
-            throw new NotImplementedException();
-        }
-        public virtual T Visit(DbSqlQueryExpression exp)
-        {
-            throw new NotImplementedException();
-        }
-        public virtual T Visit(DbFromTableExpression exp)
-        {
-            throw new NotImplementedException();
-        }
-        public virtual T Visit(DbJoinTableExpression exp)
-        {
-            throw new NotImplementedException();
-        }
-        public virtual T Visit(DbAggregateExpression exp)
+        public virtual T VisitColumnAccess(DbColumnAccessExpression exp)
         {
             throw new NotImplementedException();
         }
 
-        public virtual T Visit(DbInsertExpression exp)
+        public virtual T VisitParameter(DbParameterExpression exp)
         {
             throw new NotImplementedException();
         }
-        public virtual T Visit(DbUpdateExpression exp)
+        public virtual T VisitSubQuery(DbSubQueryExpression exp)
         {
             throw new NotImplementedException();
         }
-        public virtual T Visit(DbDeleteExpression exp)
+        public virtual T VisitSqlQuery(DbSqlQueryExpression exp)
+        {
+            throw new NotImplementedException();
+        }
+        public virtual T VisitFromTable(DbFromTableExpression exp)
+        {
+            throw new NotImplementedException();
+        }
+        public virtual T VisitJoinTable(DbJoinTableExpression exp)
+        {
+            throw new NotImplementedException();
+        }
+        public virtual T VisitAggregate(DbAggregateExpression exp)
         {
             throw new NotImplementedException();
         }
 
-        public virtual T Visit(DbExistsExpression exp)
+        public virtual T VisitInsert(DbInsertExpression exp)
+        {
+            throw new NotImplementedException();
+        }
+        public virtual T VisitUpdate(DbUpdateExpression exp)
+        {
+            throw new NotImplementedException();
+        }
+        public virtual T VisitDelete(DbDeleteExpression exp)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual T VisitExists(DbExistsExpression exp)
         {
             throw new NotImplementedException();
         }

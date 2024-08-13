@@ -32,11 +32,11 @@ namespace Chloe.Visitors
             return false;
         }
 
-        public override bool Visit(DbConstantExpression exp)
+        public override bool VisitConstant(DbConstantExpression exp)
         {
             return true;
         }
-        public override bool Visit(DbMemberExpression exp)
+        public override bool VisitMember(DbMemberExpression exp)
         {
             if (exp.Expression != null)
             {
@@ -45,7 +45,7 @@ namespace Chloe.Visitors
 
             return true;
         }
-        public override bool Visit(DbMethodCallExpression exp)
+        public override bool VisitMethodCall(DbMethodCallExpression exp)
         {
             if (exp.Object != null)
             {
@@ -63,15 +63,15 @@ namespace Chloe.Visitors
 
             return true;
         }
-        public override bool Visit(DbNotExpression exp)
+        public override bool VisitNot(DbNotExpression exp)
         {
             return this.VisitCore(exp.Operand);
         }
-        public override bool Visit(DbConvertExpression exp)
+        public override bool VisitConvert(DbConvertExpression exp)
         {
             return this.VisitCore(exp.Operand);
         }
-        public override bool Visit(DbParameterExpression exp)
+        public override bool VisitParameter(DbParameterExpression exp)
         {
             return true;
         }

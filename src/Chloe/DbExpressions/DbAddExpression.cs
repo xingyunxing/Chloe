@@ -11,7 +11,7 @@ namespace Chloe.DbExpressions
 
         public override T Accept<T>(DbExpressionVisitor<T> visitor)
         {
-            return visitor.Visit(this);
+            return visitor.VisitAdd(this);
         }
     }
 }
