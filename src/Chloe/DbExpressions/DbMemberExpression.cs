@@ -1,5 +1,4 @@
 ﻿using Chloe.Reflection;
-using System.Data;
 using System.Reflection;
 
 namespace Chloe.DbExpressions
@@ -28,11 +27,6 @@ namespace Chloe.DbExpressions
         public MemberInfo Member
         {
             get { return this._member; }
-        }
-        public DbType? DbType
-        {
-            get;
-            set;
         }
 
         /// <summary>

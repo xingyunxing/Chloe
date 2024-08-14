@@ -10,27 +10,27 @@
         {
             return new DbNotEqualExpression(this.MakeNewExpression(exp.Left), this.MakeNewExpression(exp.Right), exp.Method);
         }
-        // +            
+        // +
         public override DbExpression VisitAdd(DbAddExpression exp)
         {
             return new DbAddExpression(exp.Type, this.MakeNewExpression(exp.Left), this.MakeNewExpression(exp.Right), exp.Method);
         }
-        // -            
+        // -
         public override DbExpression VisitSubtract(DbSubtractExpression exp)
         {
             return new DbSubtractExpression(exp.Type, this.MakeNewExpression(exp.Left), this.MakeNewExpression(exp.Right), exp.Method);
         }
-        // *            
+        // *
         public override DbExpression VisitMultiply(DbMultiplyExpression exp)
         {
             return new DbMultiplyExpression(exp.Type, this.MakeNewExpression(exp.Left), this.MakeNewExpression(exp.Right), exp.Method);
         }
-        // /            
+        // /
         public override DbExpression VisitDivide(DbDivideExpression exp)
         {
             return new DbDivideExpression(exp.Type, this.MakeNewExpression(exp.Left), this.MakeNewExpression(exp.Right), exp.Method);
         }
-        // %            
+        // %
         public override DbExpression VisitModulo(DbModuloExpression exp)
         {
             return new DbModuloExpression(exp.Type, this.MakeNewExpression(exp.Left), this.MakeNewExpression(exp.Right), exp.Method);
@@ -41,22 +41,22 @@
             return new DbNegateExpression(exp.Type, this.MakeNewExpression(exp.Operand));
         }
 
-        // <            
+        // <
         public override DbExpression VisitLessThan(DbLessThanExpression exp)
         {
             return new DbLessThanExpression(this.MakeNewExpression(exp.Left), this.MakeNewExpression(exp.Right), exp.Method);
         }
-        // <=           
+        // <=
         public override DbExpression VisitLessThanOrEqual(DbLessThanOrEqualExpression exp)
         {
             return new DbLessThanOrEqualExpression(this.MakeNewExpression(exp.Left), this.MakeNewExpression(exp.Right), exp.Method);
         }
-        // >            
+        // >
         public override DbExpression VisitGreaterThan(DbGreaterThanExpression exp)
         {
             return new DbGreaterThanExpression(this.MakeNewExpression(exp.Left), this.MakeNewExpression(exp.Right), exp.Method);
         }
-        // >=           
+        // >=
         public override DbExpression VisitGreaterThanOrEqual(DbGreaterThanOrEqualExpression exp)
         {
             return new DbGreaterThanOrEqualExpression(this.MakeNewExpression(exp.Left), this.MakeNewExpression(exp.Right), exp.Method);
@@ -83,7 +83,13 @@
         }
         public override DbExpression VisitMember(DbMemberExpression exp)
         {
-            return new DbMemberExpression(exp.Member, this.MakeNewExpression(exp.Expression));
+            DbExpression body = this.MakeNewExpression(exp.Expression);
+            if (body == exp.Expression)
+            {
+                return exp;
+            }
+
+            return new DbMemberExpression(exp.Member, body);
         }
         public override DbExpression VisitNot(DbNotExpression exp)
         {
@@ -145,7 +151,7 @@
 
             for (int i = 0; i < exp.ColumnSegments.Count; i++)
             {
-                sqlQuery.ColumnSegments.Add(new DbColumnSegment(this.MakeNewExpression(exp.ColumnSegments[i].Body), exp.ColumnSegments[i].Alias));
+                sqlQuery.ColumnSegments.Add(this.MakeColumnSegment(exp.ColumnSegments[i]));
             }
 
             for (int i = 0; i < exp.GroupSegments.Count; i++)
@@ -155,14 +161,14 @@
 
             for (int i = 0; i < exp.Orderings.Count; i++)
             {
-                sqlQuery.Orderings.Add(new DbOrdering(this.MakeNewExpression(exp.Orderings[i].Expression), exp.Orderings[i].OrderType));
+                sqlQuery.Orderings.Add(this.MakeOrdering(exp.Orderings[i]));
             }
 
             return sqlQuery;
         }
         public override DbExpression VisitFromTable(DbFromTableExpression exp)
         {
-            DbFromTableExpression ret = new DbFromTableExpression(new DbTableSegment(this.MakeNewExpression(exp.Table.Body), exp.Table.Alias, exp.Table.Lock));
+            DbFromTableExpression ret = new DbFromTableExpression(this.MakeTableSegment(exp.Table));
             for (int i = 0; i < exp.JoinTables.Count; i++)
             {
                 ret.JoinTables.Add((DbJoinTableExpression)this.MakeNewExpression(exp.JoinTables[i]));
@@ -172,7 +178,7 @@
         }
         public override DbExpression VisitJoinTable(DbJoinTableExpression exp)
         {
-            DbJoinTableExpression ret = new DbJoinTableExpression(exp.JoinType, new DbTableSegment(this.MakeNewExpression(exp.Table.Body), exp.Table.Alias, exp.Table.Lock), this.MakeNewExpression(exp.Condition));
+            DbJoinTableExpression ret = new DbJoinTableExpression(exp.JoinType, this.MakeTableSegment(exp.Table), this.MakeNewExpression(exp.Condition)); ;
             for (int i = 0; i < exp.JoinTables.Count; i++)
             {
                 DbJoinTableExpression dbJoinTable = (DbJoinTableExpression)this.MakeNewExpression(exp.JoinTables[i]);
@@ -242,5 +248,40 @@
 
             return exp.Accept(this);
         }
+
+        DbTableSegment MakeTableSegment(DbTableSegment tableSegment)
+        {
+            DbExpression tableSegmentBody = this.MakeNewExpression(tableSegment.Body);
+            if (tableSegmentBody == tableSegment.Body)
+            {
+                return tableSegment;
+            }
+
+            return new DbTableSegment(tableSegmentBody, tableSegment.Alias, tableSegment.Lock);
+        }
+
+        DbColumnSegment MakeColumnSegment(DbColumnSegment columnSegment)
+        {
+            DbExpression columnSegmentBody = this.MakeNewExpression(columnSegment.Body);
+            if (columnSegmentBody == columnSegment.Body)
+            {
+                return columnSegment;
+            }
+
+            return new DbColumnSegment(columnSegmentBody, columnSegment.Alias);
+        }
+
+        DbOrdering MakeOrdering(DbOrdering ordering)
+        {
+            DbExpression orderingBody = this.MakeNewExpression(ordering.Expression);
+            if (orderingBody == ordering.Expression)
+            {
+                return ordering;
+            }
+
+            return new DbOrdering(orderingBody, ordering.OrderType);
+        }
+
+
     }
 }
