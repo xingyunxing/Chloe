@@ -37,11 +37,6 @@ namespace Chloe.Mapper.Activators
             return activator;
         }
 
-        CollectionObjectActivator()
-        {
-
-        }
-
         public CollectionObjectActivator(Type collectionType)
         {
             this._collectionType = collectionType;
@@ -55,11 +50,7 @@ namespace Chloe.Mapper.Activators
 
         public override IObjectActivator Clone()
         {
-            CollectionObjectActivator collectionObjectActivator = new CollectionObjectActivator();
-            collectionObjectActivator._collectionType = this._collectionType;
-            collectionObjectActivator._activator = this._activator;
-
-            return collectionObjectActivator;
+            return this;
         }
     }
 }

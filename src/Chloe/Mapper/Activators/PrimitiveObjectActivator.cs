@@ -11,11 +11,6 @@ namespace Chloe.Mapper.Activators
         int _readerOrdinal;
         IDbValueReader _dbValueReader;
 
-        PrimitiveObjectActivator()
-        {
-
-        }
-
         public PrimitiveObjectActivator(Type primitiveType, int readerOrdinal)
         {
             this._primitiveType = primitiveType;
@@ -37,12 +32,7 @@ namespace Chloe.Mapper.Activators
 
         public override IObjectActivator Clone()
         {
-            PrimitiveObjectActivator primitiveObjectActivator = new PrimitiveObjectActivator();
-            primitiveObjectActivator._primitiveType = this._primitiveType;
-            primitiveObjectActivator._readerOrdinal = this._readerOrdinal;
-            primitiveObjectActivator._dbValueReader = this._dbValueReader;
-
-            return primitiveObjectActivator;
+            return this;
         }
 
     }

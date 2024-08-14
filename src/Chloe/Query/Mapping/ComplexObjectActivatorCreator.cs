@@ -123,7 +123,7 @@ namespace Chloe.Query.Mapping
 
         public IFitter CreateFitter(bool isTrackingQuery)
         {
-            List<Tuple<PropertyDescriptor, IFitter>> includings = new List<Tuple<PropertyDescriptor, IFitter>>();
+            List<Tuple<PropertyDescriptor, IFitter>> includings = new List<Tuple<PropertyDescriptor, IFitter>>(this.ComplexMembers.Count + this.CollectionMembers.Count);
             TypeDescriptor typeDescriptor = EntityTypeContainer.GetDescriptor(this.ConstructorDescriptor.ConstructorInfo.DeclaringType);
             foreach (var item in this.ComplexMembers.Concat(this.CollectionMembers))
             {
