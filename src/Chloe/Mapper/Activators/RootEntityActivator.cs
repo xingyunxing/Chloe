@@ -33,7 +33,7 @@ namespace Chloe.Mapper.Activators
             IQueryDataReader queryDataReader = (IQueryDataReader)reader;
             queryDataReader.AllowReadNextRecord = true;
 
-            while (await queryDataReader.Read(true))
+            while (await queryDataReader.Read(@async))
             {
                 if (!this._entityKey.IsEntityRow(entity, reader))
                 {
