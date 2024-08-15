@@ -26,8 +26,6 @@ namespace Chloe.Query.Internals
             this._queryContext = new QueryContext(this._query.DbContextProvider);
         }
 
-#if !NET46 && !NETSTANDARD2
-
         DbCommandFactor GenerateCommandFactor()
         {
             QueryExpression queryExpression = QueryObjectExpressionTransformer.Transform(this._query.QueryExpression);
@@ -60,9 +58,8 @@ namespace Chloe.Query.Internals
             return new QueryPlan() { KeyStub = queryExpression, ObjectActivator = objectActivator, SqlQuery = data.SqlQuery };
         }
 
-#else
 
-        DbCommandFactor GenerateCommandFactor()
+        DbCommandFactor GenerateCommandFactorWithoutCache()
         {
             QueryExpression queryExpression = QueryObjectExpressionTransformer.Transform(this._query.QueryExpression);
             QueryStateBase qs = QueryExpressionResolver.Resolve(this._queryContext, queryExpression, new ScopeParameterDictionary(), new StringSet());
@@ -77,7 +74,6 @@ namespace Chloe.Query.Internals
             return commandFactor;
         }
 
-#endif
 
         public override string ToString()
         {

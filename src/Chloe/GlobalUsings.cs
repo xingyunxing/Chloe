@@ -13,3 +13,9 @@ global using ValueTask = System.Threading.Tasks.Task;
 global using BoolResultTask = System.Threading.Tasks.ValueTask<bool>;
 global using ObjectResultTask = System.Threading.Tasks.ValueTask<object>;
 #endif
+
+#if NETFX || NETSTANDARD2
+
+global using HashCode = Chloe.HashCode;
+
+#endif

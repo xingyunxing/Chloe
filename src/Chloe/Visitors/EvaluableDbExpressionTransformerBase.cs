@@ -86,7 +86,6 @@ namespace Chloe.Visitors
 
         public override DbExpression VisitMember(DbMemberExpression exp)
         {
-#if !NET46 && !NETSTANDARD2
             if (exp.Member.Name == nameof(VariableSlot<int>.Value))
             {
                 if (exp.Expression is DbConstantExpression dbConstantExpression)
@@ -99,7 +98,6 @@ namespace Chloe.Visitors
                     }
                 }
             }
-#endif
 
             if (exp.Expression != null)
             {

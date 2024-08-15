@@ -1,7 +1,4 @@
-﻿
-#if !NET46 && !NETSTANDARD2
-
-using Chloe.DbExpressions;
+﻿using Chloe.DbExpressions;
 using Chloe.Mapper;
 using Chloe.QueryExpressions;
 
@@ -83,5 +80,3 @@ namespace Chloe.Query
 
     }
 }
-
-#endif

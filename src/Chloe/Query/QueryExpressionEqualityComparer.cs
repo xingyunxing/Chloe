@@ -1,7 +1,4 @@
-﻿
-#if !NET46 && !NETSTANDARD2
-
-using Chloe.QueryExpressions;
+﻿using Chloe.QueryExpressions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -19,7 +16,7 @@ namespace Chloe.Query
             return new QueryExpressionComparer().Compare(x, y);
         }
 
-        public int GetHashCode([DisallowNull] QueryExpression? obj)
+        public int GetHashCode(QueryExpression? obj)
         {
             if (obj == null)
             {
@@ -422,5 +419,3 @@ namespace Chloe.Query
         }
     }
 }
-
-#endif

@@ -1,7 +1,4 @@
-﻿
-#if !NET46 && !NETSTANDARD2
-
-using Chloe.QueryExpressions;
+﻿using Chloe.QueryExpressions;
 using Chloe.Reflection;
 using Chloe.Visitors;
 using System;
@@ -51,5 +48,3 @@ namespace Chloe.Query
 
     }
 }
-
-#endif

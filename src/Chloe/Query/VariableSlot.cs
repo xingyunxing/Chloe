@@ -1,10 +1,4 @@
 ﻿
-#if !NET46 && !NETSTANDARD2
-
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace Chloe.Query
 {
     /// <summary>
@@ -57,5 +51,3 @@ namespace Chloe.Query
 
     }
 }
-
-#endif

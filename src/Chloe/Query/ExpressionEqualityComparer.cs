@@ -6,9 +6,6 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#if !NET46 && !NETSTANDARD2
-
-// NETFX 和 NETSTANDARD2 缺少 HashCode 类，在这两种环境下暂时不支持
 using Chloe.QueryExpressions;
 using System.Collections;
 using System.Linq.Expressions;
@@ -737,5 +734,3 @@ namespace Chloe.Query
         }
     }
 }
-
-#endif
