@@ -25,7 +25,6 @@ namespace Chloe.Reflection
         }
     }
 
-
     public struct MultMemberMapperCacheKey : IEquatable<MultMemberMapperCacheKey>
     {
         Type _objectType;
@@ -45,6 +44,9 @@ namespace Chloe.Reflection
         public bool Equals(MultMemberMapperCacheKey other)
         {
             if (this._objectType != other._objectType)
+                return false;
+
+            if (this._mapInfos.Length != other._mapInfos.Length)
                 return false;
 
             for (int i = 0; i < this._mapInfos.Length; i++)
@@ -69,6 +71,7 @@ namespace Chloe.Reflection
             HashCode hash = new HashCode();
 
             hash.Add(this._objectType);
+            hash.Add(this._mapInfos.Length);
 
             for (int i = 0; i < this._mapInfos.Length; i++)
             {
@@ -83,6 +86,5 @@ namespace Chloe.Reflection
 
 
     }
-
 
 }
