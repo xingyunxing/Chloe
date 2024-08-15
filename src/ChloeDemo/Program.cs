@@ -84,9 +84,9 @@ namespace ChloeDemo
              */
 
             RunDemo<SQLiteDemo>();
+            RunDemo<MySqlDemo>();
             RunDemo<MsSqlDemo>();
             RunDemo<MsSqlOdbcDemo>();
-            RunDemo<MySqlDemo>();
             RunDemo<PostgreSQLDemo>();
             RunDemo<OracleDemo>();
             RunDemo<DamengDemo>();

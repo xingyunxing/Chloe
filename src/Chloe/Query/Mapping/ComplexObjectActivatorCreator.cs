@@ -1,5 +1,4 @@
 ﻿using Chloe.Descriptors;
-using Chloe.Exceptions;
 using Chloe.Infrastructure;
 using Chloe.Mapper;
 using Chloe.Mapper.Activators;
@@ -43,9 +42,10 @@ namespace Chloe.Query.Mapping
             InstanceCreator instanceCreator = this.ConstructorDescriptor.GetInstanceCreator();
 
             List<IObjectActivator> argumentActivators = this.CreateArgumentActivators(isTrackingQuery);
-            List<IMemberBinder> memberBinders = this.CreateMemberBinders(isTrackingQuery);
+            List<MemberMap> primitiveMemberMaps = this.CreatePrimitiveMemberMaps();
+            List<IMemberBinder> objectMemberBinders = this.CreateObjectMemberBinders(isTrackingQuery);
 
-            IObjectActivator objectActivator = new ComplexObjectActivator(instanceCreator, argumentActivators, memberBinders, this.CheckNullOrdinal, isTrackingQuery);
+            IObjectActivator objectActivator = new ComplexObjectActivator(this.ObjectType, instanceCreator, argumentActivators, primitiveMemberMaps, objectMemberBinders, this.CheckNullOrdinal, isTrackingQuery);
 
             if (this.IsRoot && this.HasMany())
             {
@@ -63,16 +63,27 @@ namespace Chloe.Query.Mapping
             return objectActivator;
         }
 
-        List<IMemberBinder> CreateMemberBinders(bool isTrackingQuery)
+        List<MemberMap> CreatePrimitiveMemberMaps()
         {
-            ObjectMemberMapper mapper = this.ConstructorDescriptor.GetEntityMemberMapper();
-            List<IMemberBinder> memberBinders = new List<IMemberBinder>(this.PrimitiveMembers.Count + this.ComplexMembers.Count + this.CollectionMembers.Count);
+            List<MemberMap> memberMaps = new List<MemberMap>(this.PrimitiveMembers.Count);
             foreach (var kv in this.PrimitiveMembers)
             {
-                MRMTuple mrmTuple = mapper.GetMappingMemberMapper(kv.Key);
-                PrimitiveMemberBinder binder = new PrimitiveMemberBinder(kv.Key, mrmTuple, kv.Value);
-                memberBinders.Add(binder);
+                MappingType mappingType;
+                if (!MappingTypeSystem.IsMappingType(kv.Key.GetMemberType(), out mappingType))
+                {
+                    throw new NotSupportedException($"Not supported mapping type '{kv.Key.GetMemberType().FullName}'");
+                }
+
+                MemberMap memberMap = new MemberMap(kv.Key, kv.Value, mappingType.DbValueConverter);
+                memberMaps.Add(memberMap);
             }
+
+            return memberMaps;
+        }
+        List<IMemberBinder> CreateObjectMemberBinders(bool isTrackingQuery)
+        {
+            ObjectMemberMapper mapper = this.ConstructorDescriptor.GetEntityMemberMapper();
+            List<IMemberBinder> memberBinders = new List<IMemberBinder>(this.ComplexMembers.Count + this.CollectionMembers.Count);
 
             foreach (var kv in this.ComplexMembers)
             {

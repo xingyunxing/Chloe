@@ -1,43 +1,72 @@
 ﻿using Chloe.Exceptions;
-using Chloe.Mapper.Binders;
 using Chloe.Query;
 using Chloe.Reflection;
-using System.Collections.Generic;
+using Chloe.Reflection.Emit;
 using System.Data;
 
 namespace Chloe.Mapper.Activators
 {
-    public class ComplexObjectActivator : ObjectActivatorBase, IObjectActivator
+    public class ComplexObjectActivator : ObjectActivatorBase, IObjectActivator, IReadingOrdinal
     {
+        Type _objectType;
         InstanceCreator _instanceCreator;
         List<IObjectActivator> _argumentActivators;
-        List<IMemberBinder> _memberBinders;
+        List<MemberMap> _primitiveMemberMaps;  //映射属性
+        List<IMemberBinder> _objectMemberBinders; //非映射属性，如导航属性等
         int? _checkNullOrdinal;
 
         bool _shouldTrackEntity;
 
-        public ComplexObjectActivator(InstanceCreator instanceCreator, List<IObjectActivator> argumentActivators, List<IMemberBinder> memberBinders, int? checkNullOrdinal, bool shouldTrackEntity)
+        MultMemberMapper _primitiveMemberMapper;
+
+        public ComplexObjectActivator(Type objectType, InstanceCreator instanceCreator, List<IObjectActivator> argumentActivators, List<MemberMap> primitiveMemberMaps, List<IMemberBinder> objectMemberBinders, int? checkNullOrdinal, bool shouldTrackEntity)
         {
+            this._objectType = objectType;
             this._instanceCreator = instanceCreator;
+            this._primitiveMemberMaps = primitiveMemberMaps;
             this._argumentActivators = argumentActivators;
-            this._memberBinders = memberBinders;
+            this._objectMemberBinders = objectMemberBinders;
             this._checkNullOrdinal = checkNullOrdinal;
             this._shouldTrackEntity = shouldTrackEntity;
         }
 
+        /// <summary>
+        /// 记录当前读取的 dataReader 序号，方便抛错
+        /// </summary>
+        public int Ordinal { get; set; }
+
         public override void Prepare(IDataReader reader)
         {
+            this._primitiveMemberMapper = this.GetPrimitiveMapper(reader);
+
             for (int i = 0; i < this._argumentActivators.Count; i++)
             {
                 IObjectActivator argumentActivator = this._argumentActivators[i];
                 argumentActivator.Prepare(reader);
             }
-            for (int i = 0; i < this._memberBinders.Count; i++)
+            for (int i = 0; i < this._objectMemberBinders.Count; i++)
             {
-                IMemberBinder binder = this._memberBinders[i];
+                IMemberBinder binder = this._objectMemberBinders[i];
                 binder.Prepare(reader);
             }
         }
+        public MultMemberMapper GetPrimitiveMapper(IDataReader reader)
+        {
+            MapInfo[] mapInfos = new MapInfo[this._primitiveMemberMaps.Count];
+            for (int i = 0; i < this._primitiveMemberMaps.Count; i++)
+            {
+                mapInfos[i] = new MapInfo() { MemberMap = this._primitiveMemberMaps[i], ReaderDataType = reader.GetFieldType(this._primitiveMemberMaps[i].Ordinal) };
+            }
+            MultMemberMapper mapper = MultMemberMapperContainer.GetOrAdd(new MultMemberMapperCacheKey(this._objectType, mapInfos), () =>
+            {
+                MultMemberMapper mapper = DelegateGenerator.CreateMultMemberMapper(this._objectType, mapInfos);
+                return mapper;
+            });
+
+            return mapper;
+        }
+
+
         public override async ObjectResultTask CreateInstance(QueryContext queryContext, IDataReader reader, bool @async)
         {
             if (this._checkNullOrdinal != null)
@@ -55,15 +84,9 @@ namespace Chloe.Mapper.Activators
 
             object obj = this._instanceCreator(arguments);
 
-            IMemberBinder memberBinder = null;
             try
             {
-                int count = this._memberBinders.Count;
-                for (int i = 0; i < count; i++)
-                {
-                    memberBinder = this._memberBinders[i];
-                    await memberBinder.Bind(queryContext, obj, reader, @async);
-                }
+                this._primitiveMemberMapper(obj, reader, this);
             }
             catch (ChloeException)
             {
@@ -71,13 +94,15 @@ namespace Chloe.Mapper.Activators
             }
             catch (Exception ex)
             {
-                PrimitiveMemberBinder binder = memberBinder as PrimitiveMemberBinder;
-                if (binder != null)
-                {
-                    throw new ChloeException(AppendErrorMsg(reader, binder.Ordinal, ex), ex);
-                }
+                throw new ChloeException(AppendErrorMsg(reader, this.Ordinal, ex), ex);
+            }
 
-                throw;
+            IMemberBinder memberBinder = null;
+            int count = this._objectMemberBinders.Count;
+            for (int i = 0; i < count; i++)
+            {
+                memberBinder = this._objectMemberBinders[i];
+                await memberBinder.Bind(queryContext, obj, reader, @async);
             }
 
             if (this._shouldTrackEntity)
@@ -109,10 +134,10 @@ namespace Chloe.Mapper.Activators
             List<IObjectActivator> argumentActivators = new List<IObjectActivator>(this._argumentActivators.Count);
             argumentActivators.AddRange(this._argumentActivators.Select(a => a.Clone()));
 
-            List<IMemberBinder> memberBinders = new List<IMemberBinder>(this._memberBinders.Count);
-            memberBinders.AddRange(this._memberBinders.Select(a => a.Clone()));
+            List<IMemberBinder> objectMemberBinders = new List<IMemberBinder>(this._objectMemberBinders.Count);
+            objectMemberBinders.AddRange(this._objectMemberBinders.Select(a => a.Clone()));
 
-            ComplexObjectActivator complexObjectActivator = new ComplexObjectActivator(this._instanceCreator, argumentActivators, memberBinders, this._checkNullOrdinal, this._shouldTrackEntity);
+            ComplexObjectActivator complexObjectActivator = new ComplexObjectActivator(this._objectType, this._instanceCreator, argumentActivators, this._primitiveMemberMaps, objectMemberBinders, this._checkNullOrdinal, this._shouldTrackEntity);
 
             return complexObjectActivator;
         }

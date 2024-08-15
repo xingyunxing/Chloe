@@ -123,16 +123,16 @@ namespace Chloe.Query.Internals
             ConstructorDescriptor constructorDescriptor = ConstructorDescriptor.GetInstance(constructor);
             ObjectMemberMapper mapper = constructorDescriptor.GetEntityMemberMapper();
             InstanceCreator instanceCreator = constructorDescriptor.GetInstanceCreator();
-            List<IMemberBinder> memberBinders = PrepareMemberBinders(type, reader, mapper);
+            List<MemberMap> memberMaps = PrepareMemberMaps(type, reader);
 
-            ComplexObjectActivator objectActivator = new ComplexObjectActivator(instanceCreator, new List<IObjectActivator>(), memberBinders, null, false);
+            ComplexObjectActivator objectActivator = new ComplexObjectActivator(type, instanceCreator, new List<IObjectActivator>(), memberMaps, new List<IMemberBinder>(), null, false);
             objectActivator.Prepare(reader);
 
             return objectActivator;
         }
-        static List<IMemberBinder> PrepareMemberBinders(Type type, IDataReader reader, ObjectMemberMapper mapper)
+        static List<MemberMap> PrepareMemberMaps(Type type, IDataReader reader)
         {
-            List<IMemberBinder> memberBinders = new List<IMemberBinder>(reader.FieldCount);
+            List<MemberMap> memberMaps = new List<MemberMap>(reader.FieldCount);
 
             MemberInfo[] properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.SetProperty);
             MemberInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.SetField);
@@ -150,15 +150,17 @@ namespace Chloe.Query.Internals
                 if (mapMember == null)
                     continue;
 
-                MRMTuple mMapperTuple = mapper.GetMappingMemberMapper(mapMember);
-                if (mMapperTuple == null)
+                Infrastructure.MappingType mappingType;
+                if (!MappingTypeSystem.IsMappingType(mapMember.GetMemberType(), out mappingType))
+                {
                     continue;
+                }
 
-                PrimitiveMemberBinder memberBinder = new PrimitiveMemberBinder(mapMember, mMapperTuple, i);
-                memberBinders.Add(memberBinder);
+                MemberMap memberBinder = new MemberMap(mapMember, i, mappingType.DbValueConverter);
+                memberMaps.Add(memberBinder);
             }
 
-            return memberBinders;
+            return memberMaps;
         }
 
         static MemberInfo TryGetMapMember(List<MemberInfo> members, string readerName, TypeDescriptor typeDescriptor)

@@ -1,5 +1,7 @@
 ﻿using Chloe.Data;
 using Chloe.Extensions;
+using Chloe.Infrastructure;
+using Chloe.Mapper;
 using System.Data;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -244,5 +246,86 @@ namespace Chloe.Reflection.Emit
 
             return ret;
         }
+
+
+        public static MultMemberMapper CreateMultMemberMapper(Type instanceType, MapInfo[] mapInfos)
+        {
+            var p = Expression.Parameter(typeof(object), "instance");
+            var reader = Expression.Parameter(typeof(IDataReader), "reader");
+            var readingOrdinal = Expression.Parameter(typeof(IReadingOrdinal), "readingIndex");
+
+            var instance = Expression.Variable(instanceType, "entity");
+            var value = Expression.Variable(typeof(object), "value");
+
+            var blockExps = new List<Expression>();
+
+            blockExps.Add(Expression.Assign(instance, Expression.Convert(p, instanceType)));
+
+            MemberInfo readingOrdinalMember = typeof(IReadingOrdinal).GetProperty(nameof(IReadingOrdinal.Ordinal));
+
+            for (int i = 0; i < mapInfos.Length; i++)
+            {
+                MapInfo mapInfo = mapInfos[i];
+                MemberMap memberMap = mapInfo.MemberMap;
+                var member = memberMap.Member;
+                Type memberType = member.GetMemberType();
+                Type underlyingType = memberType.GetUnderlyingType();
+
+                var ordinal = Expression.Constant(memberMap.Ordinal);
+
+                //log reading ordinal
+                //readingOrdinal.Ordinal = ordinal;
+                blockExps.Add(ExpressionExtension.Assign(readingOrdinalMember, readingOrdinal, ordinal));
+
+                if (underlyingType == mapInfo.ReaderDataType || underlyingType.IsEnum)
+                {
+                    var getValueMethod = DataReaderConstant.GetReaderMethod(memberType);
+
+                    //DataReaderExtension.GetXXX(reader, ordinal);
+                    Expression getValue = Expression.Call(null, getValueMethod, reader, ordinal);
+                    if (getValueMethod.ReturnType != memberType)
+                    {
+                        getValue = Expression.Convert(getValue, memberType);
+                    }
+
+                    //instance.XX = DataReaderExtension.GetXXX(reader, ordinal);
+                    var assign = ExpressionExtension.Assign(member, instance, getValue);
+
+                    blockExps.Add(assign);
+                }
+                else
+                {
+                    var getValueMethod = DataReaderConstant.Reader_GetValue;
+
+                    //value = DataReaderExtension.GetValue(reader, ordinal);
+                    Expression getValue = Expression.Call(null, getValueMethod, reader, ordinal);
+                    blockExps.Add(Expression.Assign(value, getValue));
+
+                    /*
+                     * mapInfo.DbValueConverter.Convert(value);
+                     */
+                    var convertMethod = memberMap.DbValueConverter.GetType().GetMethod(nameof(IDbValueConverter.Convert), new Type[] { typeof(object) });
+                    var convertedValue = Expression.Call(Expression.Constant(memberMap.DbValueConverter), convertMethod, value);
+
+                    /*
+                     * if(value == null)
+                     * {
+                     *      value = mapInfo.DbValueConverter.Convert(value);
+                     * }
+                     */
+                    blockExps.Add(Expression.IfThen(Expression.NotEqual(value, Expression.Constant(null)), Expression.Assign(value, convertedValue)));
+
+                    //instance.XX = (MemberType)value;
+                    var assign = ExpressionExtension.Assign(member, instance, Expression.Convert(value, memberType));
+                    blockExps.Add(assign);
+                }
+            }
+
+            var lambda = Expression.Lambda<MultMemberMapper>(Expression.Block(new ParameterExpression[] { instance, value }, blockExps), p, reader, readingOrdinal).Compile();
+
+            return lambda;
+
+        }
     }
+
 }
