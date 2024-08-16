@@ -89,7 +89,7 @@ namespace Chloe.RDBMS
             DbMethodCallExpression left_not_equals_right = DbExpression.MethodCall(null, method_Sql_IsNotEqual, new List<DbExpression>(2) { left, right });
 
             //明确 left right 其中一边一定为 null
-            if (DbExpressionExtension.AffirmExpressionRetValueIsNull(right) || DbExpressionExtension.AffirmExpressionRetValueIsNull(left))
+            if (DbExpressionExtension.AffirmExpressionRetValueIsNull(right, this.Options.RegardEmptyStringAsNull) || DbExpressionExtension.AffirmExpressionRetValueIsNull(left, this.Options.RegardEmptyStringAsNull))
             {
                 /*
                  * a.Name != null --> a.Name != null
@@ -121,7 +121,7 @@ namespace Chloe.RDBMS
             {
                 /*
                  * 走到这说明 name 不可能为 null
-                 * a.Name == name --> a.Name != name or a.Name is null
+                 * a.Name != name --> a.Name != name or a.Name is null
                  */
 
                 if (left.NodeType != DbExpressionType.Parameter && left.NodeType != DbExpressionType.Constant)
@@ -290,44 +290,36 @@ namespace Chloe.RDBMS
         // <
         public override DbExpression VisitLessThan(DbLessThanExpression exp)
         {
-            var amendResult = PublicHelper.AmendExpDbInfo(exp.Left, exp.Right);
-
-            amendResult.Left.Accept(this);
+            exp.Left.Accept(this);
             this.SqlBuilder.Append(" < ");
-            amendResult.Right.Accept(this);
+            exp.Right.Accept(this);
 
             return exp;
         }
         // <=
         public override DbExpression VisitLessThanOrEqual(DbLessThanOrEqualExpression exp)
         {
-            var amendResult = PublicHelper.AmendExpDbInfo(exp.Left, exp.Right);
-
-            amendResult.Left.Accept(this);
+            exp.Left.Accept(this);
             this.SqlBuilder.Append(" <= ");
-            amendResult.Right.Accept(this);
+            exp.Right.Accept(this);
 
             return exp;
         }
         // >
         public override DbExpression VisitGreaterThan(DbGreaterThanExpression exp)
         {
-            var amendResult = PublicHelper.AmendExpDbInfo(exp.Left, exp.Right);
-
-            amendResult.Left.Accept(this);
+            exp.Left.Accept(this);
             this.SqlBuilder.Append(" > ");
-            amendResult.Right.Accept(this);
+            exp.Right.Accept(this);
 
             return exp;
         }
         // >=
         public override DbExpression VisitGreaterThanOrEqual(DbGreaterThanOrEqualExpression exp)
         {
-            var amendResult = PublicHelper.AmendExpDbInfo(exp.Left, exp.Right);
-
-            amendResult.Left.Accept(this);
+            exp.Left.Accept(this);
             this.SqlBuilder.Append(" >= ");
-            amendResult.Right.Accept(this);
+            exp.Right.Accept(this);
 
             return exp;
         }
@@ -431,7 +423,6 @@ namespace Chloe.RDBMS
                 this.SqlBuilder.Append(separator);
 
                 DbExpression valExp = DbExpressionExtension.StripInvalidConvert(item.Value);
-                PublicHelper.AmendDbInfo(item.Column, valExp);
                 valExp.Accept(this);
                 separator = ",";
             }
@@ -455,7 +446,6 @@ namespace Chloe.RDBMS
                 this.SqlBuilder.Append("=");
 
                 DbExpression valExp = item.Value.StripInvalidConvert();
-                PublicHelper.AmendDbInfo(item.Column, valExp);
                 valExp.Accept(this);
 
                 separator = ",";

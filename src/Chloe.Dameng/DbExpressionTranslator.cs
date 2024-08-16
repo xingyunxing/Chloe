@@ -18,7 +18,9 @@ namespace Chloe.Dameng
         {
             SqlGeneratorOptions options = this.CreateOptions();
             SqlGenerator generator = new SqlGenerator(options);
+
             expression = EvaluableDbExpressionTransformer.Transform(expression, variables);
+            expression = DbExpressionNormalizer.Normalize(expression);
             expression.Accept(generator);
 
             var dbCommandInfo = new DbCommandInfo

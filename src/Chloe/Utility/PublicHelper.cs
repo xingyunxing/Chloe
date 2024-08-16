@@ -60,55 +60,7 @@ namespace Chloe
             return ToStringableNumericTypes.Contains(type);
         }
 
-        public static (DbExpression Left, DbExpression Right) AmendExpDbInfo(DbExpression left, DbExpression right)
-        {
-            left = DbExpressionExtension.StripInvalidConvert(left);
-            right = DbExpressionExtension.StripInvalidConvert(right);
-            PublicHelper.AmendDbInfo(left, right);
-
-            return (left, right);
-        }
-        /// <summary>
-        /// 修正使用关系运算符时的 DbType，避免出现双边类型不一致时导致索引失效
-        /// </summary>
-        /// <param name="exp1"></param>
-        /// <param name="exp2"></param>
-        public static void AmendDbInfo(DbExpression exp1, DbExpression exp2)
-        {
-            DbColumnAccessExpression datumPointExp = null;
-            DbParameterExpression expToAmend = null;
-
-            DbExpression e = Trim_Nullable_Value(exp1);
-            if (e.NodeType == DbExpressionType.ColumnAccess && exp2.NodeType == DbExpressionType.Parameter)
-            {
-                datumPointExp = (DbColumnAccessExpression)e;
-                expToAmend = (DbParameterExpression)exp2;
-            }
-            else if ((e = Trim_Nullable_Value(exp2)).NodeType == DbExpressionType.ColumnAccess && exp1.NodeType == DbExpressionType.Parameter)
-            {
-                datumPointExp = (DbColumnAccessExpression)e;
-                expToAmend = (DbParameterExpression)exp1;
-            }
-            else
-                return;
-
-            if (datumPointExp.Column.DbType != null)
-            {
-                if (expToAmend.DbType == null)
-                    expToAmend.DbType = datumPointExp.Column.DbType;
-            }
-        }
-        public static void AmendDbInfo(DbColumn column, DbExpression exp)
-        {
-            if (column.DbType == null || exp.NodeType != DbExpressionType.Parameter)
-                return;
-
-            DbParameterExpression expToAmend = (DbParameterExpression)exp;
-
-            if (expToAmend.DbType == null)
-                expToAmend.DbType = column.DbType;
-        }
-        static DbExpression Trim_Nullable_Value(DbExpression exp)
+        public static DbExpression Trim_Nullable_Value(DbExpression exp)
         {
             DbMemberExpression memberExp = exp as DbMemberExpression;
             if (memberExp == null)

@@ -19,5 +19,10 @@ namespace Chloe.RDBMS
         /// in 参数最大个数
         /// </summary>
         public int MaxInItems { get; set; } = int.MaxValue;
+
+        /// <summary>
+        /// 是否将空字符串视为 null
+        /// </summary>
+        public bool RegardEmptyStringAsNull { get; set; }
     }
 }

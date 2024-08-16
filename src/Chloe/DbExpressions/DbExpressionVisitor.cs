@@ -241,7 +241,7 @@
             return new DbExistsExpression((DbSqlQueryExpression)this.MakeNewExpression(exp.SqlQuery));
         }
 
-        DbExpression MakeNewExpression(DbExpression exp)
+        protected DbExpression MakeNewExpression(DbExpression exp)
         {
             if (exp == null)
                 return null;

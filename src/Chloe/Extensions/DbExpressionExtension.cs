@@ -14,6 +14,12 @@ namespace Chloe.DbExpressions
 
             return exp;
         }
+
+        /// <summary>
+        /// 去掉一些无效的转换
+        /// </summary>
+        /// <param name="exp"></param>
+        /// <returns></returns>
         public static DbExpression StripInvalidConvert(this DbExpression exp)
         {
             if (exp.NodeType != DbExpressionType.Convert)
@@ -135,25 +141,42 @@ namespace Chloe.DbExpressions
         /// 判定 exp 返回值肯定是 null
         /// </summary>
         /// <param name="exp"></param>
+        /// <param name="regardEmptyStringAsNull">是否将空字符串视为 null</param>
         /// <returns></returns>
-        public static bool AffirmExpressionRetValueIsNull(this DbExpression exp)
+        public static bool AffirmExpressionRetValueIsNull(this DbExpression exp, bool regardEmptyStringAsNull = false)
         {
             exp = DbExpressionExtension.StripConvert(exp);
 
             if (exp.NodeType == DbExpressionType.Constant)
             {
                 var c = (DbConstantExpression)exp;
-                return c.Value == null || c.Value == DBNull.Value;
+                return IsNullValue(c.Value, regardEmptyStringAsNull);
             }
 
             if (exp.NodeType == DbExpressionType.Parameter)
             {
                 var p = (DbParameterExpression)exp;
-                return p.Value == null || p.Value == DBNull.Value;
+                return IsNullValue(p.Value, regardEmptyStringAsNull);
             }
 
             return false;
         }
+
+        static bool IsNullValue(object obj, bool regardEmptyStringAsNull)
+        {
+            if (obj == null || obj == DBNull.Value)
+                return true;
+
+            if (regardEmptyStringAsNull)
+            {
+                string stringValue = obj as string;
+                if (stringValue != null && stringValue == string.Empty)
+                    return true;
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// 判定 exp 返回值肯定不是 null
         /// </summary>

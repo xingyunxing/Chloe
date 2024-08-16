@@ -61,116 +61,6 @@ namespace Chloe.Oracle
         protected override Dictionary<string, Action<DbAggregateExpression, SqlGeneratorBase>> AggregateHandlers { get; } = AggregateHandlerDic;
         protected override Dictionary<MethodInfo, Action<DbBinaryExpression, SqlGeneratorBase>> BinaryWithMethodHandlers { get; } = BinaryWithMethodHandlersDic;
 
-        public override DbExpression VisitNotEqual(DbNotEqualExpression exp)
-        {
-            DbExpression left = exp.Left;
-            DbExpression right = exp.Right;
-
-            left = DbExpressionExtension.StripInvalidConvert(left);
-            right = DbExpressionExtension.StripInvalidConvert(right);
-
-            MethodInfo method_Sql_IsNotEqual = PublicConstants.MethodInfo_Sql_IsNotEqual.MakeGenericMethod(left.Type);
-
-            /* Sql.IsNotEqual(left, right) */
-            DbMethodCallExpression left_not_equals_right = DbExpression.MethodCall(null, method_Sql_IsNotEqual, new List<DbExpression>(2) { left, right });
-
-            //明确 left right 其中一边一定为 null
-            if (DbExpressionHelper.AffirmExpressionRetValueIsNullOrEmpty(right) || DbExpressionHelper.AffirmExpressionRetValueIsNullOrEmpty(left))
-            {
-                /*
-                 * a.Name != null --> a.Name != null
-                 */
-
-                left_not_equals_right.Accept(this);
-                return exp;
-            }
-
-            if (right.NodeType == DbExpressionType.SubQuery || left.NodeType == DbExpressionType.SubQuery)
-            {
-                /*
-                 * a.Id != (select top 1 T.Id from T) --> a.Id <> (select top 1 T.Id from T)，对于这种查询，我们不考虑 null
-                 */
-
-                left_not_equals_right.Accept(this);
-                return exp;
-            }
-
-            MethodInfo method_Sql_IsEqual = PublicConstants.MethodInfo_Sql_IsEqual.MakeGenericMethod(left.Type);
-
-            if (left.NodeType == DbExpressionType.Parameter || left.NodeType == DbExpressionType.Constant)
-            {
-                var t = right;
-                right = left;
-                left = t;
-            }
-            if (right.NodeType == DbExpressionType.Parameter || right.NodeType == DbExpressionType.Constant)
-            {
-                /*
-                 * 走到这说明 name 不可能为 null
-                 * a.Name != name --> a.Name <> name or a.Name is null
-                 */
-
-                if (left.NodeType != DbExpressionType.Parameter && left.NodeType != DbExpressionType.Constant)
-                {
-                    /*
-                     * a.Name != name --> a.Name <> name or a.Name is null
-                     */
-
-                    /* Sql.IsEqual(left, null) */
-                    var left_is_null1 = DbExpression.MethodCall(null, method_Sql_IsEqual, new List<DbExpression>(2) { left, DbExpression.Constant(null, left.Type) });
-
-                    /* Sql.IsNotEqual(left, right) || Sql.IsEqual(left, null) */
-                    var left_not_equals_right_or_left_is_null = DbExpression.Or(left_not_equals_right, left_is_null1);
-                    left_not_equals_right_or_left_is_null.Accept(this);
-                }
-                else
-                {
-                    /*
-                     * name != name1 --> name <> name，其中 name 和 name1 都为变量且都不可能为 null
-                     */
-
-                    left_not_equals_right.Accept(this);
-                }
-
-                return exp;
-            }
-
-
-            /*
-             * a.Name != a.XName --> a.Name <> a.XName or (a.Name is null and a.XName is not null) or (a.Name is not null and a.XName is null)
-             * ## a.Name != a.XName 不能翻译成：not (a.Name == a.XName or (a.Name is null and a.XName is null))，因为数据库里的 not 有时候并非真正意义上的“取反”！
-             * 当 a.Name 或者 a.XName 其中一个字段有为 NULL，另一个字段有值时，会查不出此条数据 ##
-             */
-
-            DbConstantExpression null_Constant = DbExpression.Constant(null, left.Type);
-
-            /* Sql.IsEqual(left, null) */
-            var left_is_null = DbExpression.MethodCall(null, method_Sql_IsEqual, new List<DbExpression>(2) { left, null_Constant });
-            /* Sql.IsNotEqual(left, null) */
-            var left_is_not_null = DbExpression.MethodCall(null, method_Sql_IsNotEqual, new List<DbExpression>(2) { left, null_Constant });
-
-            /* Sql.IsEqual(right, null) */
-            var right_is_null = DbExpression.MethodCall(null, method_Sql_IsEqual, new List<DbExpression>(2) { right, null_Constant });
-            /* Sql.IsNotEqual(right, null) */
-            var right_is_not_null = DbExpression.MethodCall(null, method_Sql_IsNotEqual, new List<DbExpression>(2) { right, null_Constant });
-
-            /* Sql.IsEqual(left, null) && Sql.IsNotEqual(right, null) */
-            var left_is_null_and_right_is_not_null = DbExpression.And(left_is_null, right_is_not_null);
-
-            /* Sql.IsNotEqual(left, null) && Sql.IsEqual(right, null) */
-            var left_is_not_null_and_right_is_null = DbExpression.And(left_is_not_null, right_is_null);
-
-            /* (Sql.IsEqual(left, null) && Sql.IsNotEqual(right, null)) || (Sql.IsNotEqual(left, null) && Sql.IsEqual(right, null)) */
-            var left_is_null_and_right_is_not_null_or_left_is_not_null_and_right_is_null = DbExpression.Or(left_is_null_and_right_is_not_null, left_is_not_null_and_right_is_null);
-
-            /* Sql.IsNotEqual(left, right) || (Sql.IsEqual(left, null) && Sql.IsNotEqual(right, null)) || (Sql.IsNotEqual(left, null) && Sql.IsEqual(right, null)) */
-            var e = DbExpression.Or(left_not_equals_right, left_is_null_and_right_is_not_null_or_left_is_not_null_and_right_is_null);
-
-            e.Accept(this);
-
-            return exp;
-        }
-
         public override DbExpression VisitBitAnd(DbBitAndExpression exp)
         {
             this.SqlBuilder.Append("BITAND(");
@@ -283,7 +173,6 @@ namespace Chloe.Oracle
                 }
 
                 DbExpression valExp = item.Value.StripInvalidConvert();
-                PublicHelper.AmendDbInfo(item.Column, valExp);
                 DbValueExpressionTransformer.Transform(valExp).Accept(this);
             }
 
@@ -336,7 +225,6 @@ namespace Chloe.Oracle
                 this.SqlBuilder.Append("=");
 
                 DbExpression valExp = item.Value.StripInvalidConvert();
-                PublicHelper.AmendDbInfo(item.Column, valExp);
                 DbValueExpressionTransformer.Transform(valExp).Accept(this);
             }
 

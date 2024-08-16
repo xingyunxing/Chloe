@@ -1,6 +1,7 @@
 ﻿using Chloe.Core;
 using Chloe.DbExpressions;
 using Chloe.Infrastructure;
+using Chloe.RDBMS;
 
 namespace Chloe.SqlServer
 {
@@ -17,7 +18,9 @@ namespace Chloe.SqlServer
         {
             SqlServerSqlGeneratorOptions options = this.CreateOptions();
             SqlGenerator generator = new SqlGenerator(options);
+
             expression = EvaluableDbExpressionTransformer.Transform(expression, variables);
+            expression = DbExpressionNormalizer.Normalize(expression);
             expression.Accept(generator);
 
             DbCommandInfo dbCommandInfo = new DbCommandInfo();
