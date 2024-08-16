@@ -422,7 +422,7 @@ namespace Chloe.RDBMS
             {
                 this.SqlBuilder.Append(separator);
 
-                DbExpression valExp = DbExpressionExtension.StripInvalidConvert(item.Value);
+                DbExpression valExp = item.Value;
                 valExp.Accept(this);
                 separator = ",";
             }
@@ -445,7 +445,7 @@ namespace Chloe.RDBMS
                 this.QuoteName(item.Column.Name);
                 this.SqlBuilder.Append("=");
 
-                DbExpression valExp = item.Value.StripInvalidConvert();
+                DbExpression valExp = item.Value;
                 valExp.Accept(this);
 
                 separator = ",";
