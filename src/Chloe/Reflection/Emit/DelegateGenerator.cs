@@ -248,7 +248,7 @@ namespace Chloe.Reflection.Emit
         }
 
 
-        public static MultMemberMapper CreateMultMemberMapper(Type instanceType, MapInfo[] mapInfos)
+        public static MultMemberMapper CreateMultMemberMapper(Type instanceType, FieldMemberMap[] mapInfos)
         {
             var p = Expression.Parameter(typeof(object), "instance");
             var reader = Expression.Parameter(typeof(IDataReader), "reader");
@@ -265,11 +265,11 @@ namespace Chloe.Reflection.Emit
 
             for (int i = 0; i < mapInfos.Length; i++)
             {
-                MapInfo mapInfo = mapInfos[i];
+                FieldMemberMap mapInfo = mapInfos[i];
                 MemberMap memberMap = mapInfo.MemberMap;
                 var member = memberMap.Member;
                 Type memberType = member.GetMemberType();
-                Type underlyingType = memberType.GetUnderlyingType();
+                Type memberUnderlyingType = memberType.GetUnderlyingType();
 
                 var ordinal = Expression.Constant(memberMap.Ordinal);
 
@@ -277,7 +277,7 @@ namespace Chloe.Reflection.Emit
                 //readingOrdinal.Ordinal = ordinal;
                 blockExps.Add(ExpressionExtension.Assign(readingOrdinalMember, readingOrdinal, ordinal));
 
-                if (underlyingType == mapInfo.ReaderDataType || underlyingType.IsEnum)
+                if (memberUnderlyingType == mapInfo.ReaderDataType || memberUnderlyingType.IsEnum)
                 {
                     var getValueMethod = DataReaderConstant.GetReaderMethod(memberType);
 

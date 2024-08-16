@@ -27,16 +27,11 @@
 
         public override int GetHashCode()
         {
-#if !NET46 && !NETSTANDARD2
-
             HashCode hash = new HashCode();
-            hash.Add(this._name);
             hash.Add(this._schema);
-
+            hash.Add(".");
+            hash.Add(this._name);
             return hash.ToHashCode();
-#else
-            return string.Format("{0}-{1}", this._name, this._schema).GetHashCode();
-#endif
         }
 
         public override bool Equals(object obj)

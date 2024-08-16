@@ -52,10 +52,10 @@ namespace Chloe.Mapper.Activators
         }
         public MultMemberMapper GetPrimitiveMapper(IDataReader reader)
         {
-            MapInfo[] mapInfos = new MapInfo[this._primitiveMemberMaps.Count];
+            FieldMemberMap[] mapInfos = new FieldMemberMap[this._primitiveMemberMaps.Count];
             for (int i = 0; i < this._primitiveMemberMaps.Count; i++)
             {
-                mapInfos[i] = new MapInfo() { MemberMap = this._primitiveMemberMaps[i], ReaderDataType = reader.GetFieldType(this._primitiveMemberMaps[i].Ordinal) };
+                mapInfos[i] = new FieldMemberMap() { MemberMap = this._primitiveMemberMaps[i], ReaderDataType = reader.GetFieldType(this._primitiveMemberMaps[i].Ordinal) };
             }
             MultMemberMapper mapper = MultMemberMapperContainer.GetOrAdd(new MultMemberMapperCacheKey(this._objectType, mapInfos), () =>
             {

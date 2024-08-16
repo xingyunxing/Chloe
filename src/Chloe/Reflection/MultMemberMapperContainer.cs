@@ -28,9 +28,9 @@ namespace Chloe.Reflection
     public struct MultMemberMapperCacheKey : IEquatable<MultMemberMapperCacheKey>
     {
         Type _objectType;
-        MapInfo[] _mapInfos;
+        FieldMemberMap[] _mapInfos;
 
-        public MultMemberMapperCacheKey(Type objectType, MapInfo[] mapInfos)
+        public MultMemberMapperCacheKey(Type objectType, FieldMemberMap[] mapInfos)
         {
             this._objectType = objectType;
             this._mapInfos = mapInfos;

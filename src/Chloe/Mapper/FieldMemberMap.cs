@@ -22,7 +22,7 @@ namespace Chloe.Mapper
         public IDbValueConverter DbValueConverter { get; set; }
     }
 
-    public class MapInfo
+    public class FieldMemberMap
     {
         public MemberMap MemberMap { get; set; }
         public Type ReaderDataType { get; set; }
