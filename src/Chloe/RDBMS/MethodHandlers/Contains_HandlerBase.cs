@@ -1,5 +1,6 @@
 ﻿using Chloe.DbExpressions;
 using System.Collections;
+using System.Data;
 using System.Reflection;
 
 namespace Chloe.RDBMS.MethodHandlers
@@ -47,7 +48,9 @@ namespace Chloe.RDBMS.MethodHandlers
             {
                 if (exp.Object.NodeType == DbExpressionType.SqlQuery)
                 {
-                    /* where Id in(select id from T) */
+                    /*
+                     * where Id in(select id from T)
+                     */
 
                     operand = exp.Arguments[0];
                     In(generator, (DbSqlQueryExpression)exp.Object, operand);
@@ -57,8 +60,9 @@ namespace Chloe.RDBMS.MethodHandlers
                 if (!exp.Object.IsEvaluable())
                     throw new NotSupportedException(exp.ToString());
 
-                values = DbExpressionExtension.Evaluate(exp.Object) as IEnumerable; //Enumerable
-                operand = exp.Arguments[0];
+                //list.Contains(value)
+                values = DbExpressionExtension.Evaluate(exp.Object) as IEnumerable; //list
+                operand = exp.Arguments[0]; //value
                 goto constructInState;
             }
             if (method.IsStatic && declaringType == typeof(Enumerable) && exp.Arguments.Count == 2)
@@ -76,14 +80,22 @@ namespace Chloe.RDBMS.MethodHandlers
                 if (!arg0.IsEvaluable())
                     throw PublicHelper.MakeNotSupportedMethodException(exp.Method);
 
-                values = DbExpressionExtension.Evaluate(arg0) as IEnumerable;
-                operand = exp.Arguments[1];
+                //Enumerable.Contains<TSource>(this IEnumerable<TSource> source, TSource value)
+                values = DbExpressionExtension.Evaluate(arg0) as IEnumerable; //source
+                operand = exp.Arguments[1]; //value
                 goto constructInState;
             }
 
             throw PublicHelper.MakeNotSupportedMethodException(exp.Method);
 
         constructInState:
+            DbType? dbType = null;
+            if (operand.NodeType == DbExpressionType.ColumnAccess)
+            {
+                DbColumnAccessExpression dbColumn = (DbColumnAccessExpression)operand;
+                dbType = dbColumn.Column.DbType;
+            }
+
             foreach (object value in values)
             {
                 if (value == null)
@@ -97,7 +109,7 @@ namespace Chloe.RDBMS.MethodHandlers
                     if (PublicHelper.IsToStringableNumericType(valueType))
                         exps.Add(new DbConstantExpression(value));
                     else
-                        exps.Add(new DbParameterExpression(value));
+                        exps.Add(new DbParameterExpression(value, value.GetType(), dbType));
                 }
             }
 
