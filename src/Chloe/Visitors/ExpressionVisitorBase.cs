@@ -15,27 +15,27 @@ namespace Chloe.Visitors
         // +
         protected override DbExpression VisitBinary_Add(BinaryExpression exp)
         {
-            return DbExpression.Add(this.Visit(exp.Left), this.Visit(exp.Right), exp.Type, exp.Method);
+            return new DbAddExpression(exp.Type, this.Visit(exp.Left), this.Visit(exp.Right), exp.Method);
         }
         // -
         protected override DbExpression VisitBinary_Subtract(BinaryExpression exp)
         {
-            return DbExpression.Subtract(this.Visit(exp.Left), this.Visit(exp.Right), exp.Type);
+            return new DbSubtractExpression(exp.Type, this.Visit(exp.Left), this.Visit(exp.Right));
         }
         // *
         protected override DbExpression VisitBinary_Multiply(BinaryExpression exp)
         {
-            return DbExpression.Multiply(this.Visit(exp.Left), this.Visit(exp.Right), exp.Type);
+            return new DbMultiplyExpression(exp.Type, this.Visit(exp.Left), this.Visit(exp.Right));
         }
         // /
         protected override DbExpression VisitBinary_Divide(BinaryExpression exp)
         {
-            return DbExpression.Divide(this.Visit(exp.Left), this.Visit(exp.Right), exp.Type);
+            return new DbDivideExpression(exp.Type, this.Visit(exp.Left), this.Visit(exp.Right));
         }
         // %
         protected override DbExpression VisitBinary_Modulo(BinaryExpression exp)
         {
-            return DbExpression.Modulo(this.Visit(exp.Left), this.Visit(exp.Right), exp.Type);
+            return new DbModuloExpression(exp.Type, this.Visit(exp.Left), this.Visit(exp.Right));
         }
 
         protected override DbExpression VisitUnary_Negate(UnaryExpression exp)
@@ -46,22 +46,22 @@ namespace Chloe.Visitors
         // <
         protected override DbExpression VisitBinary_LessThan(BinaryExpression exp)
         {
-            return DbExpression.LessThan(this.Visit(exp.Left), this.Visit(exp.Right));
+            return new DbLessThanExpression(this.Visit(exp.Left), this.Visit(exp.Right));
         }
         // <=
         protected override DbExpression VisitBinary_LessThanOrEqual(BinaryExpression exp)
         {
-            return DbExpression.LessThanOrEqual(this.Visit(exp.Left), this.Visit(exp.Right));
+            return new DbLessThanOrEqualExpression(this.Visit(exp.Left), this.Visit(exp.Right));
         }
         // >
         protected override DbExpression VisitBinary_GreaterThan(BinaryExpression exp)
         {
-            return DbExpression.GreaterThan(this.Visit(exp.Left), this.Visit(exp.Right));
+            return new DbGreaterThanExpression(this.Visit(exp.Left), this.Visit(exp.Right));
         }
         // >=
         protected override DbExpression VisitBinary_GreaterThanOrEqual(BinaryExpression exp)
         {
-            return DbExpression.GreaterThanOrEqual(this.Visit(exp.Left), this.Visit(exp.Right));
+            return new DbGreaterThanOrEqualExpression(this.Visit(exp.Left), this.Visit(exp.Right));
         }
         // & 
         protected override DbExpression VisitBinary_And(BinaryExpression exp)
@@ -69,7 +69,7 @@ namespace Chloe.Visitors
             if (exp.Type == PublicConstants.TypeOfBoolean)
                 return this.Visit(Expression.AndAlso(exp.Left, exp.Right, exp.Method));
             else
-                return DbExpression.BitAnd(exp.Type, this.Visit(exp.Left), this.Visit(exp.Right));
+                return new DbBitAndExpression(exp.Type, this.Visit(exp.Left), this.Visit(exp.Right));
         }
         protected override DbExpression VisitBinary_AndAlso(BinaryExpression exp)
         {
@@ -120,7 +120,7 @@ namespace Chloe.Visitors
             // right==true
             var newRight = Expression.Equal(right, UtilConstants.Constant_True);
 
-            dbExp = DbExpression.And(this.Visit(newLeft), this.Visit(newRight));
+            dbExp = new DbAndExpression(this.Visit(newLeft), this.Visit(newRight));
             return dbExp;
         }
         // |
@@ -129,7 +129,7 @@ namespace Chloe.Visitors
             if (exp.Type == PublicConstants.TypeOfBoolean)
                 return this.Visit(Expression.OrElse(exp.Left, exp.Right, exp.Method));
             else
-                return DbExpression.BitOr(exp.Type, this.Visit(exp.Left), this.Visit(exp.Right));
+                return new DbBitOrExpression(exp.Type, this.Visit(exp.Left), this.Visit(exp.Right));
         }
         protected override DbExpression VisitBinary_OrElse(BinaryExpression exp)
         {
@@ -178,31 +178,31 @@ namespace Chloe.Visitors
             // right==true
             var newRight = Expression.Equal(right, UtilConstants.Constant_True);
 
-            dbExp = DbExpression.Or(this.Visit(newLeft), this.Visit(newRight));
+            dbExp = new DbOrExpression(this.Visit(newLeft), this.Visit(newRight));
             return dbExp;
         }
 
         protected override DbExpression VisitConstant(ConstantExpression exp)
         {
-            return DbExpression.Constant(exp.Value, exp.Type);
+            return new DbConstantExpression(exp.Value, exp.Type);
         }
 
         protected override DbExpression VisitUnary_Not(UnaryExpression exp)
         {
             // !true   !b
-            DbNotExpression e = DbExpression.Not(this.Visit(BooleanResultExpressionTransformer.Transform((exp.Operand))));
+            DbNotExpression e = new DbNotExpression(this.Visit(BooleanResultExpressionTransformer.Transform((exp.Operand))));
             return e;
         }
 
         protected override DbExpression VisitUnary_Convert(UnaryExpression u)
         {
-            return DbExpression.Convert(this.Visit(u.Operand), u.Type);
+            return new DbConvertExpression(u.Type, this.Visit(u.Operand));
         }
 
         protected override DbExpression VisitMemberAccess(MemberExpression exp)
         {
             DbExpression dbExpression = this.Visit(exp.Expression);
-            return DbExpression.MemberAccess(exp.Member, dbExpression);
+            return new DbMemberAccessExpression(exp.Member, dbExpression);
         }
 
         // a??b
@@ -239,8 +239,8 @@ namespace Chloe.Visitors
             whenThenExps.Add(new DbCaseWhenExpression.WhenThenExpressionPair(this.Visit(whenTrueTest), this.Visit(thenIfTrue)));
             whenThenExps.Add(new DbCaseWhenExpression.WhenThenExpressionPair(this.Visit(whenFalseTest), this.Visit(thenfFalse)));
 
-            DbExpression elseExp = DbExpression.Constant(null, exp.Type);
-            DbExpression dbExp = DbExpression.CaseWhen(whenThenExps, elseExp, exp.Type);
+            DbExpression elseExp = new DbConstantExpression(null, exp.Type);
+            DbExpression dbExp = new DbCaseWhenExpression(exp.Type, whenThenExps, elseExp);
 
             //如果是 返回 bool 类型，则变成 (true?a:b)==true ，为了方便 select 字段返回 bool 类型的情况，交给 DbExpressionVisitor 去做
             return dbExp;
@@ -263,16 +263,16 @@ namespace Chloe.Visitors
                 return this.VisitBinary_Equal_NullableBoolean(exp);
             }
 
-            DbEqualExpression dbExp = DbExpression.Equal(this.Visit(left), this.Visit(right));
+            DbEqualExpression dbExp = new DbEqualExpression(this.Visit(left), this.Visit(right));
             return dbExp;
         }
 
         protected override DbExpression VisitBinary_NotEqual(BinaryExpression exp)
         {
             if (exp.Left.Type == PublicConstants.TypeOfBoolean || exp.Left.Type == PublicConstants.TypeOfBoolean_Nullable)
-                return DbExpression.Not(this.VisitBinary_Equal(exp));
+                return new DbNotExpression(this.VisitBinary_Equal(exp));
 
-            return DbExpression.NotEqual(this.Visit(exp.Left), this.Visit(exp.Right));
+            return new DbNotEqualExpression(this.Visit(exp.Left), this.Visit(exp.Right));
         }
 
         protected override DbExpression VisitMethodCall(MethodCallExpression exp)
@@ -287,7 +287,7 @@ namespace Chloe.Visitors
                 argList.Add(this.Visit(item));
             }
 
-            dbExp = DbExpression.MethodCall(obj, exp.Method, argList);
+            dbExp = new DbMethodCallExpression(obj, exp.Method, argList);
 
             return dbExp;
         }
@@ -322,7 +322,7 @@ namespace Chloe.Visitors
             else if (((ExpressionExtension.StripConvert(left)).NodeType == ExpressionType.MemberAccess && (ExpressionExtension.StripConvert(right)).NodeType == ExpressionType.MemberAccess))
             {
                 //left right 都为 MemberExpression
-                return DbExpression.Equal(this.Visit(left), this.Visit(right));
+                return new DbEqualExpression(this.Visit(left), this.Visit(right));
             }
 
             else
@@ -341,7 +341,7 @@ namespace Chloe.Visitors
             if (((ExpressionExtension.StripConvert(left)).NodeType == ExpressionType.MemberAccess && (ExpressionExtension.StripConvert(right)).NodeType == ExpressionType.MemberAccess))
             {
                 //left right 都为 MemberExpression
-                return DbExpression.Equal(this.Visit(left), this.Visit(right));
+                return new DbEqualExpression(this.Visit(left), this.Visit(right));
             }
 
             ConstantExpression cLeft = left as ConstantExpression;
@@ -356,7 +356,7 @@ namespace Chloe.Visitors
                     throw new Exception("无效的表达式：" + exp.ToString());
                 }
 
-                return DbExpression.Equal(this.Visit(left), this.Visit(right));
+                return new DbEqualExpression(this.Visit(left), this.Visit(right));
             }
 
 
@@ -399,7 +399,7 @@ namespace Chloe.Visitors
                 // a==true   a==false
                 var newOperand = BuildBoolEqual(operand, trueOrFalse);
                 // !(a==true)
-                return DbExpression.Not(this.Visit(newOperand));
+                return new DbNotExpression(this.Visit(newOperand));
             }
 
             else if (exp.NodeType == ExpressionType.Convert || exp.NodeType == ExpressionType.ConvertChecked)
@@ -425,13 +425,13 @@ namespace Chloe.Visitors
                     }
                     else
                     {
-                        return DbExpression.Equal(this.Visit(exp), DbExpression.Constant(trueOrFalse));
+                        return new DbEqualExpression(this.Visit(exp), new DbConstantExpression(trueOrFalse));
                     }
                 }
 
                 if (exp.NodeType == ExpressionType.Constant)
                 {
-                    return DbExpression.Equal(this.Visit(exp), DbExpression.Constant(trueOrFalse));
+                    return new DbEqualExpression(this.Visit(exp), new DbConstantExpression(trueOrFalse));
                 }
 
 
@@ -440,7 +440,7 @@ namespace Chloe.Visitors
                 if (!trueOrFalse)
                 {
                     // !(a.XX>XXX)
-                    return DbExpression.Not(this.Visit(exp));
+                    return new DbNotExpression(this.Visit(exp));
                 }
                 return this.Visit(exp);
             }

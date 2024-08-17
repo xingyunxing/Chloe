@@ -27,7 +27,7 @@ namespace Chloe.SqlServer.MethodHandlers
             generator.SqlBuilder.Append(",");
             if (exp.Method == PublicConstants.MethodInfo_String_Substring_Int32)
             {
-                var string_LengthExp = DbExpression.MemberAccess(PublicConstants.PropertyInfo_String_Length, exp.Object);
+                var string_LengthExp = new DbMemberAccessExpression(PublicConstants.PropertyInfo_String_Length, exp.Object);
                 string_LengthExp.Accept(generator);
             }
             else if (exp.Method == PublicConstants.MethodInfo_String_Substring_Int32_Int32)

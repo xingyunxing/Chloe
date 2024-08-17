@@ -190,11 +190,11 @@ namespace Chloe.Oracle
         }
         static void AppendLimitCondition(DbSqlQueryExpression sqlQuery, int limitCount)
         {
-            DbLessThanExpression lessThanExp = DbExpression.LessThan(OracleSemantics.DbMemberExpression_ROWNUM, DbExpression.Constant(limitCount + 1));
+            DbLessThanExpression lessThanExp = new DbLessThanExpression(OracleSemantics.DbMemberExpression_ROWNUM, new DbConstantExpression(limitCount + 1));
 
             DbExpression condition = lessThanExp;
             if (sqlQuery.Condition != null)
-                condition = DbExpression.And(sqlQuery.Condition, condition);
+                condition = new DbAndExpression(sqlQuery.Condition, condition);
 
             sqlQuery.Condition = condition;
         }

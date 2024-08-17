@@ -94,11 +94,11 @@ namespace Chloe
         {
             // case when 1>0 then 1 when not (1>0) then 0 else Null end
             DbCaseWhenExpression.WhenThenExpressionPair whenThenPair = new DbCaseWhenExpression.WhenThenExpressionPair(exp, DbConstantExpression.True);
-            DbCaseWhenExpression.WhenThenExpressionPair whenThenPair1 = new DbCaseWhenExpression.WhenThenExpressionPair(DbExpression.Not(exp), DbConstantExpression.False);
+            DbCaseWhenExpression.WhenThenExpressionPair whenThenPair1 = new DbCaseWhenExpression.WhenThenExpressionPair(new DbNotExpression(exp), DbConstantExpression.False);
             List<DbCaseWhenExpression.WhenThenExpressionPair> whenThenExps = new List<DbCaseWhenExpression.WhenThenExpressionPair>(2);
             whenThenExps.Add(whenThenPair);
             whenThenExps.Add(whenThenPair1);
-            DbCaseWhenExpression caseWhenExpression = DbExpression.CaseWhen(whenThenExps, DbConstantExpression.Null, PublicConstants.TypeOfBoolean);
+            DbCaseWhenExpression caseWhenExpression = new DbCaseWhenExpression(PublicConstants.TypeOfBoolean, whenThenExps, DbConstantExpression.Null);
 
             return caseWhenExpression;
         }
@@ -257,7 +257,7 @@ namespace Chloe
                 object val = pair.Item2;
 
                 DbExpression left = new DbColumnAccessExpression(dbTable, propertyDescriptor.Column);
-                DbExpression right = DbExpression.Parameter(val, propertyDescriptor.PropertyType, propertyDescriptor.Column.DbType);
+                DbExpression right = new DbParameterExpression(val, propertyDescriptor.PropertyType, propertyDescriptor.Column.DbType);
                 DbExpression equalExp = new DbEqualExpression(left, right);
                 conditionExp = conditionExp.And(equalExp);
             }

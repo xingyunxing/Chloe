@@ -33,7 +33,7 @@ namespace Chloe.RDBMS.MethodHandlers
                 return;
             }
 
-            DbConvertExpression c = DbExpression.Convert(exp.Object, PublicConstants.TypeOfString);
+            DbConvertExpression c = new DbConvertExpression(PublicConstants.TypeOfString, exp.Object);
             c.Accept(generator);
         }
     }

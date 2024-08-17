@@ -129,13 +129,13 @@ namespace Chloe.Oracle
                     continue;
                 }
 
-                DbParameterExpression valExp = DbExpression.Parameter(val, propertyDescriptor.PropertyType, propertyDescriptor.Column.DbType);
+                DbParameterExpression valExp = new DbParameterExpression(val, propertyDescriptor.PropertyType, propertyDescriptor.Column.DbType);
                 insertExpression.AppendInsertColumn(propertyDescriptor.Column, valExp);
             }
 
             if (insertExpression.InsertColumns.Count == 0 && firstIgnoredProperty != null)
             {
-                DbExpression valExp = DbExpression.Parameter(firstIgnoredPropertyValue, firstIgnoredProperty.PropertyType, firstIgnoredProperty.Column.DbType);
+                DbExpression valExp = new DbParameterExpression(firstIgnoredPropertyValue, firstIgnoredProperty.PropertyType, firstIgnoredProperty.Column.DbType);
                 insertExpression.AppendInsertColumn(firstIgnoredProperty.Column, valExp);
             }
 
@@ -197,7 +197,7 @@ namespace Chloe.Oracle
                     PublicHelper.EnsurePrimaryKeyNotNull(propertyDescriptor, val);
 
                     keyVal = val;
-                    insertExpression.AppendInsertColumn(propertyDescriptor.Column, DbExpression.Parameter(keyVal, propertyDescriptor.PropertyType, propertyDescriptor.Column.DbType));
+                    insertExpression.AppendInsertColumn(propertyDescriptor.Column, new DbParameterExpression(keyVal, propertyDescriptor.PropertyType, propertyDescriptor.Column.DbType));
 
                     continue;
                 }
@@ -405,7 +405,7 @@ namespace Chloe.Oracle
 
                 PublicHelper.NotNullCheck(propertyDescriptor, val);
 
-                DbExpression valExp = DbExpression.Parameter(val, propertyDescriptor.PropertyType, propertyDescriptor.Column.DbType);
+                DbExpression valExp = new DbParameterExpression(val, propertyDescriptor.PropertyType, propertyDescriptor.Column.DbType);
                 updateExpression.AppendUpdateColumn(propertyDescriptor.Column, valExp);
             }
 
@@ -415,7 +415,7 @@ namespace Chloe.Oracle
                 var rowVersionDescriptor = typeDescriptor.RowVersion;
                 var rowVersionOldValue = rowVersionDescriptor.GetValue(entity);
                 rowVersionNewValue = PublicHelper.IncreaseRowVersionNumber(rowVersionOldValue);
-                updateExpression.AppendUpdateColumn(rowVersionDescriptor.Column, DbExpression.Parameter(rowVersionNewValue, rowVersionDescriptor.PropertyType, rowVersionDescriptor.Column.DbType));
+                updateExpression.AppendUpdateColumn(rowVersionDescriptor.Column, new DbParameterExpression(rowVersionNewValue, rowVersionDescriptor.PropertyType, rowVersionDescriptor.Column.DbType));
                 keyValues.Add(rowVersionDescriptor, rowVersionOldValue);
             }
 

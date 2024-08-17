@@ -124,7 +124,7 @@ namespace Chloe.DbExpressions
         {
             //求值
             object val = Evaluate(memberExpression);
-            return DbExpression.Parameter(val, memberExpression.Type);
+            return new DbParameterExpression(val, memberExpression.Type);
         }
 
         public static bool IsEvaluable(this DbExpression expression)

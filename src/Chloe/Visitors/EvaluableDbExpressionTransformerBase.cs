@@ -94,7 +94,7 @@ namespace Chloe.Visitors
                     if (solt != null)
                     {
                         object variable = this._variables[solt.Index];
-                        return DbExpression.Constant(variable);
+                        return new DbConstantExpression(variable);
                     }
                 }
             }
@@ -103,7 +103,7 @@ namespace Chloe.Visitors
             {
                 DbExpression caller = exp.Expression.Accept(this);
                 if (caller != exp.Expression)
-                    exp = DbExpression.MemberAccess(exp.Member, caller);
+                    exp = new DbMemberAccessExpression(exp.Member, caller);
             }
 
             if (exp.Expression != null)
@@ -115,7 +115,7 @@ namespace Chloe.Visitors
             if (this.CanTranslateToSql(exp))
                 return exp;
 
-            return DbExpression.Parameter(exp.Evaluate(), exp.Type);
+            return new DbParameterExpression(exp.Evaluate(), exp.Type);
         }
 
         public override DbExpression VisitCoalesce(DbCoalesceExpression exp)
@@ -124,7 +124,7 @@ namespace Chloe.Visitors
 
             if (IsConstantOrParameter(exp.CheckExpression) && IsConstantOrParameter(exp.ReplacementValue))
             {
-                return DbExpression.Parameter(exp.Evaluate(), exp.Type);
+                return new DbParameterExpression(exp.Evaluate(), exp.Type);
             }
 
             return exp;
@@ -139,7 +139,7 @@ namespace Chloe.Visitors
                 caller = exp.Object.Accept(this);
             }
 
-            exp = DbExpression.MethodCall(caller, exp.Method, args);
+            exp = new DbMethodCallExpression(caller, exp.Method, args);
 
             if (exp.Object != null)
             {
@@ -161,7 +161,7 @@ namespace Chloe.Visitors
                 return exp;
             }
 
-            return DbExpression.Parameter(exp.Evaluate(), exp.Type);
+            return new DbParameterExpression(exp.Evaluate(), exp.Type);
         }
 
         public override DbExpression VisitParameter(DbParameterExpression exp)

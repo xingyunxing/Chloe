@@ -109,8 +109,8 @@ namespace Chloe
 
 
         #region DbExpression
-        public static readonly DbParameterExpression DbParameter_1 = DbExpression.Parameter(1);
-        public static readonly DbConstantExpression DbConstant_Null_String = DbExpression.Constant(null, typeof(string));
+        public static readonly DbParameterExpression DbParameter_1 = new DbParameterExpression(1);
+        public static readonly DbConstantExpression DbConstant_Null_String = new DbConstantExpression(null, typeof(string));
         #endregion
 
         public static readonly MethodInfo MethodInfo_Guid_NewGuid = typeof(Guid).GetMethod(nameof(Guid.NewGuid));

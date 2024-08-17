@@ -23,7 +23,7 @@ namespace Chloe.Visitors
             MethodInfo method_Sql_IsEqual = PublicConstants.MethodInfo_Sql_IsEqual.MakeGenericMethod(left.Type);
 
             /* Sql.IsEqual(left, right) */
-            DbMethodCallExpression left_equals_right = DbExpression.MethodCall(null, method_Sql_IsEqual, new List<DbExpression>(2) { left.Accept(this), right.Accept(this) });
+            DbMethodCallExpression left_equals_right = new DbMethodCallExpression(null, method_Sql_IsEqual, new List<DbExpression>(2) { left.Accept(this), right.Accept(this) });
 
             return left_equals_right;
         }
@@ -39,7 +39,7 @@ namespace Chloe.Visitors
             MethodInfo method_Sql_IsNotEqual = PublicConstants.MethodInfo_Sql_IsNotEqual.MakeGenericMethod(left.Type);
 
             /* Sql.IsNotEqual(left, right) */
-            DbMethodCallExpression left_not_equals_right = DbExpression.MethodCall(null, method_Sql_IsNotEqual, new List<DbExpression>(2) { left.Accept(this), right.Accept(this) });
+            DbMethodCallExpression left_not_equals_right = new DbMethodCallExpression(null, method_Sql_IsNotEqual, new List<DbExpression>(2) { left.Accept(this), right.Accept(this) });
 
             return left_not_equals_right;
         }

@@ -30,7 +30,7 @@ namespace Chloe.Query
             foreach (MemberExpression memberExpression in memberExpressions)
             {
                 MemberInfo member = memberExpression.Member;
-                ret = DbExpression.MemberAccess(member, ret);
+                ret = new DbMemberAccessExpression(member, ret);
             }
 
             if (ret == null)

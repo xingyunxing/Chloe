@@ -19,10 +19,10 @@ namespace Chloe.RDBMS.MethodHandlers
             DbExpression right = exp.Arguments[0];
             if (right.Type != exp.Object.Type)
             {
-                right = DbExpression.Convert(right, exp.Object.Type);
+                right = new DbConvertExpression(exp.Object.Type, right);
             }
 
-            DbExpression.Equal(exp.Object, right).Accept(generator);
+            new DbEqualExpression(exp.Object, right).Accept(generator);
         }
     }
 }

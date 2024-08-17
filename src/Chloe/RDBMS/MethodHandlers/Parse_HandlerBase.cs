@@ -22,7 +22,7 @@ namespace Chloe.RDBMS.MethodHandlers
         public override void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
             DbExpression arg = exp.Arguments[0];
-            DbExpression e = DbExpression.Convert(arg, exp.Method.ReturnType);
+            DbExpression e = new DbConvertExpression(exp.Method.ReturnType, arg);
             if (exp.Method.ReturnType == PublicConstants.TypeOfBoolean)
             {
                 e.Accept(generator);

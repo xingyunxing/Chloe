@@ -104,8 +104,8 @@ namespace Chloe.Visitors
                 else
                 {
                     //如果不等，则诸如：(long?)int / (long?)int?  -->  (long?)((long)int) / (long?)((long)int?)
-                    var c = DbExpression.Convert(DbExpression.Constant(operandValue), underlyingType);
-                    var cc = DbExpression.Convert(c, exp.Type);
+                    var c = new DbConvertExpression(underlyingType, new DbConstantExpression(operandValue));
+                    var cc = new DbConvertExpression(exp.Type, c);
                     return this.Visit(cc);
                 }
             }
@@ -122,8 +122,8 @@ namespace Chloe.Visitors
                 else
                 {
                     //如果不等，则诸如：(long)int?  -->  (long)((long)int)
-                    var c = DbExpression.Convert(DbExpression.Constant(operandValue), underlyingType);
-                    var cc = DbExpression.Convert(c, exp.Type);
+                    var c = new DbConvertExpression(underlyingType, new DbConstantExpression(operandValue));
+                    var cc = new DbConvertExpression(exp.Type, c);
                     return this.Visit(cc);
                 }
             }

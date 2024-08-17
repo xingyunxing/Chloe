@@ -50,7 +50,9 @@ namespace Chloe.Query.Visitors
 
                 JoinQueryResult joinQueryResult = JoinQueryExpressionResolver.Resolve(this._queryContext, joinQueryInfo, queryModel, scopeParameters);
 
-                var nullChecking = DbExpression.CaseWhen(new DbCaseWhenExpression.WhenThenExpressionPair(joinQueryResult.JoinTable.Condition, DbConstantExpression.One), DbConstantExpression.Null, DbConstantExpression.One.Type);
+                List<DbCaseWhenExpression.WhenThenExpressionPair> whenThenExps = new List<DbCaseWhenExpression.WhenThenExpressionPair>(1);
+                whenThenExps.Add(new DbCaseWhenExpression.WhenThenExpressionPair(joinQueryResult.JoinTable.Condition, DbConstantExpression.One));
+                var nullChecking = new DbCaseWhenExpression(DbConstantExpression.One.Type, whenThenExps, DbConstantExpression.Null);
 
                 if (joinQueryInfo.JoinType == JoinType.LeftJoin)
                 {

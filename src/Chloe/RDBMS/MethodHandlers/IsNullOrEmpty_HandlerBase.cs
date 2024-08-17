@@ -14,10 +14,10 @@ namespace Chloe.RDBMS.MethodHandlers
         public override void Process(DbMethodCallExpression exp, SqlGeneratorBase generator)
         {
             DbExpression e = exp.Arguments.First();
-            DbEqualExpression equalNullExpression = DbExpression.Equal(e, DbConstantExpression.StringNull);
-            DbEqualExpression equalEmptyExpression = DbExpression.Equal(e, DbConstantExpression.StringEmpty);
+            DbEqualExpression equalNullExpression = new DbEqualExpression(e, DbConstantExpression.StringNull);
+            DbEqualExpression equalEmptyExpression = new DbEqualExpression(e, DbConstantExpression.StringEmpty);
 
-            DbOrExpression orExpression = DbExpression.Or(equalNullExpression, equalEmptyExpression);
+            DbOrExpression orExpression = new DbOrExpression(equalNullExpression, equalEmptyExpression);
 
             orExpression.Accept(generator);
         }

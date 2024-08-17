@@ -130,7 +130,7 @@ namespace Chloe.Oracle
                 DbSqlQueryExpression newSqlQuery = WrapSqlQuery(subSqlQuery, table, exp.ColumnSegments);
 
                 DbColumnAccessExpression columnAccessExp = new DbColumnAccessExpression(table, DbColumn.MakeColumn(row_numberSeg.Body, row_numberName));
-                newSqlQuery.Condition = DbExpression.GreaterThan(columnAccessExp, DbExpression.Constant(exp.SkipCount.Value));
+                newSqlQuery.Condition = new DbGreaterThanExpression(columnAccessExp, new DbConstantExpression(exp.SkipCount.Value));
 
                 newSqlQuery.IsDistinct = exp.IsDistinct;
                 newSqlQuery.Accept(this);
@@ -528,7 +528,7 @@ namespace Chloe.Oracle
                     if (dbSubtractExp != null && dbSubtractExp.Left.Type == PublicConstants.TypeOfDateTime && dbSubtractExp.Right.Type == PublicConstants.TypeOfDateTime)
                     {
                         DbMethodCallExpression dbMethodExp = new DbMethodCallExpression(dbSubtractExp.Left, PublicConstants.MethodInfo_DateTime_Subtract_DateTime, new List<DbExpression>(1) { dbSubtractExp.Right });
-                        DbMemberAccessExpression dbMemberExp = DbExpression.MemberAccess(member, dbMethodExp);
+                        DbMemberAccessExpression dbMemberExp = new DbMemberAccessExpression(member, dbMethodExp);
                         dbMemberExp.Accept(this);
 
                         return true;

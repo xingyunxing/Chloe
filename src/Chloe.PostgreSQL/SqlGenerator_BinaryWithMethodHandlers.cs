@@ -40,15 +40,15 @@ namespace Chloe.PostgreSQL
                 if (opBody.Type != PublicConstants.TypeOfString)
                 {
                     // 需要 cast type
-                    opBody = DbExpression.Convert(opBody, PublicConstants.TypeOfString);
+                    opBody = new DbConvertExpression(PublicConstants.TypeOfString, opBody);
                 }
 
-                DbExpression equalNullExp = DbExpression.Equal(opBody, PublicConstants.DbConstant_Null_String);
+                DbExpression equalNullExp = new DbEqualExpression(opBody, PublicConstants.DbConstant_Null_String);
 
                 if (whenExp == null)
                     whenExp = equalNullExp;
                 else
-                    whenExp = DbExpression.And(whenExp, equalNullExp);
+                    whenExp = new DbAndExpression(whenExp, equalNullExp);
 
                 operandExps.Add(opBody);
             }

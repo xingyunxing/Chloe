@@ -39,7 +39,7 @@ namespace Chloe.RDBMS
             MethodInfo method_Sql_IsEqual = PublicConstants.MethodInfo_Sql_IsEqual.MakeGenericMethod(left.Type);
 
             /* Sql.IsEqual(left, right) */
-            DbMethodCallExpression left_equals_right = DbExpression.MethodCall(null, method_Sql_IsEqual, new List<DbExpression>(2) { left, right });
+            DbMethodCallExpression left_equals_right = new DbMethodCallExpression(null, method_Sql_IsEqual, new List<DbExpression>(2) { left, right });
 
             if (right.NodeType == DbExpressionType.Parameter || right.NodeType == DbExpressionType.Constant || left.NodeType == DbExpressionType.Parameter || left.NodeType == DbExpressionType.Constant || right.NodeType == DbExpressionType.SubQuery || left.NodeType == DbExpressionType.SubQuery || !left.Type.CanBeNull() || !right.Type.CanBeNull())
             {
@@ -59,16 +59,16 @@ namespace Chloe.RDBMS
              */
 
             /* Sql.IsEqual(left, null) */
-            var left_is_null = DbExpression.MethodCall(null, method_Sql_IsEqual, new List<DbExpression>(2) { left, DbExpression.Constant(null, left.Type) });
+            var left_is_null = new DbMethodCallExpression(null, method_Sql_IsEqual, new List<DbExpression>(2) { left, new DbConstantExpression(null, left.Type) });
 
             /* Sql.IsEqual(right, null) */
-            var right_is_null = DbExpression.MethodCall(null, method_Sql_IsEqual, new List<DbExpression>(2) { right, DbExpression.Constant(null, right.Type) });
+            var right_is_null = new DbMethodCallExpression(null, method_Sql_IsEqual, new List<DbExpression>(2) { right, new DbConstantExpression(null, right.Type) });
 
             /* Sql.IsEqual(left, null) && Sql.IsEqual(right, null) */
-            var left_is_null_and_right_is_null = DbExpression.And(left_is_null, right_is_null);
+            var left_is_null_and_right_is_null = new DbAndExpression(left_is_null, right_is_null);
 
             /* Sql.IsEqual(left, right) || (Sql.IsEqual(left, null) && Sql.IsEqual(right, null)) */
-            var left_equals_right_or_left_is_null_and_right_is_null = DbExpression.Or(left_equals_right, left_is_null_and_right_is_null);
+            var left_equals_right_or_left_is_null_and_right_is_null = new DbOrExpression(left_equals_right, left_is_null_and_right_is_null);
 
             left_equals_right_or_left_is_null_and_right_is_null.Accept(this);
 
@@ -86,7 +86,7 @@ namespace Chloe.RDBMS
             MethodInfo method_Sql_IsNotEqual = PublicConstants.MethodInfo_Sql_IsNotEqual.MakeGenericMethod(left.Type);
 
             /* Sql.IsNotEqual(left, right) */
-            DbMethodCallExpression left_not_equals_right = DbExpression.MethodCall(null, method_Sql_IsNotEqual, new List<DbExpression>(2) { left, right });
+            DbMethodCallExpression left_not_equals_right = new DbMethodCallExpression(null, method_Sql_IsNotEqual, new List<DbExpression>(2) { left, right });
 
             //明确 left right 其中一边一定为 null
             if (DbExpressionExtension.AffirmExpressionRetValueIsNull(right, this.Options.RegardEmptyStringAsNull) || DbExpressionExtension.AffirmExpressionRetValueIsNull(left, this.Options.RegardEmptyStringAsNull))
@@ -131,10 +131,10 @@ namespace Chloe.RDBMS
                      */
 
                     /* Sql.IsEqual(left, null) */
-                    var left_is_null1 = DbExpression.MethodCall(null, method_Sql_IsEqual, new List<DbExpression>(2) { left, DbExpression.Constant(null, left.Type) });
+                    var left_is_null1 = new DbMethodCallExpression(null, method_Sql_IsEqual, new List<DbExpression>(2) { left, new DbConstantExpression(null, left.Type) });
 
                     /* Sql.IsNotEqual(left, right) || Sql.IsEqual(left, null) */
-                    var left_not_equals_right_or_left_is_null = DbExpression.Or(left_not_equals_right, left_is_null1);
+                    var left_not_equals_right_or_left_is_null = new DbOrExpression(left_not_equals_right, left_is_null1);
                     left_not_equals_right_or_left_is_null.Accept(this);
                 }
                 else
@@ -156,29 +156,29 @@ namespace Chloe.RDBMS
              * 当 a.Name 或者 a.XName 其中一个字段有为 NULL，另一个字段有值时，会查不出此条数据 ##
              */
 
-            DbConstantExpression null_Constant = DbExpression.Constant(null, left.Type);
+            DbConstantExpression null_Constant = new DbConstantExpression(null, left.Type);
 
             /* Sql.IsEqual(left, null) */
-            var left_is_null = DbExpression.MethodCall(null, method_Sql_IsEqual, new List<DbExpression>(2) { left, null_Constant });
+            var left_is_null = new DbMethodCallExpression(null, method_Sql_IsEqual, new List<DbExpression>(2) { left, null_Constant });
             /* Sql.IsNotEqual(left, null) */
-            var left_is_not_null = DbExpression.MethodCall(null, method_Sql_IsNotEqual, new List<DbExpression>(2) { left, null_Constant });
+            var left_is_not_null = new DbMethodCallExpression(null, method_Sql_IsNotEqual, new List<DbExpression>(2) { left, null_Constant });
 
             /* Sql.IsEqual(right, null) */
-            var right_is_null = DbExpression.MethodCall(null, method_Sql_IsEqual, new List<DbExpression>(2) { right, null_Constant });
+            var right_is_null = new DbMethodCallExpression(null, method_Sql_IsEqual, new List<DbExpression>(2) { right, null_Constant });
             /* Sql.IsNotEqual(right, null) */
-            var right_is_not_null = DbExpression.MethodCall(null, method_Sql_IsNotEqual, new List<DbExpression>(2) { right, null_Constant });
+            var right_is_not_null = new DbMethodCallExpression(null, method_Sql_IsNotEqual, new List<DbExpression>(2) { right, null_Constant });
 
             /* Sql.IsEqual(left, null) && Sql.IsNotEqual(right, null) */
-            var left_is_null_and_right_is_not_null = DbExpression.And(left_is_null, right_is_not_null);
+            var left_is_null_and_right_is_not_null = new DbAndExpression(left_is_null, right_is_not_null);
 
             /* Sql.IsNotEqual(left, null) && Sql.IsEqual(right, null) */
-            var left_is_not_null_and_right_is_null = DbExpression.And(left_is_not_null, right_is_null);
+            var left_is_not_null_and_right_is_null = new DbAndExpression(left_is_not_null, right_is_null);
 
             /* (Sql.IsEqual(left, null) && Sql.IsNotEqual(right, null)) || (Sql.IsNotEqual(left, null) && Sql.IsEqual(right, null)) */
-            var left_is_null_and_right_is_not_null_or_left_is_not_null_and_right_is_null = DbExpression.Or(left_is_null_and_right_is_not_null, left_is_not_null_and_right_is_null);
+            var left_is_null_and_right_is_not_null_or_left_is_not_null_and_right_is_null = new DbOrExpression(left_is_null_and_right_is_not_null, left_is_not_null_and_right_is_null);
 
             /* Sql.IsNotEqual(left, right) || (Sql.IsEqual(left, null) && Sql.IsNotEqual(right, null)) || (Sql.IsNotEqual(left, null) && Sql.IsEqual(right, null)) */
-            var e = DbExpression.Or(left_not_equals_right, left_is_null_and_right_is_not_null_or_left_is_not_null_and_right_is_null);
+            var e = new DbOrExpression(left_not_equals_right, left_is_null_and_right_is_not_null_or_left_is_not_null_and_right_is_null);
 
             e.Accept(this);
 
@@ -482,7 +482,7 @@ namespace Chloe.RDBMS
             sqlQuery.GroupSegments.Capacity = rawSqlQuery.GroupSegments.Capacity;
             sqlQuery.GroupSegments.AddRange(rawSqlQuery.GroupSegments);
 
-            DbColumnSegment columnSegment = new DbColumnSegment(DbExpression.Parameter("1"), "C");
+            DbColumnSegment columnSegment = new DbColumnSegment(new DbParameterExpression("1"), "C");
             sqlQuery.ColumnSegments.Capacity = 1;
             sqlQuery.ColumnSegments.Add(columnSegment);
 

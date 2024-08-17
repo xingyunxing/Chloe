@@ -87,7 +87,7 @@ namespace Chloe.RDBMS.MethodHandlers
             foreach (object value in values)
             {
                 if (value == null)
-                    exps.Add(DbExpression.Constant(null, operand.Type));
+                    exps.Add(new DbConstantExpression(null, operand.Type));
                 else
                 {
                     Type valueType = value.GetType();
@@ -95,9 +95,9 @@ namespace Chloe.RDBMS.MethodHandlers
                         valueType = Enum.GetUnderlyingType(valueType);
 
                     if (PublicHelper.IsToStringableNumericType(valueType))
-                        exps.Add(DbExpression.Constant(value));
+                        exps.Add(new DbConstantExpression(value));
                     else
-                        exps.Add(DbExpression.Parameter(value));
+                        exps.Add(new DbParameterExpression(value));
                 }
             }
 

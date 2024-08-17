@@ -481,7 +481,7 @@ namespace Chloe.SqlServer
             List<DbOrdering> orderings = exp.Orderings;
             if (orderings.Count == 0)
             {
-                DbExpression orderingExp = DbExpression.Add(PublicConstants.DbParameter_1, DbConstantExpression.Zero, DbConstantExpression.Zero.Type, null);
+                DbExpression orderingExp = new DbAddExpression(DbConstantExpression.Zero.Type, PublicConstants.DbParameter_1, DbConstantExpression.Zero, null);
                 DbOrdering ordering = new DbOrdering(orderingExp, DbOrderType.Asc);
                 orderings = new List<DbOrdering>(1);
                 orderings.Add(ordering);

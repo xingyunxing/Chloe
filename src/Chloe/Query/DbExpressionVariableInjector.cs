@@ -33,7 +33,7 @@ namespace Chloe.Query
                     if (solt != null)
                     {
                         object variable = this._variables[solt.Index];
-                        return DbExpression.Constant(variable);
+                        return new DbConstantExpression(variable);
                     }
                 }
             }

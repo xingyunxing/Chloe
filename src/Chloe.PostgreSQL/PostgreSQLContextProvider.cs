@@ -124,13 +124,13 @@ namespace Chloe.PostgreSQL
                     continue;
                 }
 
-                DbParameterExpression valExp = DbExpression.Parameter(val, propertyDescriptor.PropertyType, propertyDescriptor.Column.DbType);
+                DbParameterExpression valExp = new DbParameterExpression(val, propertyDescriptor.PropertyType, propertyDescriptor.Column.DbType);
                 insertExpression.AppendInsertColumn(propertyDescriptor.Column, valExp);
             }
 
             if (insertExpression.InsertColumns.Count == 0 && firstIgnoredProperty != null)
             {
-                DbExpression valExp = DbExpression.Parameter(firstIgnoredPropertyValue, firstIgnoredProperty.PropertyType, firstIgnoredProperty.Column.DbType);
+                DbExpression valExp = new DbParameterExpression(firstIgnoredPropertyValue, firstIgnoredProperty.PropertyType, firstIgnoredProperty.Column.DbType);
                 insertExpression.AppendInsertColumn(firstIgnoredProperty.Column, valExp);
             }
 
@@ -204,7 +204,7 @@ namespace Chloe.PostgreSQL
                     else
                     {
                         keyVal = val;
-                        insertExpression.AppendInsertColumn(propertyDescriptor.Column, DbExpression.Parameter(keyVal));
+                        insertExpression.AppendInsertColumn(propertyDescriptor.Column, new DbParameterExpression(keyVal));
                         continue;
                     }
                 }

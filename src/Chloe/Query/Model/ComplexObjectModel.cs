@@ -182,7 +182,7 @@ namespace Chloe.Query
                 if (model == null && ret != null)
                 {
                     /* a.F_DateTime.Value.Date */
-                    ret = DbExpression.MemberAccess(accessedMember, ret);
+                    ret = new DbMemberAccessExpression(accessedMember, ret);
                     continue;
                 }
 
@@ -206,7 +206,7 @@ namespace Chloe.Query
                         else
                         {
                             /* Non mapping member is not found also, then convert linq MemberExpression to DbMemberExpression */
-                            ret = DbExpression.MemberAccess(accessedMember, ret);
+                            ret = new DbMemberAccessExpression(accessedMember, ret);
                             continue;
                         }
                     }
@@ -599,7 +599,7 @@ namespace Chloe.Query
 
             PrimitivePropertyDescriptor foreignKeyPropertyDescriptor = navigationDescriptor.ForeignKeyProperty;
             DbExpression foreignKeyColumn = this.GetPrimitiveMember(foreignKeyPropertyDescriptor.Property);
-            DbExpression joinCondition = DbExpression.Equal(foreignKeyColumn, navigationObjectModel.PrimaryKey);
+            DbExpression joinCondition = new DbEqualExpression(foreignKeyColumn, navigationObjectModel.PrimaryKey);
 
             DbJoinType joinType = DbJoinType.LeftJoin;
             if (!foreignKeyPropertyDescriptor.IsNullable)
@@ -649,7 +649,7 @@ namespace Chloe.Query
             }
 
             DbExpression elementForeignKeyColumn = elementObjectModel.GetPrimitiveMember(navigationDescriptor.ForeignKeyProperty.Property);
-            DbExpression joinCondition = DbExpression.Equal(this.PrimaryKey, elementForeignKeyColumn);
+            DbExpression joinCondition = new DbEqualExpression(this.PrimaryKey, elementForeignKeyColumn);
             DbJoinTableExpression joinTableExp = new DbJoinTableExpression(DbJoinType.LeftJoin, joinTableSeg, joinCondition);
             joinTableExp.AppendTo(this.DependentTable);
 
