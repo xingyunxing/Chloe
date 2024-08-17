@@ -42,6 +42,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{808B845C
 		tools\Pack-Chloe-All.bat = tools\Pack-Chloe-All.bat
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerformanceTest", "PerformanceTest\PerformanceTest.csproj", "{ED6804A3-6DEB-458A-873D-B06515F2FA1C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -88,6 +90,10 @@ Global
 		{54DC63C1-F52E-4422-A196-4EA13F509F6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{54DC63C1-F52E-4422-A196-4EA13F509F6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{54DC63C1-F52E-4422-A196-4EA13F509F6E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED6804A3-6DEB-458A-873D-B06515F2FA1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED6804A3-6DEB-458A-873D-B06515F2FA1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED6804A3-6DEB-458A-873D-B06515F2FA1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED6804A3-6DEB-458A-873D-B06515F2FA1C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
