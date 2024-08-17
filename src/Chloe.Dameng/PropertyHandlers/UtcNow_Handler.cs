@@ -6,7 +6,7 @@ namespace Chloe.Dameng.PropertyHandlers
 {
     class UtcNow_Handler : UtcNow_HandlerBase
     {
-        public override void Process(DbMemberExpression exp, SqlGeneratorBase generator)
+        public override void Process(DbMemberAccessExpression exp, SqlGeneratorBase generator)
         {
             generator.SqlBuilder.Append("GETUTCDATE()");
         }

@@ -6,7 +6,7 @@ namespace Chloe.SQLite.PropertyHandlers
 {
     class Hour_Handler : Hour_HandlerBase
     {
-        public override void Process(DbMemberExpression exp, SqlGeneratorBase generator)
+        public override void Process(DbMemberAccessExpression exp, SqlGeneratorBase generator)
         {
             SqlGenerator.DbFunction_DATEPART(generator, "H", exp.Expression);
         }

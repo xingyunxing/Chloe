@@ -6,7 +6,7 @@ namespace Chloe.RDBMS.PropertyHandlers
 {
     public class Value_HandlerBase : PropertyHandlerBase
     {
-        public override bool CanProcess(DbMemberExpression exp)
+        public override bool CanProcess(DbMemberAccessExpression exp)
         {
             MemberInfo member = exp.Member;
 
@@ -18,7 +18,7 @@ namespace Chloe.RDBMS.PropertyHandlers
             return false;
         }
 
-        public override void Process(DbMemberExpression exp, SqlGeneratorBase generator)
+        public override void Process(DbMemberAccessExpression exp, SqlGeneratorBase generator)
         {
             exp.Expression.Accept(generator);
         }

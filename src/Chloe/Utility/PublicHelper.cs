@@ -62,7 +62,7 @@ namespace Chloe
 
         public static DbExpression Trim_Nullable_Value(DbExpression exp)
         {
-            DbMemberExpression memberExp = exp as DbMemberExpression;
+            DbMemberAccessExpression memberExp = exp as DbMemberAccessExpression;
             if (memberExp == null)
                 return exp;
 

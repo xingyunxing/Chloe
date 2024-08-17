@@ -13,14 +13,14 @@ namespace Chloe.RDBMS
         /// </summary>
         /// <param name="exp"></param>
         /// <returns></returns>
-        bool CanProcess(DbMemberExpression exp);
+        bool CanProcess(DbMemberAccessExpression exp);
 
         /// <summary>
         /// 解析传入的属性。
         /// </summary>
         /// <param name="exp"></param>
         /// <param name="generator"></param>
-        void Process(DbMemberExpression exp, SqlGeneratorBase generator);
+        void Process(DbMemberAccessExpression exp, SqlGeneratorBase generator);
     }
 
     public class PropertyHandlerBase : IPropertyHandler
@@ -30,7 +30,7 @@ namespace Chloe.RDBMS
             throw new NotImplementedException();
         }
 
-        public virtual bool CanProcess(DbMemberExpression exp)
+        public virtual bool CanProcess(DbMemberAccessExpression exp)
         {
             MemberInfo canProcessProperty = this.GetCanProcessProperty();
             if (canProcessProperty == exp.Member)
@@ -39,7 +39,7 @@ namespace Chloe.RDBMS
             return false;
         }
 
-        public virtual void Process(DbMemberExpression exp, SqlGeneratorBase generator)
+        public virtual void Process(DbMemberAccessExpression exp, SqlGeneratorBase generator)
         {
             throw new NotSupportedException($"Does not support property '{exp.Member.DeclaringType.FullName}.{exp.Member.Name}'.");
         }

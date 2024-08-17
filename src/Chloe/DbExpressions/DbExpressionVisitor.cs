@@ -81,7 +81,7 @@
         {
             return exp;
         }
-        public override DbExpression VisitMember(DbMemberExpression exp)
+        public override DbExpression VisitMemberAccess(DbMemberAccessExpression exp)
         {
             DbExpression body = this.MakeNewExpression(exp.Expression);
             if (body == exp.Expression)
@@ -89,7 +89,7 @@
                 return exp;
             }
 
-            return new DbMemberExpression(exp.Member, body);
+            return new DbMemberAccessExpression(exp.Member, body);
         }
         public override DbExpression VisitNot(DbNotExpression exp)
         {

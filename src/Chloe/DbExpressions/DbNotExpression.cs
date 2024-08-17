@@ -1,16 +1,12 @@
 ﻿
 namespace Chloe.DbExpressions
 {
-    public class DbNotExpression : DbExpression
+    public class DbNotExpression : DbUnaryExpression
     {
-        DbExpression _exp;
-
-        public DbNotExpression(DbExpression exp) : base(DbExpressionType.Not, PublicConstants.TypeOfBoolean)
+        public DbNotExpression(DbExpression operand) : base(DbExpressionType.Not, PublicConstants.TypeOfBoolean, operand)
         {
-            this._exp = exp;
-        }
 
-        public DbExpression Operand { get { return this._exp; } }
+        }
 
         public override T Accept<T>(DbExpressionVisitor<T> visitor)
         {

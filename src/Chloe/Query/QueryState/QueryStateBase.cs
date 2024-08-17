@@ -233,7 +233,7 @@ namespace Chloe.Query.QueryState
 
                 string alias = null;
 
-                DbColumnSegment columnExpression = sqlQuery.ColumnSegments.Find(a => DbExpressionEqualityComparer.EqualsCompare(orderingExp, a.Body));
+                DbColumnSegment columnExpression = sqlQuery.ColumnSegments.Find(a => DbExpressionEqualityComparer.Instance.Equals(orderingExp, a.Body));
 
                 // 对于重复的则不需要往 sqlQuery.Columns 重复添加了
                 if (columnExpression != null)

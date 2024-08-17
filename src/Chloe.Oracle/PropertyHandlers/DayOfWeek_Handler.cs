@@ -6,7 +6,7 @@ namespace Chloe.Oracle.PropertyHandlers
 {
     class DayOfWeek_Handler : DayOfWeek_HandlerBase
     {
-        public override void Process(DbMemberExpression exp, SqlGeneratorBase generator)
+        public override void Process(DbMemberAccessExpression exp, SqlGeneratorBase generator)
         {
             // CAST(TO_CHAR(SYSDATE,'D') AS NUMBER) - 1
             generator.SqlBuilder.Append("(");

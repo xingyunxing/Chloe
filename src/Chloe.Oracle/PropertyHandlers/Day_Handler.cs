@@ -6,7 +6,7 @@ namespace Chloe.Oracle.PropertyHandlers
 {
     class Day_Handler : Day_HandlerBase
     {
-        public override void Process(DbMemberExpression exp, SqlGeneratorBase generator)
+        public override void Process(DbMemberAccessExpression exp, SqlGeneratorBase generator)
         {
             SqlGenerator.DbFunction_DATEPART(generator, "dd", exp.Expression);
         }

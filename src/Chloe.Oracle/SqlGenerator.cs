@@ -305,14 +305,14 @@ namespace Chloe.Oracle
             return exp;
         }
 
-        public override DbExpression VisitMember(DbMemberExpression exp)
+        public override DbExpression VisitMemberAccess(DbMemberAccessExpression exp)
         {
             if (this.IsDateSubtract(exp))
             {
                 return exp;
             }
 
-            return base.VisitMember(exp);
+            return base.VisitMemberAccess(exp);
         }
         public override DbExpression VisitConstant(DbConstantExpression exp)
         {
@@ -476,13 +476,13 @@ namespace Chloe.Oracle
             base.QuoteName(name);
         }
 
-        bool IsDateSubtract(DbMemberExpression exp)
+        bool IsDateSubtract(DbMemberAccessExpression exp)
         {
             MemberInfo member = exp.Member;
 
             if (member.DeclaringType == PublicConstants.TypeOfTimeSpan)
             {
-                if (exp.Expression.NodeType == DbExpressionType.Call)
+                if (exp.Expression.NodeType == DbExpressionType.MethodCall)
                 {
                     DbMethodCallExpression dbMethodExp = (DbMethodCallExpression)exp.Expression;
                     if (dbMethodExp.Method == PublicConstants.MethodInfo_DateTime_Subtract_DateTime)
@@ -528,7 +528,7 @@ namespace Chloe.Oracle
                     if (dbSubtractExp != null && dbSubtractExp.Left.Type == PublicConstants.TypeOfDateTime && dbSubtractExp.Right.Type == PublicConstants.TypeOfDateTime)
                     {
                         DbMethodCallExpression dbMethodExp = new DbMethodCallExpression(dbSubtractExp.Left, PublicConstants.MethodInfo_DateTime_Subtract_DateTime, new List<DbExpression>(1) { dbSubtractExp.Right });
-                        DbMemberExpression dbMemberExp = DbExpression.MemberAccess(member, dbMethodExp);
+                        DbMemberAccessExpression dbMemberExp = DbExpression.MemberAccess(member, dbMethodExp);
                         dbMemberExp.Accept(this);
 
                         return true;

@@ -81,7 +81,7 @@
         {
             throw new NotImplementedException();
         }
-        public virtual T VisitMember(DbMemberExpression exp)
+        public virtual T VisitMemberAccess(DbMemberAccessExpression exp)
         {
             throw new NotImplementedException();
         }

@@ -23,7 +23,7 @@ namespace Chloe.Visitors
         {
             return exp.Value;
         }
-        public override object VisitMember(DbMemberExpression exp)
+        public override object VisitMemberAccess(DbMemberAccessExpression exp)
         {
             object instance = null;
             if (exp.Expression != null)

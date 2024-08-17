@@ -541,7 +541,7 @@ namespace Chloe.RDBMS
             throw PublicHelper.MakeNotSupportedMethodException(exp.Method);
         }
 
-        public override DbExpression VisitMember(DbMemberExpression exp)
+        public override DbExpression VisitMemberAccess(DbMemberAccessExpression exp)
         {
             MemberInfo member = exp.Member;
 

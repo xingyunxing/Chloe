@@ -105,7 +105,7 @@ namespace Chloe.DbExpressions
         /// <param name="exp"></param>
         /// <param name="val"></param>
         /// <returns></returns>
-        public static bool TryConvertToParameterExpression(this DbMemberExpression exp, out DbParameterExpression val)
+        public static bool TryConvertToParameterExpression(this DbMemberAccessExpression exp, out DbParameterExpression val)
         {
             val = null;
             if (!exp.IsEvaluable())
@@ -120,7 +120,7 @@ namespace Chloe.DbExpressions
         /// </summary>
         /// <param name="memberExpression"></param>
         /// <returns>返回 DbParameterExpression</returns>
-        public static DbParameterExpression ConvertToParameterExpression(this DbMemberExpression memberExpression)
+        public static DbParameterExpression ConvertToParameterExpression(this DbMemberAccessExpression memberExpression)
         {
             //求值
             object val = Evaluate(memberExpression);

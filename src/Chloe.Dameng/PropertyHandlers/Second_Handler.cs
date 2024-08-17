@@ -6,7 +6,7 @@ namespace Chloe.Dameng.PropertyHandlers
 {
     class Second_Handler : Second_HandlerBase
     {
-        public override void Process(DbMemberExpression exp, SqlGeneratorBase generator)
+        public override void Process(DbMemberAccessExpression exp, SqlGeneratorBase generator)
         {
             SqlGenerator.DbFunction_DATEPART(generator, "SECOND", exp.Expression);
         }

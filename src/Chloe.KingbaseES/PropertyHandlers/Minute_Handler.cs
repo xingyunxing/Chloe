@@ -6,7 +6,7 @@ namespace Chloe.KingbaseES.PropertyHandlers
 {
     class Minute_Handler : Minute_HandlerBase
     {
-        public override void Process(DbMemberExpression exp, SqlGeneratorBase generator)
+        public override void Process(DbMemberAccessExpression exp, SqlGeneratorBase generator)
         {
             SqlGenerator.DbFunction_DATEPART(generator, "minute", exp.Expression);
         }

@@ -6,7 +6,7 @@ namespace Chloe.PostgreSQL.PropertyHandlers
 {
     class DayOfWeek_Handler : DayOfWeek_HandlerBase
     {
-        public override void Process(DbMemberExpression exp, SqlGeneratorBase generator)
+        public override void Process(DbMemberAccessExpression exp, SqlGeneratorBase generator)
         {
             SqlGenerator.DbFunction_DATEPART(generator, "DOW", exp.Expression);
         }

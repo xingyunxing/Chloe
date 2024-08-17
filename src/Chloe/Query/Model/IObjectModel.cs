@@ -60,7 +60,7 @@ namespace Chloe.Query
     {
         public static DbExpression AddNullCheckingColumn(List<DbColumnSegment> columns, HashSet<string> aliasSet, DbTable table, DbExpression nullCheckingExp)
         {
-            DbColumnSegment columnSeg = columns.Where(a => DbExpressionEqualityComparer.EqualsCompare(a.Body, nullCheckingExp)).FirstOrDefault();
+            DbColumnSegment columnSeg = columns.Where(a => DbExpressionEqualityComparer.Instance.Equals(a.Body, nullCheckingExp)).FirstOrDefault();
 
             if (columnSeg == null)
             {

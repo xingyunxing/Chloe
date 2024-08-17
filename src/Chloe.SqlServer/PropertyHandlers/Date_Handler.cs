@@ -6,7 +6,7 @@ namespace Chloe.SqlServer.PropertyHandlers
 {
     class Date_Handler : Date_HandlerBase
     {
-        public override void Process(DbMemberExpression exp, SqlGeneratorBase generator)
+        public override void Process(DbMemberAccessExpression exp, SqlGeneratorBase generator)
         {
             SqlGeneratorBase.BuildCastState(generator, exp.Expression, "DATE");
         }

@@ -123,9 +123,9 @@ namespace Chloe.DbExpressions
             return new DbLessThanOrEqualExpression(left, right);
         }
 
-        public static DbMemberExpression MemberAccess(MemberInfo member, DbExpression exp)
+        public static DbMemberAccessExpression MemberAccess(MemberInfo member, DbExpression exp)
         {
-            return new DbMemberExpression(member, exp);
+            return new DbMemberAccessExpression(member, exp);
         }
 
         public static DbMethodCallExpression MethodCall(DbExpression @object, MethodInfo method, IList<DbExpression> arguments)

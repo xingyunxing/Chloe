@@ -20,7 +20,7 @@ namespace Chloe.Visitors
             {
                 case DbExpressionType.Constant:
                 case DbExpressionType.MemberAccess:
-                case DbExpressionType.Call:
+                case DbExpressionType.MethodCall:
                 case DbExpressionType.Not:
                 case DbExpressionType.Convert:
                 case DbExpressionType.Parameter:
@@ -36,7 +36,7 @@ namespace Chloe.Visitors
         {
             return true;
         }
-        public override bool VisitMember(DbMemberExpression exp)
+        public override bool VisitMemberAccess(DbMemberAccessExpression exp)
         {
             if (exp.Expression != null)
             {

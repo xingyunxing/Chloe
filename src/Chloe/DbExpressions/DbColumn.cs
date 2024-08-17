@@ -43,4 +43,63 @@ namespace Chloe.DbExpressions
         }
     }
 
+    public class DbColumnEqualityComparer : IEqualityComparer<DbColumn>
+    {
+        public static DbColumnEqualityComparer Instance { get; } = new DbColumnEqualityComparer();
+
+        public bool Equals(DbColumn left, DbColumn right)
+        {
+            if (left == right)
+                return true;
+
+            if (left == null || right == null)
+                return false;
+
+            if (left.Name != right.Name)
+            {
+                return false;
+            }
+
+            if (left.Type != right.Type)
+            {
+                return false;
+            }
+
+            if (left.DbType != right.DbType)
+            {
+                return false;
+            }
+
+            if (left.Size != right.Size)
+            {
+                return false;
+            }
+
+            if (left.Scale != right.Scale)
+            {
+                return false;
+            }
+
+            if (left.Precision != right.Precision)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public int GetHashCode(DbColumn dbColumn)
+        {
+            HashCode hash = new HashCode();
+            hash.Add(dbColumn.Name);
+            hash.Add(dbColumn.Type);
+            hash.Add(dbColumn.DbType);
+            hash.Add(dbColumn.Size);
+            hash.Add(dbColumn.Scale);
+            hash.Add(dbColumn.Precision);
+
+            return hash.GetHashCode();
+        }
+    }
+
 }

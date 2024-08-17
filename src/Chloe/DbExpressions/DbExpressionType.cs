@@ -30,7 +30,7 @@ namespace Chloe.DbExpressions
         Coalesce,
         CaseWhen,
         MemberAccess,
-        Call,
+        MethodCall,
 
         Table,
         ColumnAccess,

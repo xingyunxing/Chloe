@@ -3,11 +3,12 @@ using System.Reflection;
 
 namespace Chloe.DbExpressions
 {
-    public class DbMemberExpression : DbExpression
+    public class DbMemberAccessExpression : DbExpression
     {
         MemberInfo _member;
         DbExpression _exp;
-        public DbMemberExpression(MemberInfo member, DbExpression exp) : base(DbExpressionType.MemberAccess)
+
+        public DbMemberAccessExpression(MemberInfo member, DbExpression exp) : base(DbExpressionType.MemberAccess)
         {
             if (member.MemberType != MemberTypes.Property && member.MemberType != MemberTypes.Field)
                 throw new ArgumentException();
@@ -39,7 +40,7 @@ namespace Chloe.DbExpressions
 
         public override T Accept<T>(DbExpressionVisitor<T> visitor)
         {
-            return visitor.VisitMember(this);
+            return visitor.VisitMemberAccess(this);
         }
     }
 }

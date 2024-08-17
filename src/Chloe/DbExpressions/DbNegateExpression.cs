@@ -1,14 +1,11 @@
 ﻿namespace Chloe.DbExpressions
 {
-    public class DbNegateExpression : DbExpression
+    public class DbNegateExpression : DbUnaryExpression
     {
-        DbExpression _operand;
-
-        public DbNegateExpression(Type type, DbExpression operand) : base(DbExpressionType.Negate, type)
+        public DbNegateExpression(Type type, DbExpression operand) : base(DbExpressionType.Negate, type, operand)
         {
-            this._operand = operand;
+
         }
-        public DbExpression Operand { get { return this._operand; } }
 
         public override T Accept<T>(DbExpressionVisitor<T> visitor)
         {

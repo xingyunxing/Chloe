@@ -6,7 +6,7 @@ namespace Chloe.SQLite.PropertyHandlers
 {
     class Millisecond_Handler : Millisecond_HandlerBase
     {
-        public override bool CanProcess(DbMemberExpression exp)
+        public override bool CanProcess(DbMemberAccessExpression exp)
         {
             return false;
         }

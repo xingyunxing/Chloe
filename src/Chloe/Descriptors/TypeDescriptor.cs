@@ -41,7 +41,7 @@ namespace Chloe.Descriptors
         /// <summary>
         /// 同名缓存，重用
         /// </summary>
-        ConcurrentDictionary<DbTable, List<Tuple<PrimitivePropertyDescriptor, DbColumnAccessExpression>>> CachedDbColumns { get; set; } = new ConcurrentDictionary<DbTable, List<Tuple<PrimitivePropertyDescriptor, DbColumnAccessExpression>>>();
+        ConcurrentDictionary<DbTableKey, List<Tuple<PrimitivePropertyDescriptor, DbColumnAccessExpression>>> CachedDbColumns { get; set; } = new ConcurrentDictionary<DbTableKey, List<Tuple<PrimitivePropertyDescriptor, DbColumnAccessExpression>>>();
 
         public TypeDefinition Definition { get; private set; }
         public ReadOnlyCollection<PrimitivePropertyDescriptor> PrimitivePropertyDescriptors { get; private set; }
@@ -149,7 +149,8 @@ namespace Chloe.Descriptors
         internal ComplexObjectModel GenObjectModel(DbTable table, QueryContext queryContext, QueryOptions queryOptions)
         {
             List<Tuple<PrimitivePropertyDescriptor, DbColumnAccessExpression>> columns;
-            if (!this.CachedDbColumns.TryGetValue(table, out columns))
+            DbTableKey key = new DbTableKey(table);
+            if (!this.CachedDbColumns.TryGetValue(key, out columns))
             {
                 columns = new List<Tuple<PrimitivePropertyDescriptor, DbColumnAccessExpression>>(this.PrimitivePropertyDescriptors.Count);
                 for (int i = 0; i < this.PrimitivePropertyDescriptors.Count; i++)
@@ -159,7 +160,7 @@ namespace Chloe.Descriptors
                     columns.Add(new Tuple<PrimitivePropertyDescriptor, DbColumnAccessExpression>(propertyDescriptor, columnAccessExpression));
                 }
 
-                this.CachedDbColumns[table] = columns;
+                this.CachedDbColumns[key] = columns;
             }
 
             ComplexObjectModel model = new ComplexObjectModel(queryContext, queryOptions, this.Definition.Type, this.PrimitivePropertyDescriptors.Count);

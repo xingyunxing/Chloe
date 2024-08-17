@@ -126,7 +126,7 @@ namespace Chloe.Dameng
             return exp;
         }
 
-        public override DbExpression VisitMember(DbMemberExpression exp)
+        public override DbExpression VisitMemberAccess(DbMemberAccessExpression exp)
         {
             return exp;
         }

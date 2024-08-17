@@ -1,14 +1,11 @@
 ﻿namespace Chloe.DbExpressions
 {
-    public class DbConvertExpression : DbExpression
+    public class DbConvertExpression : DbUnaryExpression
     {
-        DbExpression _operand;
-
-        public DbConvertExpression(Type type, DbExpression operand) : base(DbExpressionType.Convert, type)
+        public DbConvertExpression(Type type, DbExpression operand) : base(DbExpressionType.Convert, type, operand)
         {
-            this._operand = operand;
+
         }
-        public DbExpression Operand { get { return this._operand; } }
 
         public override T Accept<T>(DbExpressionVisitor<T> visitor)
         {

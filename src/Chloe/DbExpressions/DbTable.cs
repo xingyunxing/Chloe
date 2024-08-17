@@ -24,25 +24,54 @@
 
         public string Name { get { return this._name; } }
         public string Schema { get { return this._schema; } }
+    }
+
+    public class DbTableEqualityComparer : IEqualityComparer<DbTable>
+    {
+        public static DbTableEqualityComparer Instance { get; } = new DbTableEqualityComparer();
+
+        public bool Equals(DbTable left, DbTable right)
+        {
+            if (left == right)
+                return true;
+
+            if (left == null || right == null)
+                return false;
+
+            return left.Name == right.Name && left.Schema == right.Schema;
+        }
+
+        public int GetHashCode(DbTable obj)
+        {
+            HashCode hash = new HashCode();
+            hash.Add(obj.Schema);
+            hash.Add(obj.Name);
+            return hash.ToHashCode();
+        }
+    }
+
+    public struct DbTableKey : IEquatable<DbTableKey>
+    {
+        DbTable _dbTable;
+
+        public DbTableKey(DbTable dbTable)
+        {
+            this._dbTable = dbTable;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is DbTableKey other && Equals(other);
+        }
+
+        public bool Equals(DbTableKey other)
+        {
+            return DbTableEqualityComparer.Instance.Equals(this._dbTable, other._dbTable);
+        }
 
         public override int GetHashCode()
         {
-            HashCode hash = new HashCode();
-            hash.Add(this._schema);
-            hash.Add(".");
-            hash.Add(this._name);
-            return hash.ToHashCode();
-        }
-
-        public override bool Equals(object obj)
-        {
-            DbTable dbTable = obj as DbTable;
-            if (dbTable == null)
-            {
-                return false;
-            }
-
-            return this._name == dbTable._name && this._schema == dbTable._schema;
+            return DbTableEqualityComparer.Instance.GetHashCode(this._dbTable);
         }
     }
 }

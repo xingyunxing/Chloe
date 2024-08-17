@@ -10,7 +10,7 @@ namespace Chloe.RDBMS.PropertyHandlers
             return PublicConstants.PropertyInfo_String_Length;
         }
 
-        public override void Process(DbMemberExpression exp, SqlGeneratorBase generator)
+        public override void Process(DbMemberAccessExpression exp, SqlGeneratorBase generator)
         {
             generator.SqlBuilder.Append("LENGTH(");
             exp.Expression.Accept(generator);

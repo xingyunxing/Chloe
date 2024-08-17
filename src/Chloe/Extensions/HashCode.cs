@@ -42,7 +42,8 @@ https://raw.githubusercontent.com/Cyan4973/xxHash/5c174cfa4e45a42f94082dc0d4539b
 
 #if NETFX || NETSTANDARD2
 
-//注：此文件代码从 .net 6 以上版本 HashCode 拷贝出来的
+//注：此文件代码来源 .net 6 以上版本
+
 using Chloe.Numerics;
 using System.Collections.Generic;
 using System.ComponentModel;

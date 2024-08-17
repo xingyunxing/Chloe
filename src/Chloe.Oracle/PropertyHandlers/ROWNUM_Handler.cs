@@ -12,7 +12,7 @@ namespace Chloe.Oracle.PropertyHandlers
             return OracleSemantics.PropertyInfo_ROWNUM;
         }
 
-        public override void Process(DbMemberExpression exp, SqlGeneratorBase generator)
+        public override void Process(DbMemberAccessExpression exp, SqlGeneratorBase generator)
         {
             generator.SqlBuilder.Append("ROWNUM");
         }

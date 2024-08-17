@@ -46,7 +46,7 @@ namespace Chloe.Visitors
                     }
                     else
                     {
-                        DbMemberExpression dbMe = new DbMemberExpression(me.Member, dbExp);
+                        DbMemberAccessExpression dbMe = new DbMemberAccessExpression(me.Member, dbExp);
                         dbExp = dbMe;
                     }
                 }

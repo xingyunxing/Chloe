@@ -4,7 +4,7 @@
 
 #if NETFX || NETSTANDARD2
 
-//注：此文件代码从 .net 6 以上版本 HashCode 拷贝出来的
+//注：此文件代码来源 .net 6 以上版本
 
 using System.Diagnostics;
 using System.Runtime.CompilerServices;

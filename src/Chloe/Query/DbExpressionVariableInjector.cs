@@ -2,12 +2,12 @@
 #if !NET46 && !NETSTANDARD2
 
 using Chloe.DbExpressions;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Chloe.Query
 {
+    /// <summary>
+    /// 将变量插入对应的插槽
+    /// </summary>
     public class DbExpressionVariableInjector : DbExpressionVisitor
     {
         List<object> _variables;
@@ -23,7 +23,7 @@ namespace Chloe.Query
             return exp.Accept(injector);
         }
 
-        public override DbExpression VisitMember(DbMemberExpression exp)
+        public override DbExpression VisitMemberAccess(DbMemberAccessExpression exp)
         {
             if (exp.Member.Name == nameof(VariableSlot<int>.Value))
             {
@@ -38,7 +38,7 @@ namespace Chloe.Query
                 }
             }
 
-            return base.VisitMember(exp);
+            return base.VisitMemberAccess(exp);
         }
     }
 }

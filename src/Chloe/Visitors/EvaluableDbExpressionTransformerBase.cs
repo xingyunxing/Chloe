@@ -42,7 +42,7 @@ namespace Chloe.Visitors
         /// </summary>
         /// <param name="exp"></param>
         /// <returns></returns>
-        public virtual bool CanTranslateToSql(DbMemberExpression exp)
+        public virtual bool CanTranslateToSql(DbMemberAccessExpression exp)
         {
             Dictionary<string, IPropertyHandler[]> propertyHandlerMap = this.GetPropertyHandlers();
             IPropertyHandler[] propertyHandlers;
@@ -84,7 +84,7 @@ namespace Chloe.Visitors
             return false;
         }
 
-        public override DbExpression VisitMember(DbMemberExpression exp)
+        public override DbExpression VisitMemberAccess(DbMemberAccessExpression exp)
         {
             if (exp.Member.Name == nameof(VariableSlot<int>.Value))
             {

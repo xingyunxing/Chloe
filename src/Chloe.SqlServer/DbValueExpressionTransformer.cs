@@ -126,7 +126,7 @@ namespace Chloe.SqlServer
             return exp;
         }
 
-        public override DbExpression VisitMember(DbMemberExpression exp)
+        public override DbExpression VisitMemberAccess(DbMemberAccessExpression exp)
         {
             return exp;
         }

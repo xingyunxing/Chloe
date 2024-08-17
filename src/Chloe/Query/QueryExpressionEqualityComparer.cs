@@ -11,12 +11,12 @@ namespace Chloe.Query
     {
         public static QueryExpressionEqualityComparer Instance { get; } = new QueryExpressionEqualityComparer();
 
-        public bool Equals(QueryExpression? x, QueryExpression? y)
+        public bool Equals(QueryExpression x, QueryExpression y)
         {
             return new QueryExpressionComparer().Compare(x, y);
         }
 
-        public int GetHashCode(QueryExpression? obj)
+        public int GetHashCode(QueryExpression obj)
         {
             if (obj == null)
             {
