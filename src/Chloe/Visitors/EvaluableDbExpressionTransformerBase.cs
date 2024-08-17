@@ -90,10 +90,10 @@ namespace Chloe.Visitors
             {
                 if (exp.Expression is DbConstantExpression dbConstantExpression)
                 {
-                    VariableSlot solt = dbConstantExpression.Value as VariableSlot;
-                    if (solt != null)
+                    VariableSlot slot = dbConstantExpression.Value as VariableSlot;
+                    if (slot != null)
                     {
-                        object variable = this._variables[solt.Index];
+                        object variable = this._variables[slot.Index];
                         return new DbConstantExpression(variable);
                     }
                 }
