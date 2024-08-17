@@ -5,12 +5,11 @@ namespace Chloe.DbExpressions
     [System.Diagnostics.DebuggerDisplay("Value = {Value}")]
     public class DbParameterExpression : DbExpression
     {
-        object _value;
         Type _type;
 
         public DbParameterExpression(object value) : base(DbExpressionType.Parameter)
         {
-            this._value = value;
+            this.Value = value;
 
             if (value != null)
                 this._type = value.GetType();
@@ -35,13 +34,13 @@ namespace Chloe.DbExpressions
                     throw new ArgumentException();
             }
 
-            this._value = value;
+            this.Value = value;
             this._type = type;
             this.DbType = dbType;
         }
 
         public override Type Type { get { return this._type; } }
-        public object Value { get { return this._value; } }
+        public object Value { get; private set; }
         public DbType? DbType { get; private set; }
 
         public override T Accept<T>(DbExpressionVisitor<T> visitor)
