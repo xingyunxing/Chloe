@@ -18,7 +18,7 @@ namespace Chloe.Visitors
         {
         }
 
-        protected EvaluableDbExpressionTransformerBase(List<object> variables)  //如果要处理的 DbExpression 中包含了 插槽，务必将对应的变量传进来
+        protected EvaluableDbExpressionTransformerBase(List<object> variables)  //如果要处理的 DbExpression 中包含了插槽，务必将对应的变量传进来
         {
             this._variables = variables;
         }
