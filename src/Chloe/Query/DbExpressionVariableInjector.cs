@@ -1,7 +1,4 @@
-﻿
-#if !NET46 && !NETSTANDARD2
-
-using Chloe.DbExpressions;
+﻿using Chloe.DbExpressions;
 
 namespace Chloe.Query
 {
@@ -42,5 +39,3 @@ namespace Chloe.Query
         }
     }
 }
-
-#endif
