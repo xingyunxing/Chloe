@@ -1,9 +1,10 @@
-﻿using Chloe.Visitors;
-using Chloe.Descriptors;
+﻿using Chloe.Descriptors;
+using Chloe.Extensions;
 using Chloe.Reflection;
 using Chloe.Sharding.Models;
 using Chloe.Sharding.Queries;
 using Chloe.Sharding.Routing;
+using Chloe.Visitors;
 using System.Collections;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -262,7 +263,12 @@ namespace Chloe.Sharding
                         keyList.Add(inItem);
                     }
 
-                    Expression containsCall = Expression.Call(Expression.Constant(keyList), keyList.GetType().GetMethod(nameof(List<int>.Contains)), keyMemberAccess);
+                    /*
+                     * 注：千万不能用 Expression.Constant(keyList) 包装 keyList，因为如果使用 ConstantExpression 包装变量，ExpressionEqualityComparer 计算表达式树时始终返回一个新的哈希值，会导致 QueryPlanContainer 的缓存无限暴涨。
+                     * 同理，在任何时候都不要用 ConstantExpression 来包装你的变量
+                     */
+                    var keyListWrapper = ExpressionExtension.MakeWrapperAccess(keyList, keyList.GetType());
+                    Expression containsCall = Expression.Call(keyListWrapper, keyList.GetType().GetMethod(nameof(List<int>.Contains)), keyMemberAccess);
                     Expression conditionBody = containsCall;
 
                     LambdaExpression condition = LambdaExpression.Lambda(typeof(Func<,>).MakeGenericType(queryProjection.RootEntityType, typeof(bool)), conditionBody, parameter);
