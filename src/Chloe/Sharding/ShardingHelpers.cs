@@ -127,7 +127,7 @@ namespace Chloe.Sharding
             MemberAssignment keyBind = Expression.Bind(dynamicProperties[0].Property, Expression.MakeMemberAccess(parameter, entityTypeDescriptor.PrimaryKeys.First().Definition.Property));
             bindings.Add(keyBind);
 
-            MemberAssignment tableIndexBind = Expression.Bind(dynamicProperties[1].Property, Expression.Constant(tableIndex));
+            MemberAssignment tableIndexBind = Expression.Bind(dynamicProperties[1].Property, ExpressionExtension.MakeWrapperAccess(tableIndex, tableIndex.GetType()));
             bindings.Add(tableIndexBind);
 
             ShardingQueryModel queryModel = queryPlan.QueryModel;

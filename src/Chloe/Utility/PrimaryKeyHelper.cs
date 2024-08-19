@@ -45,7 +45,7 @@ namespace Chloe.Utility
                 /* a => a.Key1 == key.Key1 && a.Key2 == key.Key2 */
 
                 Type keyObjectType = keyType;
-                ConstantExpression keyConstantExp = Expression.Constant(key);
+                Expression keyConstantExp = ExpressionExtension.MakeWrapperAccess(key, keyType);
                 if (keyObjectType == entityType)
                 {
                     foreach (PrimitivePropertyDescriptor primaryKey in typeDescriptor.PrimaryKeys)
