@@ -33,6 +33,11 @@ namespace Chloe.Query.Internals
             List<object> variables;
             queryExpression = ExpressionVariableReplacer.Replace(queryExpression, out variables);
 
+
+            /*
+             * 注：任何时候千万不能用 Expression.Constant(variable) 包装变量，因为如果使用 ConstantExpression 包装变量，ExpressionEqualityComparer 计算表达式树时始终返回一个新的哈希值，会导致 QueryPlanContainer 的缓存无限暴涨。
+             * 同理，在任何时候都不要用 ConstantExpression 来包装你的变量
+             */
             QueryPlan queryPlan = QueryPlanContainer.GetOrAdd(queryExpression, () =>
             {
                 return MakeQueryPlan(this._queryContext, queryExpression);
