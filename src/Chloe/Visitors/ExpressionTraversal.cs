@@ -94,11 +94,6 @@ namespace Chloe.Visitors
             }
         }
 
-        protected virtual void VisitExpression(Expression exp)
-        {
-            throw new NotImplementedException(exp.ToString());
-        }
-
         protected virtual void VisitUnary(UnaryExpression exp)
         {
             if (exp == null)
