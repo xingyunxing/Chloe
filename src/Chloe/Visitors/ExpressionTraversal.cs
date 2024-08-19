@@ -1,123 +1,212 @@
 ﻿using Chloe.QueryExpressions;
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Text;
 
 namespace Chloe.Visitors
 {
-    public class ExpressionTraversal : ExpressionVisitor<bool>
+    public class ExpressionTraversal
     {
         #region Expression
 
-        bool CheckMany(IList<Expression> exps)
+        protected ExpressionTraversal()
         {
-            for (int i = 0; i < exps.Count; i++)
+
+        }
+
+        public virtual void Visit(Expression exp)
+        {
+            if (exp == null)
+                return;
+
+            switch (exp.NodeType)
             {
-                if (this.Visit(exps[i]))
-                {
-                    return true;
-                }
+                case ExpressionType.Not:
+                case ExpressionType.Convert:
+                case ExpressionType.ConvertChecked:
+                case ExpressionType.Quote:
+                case ExpressionType.Negate:
+                case ExpressionType.NegateChecked:
+                case ExpressionType.ArrayLength:
+                case ExpressionType.TypeAs:
+                    this.VisitUnary((UnaryExpression)exp);
+                    return;
+                case ExpressionType.Add:
+                case ExpressionType.AddChecked:
+                case ExpressionType.Subtract:
+                case ExpressionType.SubtractChecked:
+                case ExpressionType.Multiply:
+                case ExpressionType.MultiplyChecked:
+                case ExpressionType.Divide:
+                case ExpressionType.Modulo:
+                case ExpressionType.And:
+                case ExpressionType.AndAlso:
+                case ExpressionType.Or:
+                case ExpressionType.OrElse:
+                case ExpressionType.LessThan:
+                case ExpressionType.LessThanOrEqual:
+                case ExpressionType.GreaterThan:
+                case ExpressionType.GreaterThanOrEqual:
+                case ExpressionType.Equal:
+                case ExpressionType.NotEqual:
+                case ExpressionType.Coalesce:
+                case ExpressionType.ArrayIndex:
+                case ExpressionType.RightShift:
+                case ExpressionType.LeftShift:
+                case ExpressionType.ExclusiveOr:
+                    this.VisitBinary((BinaryExpression)exp);
+                    return;
+                case ExpressionType.Lambda:
+                    this.VisitLambda((LambdaExpression)exp);
+                    return;
+                //case ExpressionType.TypeIs:
+                //    return this.VisitTypeIs((TypeBinaryExpression)exp);
+                case ExpressionType.Conditional:
+                    this.VisitConditional((ConditionalExpression)exp);
+                    return;
+                case ExpressionType.Constant:
+                    this.VisitConstant((ConstantExpression)exp);
+                    return;
+                case ExpressionType.Parameter:
+                    this.VisitParameter((ParameterExpression)exp);
+                    return;
+                case ExpressionType.MemberAccess:
+                    this.VisitMemberAccess((MemberExpression)exp);
+                    return;
+                case ExpressionType.Call:
+                    this.VisitMethodCall((MethodCallExpression)exp);
+                    return;
+                case ExpressionType.New:
+                    this.VisitNew((NewExpression)exp);
+                    return;
+                case ExpressionType.NewArrayInit:
+                    //case ExpressionType.NewArrayBounds:
+                    this.VisitNewArray((NewArrayExpression)exp);
+                    return;
+                //case ExpressionType.Invoke:
+                //    return this.VisitInvocation((InvocationExpression)exp);
+                case ExpressionType.MemberInit:
+                    this.VisitMemberInit((MemberInitExpression)exp);
+                    return;
+                case ExpressionType.ListInit:
+                    this.VisitListInit((ListInitExpression)exp);
+                    return;
+                default:
+                    throw new Exception(string.Format("Unhandled expression type: '{0}'", exp.NodeType));
             }
-
-            return false;
         }
 
-        protected override bool VisitExpression(Expression exp)
+        protected virtual void VisitExpression(Expression exp)
         {
-            return false;
+            throw new NotImplementedException(exp.ToString());
         }
-        protected override bool VisitUnary(UnaryExpression exp)
+
+        protected virtual void VisitUnary(UnaryExpression exp)
         {
-            return this.Visit(exp.Operand);
+            if (exp == null)
+                return;
+
+            this.Visit(exp.Operand);
         }
-        protected override bool VisitBinary(BinaryExpression exp)
+
+        protected virtual void VisitBinary(BinaryExpression exp)
         {
-            if (this.Visit(exp.Left))
-                return true;
+            if (exp == null)
+                return;
 
-            if (this.Visit(exp.Right))
-                return true;
-
-            return false;
+            this.Visit(exp.Left);
+            this.Visit(exp.Right);
         }
-        protected override bool VisitLambda(LambdaExpression exp)
+
+        protected virtual void VisitConstant(ConstantExpression exp)
         {
-            return this.Visit(exp.Body);
+
         }
-        protected override bool VisitMemberAccess(MemberExpression exp)
+        protected virtual void VisitParameter(ParameterExpression exp)
         {
-            return this.Visit(exp.Expression);
+
         }
-        protected override bool VisitConditional(ConditionalExpression exp)
+
+        protected virtual void VisitLambda(LambdaExpression exp)
         {
-            if (this.Visit(exp.Test))
-                return true;
-
-            if (this.Visit(exp.IfTrue))
-                return true;
-
-            if (this.Visit(exp.IfFalse))
-                return true;
-
-            return false;
-        }
-        protected override bool VisitMethodCall(MethodCallExpression exp)
-        {
-            if (this.Visit(exp.Object))
-                return true;
-
-            if (this.CheckMany(exp.Arguments))
-                return true;
-
-            return false;
-        }
-        protected override bool VisitNew(NewExpression exp)
-        {
-            if (this.CheckMany(exp.Arguments))
-                return true;
-
-            return false;
-        }
-        protected override bool VisitNewArray(NewArrayExpression exp)
-        {
-            if (this.CheckMany(exp.Expressions))
-                return true;
-
-            return false;
-        }
-        protected override bool VisitMemberInit(MemberInitExpression exp)
-        {
-            if (this.Visit(exp.NewExpression))
-                return true;
-
-            for (int i = 0; i < exp.Bindings.Count; i++)
+            for (int i = 0; i < exp.Parameters.Count; i++)
             {
-                switch (exp.Bindings[i])
+                this.Visit(exp.Parameters[i]);
+            }
+            this.Visit(exp.Body);
+        }
+        protected virtual void VisitMemberAccess(MemberExpression exp)
+        {
+            this.Visit(exp.Expression);
+        }
+        protected virtual void VisitConditional(ConditionalExpression exp)
+        {
+            this.Visit(exp.Test);
+            this.Visit(exp.IfTrue);
+            this.Visit(exp.IfFalse);
+        }
+        protected virtual void VisitMethodCall(MethodCallExpression exp)
+        {
+            this.Visit(exp.Object);
+            for (int i = 0; i < exp.Arguments.Count; i++)
+            {
+                this.Visit(exp.Arguments[i]);
+            }
+        }
+        protected virtual void VisitNew(NewExpression exp)
+        {
+            for (int i = 0; i < exp.Arguments.Count; i++)
+            {
+                this.Visit(exp.Arguments[i]);
+            }
+        }
+        protected virtual void VisitNewArray(NewArrayExpression exp)
+        {
+            for (int i = 0; i < exp.Expressions.Count; i++)
+            {
+                this.Visit(exp.Expressions[i]);
+            }
+        }
+        protected virtual void VisitMemberInit(MemberInitExpression exp)
+        {
+            this.Visit(exp.NewExpression);
+
+            var memberBindings = exp.Bindings;
+            for (var i = 0; i < memberBindings.Count; i++)
+            {
+                var memberBinding = memberBindings[i];
+
+                switch (memberBinding)
                 {
                     case MemberAssignment memberAssignment:
-                        if (this.Visit(memberAssignment.Expression))
-                            return true;
+                        this.Visit(memberAssignment.Expression);
                         break;
-                    default:
-                        throw new NotSupportedException(exp.Bindings[i].ToString());
+                    case MemberListBinding memberListBinding:
+                        for (int j = 0; j < memberListBinding.Initializers.Count; j++)
+                        {
+                            for (int k = 0; k < memberListBinding.Initializers[j].Arguments.Count; k++)
+                            {
+                                this.Visit(memberListBinding.Initializers[j].Arguments[k]);
+                            }
+                        }
+                        break;
+                    case MemberMemberBinding memberMemberBinding:
+
+                        break;
                 }
             }
 
-            return false;
         }
-        protected override bool VisitListInit(ListInitExpression exp)
+        protected virtual void VisitListInit(ListInitExpression exp)
         {
+            this.Visit(exp.NewExpression);
+
             for (int i = 0; i < exp.Initializers.Count; i++)
             {
                 for (int j = 0; j < exp.Initializers[i].Arguments.Count; j++)
                 {
-                    if (this.Visit(exp.Initializers[i].Arguments[j]))
-                        return true;
+                    this.Visit(exp.Initializers[i].Arguments[j]);
                 }
-            }
 
-            return false;
+            }
         }
 
         #endregion
@@ -126,223 +215,199 @@ namespace Chloe.Visitors
 
         #region QueryExpression
 
-        public virtual bool Visit(QueryExpression exp)
+        public virtual void Visit(QueryExpression exp)
         {
             if (exp == null)
-                return false;
+                return;
 
             if (exp.PrevExpression != null)
             {
-                if (this.Visit(exp.PrevExpression))
-                    return true;
+                this.Visit(exp.PrevExpression);
             }
 
             switch (exp.NodeType)
             {
                 case QueryExpressionType.Root:
-                    return this.VisitRootQuery((RootQueryExpression)exp);
+                    this.VisitRootQuery((RootQueryExpression)exp);
+                    return;
                 case QueryExpressionType.Where:
-                    return this.VisitWhere((WhereExpression)exp);
+                    this.VisitWhere((WhereExpression)exp);
+                    return;
                 case QueryExpressionType.Take:
-                    return this.VisitTake((TakeExpression)exp);
+                    this.VisitTake((TakeExpression)exp);
+                    return;
                 case QueryExpressionType.Skip:
-                    return this.VisitSkip((SkipExpression)exp);
+                    this.VisitSkip((SkipExpression)exp);
+                    return;
                 case QueryExpressionType.Paging:
-                    return this.VisitPaging((PagingExpression)exp);
+                    this.VisitPaging((PagingExpression)exp);
+                    return;
                 case QueryExpressionType.OrderBy:
                 case QueryExpressionType.OrderByDesc:
                 case QueryExpressionType.ThenBy:
                 case QueryExpressionType.ThenByDesc:
-                    return this.VisitOrder((OrderExpression)exp);
+                    this.VisitOrder((OrderExpression)exp);
+                    return;
                 case QueryExpressionType.Select:
-                    return this.VisitSelect((SelectExpression)exp);
+                    this.VisitSelect((SelectExpression)exp);
+                    return;
                 case QueryExpressionType.Include:
-                    return this.VisitInclude((IncludeExpression)exp);
+                    this.VisitInclude((IncludeExpression)exp);
+                    return;
                 case QueryExpressionType.BindTwoWay:
-                    return this.VisitBindTwoWay((BindTwoWayExpression)exp);
+                    this.VisitBindTwoWay((BindTwoWayExpression)exp);
+                    return;
                 case QueryExpressionType.Exclude:
-                    return this.VisitExclude((ExcludeExpression)exp);
+                    this.VisitExclude((ExcludeExpression)exp);
+                    return;
                 case QueryExpressionType.Aggregate:
-                    return this.VisitAggregateQuery((AggregateQueryExpression)exp);
+                    this.VisitAggregateQuery((AggregateQueryExpression)exp);
+                    return;
                 case QueryExpressionType.JoinQuery:
-                    return this.VisitJoinQuery((JoinQueryExpression)exp);
+                    this.VisitJoinQuery((JoinQueryExpression)exp);
+                    return;
                 case QueryExpressionType.GroupingQuery:
-                    return this.VisitGroupingQuery((GroupingQueryExpression)exp);
+                    this.VisitGroupingQuery((GroupingQueryExpression)exp);
+                    return;
                 case QueryExpressionType.Distinct:
-                    return this.VisitDistinct((DistinctExpression)exp);
+                    this.VisitDistinct((DistinctExpression)exp);
+                    return;
                 case QueryExpressionType.IgnoreAllFilters:
-                    return this.VisitIgnoreAllFilters((IgnoreAllFiltersExpression)exp);
+                    this.VisitIgnoreAllFilters((IgnoreAllFiltersExpression)exp);
+                    return;
                 case QueryExpressionType.Tracking:
-                    return this.VisitTracking((TrackingExpression)exp);
+                    this.VisitTracking((TrackingExpression)exp);
+                    return;
                 default:
                     throw new NotSupportedException(exp.NodeType.ToString());
             }
         }
 
-        public bool VisitRootQuery(RootQueryExpression exp)
+        protected virtual void VisitRootQuery(RootQueryExpression exp)
         {
             List<LambdaExpression> globalFilters = exp.GlobalFilters;
             for (int i = 0; i < globalFilters.Count; i++)
             {
-                if (this.Visit(globalFilters[i]))
-                    return true;
+                this.Visit(globalFilters[i]);
             }
 
             List<LambdaExpression> contextFilters = exp.ContextFilters;
             for (int i = 0; i < contextFilters.Count; i++)
             {
-                if (this.Visit(contextFilters[i]))
-                    return true;
+                this.Visit(contextFilters[i]);
             }
+        }
+        protected virtual void VisitWhere(WhereExpression exp)
+        {
+            this.Visit(exp.Predicate);
+        }
+        protected virtual void VisitSelect(SelectExpression exp)
+        {
+            this.Visit(exp.Selector);
+        }
+        protected virtual void VisitTake(TakeExpression exp)
+        {
 
-            return false;
         }
-        public bool VisitWhere(WhereExpression exp)
+        protected virtual void VisitSkip(SkipExpression exp)
         {
-            if (this.Visit(exp.Predicate))
-                return true;
 
-            return false;
         }
-        public bool VisitSelect(SelectExpression exp)
+        protected virtual void VisitOrder(OrderExpression exp)
         {
-            if (this.Visit(exp.Selector))
-                return true;
-
-            return false;
+            this.Visit(exp.KeySelector);
         }
-        public bool VisitTake(TakeExpression exp)
-        {
-            return false;
-        }
-        public bool VisitSkip(SkipExpression exp)
-        {
-            return false;
-        }
-        public bool VisitOrder(OrderExpression exp)
-        {
-            if (this.Visit(exp.KeySelector))
-                return true;
-
-            return false;
-        }
-        public bool VisitAggregateQuery(AggregateQueryExpression exp)
+        protected virtual void VisitAggregateQuery(AggregateQueryExpression exp)
         {
             List<Expression> arguments = new List<Expression>(exp.Arguments.Count);
 
             for (int i = 0; i < exp.Arguments.Count; i++)
             {
-                if (this.Visit(exp.Arguments[i]))
-                    return true;
+                this.Visit(exp.Arguments[i]);
             }
-
-            return false;
         }
-        public bool VisitJoinQuery(JoinQueryExpression exp)
+        protected virtual void VisitJoinQuery(JoinQueryExpression exp)
         {
-            if (this.Visit(exp.Selector))
-                return true;
+            this.Visit(exp.Selector);
 
             for (int i = 0; i < exp.JoinedQueries.Count; i++)
             {
-                if (this.Visit(exp.JoinedQueries[i].Condition))
-                    return true;
+                this.Visit(exp.JoinedQueries[i].Condition);
             }
-
-            return false;
         }
-        public bool VisitGroupingQuery(GroupingQueryExpression exp)
+        protected virtual void VisitGroupingQuery(GroupingQueryExpression exp)
         {
-            if (this.Visit(exp.Selector))
-                return true;
+            this.Visit(exp.Selector);
 
             for (int i = 0; i < exp.GroupKeySelectors.Count; i++)
             {
-                if (this.Visit(exp.GroupKeySelectors[i]))
-                    return true;
+                this.Visit(exp.GroupKeySelectors[i]);
             }
 
             for (int i = 0; i < exp.HavingPredicates.Count; i++)
             {
-                if (this.Visit(exp.HavingPredicates[i]))
-                    return true;
+                this.Visit(exp.HavingPredicates[i]);
             }
 
             List<GroupingQueryOrdering> orderings = new List<GroupingQueryOrdering>(exp.Orderings.Count);
             for (int i = 0; i < exp.Orderings.Count; i++)
             {
-                if (this.Visit(exp.Orderings[i].KeySelector))
-                    return true;
+                this.Visit(exp.Orderings[i].KeySelector);
             }
+        }
+        protected virtual void VisitDistinct(DistinctExpression exp)
+        {
 
-            return false;
         }
-        public bool VisitDistinct(DistinctExpression exp)
+        protected virtual void VisitInclude(IncludeExpression exp)
         {
-            return false;
+            this.ProcessNavigationNode(exp.NavigationNode);
         }
-        public bool VisitInclude(IncludeExpression exp)
+        protected virtual void VisitBindTwoWay(BindTwoWayExpression exp)
         {
-            if (this.ProcessNavigationNode(exp.NavigationNode))
-                return true;
 
-            return false;
         }
-        public bool VisitBindTwoWay(BindTwoWayExpression exp)
+        protected virtual void VisitExclude(ExcludeExpression exp)
         {
-            return false;
+            this.Visit(exp.Field);
         }
-        public bool VisitExclude(ExcludeExpression exp)
+        protected virtual void VisitIgnoreAllFilters(IgnoreAllFiltersExpression exp)
         {
-            if (this.Visit(exp.Field))
-                return true;
 
-            return false;
         }
-        public bool VisitIgnoreAllFilters(IgnoreAllFiltersExpression exp)
+        protected virtual void VisitTracking(TrackingExpression exp)
         {
-            return false;
+
         }
-        public bool VisitTracking(TrackingExpression exp)
+        protected virtual void VisitPaging(PagingExpression exp)
         {
-            return false;
+
         }
-        public bool VisitPaging(PagingExpression exp)
-        {
-            return false;
-        }
-        bool ProcessNavigationNode(NavigationNode navigationNode)
+        void ProcessNavigationNode(NavigationNode navigationNode)
         {
             for (int i = 0; i < navigationNode.ExcludedFields.Count; i++)
             {
-                if (this.Visit(navigationNode.ExcludedFields[i]))
-                    return true;
+                this.Visit(navigationNode.ExcludedFields[i]);
             }
 
-            if (this.Visit(navigationNode.Condition))
-                return true;
+            this.Visit(navigationNode.Condition);
 
             List<LambdaExpression> globalFilters = navigationNode.GlobalFilters;
             for (int i = 0; i < globalFilters.Count; i++)
             {
-                if (this.Visit(globalFilters[i]))
-                    return true;
+                this.Visit(globalFilters[i]);
             }
 
             List<LambdaExpression> contextFilters = navigationNode.ContextFilters;
             for (int i = 0; i < contextFilters.Count; i++)
             {
-                if (this.Visit(contextFilters[i]))
-                    return true;
+                this.Visit(contextFilters[i]);
             }
 
             if (navigationNode.Next != null)
             {
-                if (this.ProcessNavigationNode(navigationNode.Next))
-                    return true;
+                this.ProcessNavigationNode(navigationNode.Next);
             }
-
-            return false;
         }
 
         #endregion

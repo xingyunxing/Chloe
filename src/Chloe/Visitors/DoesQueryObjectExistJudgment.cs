@@ -8,40 +8,47 @@ namespace Chloe.Visitors
     /// </summary>
     public class DoesQueryObjectExistJudgment : ExpressionTraversal
     {
-        public static DoesQueryObjectExistJudgment Instance { get; } = new DoesQueryObjectExistJudgment();
-
+        bool _exists;
 
         public static bool ExistsQueryObject(QueryExpression queryExpression)
         {
-            return Instance.Visit(queryExpression);
+            DoesQueryObjectExistJudgment judgment = new DoesQueryObjectExistJudgment();
+            judgment.Visit(queryExpression);
+            return judgment._exists;
         }
 
         public static bool ExistsQueryObject(Expression expression)
         {
-            return Instance.Visit(expression);
+            DoesQueryObjectExistJudgment judgment = new DoesQueryObjectExistJudgment();
+            judgment.Visit(expression);
+            return judgment._exists;
         }
 
 
-        #region Expression
-
-        public override bool Visit(Expression exp)
+        public override void Visit(Expression exp)
         {
+            if (this._exists)
+                return;
+
             if (exp == null)
-                return default(bool);
+                return;
 
             if (Utils.IsIQueryType(exp.Type))
             {
-                return true;
+                this._exists = true;
+                return;
             }
 
-            return base.Visit(exp);
+            base.Visit(exp);
         }
 
-        protected override bool VisitExpression(Expression exp)
+        public override void Visit(QueryExpression exp)
         {
-            return Utils.IsIQueryType(exp.Type);
+            if (this._exists)
+                return;
+
+            base.Visit(exp);
         }
 
-        #endregion
     }
 }
