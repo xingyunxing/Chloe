@@ -60,7 +60,7 @@ namespace Chloe.Query.Internals
 
             IObjectActivator objectActivator = data.ObjectActivatorCreator.CreateObjectActivator(data.IsTrackingQuery);
 
-            return new QueryPlan() { KeyStub = queryExpression, ObjectActivator = objectActivator, SqlQuery = data.SqlQuery };
+            return new QueryPlan() { KeyStub = queryExpression, ObjectActivator = objectActivator, SqlQuery = data.SqlQuery, CanBeCachced = data.CanBeCachced };
         }
 
 

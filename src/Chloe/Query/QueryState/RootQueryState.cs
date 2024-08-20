@@ -22,7 +22,7 @@ namespace Chloe.Query.QueryState
 
         public override QueryModel ToFromQueryModel()
         {
-            QueryModel newQueryModel = new QueryModel(this.QueryModel.Options, this.QueryModel.ScopeParameters, this.QueryModel.ScopeTables);
+            QueryModel newQueryModel = new QueryModel(this.QueryModel.Options, this.QueryModel.ScopeParameters, this.QueryModel.ScopeTables, this.QueryModel.TouchedTables);
             newQueryModel.FromTable = this.QueryModel.FromTable;
             newQueryModel.ResultModel = this.QueryModel.ResultModel;
             newQueryModel.Condition = this.QueryModel.Condition;
@@ -56,7 +56,7 @@ namespace Chloe.Query.QueryState
             }
 
             scopeParameters = scopeParameters.Clone(conditionExpression.Parameters.Last(), this.QueryModel.ResultModel);
-            DbExpression condition = GeneralExpressionParser.Parse(this.QueryContext, conditionExpression, scopeParameters, scopeTables);
+            DbExpression condition = GeneralExpressionParser.Parse(this.QueryContext, conditionExpression, scopeParameters, scopeTables, this.QueryModel);
             DbJoinTableExpression joinTable = new DbJoinTableExpression(joinType.AsDbJoinType(), this.QueryModel.FromTable.Table, condition);
 
             if (!this.QueryModel.Options.IgnoreFilters)
@@ -92,10 +92,10 @@ namespace Chloe.Query.QueryState
 
             queryModel.FromTable = CreateRootTable(dbTable, alias, rootQueryExp.Lock);
 
-            ComplexObjectModel model = typeDescriptor.GenObjectModel(alias, queryContext, queryModel.Options);
-            model.DependentTable = queryModel.FromTable;
+            ComplexObjectModel objectModel = typeDescriptor.GenObjectModel(alias, queryContext, queryModel.Options);
+            objectModel.AssociatedTable = queryModel.FromTable;
 
-            queryModel.ResultModel = model;
+            queryModel.ResultModel = objectModel;
 
             ParseFilters(queryContext, queryModel, rootQueryExp.GlobalFilters, rootQueryExp.ContextFilters);
 
@@ -123,7 +123,7 @@ namespace Chloe.Query.QueryState
         static DbExpression ParseFilter(QueryContext queryContext, QueryModel queryModel, LambdaExpression filter)
         {
             ScopeParameterDictionary scopeParameters = queryModel.ScopeParameters.Clone(filter.Parameters[0], queryModel.ResultModel);
-            DbExpression filterCondition = FilterPredicateParser.Parse(queryContext, filter, scopeParameters, queryModel.ScopeTables);
+            DbExpression filterCondition = FilterPredicateParser.Parse(queryContext, filter, scopeParameters, queryModel.ScopeTables, queryModel);
             return filterCondition;
         }
     }

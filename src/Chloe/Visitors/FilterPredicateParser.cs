@@ -8,17 +8,17 @@ namespace Chloe.Visitors
 {
     public class FilterPredicateParser : ExpressionVisitor<DbExpression>
     {
-        public static DbExpression Parse(QueryContext queryContext, LambdaExpression filterPredicate, ScopeParameterDictionary scopeParameters, StringSet scopeTables)
+        public static DbExpression Parse(QueryContext queryContext, LambdaExpression filterPredicate, ScopeParameterDictionary scopeParameters, StringSet scopeTables, QueryModel? queryModel)
         {
-            return GeneralExpressionParser.Parse(queryContext, BooleanResultExpressionTransformer.Transform(filterPredicate), scopeParameters, scopeTables);
+            return GeneralExpressionParser.Parse(queryContext, BooleanResultExpressionTransformer.Transform(filterPredicate), scopeParameters, scopeTables, queryModel);
         }
 
-        public static DbExpression Parse(QueryContext queryContext, LambdaExpression filterPredicate, TypeDescriptor typeDescriptor, DbTable dbTable)
+        public static DbExpression Parse(QueryContext queryContext, LambdaExpression filterPredicate, TypeDescriptor typeDescriptor, DbTable dbTable, QueryModel? queryModel)
         {
-            return Parse(queryContext, filterPredicate, typeDescriptor, dbTable, new QueryOptions());
+            return Parse(queryContext, filterPredicate, typeDescriptor, dbTable, new QueryOptions(), queryModel);
         }
 
-        public static DbExpression Parse(QueryContext queryContext, LambdaExpression filterPredicate, TypeDescriptor typeDescriptor, DbTable dbTable, QueryOptions queryOptions)
+        public static DbExpression Parse(QueryContext queryContext, LambdaExpression filterPredicate, TypeDescriptor typeDescriptor, DbTable dbTable, QueryOptions queryOptions, QueryModel? queryModel)
         {
             ComplexObjectModel objectModel = typeDescriptor.GenObjectModel(dbTable, queryContext, queryOptions);
             ScopeParameterDictionary scopeParameters = new ScopeParameterDictionary(1);
@@ -27,7 +27,7 @@ namespace Chloe.Visitors
             StringSet scopeTables = new StringSet();
             scopeTables.Add(dbTable.Name);
 
-            DbExpression conditionExp = FilterPredicateParser.Parse(queryContext, filterPredicate, scopeParameters, scopeTables);
+            DbExpression conditionExp = FilterPredicateParser.Parse(queryContext, filterPredicate, scopeParameters, scopeTables, queryModel);
             return conditionExp;
         }
     }

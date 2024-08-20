@@ -33,6 +33,8 @@ namespace Chloe.QueryExpressions
 
         public PropertyInfo Property { get; set; }
         public List<LambdaExpression> ExcludedFields { get; private set; } = new List<LambdaExpression>();
+
+        //只有导航属性是集合的时候才可能有值
         public LambdaExpression Condition { get; set; }
 
         public List<LambdaExpression> GlobalFilters { get; private set; }

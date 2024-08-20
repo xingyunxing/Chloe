@@ -39,7 +39,7 @@ namespace Chloe.Query
         void AddCollectionMember(MemberInfo memberInfo, CollectionObjectModel model);
         CollectionObjectModel GetCollectionMember(MemberInfo memberInfo);
 
-        DbExpression GetDbExpression(MemberExpression memberExpressionDeriveParameter);
+        DbExpression GetDbExpression(MemberExpression memberExpressionDeriveParameter, QueryModel? queryModel);
         IObjectModel GetComplexMember(MemberExpression exp);
 
         /// <summary>

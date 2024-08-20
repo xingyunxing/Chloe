@@ -18,7 +18,7 @@ namespace Chloe.Query
 
         public DbExpression NullChecking { get; set; }
 
-        public override DbExpression GetDbExpression(MemberExpression memberExpressionDeriveParameter)
+        public override DbExpression GetDbExpression(MemberExpression memberExpressionDeriveParameter, QueryModel? queryModel)
         {
             Stack<MemberExpression> memberExpressions = ExpressionExtension.Reverse(memberExpressionDeriveParameter);
 

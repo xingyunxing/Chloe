@@ -26,6 +26,15 @@ namespace Chloe.Query
                 Console.WriteLine("no query plan cache match ...");
 #endif
                 QueryPlan plan = planFactory();
+
+                if (!plan.CanBeCachced)
+                {
+#if DEBUG
+                    Console.WriteLine("query plan cannot be cahced ...");
+#endif
+                    return plan;
+                }
+
                 lock (Cache)
                 {
                     if (!Cache.TryGetValue(key, out queryPlan))
@@ -52,6 +61,11 @@ namespace Chloe.Query
         public QueryExpression KeyStub { get; set; }
         public IObjectActivator ObjectActivator { get; set; }
         public DbSqlQueryExpression SqlQuery { get; set; }
+
+        /// <summary>
+        /// 表示当前查询计划是否可以缓存
+        /// </summary>
+        public bool CanBeCachced { get; set; }
     }
 
     public struct QueryPlanCacheKey : IEquatable<QueryPlanCacheKey>

@@ -84,7 +84,7 @@ namespace Chloe.Query.Visitors
                 ParameterExpression p = exp.Selector.Parameters[i];
                 scopeParameters1[p] = modelList[i];
             }
-            IObjectModel model = SelectorResolver.Resolve(this._queryContext, exp.Selector, queryModel.Options, scopeParameters1, queryModel.ScopeTables);
+            IObjectModel model = SelectorResolver.Resolve(this._queryContext, exp.Selector, queryModel.Options, scopeParameters1, queryModel.ScopeTables, queryModel);
             queryModel.ResultModel = model;
 
             GeneralQueryState queryState = new GeneralQueryState((qs as QueryStateBase).QueryContext, queryModel);

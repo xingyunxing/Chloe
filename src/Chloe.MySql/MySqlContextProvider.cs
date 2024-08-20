@@ -255,7 +255,7 @@ namespace Chloe.MySql
             QueryContext queryContext = new QueryContext(this);
 
             DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
-            DbExpression conditionExp = FilterPredicateParser.Parse(queryContext, QueryObjectExpressionTransformer.Transform(condition), typeDescriptor, dbTable);
+            DbExpression conditionExp = FilterPredicateParser.Parse(queryContext, QueryObjectExpressionTransformer.Transform(condition), typeDescriptor, dbTable, null);
 
             MySqlDbUpdateExpression updateExpression = new MySqlDbUpdateExpression(dbTable, conditionExp);
 
@@ -307,7 +307,7 @@ namespace Chloe.MySql
             QueryContext queryContext = new QueryContext(this);
 
             DbTable dbTable = PublicHelper.CreateDbTable(typeDescriptor, table);
-            DbExpression conditionExp = FilterPredicateParser.Parse(queryContext, QueryObjectExpressionTransformer.Transform(condition), typeDescriptor, dbTable);
+            DbExpression conditionExp = FilterPredicateParser.Parse(queryContext, QueryObjectExpressionTransformer.Transform(condition), typeDescriptor, dbTable, null);
 
             MySqlDbDeleteExpression e = new MySqlDbDeleteExpression(dbTable, conditionExp);
             e.Limits = limits;

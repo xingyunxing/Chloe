@@ -10,7 +10,6 @@ using Chloe.Utility;
 using System.Linq.Expressions;
 using System.Reflection;
 using Chloe.Visitors;
-using System.Linq;
 
 namespace Chloe.Query
 {
@@ -71,7 +70,10 @@ namespace Chloe.Query
         public DbExpression PrimaryKey { get; set; }
         public DbExpression NullChecking { get; set; }
 
-        public DbMainTableExpression DependentTable { get; set; }
+        /// <summary>
+        /// 当前 model 相关的 table
+        /// </summary>
+        public DbMainTableExpression AssociatedTable { get; set; }
         /// <summary>
         /// 导航集合属性
         /// </summary>
@@ -88,6 +90,10 @@ namespace Chloe.Query
         public Dictionary<MemberInfo, ComplexObjectModel> ComplexMembers { get; protected set; }
         public Dictionary<MemberInfo, CollectionObjectModel> CollectionMembers { get; protected set; }
 
+        /// <summary>
+        /// 在表达式树中引用到但没有 Include 的导航属性，如：query.Where(a => a.City.Name == "BeiJing")，其中 City 属性没有被 Include
+        /// </summary>
+        public Dictionary<MemberInfo, ComplexObjectModel> TouchedComplexMembers { get; protected set; } = new Dictionary<MemberInfo, ComplexObjectModel>();
 
         public void AddConstructorParameter(ParameterInfo p, DbExpression primitiveExp)
         {
@@ -169,7 +175,7 @@ namespace Chloe.Query
             return ret;
         }
 
-        public DbExpression GetDbExpression(MemberExpression memberExpressionDeriveFromParameter)
+        public DbExpression GetDbExpression(MemberExpression memberExpressionDeriveFromParameter, QueryModel? queryModel)
         {
             Stack<MemberExpression> memberExpressions = ExpressionExtension.Reverse(memberExpressionDeriveFromParameter);
 
@@ -191,25 +197,37 @@ namespace Chloe.Query
                 if (e == null)
                 {
                     /* Indicate current accessed member is not mapping member, then try get complex member like 'a.Order' */
-                    model = model.GetComplexMember(accessedMember);
+                    var objectModel = model.GetComplexMember(accessedMember);
 
-                    if (model == null)
+                    if (objectModel != null)
                     {
-                        if (ret == null)
+                        model = objectModel;
+                        continue;
+                    }
+
+                    if (ret != null)
+                    {
+                        /* Non mapping member is not found also, then convert linq MemberExpression to DbMemberExpression */
+                        ret = new DbMemberAccessExpression(accessedMember, ret);
+                        continue;
+                    }
+
+                    if (model is ComplexObjectModel complexObjectModel)
+                    {
+                        //try touch
+                        objectModel = complexObjectModel.TryTouchComplexProperty(accessedMember, queryModel);
+                        if (objectModel != null)
                         {
-                            /*
-                             * If run here,the member access expression must be like 'a.xx',
-                             * and member 'xx' is neither mapping member nor complex member,in this case,we not supported.
-                             */
-                            throw new InvalidOperationException(memberExpressionDeriveFromParameter.ToString());
-                        }
-                        else
-                        {
-                            /* Non mapping member is not found also, then convert linq MemberExpression to DbMemberExpression */
-                            ret = new DbMemberAccessExpression(accessedMember, ret);
+                            model = objectModel;
                             continue;
                         }
                     }
+
+                    /*
+                     * If run here,the member access expression must be like 'a.xx',
+                     * and member 'xx' is neither mapping member nor complex member,in this case,we not supported.
+                     */
+                    throw new InvalidOperationException(memberExpressionDeriveFromParameter.ToString());
                 }
                 else
                 {
@@ -323,7 +341,7 @@ namespace Chloe.Query
         public IObjectModel ToNewObjectModel(List<DbColumnSegment> columns, HashSet<string> aliasSet, DbTable table, DbMainTableExpression dependentTable)
         {
             ComplexObjectModel newModel = new ComplexObjectModel(this._queryContext, this.QueryOptions, this.ConstructorDescriptor, this.PrimitiveMembers.Count);
-            newModel.DependentTable = dependentTable;
+            newModel.AssociatedTable = dependentTable;
             newModel.IncludeCollections.AppendRange(this.IncludeCollections);
 
             if (!this.QueryOptions.IgnoreFilters)
@@ -410,15 +428,24 @@ namespace Chloe.Query
 
                 if (objectModel == null)
                 {
-                    objectModel = this.GenComplexObjectModel(navigationDescriptor as ComplexPropertyDescriptor, navigationNode, queryModel);
-                    this.AddComplexMember(navigationNode.Property, objectModel);
-                }
-                else
-                {
-                    DbExpression condition = this.ParseCondition(navigationNode.Condition, objectModel, queryModel.ScopeTables);
+                    //从 Touched 集合里拿
+                    objectModel = this.TouchedComplexMembers.FindValue(navigationNode.Property);
 
-                    var joinTable = objectModel.DependentTable as DbJoinTableExpression;
-                    joinTable.AppendCondition(condition);
+                    if (objectModel == null)
+                    {
+                        objectModel = this.GenComplexObjectModel(navigationDescriptor as ComplexPropertyDescriptor, navigationNode, queryModel);
+                    }
+                    else
+                    {
+                        //如果在先 touched 后 Include 导航属性会运行到这里，如：query.Where(a => a.City.Name == "BeiJing").Include(a => a.City)
+                        //替换 touched 解析的 filters。因为计算 QueryPlan 时计算键 hash 时是没有包含 touched 时候的解析的源 ContextFilters 和 GlobalFilters，防止 ContextFilters 和 GlobalFilters 有动态修改导致缓存的 QueryPlan 与实际运行结果不一致
+                        objectModel.Filters.Clear();
+                        objectModel.Filters.AddRange(navigationNode.ContextFilters.Concat(navigationNode.GlobalFilters).Select(a => this.ParseCondition(a, objectModel, queryModel.ScopeTables, queryModel)));
+                        this.TouchedComplexMembers.Remove(navigationNode.Property);
+                        queryModel.TouchedTables.Remove(objectModel.AssociatedTable); // 此时 touched table 已经被 include 了，不是 touched table，需要从 TouchedTables 中移除
+                    }
+
+                    this.AddComplexMember(navigationNode.Property, objectModel);
                 }
             }
             else
@@ -440,9 +467,9 @@ namespace Chloe.Query
                 }
                 else
                 {
-                    DbExpression condition = this.ParseCondition(navigationNode.Condition, collectionModel.ElementModel, queryModel.ScopeTables);
+                    DbExpression condition = this.ParseCondition(navigationNode.Condition, collectionModel.ElementModel, queryModel.ScopeTables, queryModel);
 
-                    var joinTable = collectionModel.ElementModel.DependentTable as DbJoinTableExpression;
+                    var joinTable = collectionModel.ElementModel.AssociatedTable as DbJoinTableExpression;
                     joinTable.AppendCondition(condition);
                 }
 
@@ -494,6 +521,11 @@ namespace Chloe.Query
             foreach (var kv in this.CollectionMembers)
             {
                 kv.Value.ElementModel.SetupFilters(ignoreFilters);
+            }
+
+            foreach (var kv in this.TouchedComplexMembers)
+            {
+                kv.Value.SetupFilters(ignoreFilters);
             }
         }
 
@@ -585,7 +617,39 @@ namespace Chloe.Query
             return false;
         }
 
+        public ComplexObjectModel TryTouchComplexProperty(MemberInfo property, QueryModel queryModel)
+        {
+            //从 Touched 集合里拿
+            ComplexObjectModel objectModel = this.TouchedComplexMembers.FindValue(property);
+
+            if (objectModel != null)
+                return objectModel;
+
+            if (queryModel == null)
+                return null;
+
+            //创建并放到 TouchedComplexMembers 集合中
+            TypeDescriptor descriptor = EntityTypeContainer.GetDescriptor(this.ObjectType);
+            PropertyDescriptor navigationDescriptor = descriptor.GetPropertyDescriptor(property);
+            if (navigationDescriptor.Definition.Kind != TypeKind.Complex)
+            {
+                return null;
+            }
+
+            //注：这里获取的 filters 未参与 QueryPlan 的存储键计算，所以，如果存在 Touched 的情况，不能缓存生成的 QueryPlan
+            List<LambdaExpression> globalFilters = EntityTypeContainer.GetDescriptor(navigationDescriptor.PropertyType).Definition.Filters.ToList();
+            List<LambdaExpression> contextFilters = this._queryContext.DbContextProvider.GetQueryFilters(navigationDescriptor.PropertyType);
+
+            objectModel = this.GenComplexObjectModel(navigationDescriptor as ComplexPropertyDescriptor, globalFilters, contextFilters, queryModel);
+            queryModel.TouchedTables.Add(objectModel.AssociatedTable); //将 touched table 记录
+            this.TouchedComplexMembers.Add(property, objectModel);
+            return objectModel;
+        }
         ComplexObjectModel GenComplexObjectModel(ComplexPropertyDescriptor navigationDescriptor, NavigationNode navigationNode, QueryModel queryModel)
+        {
+            return this.GenComplexObjectModel(navigationDescriptor, navigationNode.GlobalFilters, navigationNode.ContextFilters, queryModel);
+        }
+        ComplexObjectModel GenComplexObjectModel(ComplexPropertyDescriptor navigationDescriptor, List<LambdaExpression> globalFilters, List<LambdaExpression> contextFilters, QueryModel queryModel)
         {
             TypeDescriptor navigationTypeDescriptor = EntityTypeContainer.GetDescriptor(navigationDescriptor.PropertyType);
 
@@ -605,13 +669,13 @@ namespace Chloe.Query
             if (!foreignKeyPropertyDescriptor.IsNullable)
             {
                 //如果外键是可空类型，使用 InnerJoin 连接
-                if (this.DependentTable is DbFromTableExpression)
+                if (this.AssociatedTable is DbFromTableExpression)
                 {
                     joinType = DbJoinType.InnerJoin;
                 }
                 else
                 {
-                    DbJoinTableExpression prevJoinTable = (DbJoinTableExpression)this.DependentTable;
+                    DbJoinTableExpression prevJoinTable = (DbJoinTableExpression)this.AssociatedTable;
                     if (prevJoinTable.JoinType == DbJoinType.InnerJoin)
                     {
                         joinType = DbJoinType.InnerJoin;
@@ -620,15 +684,11 @@ namespace Chloe.Query
             }
 
             DbJoinTableExpression joinTableExp = new DbJoinTableExpression(joinType, joinTableSeg, joinCondition);
-            joinTableExp.AppendTo(this.DependentTable);
+            joinTableExp.AppendTo(this.AssociatedTable);
 
-            navigationObjectModel.DependentTable = joinTableExp;
+            navigationObjectModel.AssociatedTable = joinTableExp;
 
-            DbExpression condition = this.ParseCondition(navigationNode.Condition, navigationObjectModel, queryModel.ScopeTables);
-            //Filter 的条件放到 join 条件里去
-            joinTableExp.AppendCondition(condition);
-
-            navigationObjectModel.Filters.AddRange(navigationNode.ContextFilters.Concat(navigationNode.GlobalFilters).Select(a => this.ParseCondition(a, navigationObjectModel, queryModel.ScopeTables)));
+            navigationObjectModel.Filters.AddRange(contextFilters.Concat(globalFilters).Select(a => this.ParseCondition(a, navigationObjectModel, queryModel.ScopeTables, queryModel)));
 
             return navigationObjectModel;
         }
@@ -652,14 +712,14 @@ namespace Chloe.Query
             DbExpression elementForeignKeyColumn = elementObjectModel.GetPrimitiveMember(navigationDescriptor.ForeignKeyProperty.Property);
             DbExpression joinCondition = new DbEqualExpression(this.PrimaryKey, elementForeignKeyColumn);
             DbJoinTableExpression joinTableExp = new DbJoinTableExpression(DbJoinType.LeftJoin, joinTableSeg, joinCondition);
-            joinTableExp.AppendTo(this.DependentTable);
+            joinTableExp.AppendTo(this.AssociatedTable);
 
-            elementObjectModel.DependentTable = joinTableExp;
-            var condition = this.ParseCondition(navigationNode.Condition, elementObjectModel, queryModel.ScopeTables);
+            elementObjectModel.AssociatedTable = joinTableExp;
+            var condition = this.ParseCondition(navigationNode.Condition, elementObjectModel, queryModel.ScopeTables, queryModel);
             //Filter 的条件放到 join 条件里去
             joinTableExp.AppendCondition(condition);
 
-            elementObjectModel.Filters.AddRange(navigationNode.ContextFilters.Concat(navigationNode.GlobalFilters).Select(a => this.ParseCondition(a, elementObjectModel, queryModel.ScopeTables)));
+            elementObjectModel.Filters.AddRange(navigationNode.ContextFilters.Concat(navigationNode.GlobalFilters).Select(a => this.ParseCondition(a, elementObjectModel, queryModel.ScopeTables, queryModel)));
 
             bool orderByPrimaryKeyExists = queryModel.Orderings.Where(a => a.Expression == this.PrimaryKey).Any();
             if (!orderByPrimaryKeyExists)
@@ -693,15 +753,16 @@ namespace Chloe.Query
             }
         }
 
-        DbExpression ParseCondition(LambdaExpression condition, ComplexObjectModel objectModel, StringSet scopeTables)
+        DbExpression ParseCondition(LambdaExpression condition, ComplexObjectModel objectModel, StringSet scopeTables, QueryModel? queryModel)
         {
             if (condition == null)
                 return null;
-            return FilterPredicateParser.Parse(this._queryContext, condition, new ScopeParameterDictionary(1) { { condition.Parameters[0], objectModel } }, scopeTables);
+
+            return FilterPredicateParser.Parse(this._queryContext, condition, new ScopeParameterDictionary(1) { { condition.Parameters[0], objectModel } }, scopeTables, queryModel);
         }
         void SetupFilters()
         {
-            DbJoinTableExpression joinTableExpression = this.DependentTable as DbJoinTableExpression;
+            DbJoinTableExpression joinTableExpression = this.AssociatedTable as DbJoinTableExpression;
             if (joinTableExpression != null)
             {
                 this.Filters.ForEach(a =>

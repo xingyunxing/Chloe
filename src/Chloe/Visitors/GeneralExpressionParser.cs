@@ -22,16 +22,18 @@ namespace Chloe.Visitors
         QueryContext _queryContext;
         ScopeParameterDictionary _scopeParameters;
         StringSet _scopeTables;
+        QueryModel? _queryModel;
 
-        public GeneralExpressionParser(QueryContext queryContext, ScopeParameterDictionary scopeParameters, StringSet scopeTables)
+        public GeneralExpressionParser(QueryContext queryContext, ScopeParameterDictionary scopeParameters, StringSet scopeTables, QueryModel? queryModel)
         {
             this._queryContext = queryContext;
             this._scopeParameters = scopeParameters;
             this._scopeTables = scopeTables;
+            this._queryModel = queryModel;
         }
-        public static DbExpression Parse(QueryContext queryContext, Expression exp, ScopeParameterDictionary scopeParameters, StringSet scopeTables)
+        public static DbExpression Parse(QueryContext queryContext, Expression exp, ScopeParameterDictionary scopeParameters, StringSet scopeTables, QueryModel? queryModel)
         {
-            GeneralExpressionParser visitor = new GeneralExpressionParser(queryContext, scopeParameters, scopeTables);
+            GeneralExpressionParser visitor = new GeneralExpressionParser(queryContext, scopeParameters, scopeTables, queryModel);
             return visitor.Visit(exp);
         }
 
@@ -52,7 +54,7 @@ namespace Chloe.Visitors
             if (ExpressionExtension.IsDerivedFromParameter(exp, out p))
             {
                 IObjectModel model = this.FindModel(p);
-                return model.GetDbExpression(exp);
+                return model.GetDbExpression(exp, this._queryModel);
             }
 
             return base.VisitMemberAccess(exp);

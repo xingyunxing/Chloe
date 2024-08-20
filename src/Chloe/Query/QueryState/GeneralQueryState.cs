@@ -9,7 +9,7 @@ namespace Chloe.Query.QueryState
 
         public override QueryModel ToFromQueryModel()
         {
-            QueryModel newQueryModel = new QueryModel(this.QueryModel.Options, this.QueryModel.ScopeParameters, this.QueryModel.ScopeTables);
+            QueryModel newQueryModel = new QueryModel(this.QueryModel.Options, this.QueryModel.ScopeParameters, this.QueryModel.ScopeTables, this.QueryModel.TouchedTables);
             newQueryModel.FromTable = this.QueryModel.FromTable;
             newQueryModel.ResultModel = this.QueryModel.ResultModel;
             newQueryModel.Condition = this.QueryModel.Condition;

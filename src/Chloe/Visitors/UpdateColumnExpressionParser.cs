@@ -40,7 +40,7 @@ namespace Chloe.Visitors
         {
             public static DbExpression Parse(Expression updateColumnExp, QueryContext queryContext, ScopeParameterDictionary scopeParameters, StringSet scopeTables)
             {
-                return GeneralExpressionParser.Parse(queryContext, updateColumnExp, scopeParameters, scopeTables);
+                return GeneralExpressionParser.Parse(queryContext, updateColumnExp, scopeParameters, scopeTables, null);
             }
 
             public static DbExpression Parse(ParameterExpression parameterExp, Expression updateColumnExp, TypeDescriptor typeDescriptor, DbTable dbTable, QueryContext queryContext, QueryOptions queryOptions)

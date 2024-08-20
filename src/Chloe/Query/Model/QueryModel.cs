@@ -5,12 +5,12 @@ namespace Chloe.Query
 {
     public class QueryModel
     {
-        public QueryModel(ScopeParameterDictionary scopeParameters, StringSet scopeTables) : this(new QueryOptions(), scopeParameters, scopeTables)
+        public QueryModel(ScopeParameterDictionary scopeParameters, StringSet scopeTables) : this(new QueryOptions(), scopeParameters, scopeTables, null)
         {
 
         }
 
-        public QueryModel(QueryOptions options, ScopeParameterDictionary scopeParameters, StringSet scopeTables)
+        public QueryModel(QueryOptions options, ScopeParameterDictionary scopeParameters, StringSet scopeTables, List<DbMainTableExpression> touchedTables)
         {
             this.Options = options;
 
@@ -23,10 +23,16 @@ namespace Chloe.Query
                 this.ScopeParameters = new ScopeParameterDictionary();
             else
                 this.ScopeParameters = scopeParameters.Clone();
+
+            if (touchedTables != null)
+                this.TouchedTables.AddRange(touchedTables);
         }
 
         public QueryOptions Options { get; private set; }
 
+        /// <summary>
+        /// 查询相关的结果对象模型。
+        /// </summary>
         public IObjectModel ResultModel { get; set; }
 
         /// <summary>
@@ -36,7 +42,15 @@ namespace Chloe.Query
 
         public List<DbOrdering> Orderings { get; private set; } = new List<DbOrdering>();
         public List<DbExpression> GroupSegments { get; private set; } = new List<DbExpression>();
+
+        /// <summary>
+        /// 根实体的全局过滤器
+        /// </summary>
         public List<DbExpression> GlobalFilters { get; private set; } = new List<DbExpression>();
+
+        /// <summary>
+        /// 根实体的上下文过滤器
+        /// </summary>
         public List<DbExpression> ContextFilters { get; private set; } = new List<DbExpression>();
 
         /// <summary>
@@ -45,6 +59,11 @@ namespace Chloe.Query
         public DbFromTableExpression FromTable { get; set; }
         public DbExpression Condition { get; set; }
         public DbExpression HavingCondition { get; set; }
+
+        /// <summary>
+        /// 用于存储当前查询过程属于 touched 的 DbMainTableExpression 对象集合。用于在生成 QueryPlan 时判断是否可以缓存 QueryPlan
+        /// </summary>
+        public List<DbMainTableExpression> TouchedTables { get; set; } = new List<DbMainTableExpression>();
 
         public StringSet ScopeTables { get; private set; }
         public ScopeParameterDictionary ScopeParameters { get; private set; }
@@ -80,7 +99,7 @@ namespace Chloe.Query
         }
         public QueryModel Clone(bool includeOrderings = true)
         {
-            QueryModel newQueryModel = new QueryModel(this.Options, this.ScopeParameters, this.ScopeTables);
+            QueryModel newQueryModel = new QueryModel(this.Options, this.ScopeParameters, this.ScopeTables, this.TouchedTables);
             newQueryModel.FromTable = this.FromTable;
 
             newQueryModel.ResultModel = this.ResultModel;

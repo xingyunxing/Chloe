@@ -53,7 +53,7 @@ namespace Chloe.Query
             throw new NotSupportedException();
         }
 
-        public virtual DbExpression GetDbExpression(MemberExpression memberExpressionDeriveParameter)
+        public virtual DbExpression GetDbExpression(MemberExpression memberExpressionDeriveParameter, QueryModel? queryModel)
         {
             throw new NotSupportedException();
         }

@@ -16,17 +16,20 @@ namespace Chloe.Query
         QueryOptions _queryOptions;
         ScopeParameterDictionary _scopeParameters;
         StringSet _scopeTables;
-        SelectorResolver(QueryContext queryContext, QueryOptions queryOptions, ScopeParameterDictionary scopeParameters, StringSet scopeTables)
+        QueryModel? _queryModel;
+
+        SelectorResolver(QueryContext queryContext, QueryOptions queryOptions, ScopeParameterDictionary scopeParameters, StringSet scopeTables, QueryModel? queryModel)
         {
             this._queryContext = queryContext;
             this._queryOptions = queryOptions;
             this._scopeParameters = scopeParameters;
             this._scopeTables = scopeTables;
+            this._queryModel = queryModel;
         }
 
-        public static IObjectModel Resolve(QueryContext queryContext, LambdaExpression selector, QueryOptions queryOptions, ScopeParameterDictionary scopeParameters, StringSet scopeTables)
+        public static IObjectModel Resolve(QueryContext queryContext, LambdaExpression selector, QueryOptions queryOptions, ScopeParameterDictionary scopeParameters, StringSet scopeTables, QueryModel? queryModel)
         {
-            SelectorResolver resolver = new SelectorResolver(queryContext, queryOptions, scopeParameters, scopeTables);
+            SelectorResolver resolver = new SelectorResolver(queryContext, queryOptions, scopeParameters, scopeTables, queryModel);
             return resolver.Visit(selector);
         }
 
@@ -76,7 +79,7 @@ namespace Chloe.Query
 
         protected override IObjectModel VisitLambda(LambdaExpression exp)
         {
-            this._visitor = new GeneralExpressionParser(this._queryContext, this._scopeParameters, this._scopeTables);
+            this._visitor = new GeneralExpressionParser(this._queryContext, this._scopeParameters, this._scopeTables, this._queryModel);
             return this.Visit(exp.Body);
         }
         protected override IObjectModel VisitNew(NewExpression exp)
