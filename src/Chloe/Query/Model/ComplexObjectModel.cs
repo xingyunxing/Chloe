@@ -604,6 +604,7 @@ namespace Chloe.Query
             DbJoinType joinType = DbJoinType.LeftJoin;
             if (!foreignKeyPropertyDescriptor.IsNullable)
             {
+                //如果外键是可空类型，使用 InnerJoin 连接
                 if (this.DependentTable is DbFromTableExpression)
                 {
                     joinType = DbJoinType.InnerJoin;

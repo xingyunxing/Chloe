@@ -4,11 +4,11 @@ namespace Chloe.Visitors
 {
     public class DbExpressionEvaluableJudgment : DbExpressionVisitor<bool>
     {
-        static DbExpressionEvaluableJudgment _judge = new DbExpressionEvaluableJudgment();
+        static DbExpressionEvaluableJudgment _judgment = new DbExpressionEvaluableJudgment();
 
-        public static bool CanEvaluate(DbExpression exp)
+        public static bool IsEvaluable(DbExpression exp)
         {
-            return _judge.VisitCore(exp);
+            return _judgment.VisitCore(exp);
         }
 
         public virtual bool VisitCore(DbExpression exp)
@@ -24,7 +24,7 @@ namespace Chloe.Visitors
                 case DbExpressionType.Not:
                 case DbExpressionType.Convert:
                 case DbExpressionType.Parameter:
-                    return exp.Accept(_judge);
+                    return exp.Accept(_judgment);
                 default:
                     break;
             }
