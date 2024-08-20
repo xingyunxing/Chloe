@@ -54,17 +54,17 @@ namespace Chloe.Sharding
             return new ShardingQuery<T>(this._dbContextProvider, e);
         }
 
-        public IIncludableQuery<T, TProperty> Include<TProperty>(Expression<Func<T, TProperty>> p)
+        public IIncludedObjectQuery<T, TProperty> Include<TProperty>(Expression<Func<T, TProperty>> p)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IIncludedCollectionQuery<T, TCollectionItem> IncludeMany<TCollectionItem>(Expression<Func<T, IEnumerable<TCollectionItem>>> p)
         {
             throw new NotImplementedException();
         }
 
         public IQuery<T> IncludeAll()
-        {
-            throw new NotImplementedException();
-        }
-
-        public IIncludableQuery<T, TCollectionItem> IncludeMany<TCollectionItem>(Expression<Func<T, IEnumerable<TCollectionItem>>> p)
         {
             throw new NotImplementedException();
         }

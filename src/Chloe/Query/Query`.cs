@@ -164,7 +164,7 @@ namespace Chloe.Query
         }
         object CallThenIncludeMethod(object includableQuery, PropertyDescriptor propertyDescriptor)
         {
-            Type includableQueryType = includableQuery.GetType().GetInterface("IIncludableQuery`2");
+            Type includableQueryType = includableQuery.GetType();
             MethodInfo thenIncludeMethod;
             if (propertyDescriptor is ComplexPropertyDescriptor)
             {
@@ -194,13 +194,13 @@ namespace Chloe.Query
             return lambda;
         }
 
-        public IIncludableQuery<T, TProperty> Include<TProperty>(Expression<Func<T, TProperty>> navigationPath)
+        public IIncludedObjectQuery<T, TProperty> Include<TProperty>(Expression<Func<T, TProperty>> navigationPath)
         {
-            return new IncludableQuery<T, TProperty>(this._dbContextProvider, this.QueryExpression, navigationPath);
+            return new IncludedObjectQuery<T, TProperty>(this._dbContextProvider, this.QueryExpression, navigationPath);
         }
-        public IIncludableQuery<T, TCollectionItem> IncludeMany<TCollectionItem>(Expression<Func<T, IEnumerable<TCollectionItem>>> navigationPath)
+        public IIncludedCollectionQuery<T, TCollectionItem> IncludeMany<TCollectionItem>(Expression<Func<T, IEnumerable<TCollectionItem>>> navigationPath)
         {
-            return new IncludableQuery<T, TCollectionItem>(this._dbContextProvider, this.QueryExpression, navigationPath);
+            return new IncludedCollectionQuery<T, TCollectionItem>(this._dbContextProvider, this.QueryExpression, navigationPath);
         }
 
         public IQuery<T> BindTwoWay()

@@ -19,8 +19,8 @@ namespace Chloe
         /// <typeparam name="TProperty"></typeparam>
         /// <param name="navigationProperty">a => a.NavigationProperty</param>
         /// <returns></returns>
-        IIncludableQuery<T, TProperty> Include<TProperty>(Expression<Func<T, TProperty>> navigationProperty);
-        IIncludableQuery<T, TCollectionItem> IncludeMany<TCollectionItem>(Expression<Func<T, IEnumerable<TCollectionItem>>> navigationProperty);
+        IIncludedObjectQuery<T, TProperty> Include<TProperty>(Expression<Func<T, TProperty>> navigationProperty);
+        IIncludedCollectionQuery<T, TCollectionItem> IncludeMany<TCollectionItem>(Expression<Func<T, IEnumerable<TCollectionItem>>> navigationProperty);
 
         /// <summary>
         /// 导航查询时，子对象将父对象设置到子对象对应的属性上
