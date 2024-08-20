@@ -35,6 +35,8 @@ namespace Chloe.QueryExpressions
         T VisitTracking(TrackingExpression exp);
 
         T VisitPaging(PagingExpression exp);
+
+        T VisitSplitQuery(SplitQueryExpression exp);
     }
 
     public abstract class QueryExpressionVisitor<T> : IQueryExpressionVisitor<T>
@@ -84,12 +86,13 @@ namespace Chloe.QueryExpressions
         {
             throw new NotImplementedException();
         }
-        public virtual T VisitBindTwoWay(BindTwoWayExpression exp)
+
+        public virtual T VisitExclude(ExcludeExpression exp)
         {
             throw new NotImplementedException();
         }
 
-        public virtual T VisitExclude(ExcludeExpression exp)
+        public virtual T VisitBindTwoWay(BindTwoWayExpression exp)
         {
             throw new NotImplementedException();
         }
@@ -105,6 +108,11 @@ namespace Chloe.QueryExpressions
         }
 
         public virtual T VisitPaging(PagingExpression exp)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual T VisitSplitQuery(SplitQueryExpression exp)
         {
             throw new NotImplementedException();
         }

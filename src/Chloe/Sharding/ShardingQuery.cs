@@ -39,7 +39,7 @@ namespace Chloe.Sharding
 
         public IQuery<T> AsTracking()
         {
-            TrackingExpression e = new TrackingExpression(typeof(T), this.QueryExpression);
+            TrackingExpression e = new TrackingExpression(this.QueryExpression);
             return new ShardingQuery<T>(this._dbContextProvider, e);
         }
 
@@ -50,7 +50,7 @@ namespace Chloe.Sharding
 
         public IQuery<T> IgnoreAllFilters()
         {
-            IgnoreAllFiltersExpression e = new IgnoreAllFiltersExpression(typeof(T), this.QueryExpression);
+            IgnoreAllFiltersExpression e = new IgnoreAllFiltersExpression(this.QueryExpression);
             return new ShardingQuery<T>(this._dbContextProvider, e);
         }
 
@@ -74,6 +74,11 @@ namespace Chloe.Sharding
             throw new NotImplementedException();
         }
 
+        public IQuery<T> SplitQuery()
+        {
+            throw new NotImplementedException();
+
+        }
         public IQuery<T> Exclude<K>(Expression<Func<T, K>> field)
         {
             PublicHelper.CheckNull(field);

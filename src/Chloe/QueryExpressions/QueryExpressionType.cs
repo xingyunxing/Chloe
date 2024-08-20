@@ -30,6 +30,7 @@ namespace Chloe.QueryExpressions
         GroupingQuery,
         Distinct,
         IgnoreAllFilters,
-        Tracking
+        Tracking,
+        SplitQuery
     }
 }

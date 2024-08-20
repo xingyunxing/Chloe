@@ -55,7 +55,7 @@ namespace Chloe.Query
 
         public IQuery<T> AsTracking()
         {
-            TrackingExpression e = new TrackingExpression(typeof(T), this.QueryExpression);
+            TrackingExpression e = new TrackingExpression(this.QueryExpression);
             return new Query<T>(this._dbContextProvider, e);
         }
         public IEnumerable<T> AsEnumerable()
@@ -205,7 +205,13 @@ namespace Chloe.Query
 
         public IQuery<T> BindTwoWay()
         {
-            BindTwoWayExpression e = new BindTwoWayExpression(typeof(T), this.QueryExpression);
+            BindTwoWayExpression e = new BindTwoWayExpression(this.QueryExpression);
+            return new Query<T>(this._dbContextProvider, e);
+        }
+
+        public IQuery<T> SplitQuery()
+        {
+            SplitQueryExpression e = new SplitQueryExpression(this.QueryExpression);
             return new Query<T>(this._dbContextProvider, e);
         }
 
@@ -281,7 +287,7 @@ namespace Chloe.Query
         }
         public IQuery<T> IgnoreAllFilters()
         {
-            IgnoreAllFiltersExpression e = new IgnoreAllFiltersExpression(typeof(T), this._expression);
+            IgnoreAllFiltersExpression e = new IgnoreAllFiltersExpression(this._expression);
             return new Query<T>(this._dbContextProvider, e);
         }
 

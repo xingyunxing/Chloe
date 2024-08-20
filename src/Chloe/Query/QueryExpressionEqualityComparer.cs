@@ -1,9 +1,5 @@
 ﻿using Chloe.QueryExpressions;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
-using System.Text;
 
 namespace Chloe.Query
 {
@@ -100,13 +96,15 @@ namespace Chloe.Query
                         {
                             hash.Add(joinQueryExpression.JoinedQueries[i].JoinType);
                             AddExpressionToHashIfNotNull(joinQueryExpression.JoinedQueries[i].Condition);
-                            hash.Add(joinQueryExpression.JoinedQueries[i].Query.QueryExpression, this);
+                            hash.Add(joinQueryExpression.JoinedQueries[i].Query, this);
                         }
                         break;
                     case TrackingExpression trackingExpression:
                         hash.Add(typeof(TrackingExpression));
                         break;
-
+                    case SplitQueryExpression splitQueryExpression:
+                        hash.Add(typeof(SplitQueryExpression));
+                        break;
                 }
             }
 
@@ -217,6 +215,8 @@ namespace Chloe.Query
                         return CompareJoinQuery(leftQueryExpression, (JoinQueryExpression)right);
                     case TrackingExpression leftQueryExpression:
                         return CompareTracking(leftQueryExpression, (TrackingExpression)right);
+                    case SplitQueryExpression leftQueryExpression:
+                        return CompareSplitQuery(leftQueryExpression, (SplitQueryExpression)right);
                     default:
                         throw new NotSupportedException();
                 }
@@ -357,7 +357,7 @@ namespace Chloe.Query
                         return false;
                     }
 
-                    if (!this.Compare(left.JoinedQueries[i].Query.QueryExpression, right.JoinedQueries[i].Query.QueryExpression))
+                    if (!this.Compare(left.JoinedQueries[i].Query, right.JoinedQueries[i].Query))
                     {
                         return false;
                     }
@@ -367,6 +367,11 @@ namespace Chloe.Query
             }
 
             bool CompareTracking(TrackingExpression left, TrackingExpression right)
+            {
+                return true;
+            }
+
+            bool CompareSplitQuery(SplitQueryExpression left, SplitQueryExpression right)
             {
                 return true;
             }

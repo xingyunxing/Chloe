@@ -273,6 +273,9 @@ namespace Chloe.Visitors
                 case QueryExpressionType.Tracking:
                     this.VisitTracking((TrackingExpression)exp);
                     return;
+                case QueryExpressionType.SplitQuery:
+                    this.VisitSplitQuery((SplitQueryExpression)exp);
+                    return;
                 default:
                     throw new NotSupportedException(exp.NodeType.ToString());
             }
@@ -314,8 +317,6 @@ namespace Chloe.Visitors
         }
         protected virtual void VisitAggregateQuery(AggregateQueryExpression exp)
         {
-            List<Expression> arguments = new List<Expression>(exp.Arguments.Count);
-
             for (int i = 0; i < exp.Arguments.Count; i++)
             {
                 this.Visit(exp.Arguments[i]);
@@ -344,7 +345,6 @@ namespace Chloe.Visitors
                 this.Visit(exp.HavingPredicates[i]);
             }
 
-            List<GroupingQueryOrdering> orderings = new List<GroupingQueryOrdering>(exp.Orderings.Count);
             for (int i = 0; i < exp.Orderings.Count; i++)
             {
                 this.Visit(exp.Orderings[i].KeySelector);
@@ -378,6 +378,11 @@ namespace Chloe.Visitors
         {
 
         }
+        protected virtual void VisitSplitQuery(SplitQueryExpression exp)
+        {
+
+        }
+
         void ProcessNavigationNode(NavigationNode navigationNode)
         {
             for (int i = 0; i < navigationNode.ExcludedFields.Count; i++)

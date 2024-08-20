@@ -2,7 +2,7 @@
 {
     public class TrackingExpression : QueryExpression
     {
-        public TrackingExpression(Type elementType, QueryExpression prevExpression) : base(QueryExpressionType.Tracking, elementType, prevExpression)
+        public TrackingExpression(QueryExpression prevExpression) : base(QueryExpressionType.Tracking, prevExpression.ElementType, prevExpression)
         {
 
         }

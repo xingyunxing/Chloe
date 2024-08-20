@@ -120,7 +120,7 @@ namespace Chloe.QueryExpressions
         }
         public virtual QueryExpression VisitBindTwoWay(BindTwoWayExpression exp)
         {
-            return new BindTwoWayExpression(exp.ElementType, exp.PrevExpression.Accept(this));
+            return new BindTwoWayExpression(exp.PrevExpression.Accept(this));
         }
 
         public virtual QueryExpression VisitExclude(ExcludeExpression exp)
@@ -130,17 +130,22 @@ namespace Chloe.QueryExpressions
 
         public virtual QueryExpression VisitIgnoreAllFilters(IgnoreAllFiltersExpression exp)
         {
-            return new IgnoreAllFiltersExpression(exp.ElementType, exp.PrevExpression.Accept(this));
+            return new IgnoreAllFiltersExpression(exp.PrevExpression.Accept(this));
         }
 
         public virtual QueryExpression VisitTracking(TrackingExpression exp)
         {
-            return new IgnoreAllFiltersExpression(exp.ElementType, exp.PrevExpression.Accept(this));
+            return new TrackingExpression(exp.PrevExpression.Accept(this));
         }
 
         public virtual QueryExpression VisitPaging(PagingExpression exp)
         {
             return new PagingExpression(exp.ElementType, exp.PrevExpression.Accept(this), exp.PageNumber, exp.PageSize);
+        }
+
+        public virtual QueryExpression VisitSplitQuery(SplitQueryExpression exp)
+        {
+            return new SplitQueryExpression(exp.PrevExpression.Accept(this));
         }
 
         NavigationNode ProcessNavigationNode(NavigationNode navigationNode)

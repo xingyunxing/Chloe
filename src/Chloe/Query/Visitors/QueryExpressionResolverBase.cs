@@ -109,5 +109,11 @@ namespace Chloe.Query.Visitors
             return state;
         }
 
+        public override IQueryState VisitSplitQuery(SplitQueryExpression exp)
+        {
+            IQueryState prevState = exp.PrevExpression.Accept(this);
+            return prevState;
+        }
+
     }
 }

@@ -26,7 +26,7 @@ namespace Chloe.Query.Visitors
         public static JoinQueryResult Resolve(QueryContext queryContext, JoinQueryInfo joinQueryInfo, QueryModel queryModel, ScopeParameterDictionary scopeParameters)
         {
             JoinQueryExpressionResolver resolver = new JoinQueryExpressionResolver(queryContext, queryModel, joinQueryInfo.JoinType, joinQueryInfo.Condition, scopeParameters);
-            return joinQueryInfo.Query.QueryExpression.Accept(resolver);
+            return joinQueryInfo.Query.Accept(resolver);
         }
 
         public override JoinQueryResult VisitRootQuery(RootQueryExpression exp)
@@ -85,6 +85,27 @@ namespace Chloe.Query.Visitors
             JoinQueryResult ret = this.Visit(exp);
             return ret;
         }
+        public override JoinQueryResult VisitExclude(ExcludeExpression exp)
+        {
+            JoinQueryResult ret = this.Visit(exp);
+            return ret;
+        }
+        public override JoinQueryResult VisitBindTwoWay(BindTwoWayExpression exp)
+        {
+            JoinQueryResult ret = this.Visit(exp);
+            return ret;
+        }
+        public override JoinQueryResult VisitTracking(TrackingExpression exp)
+        {
+            JoinQueryResult ret = this.Visit(exp);
+            return ret;
+        }
+        public override JoinQueryResult VisitIgnoreAllFilters(IgnoreAllFiltersExpression exp)
+        {
+            JoinQueryResult ret = this.Visit(exp);
+            return ret;
+        }
+
 
         JoinQueryResult Visit(QueryExpression exp)
         {

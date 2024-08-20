@@ -2,6 +2,7 @@
 using Chloe.Threading.Tasks;
 using System.Collections;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Chloe
 {
@@ -61,11 +62,38 @@ namespace Chloe
             return (TResult)result;
         }
 
+        public static IQuery Where(this IQuery query, LambdaExpression predicate)
+        {
+            query = CallMethod<IQuery>(query, nameof(IQuery<object>.Where), predicate);
+            return query;
+        }
 
         public static IQuery Select(this IQuery query, LambdaExpression selector)
         {
-            var result = CallGenericMethod<IQuery>(query, nameof(IQuery<object>.Select), selector);
-            return result;
+            query = CallGenericMethod<IQuery>(query, nameof(IQuery<object>.Select), selector);
+            return query;
+        }
+
+        public static IQuery OrderBy(this IQuery query, LambdaExpression selector)
+        {
+            query = CallGenericMethod<IQuery>(query, nameof(IQuery<object>.OrderBy), selector);
+            return query;
+        }
+        public static IQuery OrderByDesc(this IQuery query, LambdaExpression selector)
+        {
+            query = CallGenericMethod<IQuery>(query, nameof(IQuery<object>.OrderByDesc), selector);
+            return query;
+        }
+
+        public static IQuery ThenBy(this IQuery query, LambdaExpression selector)
+        {
+            query = CallGenericMethod<IQuery>(query, nameof(IOrderedQuery<object>.ThenBy), selector);
+            return query;
+        }
+        public static IQuery ThenByDesc(this IQuery query, LambdaExpression selector)
+        {
+            query = CallGenericMethod<IQuery>(query, nameof(IOrderedQuery<object>.ThenByDesc), selector);
+            return query;
         }
 
         public static IQuery Skip(this IQuery query, int count)
@@ -163,6 +191,65 @@ namespace Chloe
             return CallMethodAsync(query, nameof(IQuery<object>.FirstAsync), null);
         }
 
+        public static IQuery Include(this IQuery q, LambdaExpression navigationProperty)
+        {
+            var method = q.GetType().GetMethod(nameof(IQuery<object>.Include));
+            method = method.MakeGenericMethod(new Type[] { navigationProperty.Body.Type });
+            IQuery query = (IQuery)method.FastInvoke(q, new object[] { navigationProperty });
+            return query;
+        }
+        public static IQuery IncludeMany(this IQuery q, LambdaExpression navigationProperty)
+        {
+            var method = q.GetType().GetMethod(nameof(IQuery<object>.IncludeMany));
+            method = method.MakeGenericMethod(new Type[] { navigationProperty.Body.Type.GetGenericArguments()[0] });
+            IQuery query = (IQuery)method.FastInvoke(q, new object[] { navigationProperty });
+            return query;
+        }
+        public static IQuery ThenInclude(this IQuery includableQuery, LambdaExpression navigationProperty)
+        {
+            var method = includableQuery.GetType().GetMethod(nameof(IIncludedObjectQuery<object, object>.ThenInclude));
+            method = method.MakeGenericMethod(new Type[] { navigationProperty.Body.Type });
+            IQuery query = (IQuery)method.FastInvoke(includableQuery, new object[] { navigationProperty });
+            return query;
+        }
+        public static IQuery ThenIncludeMany(this IQuery includableQuery, LambdaExpression navigationProperty)
+        {
+            var method = includableQuery.GetType().GetMethod(nameof(IIncludedCollectionQuery<object, object>.ThenIncludeMany));
+            method = method.MakeGenericMethod(new Type[] { navigationProperty.Body.Type.GetGenericArguments()[0] });
+            IQuery query = (IQuery)method.FastInvoke(includableQuery, new object[] { navigationProperty });
+            return query;
+        }
+        public static IQuery Filter(this IQuery includableQuery, LambdaExpression predicate)
+        {
+            var method = includableQuery.GetType().GetMethod(nameof(IIncludedCollectionQuery<object, object>.Filter));
+            IQuery query = (IQuery)method.FastInvoke(includableQuery, new object[] { predicate });
+            return query;
+        }
+        public static IQuery ExcludeField(this IQuery includableQuery, LambdaExpression field)
+        {
+            var method = includableQuery.GetType().GetMethod(nameof(IIncludedCollectionQuery<object, object>.ExcludeField));
+            method = method.MakeGenericMethod(new Type[] { field.Body.Type });
+            IQuery query = (IQuery)method.FastInvoke(includableQuery, new object[] { field });
+            return query;
+        }
+
+        public static object Join(this IQuery q1, IQuery q2, JoinType joinType, LambdaExpression on)
+        {
+            var q2Type = q2.GetType().GetInterfaces().Where(a => a.GetGenericTypeDefinition() == typeof(IQuery<>)).First();
+            var method = GetJoinMethod(q1).MakeGenericMethod(q2Type.GetGenericArguments()[0]);
+
+            object joinQuery = method.FastInvoke(q1, new object[] { q2, joinType, on });
+            return joinQuery;
+        }
+
+        public static IQuery Select(object joinQuery, LambdaExpression selector)
+        {
+            var selectMethod = GetJoinQuerySelectMethod(joinQuery);
+            selectMethod = selectMethod.MakeGenericMethod(selector.Body.Type);
+            IQuery query = (IQuery)selectMethod.FastInvoke(joinQuery, selector);
+            return query;
+        }
+
         public static IQuery<T> Exclude<T>(this IQuery<T> q, LambdaExpression field)
         {
             IQuery<T> query = (IQuery<T>)Exclude((IQuery)q, field);
@@ -174,6 +261,52 @@ namespace Chloe
             method = method.MakeGenericMethod(new Type[] { field.Body.Type });
             IQuery query = (IQuery)method.FastInvoke(q, new object[] { field });
             return query;
+        }
+
+        public static IQuery AsTracking(this IQuery query)
+        {
+            return CallMethod<IQuery>(query, nameof(IQuery<object>.AsTracking), null);
+        }
+
+        public static IQuery IgnoreAllFilters(this IQuery query)
+        {
+            return CallMethod<IQuery>(query, nameof(IQuery<object>.IgnoreAllFilters), null);
+        }
+
+        public static IQuery BindTwoWay(this IQuery query)
+        {
+            return CallMethod<IQuery>(query, nameof(IQuery<object>.BindTwoWay), null);
+        }
+
+        static MethodInfo GetJoinMethod(IQuery q)
+        {
+            var IQueryType = q.GetType().GetInterfaces().Where(a => a.GetGenericTypeDefinition() == typeof(IQuery<>)).First();
+            var method = IQueryType.GetMethods().Where(a =>
+            {
+                if (a.Name != nameof(IQuery<object>.Join))
+                    return false;
+
+                var parameters = a.GetParameters();
+                if (parameters.Length != 3)
+                    return false;
+
+                var firstParameter = parameters[0];
+
+                if (!firstParameter.ParameterType.IsGenericType)
+                    return false;
+
+                var isIQueryType = firstParameter.ParameterType.GetGenericTypeDefinition() == typeof(IQuery<>);
+                return isIQueryType;
+            }).First();
+
+            return method;
+        }
+        static MethodInfo GetJoinQuerySelectMethod(object joinQuery)
+        {
+            var IJoinQueryType = joinQuery.GetType().GetInterfaces().Where(a => a.GetGenericTypeDefinition() == typeof(IJoinQuery<,>)).First();
+            var method = IJoinQueryType.GetMethod(nameof(IJoinQuery<object, object>.Select));
+
+            return method;
         }
     }
 }

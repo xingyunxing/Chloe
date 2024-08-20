@@ -2,7 +2,7 @@
 {
     public class IgnoreAllFiltersExpression : QueryExpression
     {
-        public IgnoreAllFiltersExpression(Type elementType, QueryExpression prevExpression) : base(QueryExpressionType.IgnoreAllFilters, elementType, prevExpression)
+        public IgnoreAllFiltersExpression(QueryExpression prevExpression) : base(QueryExpressionType.IgnoreAllFilters, prevExpression.ElementType, prevExpression)
         {
 
         }

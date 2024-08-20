@@ -16,7 +16,7 @@ namespace Chloe.Query
         public JoinQuery(Query<T1> q1, Query<T2> q2, JoinType joinType, Expression<Func<T1, T2, bool>> on)
         {
             this._rootQuery = q1;
-            this._joinedQueries = new List<JoinQueryInfo>(1) { new JoinQueryInfo(q2, joinType, on) };
+            this._joinedQueries = new List<JoinQueryInfo>(1) { new JoinQueryInfo(q2.QueryExpression, joinType, on) };
 
             this._filterPredicates = new List<LambdaExpression>();
         }
@@ -130,7 +130,7 @@ namespace Chloe.Query
         public JoinQuery(JoinQuery<T1, T2> joinQuery, Query<T3> q, JoinType joinType, Expression<Func<T1, T2, T3, bool>> on)
         {
             this._rootQuery = joinQuery.RootQuery;
-            this._joinedQueries = PublicHelper.CloneAndAppendOne(joinQuery.JoinedQueries, new JoinQueryInfo(q, joinType, on));
+            this._joinedQueries = PublicHelper.CloneAndAppendOne(joinQuery.JoinedQueries, new JoinQueryInfo(q.QueryExpression, joinType, on));
 
             this._filterPredicates = PublicHelper.Clone(joinQuery.FilterPredicates);
         }
@@ -236,7 +236,7 @@ namespace Chloe.Query
         public JoinQuery(JoinQuery<T1, T2, T3> joinQuery, Query<T4> q, JoinType joinType, Expression<Func<T1, T2, T3, T4, bool>> on)
         {
             this._rootQuery = joinQuery.RootQuery;
-            this._joinedQueries = PublicHelper.CloneAndAppendOne(joinQuery.JoinedQueries, new JoinQueryInfo(q, joinType, on));
+            this._joinedQueries = PublicHelper.CloneAndAppendOne(joinQuery.JoinedQueries, new JoinQueryInfo(q.QueryExpression, joinType, on));
 
             this._filterPredicates = PublicHelper.Clone(joinQuery.FilterPredicates);
         }
@@ -342,7 +342,7 @@ namespace Chloe.Query
         public JoinQuery(JoinQuery<T1, T2, T3, T4> joinQuery, Query<T5> q, JoinType joinType, Expression<Func<T1, T2, T3, T4, T5, bool>> on)
         {
             this._rootQuery = joinQuery.RootQuery;
-            this._joinedQueries = PublicHelper.CloneAndAppendOne(joinQuery.JoinedQueries, new JoinQueryInfo(q, joinType, on));
+            this._joinedQueries = PublicHelper.CloneAndAppendOne(joinQuery.JoinedQueries, new JoinQueryInfo(q.QueryExpression, joinType, on));
 
             this._filterPredicates = PublicHelper.Clone(joinQuery.FilterPredicates);
         }

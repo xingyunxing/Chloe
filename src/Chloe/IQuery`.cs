@@ -29,6 +29,12 @@ namespace Chloe
         IQuery<T> BindTwoWay();
 
         /// <summary>
+        /// 拆分查询。即如果有包含导航属性查询时，调用此方法后将拆分成多个语句查询数据
+        /// </summary>
+        /// <returns></returns>
+        IQuery<T> SplitQuery();
+
+        /// <summary>
         /// Exclude specified field
         /// </summary>
         /// <typeparam name="TField"></typeparam>

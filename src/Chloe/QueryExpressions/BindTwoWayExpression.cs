@@ -2,7 +2,7 @@
 {
     public class BindTwoWayExpression : QueryExpression
     {
-        public BindTwoWayExpression(Type elementType, QueryExpression prevExpression) : base(QueryExpressionType.BindTwoWay, elementType, prevExpression)
+        public BindTwoWayExpression(QueryExpression prevExpression) : base(QueryExpressionType.BindTwoWay, prevExpression.ElementType, prevExpression)
         {
 
         }

@@ -11,6 +11,11 @@ namespace Chloe.Query
 
         FeatureEnumerable<T> GenerateIterator()
         {
+            if (IsSplitQueryJudgment.IsSplitQuery(this.QueryExpression))
+            {
+                return new InternalSplitQuery<T>(this);
+            }
+
             InternalQuery<T> internalQuery = new InternalQuery<T>(this);
             return internalQuery;
         }

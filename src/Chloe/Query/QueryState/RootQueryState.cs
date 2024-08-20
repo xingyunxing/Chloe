@@ -59,6 +59,11 @@ namespace Chloe.Query.QueryState
             DbExpression condition = GeneralExpressionParser.Parse(this.QueryContext, conditionExpression, scopeParameters, scopeTables, this.QueryModel);
             DbJoinTableExpression joinTable = new DbJoinTableExpression(joinType.AsDbJoinType(), this.QueryModel.FromTable.Table, condition);
 
+            for (int i = 0; i < this.QueryModel.FromTable.JoinTables.Count; i++)
+            {
+                joinTable.JoinTables.Add(this.QueryModel.FromTable.JoinTables[i]);
+            }
+
             if (!this.QueryModel.Options.IgnoreFilters)
             {
                 joinTable.Condition = joinTable.Condition.And(this.QueryModel.ContextFilters).And(this.QueryModel.GlobalFilters);
