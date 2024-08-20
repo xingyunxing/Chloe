@@ -11,7 +11,7 @@ namespace Chloe.Query.QueryState
 
         public override IQueryState Accept(WhereExpression exp)
         {
-            IQueryState state = this.AsSubQueryState();
+            IQueryState state = this.AsSubqueryState();
             return state.Accept(exp);
         }
         public override IQueryState Accept(AggregateQueryExpression exp)
@@ -23,12 +23,12 @@ namespace Chloe.Query.QueryState
                 return groupQueryState.Accept(exp);
             }
 
-            GeneralQueryState state = this.AsSubQueryState();
+            GeneralQueryState state = this.AsSubqueryState();
             return state.Accept(exp);
         }
         public override IQueryState Accept(GroupingQueryExpression exp)
         {
-            IQueryState state = this.AsSubQueryState();
+            IQueryState state = this.AsSubqueryState();
             return state.Accept(exp);
         }
     }

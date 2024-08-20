@@ -41,7 +41,7 @@ namespace Chloe.DbExpressions
         Aggregate,
 
         SqlQuery,
-        SubQuery,
+        Subquery,
         Insert,
         Update,
         Delete,

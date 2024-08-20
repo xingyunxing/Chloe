@@ -129,7 +129,7 @@ namespace Chloe.DbExpressions
 
         public static bool IsEvaluable(this DbExpression expression)
         {
-            return DbExpressionEvaluableJudgment.CanEvaluate(expression);
+            return DbExpressionEvaluableJudgment.IsEvaluable(expression);
         }
         public static object Evaluate(this DbExpression exp)
         {

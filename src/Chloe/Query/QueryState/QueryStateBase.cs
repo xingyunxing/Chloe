@@ -203,14 +203,14 @@ namespace Chloe.Query.QueryState
             return data;
         }
 
-        public virtual GeneralQueryState AsSubQueryState()
+        public virtual GeneralQueryState AsSubqueryState()
         {
             DbSqlQueryExpression sqlQuery = this.CreateSqlQuery();
-            DbSubQueryExpression subQuery = new DbSubQueryExpression(sqlQuery);
+            DbSubqueryExpression subquery = new DbSubqueryExpression(sqlQuery);
 
             QueryModel newQueryModel = new QueryModel(this._queryModel.Options, this._queryModel.ScopeParameters, this._queryModel.ScopeTables);
 
-            DbTableSegment tableSeg = new DbTableSegment(subQuery, newQueryModel.GenerateUniqueTableAlias(), LockType.Unspecified);
+            DbTableSegment tableSeg = new DbTableSegment(subquery, newQueryModel.GenerateUniqueTableAlias(), LockType.Unspecified);
             DbFromTableExpression fromTable = new DbFromTableExpression(tableSeg);
 
             newQueryModel.FromTable = fromTable;
@@ -224,7 +224,7 @@ namespace Chloe.Query.QueryState
             IObjectModel newResultModel = this.QueryModel.ResultModel.ToNewObjectModel(sqlQuery.ColumnSegments, columnAliasSet, aliasTable, fromTable);
             newQueryModel.ResultModel = newResultModel;
 
-            //得将 subQuery.SqlQuery.Orders 告诉 以下创建的 result
+            //得将 subquery.SqlQuery.Orders 告诉 以下创建的 result
             //将 orderPart 传递下去
             for (int i = 0; i < this.QueryModel.Orderings.Count; i++)
             {
@@ -290,9 +290,9 @@ namespace Chloe.Query.QueryState
 
             string alias = newQueryModel.GenerateUniqueTableAlias();
             DbSqlQueryExpression sqlQuery = this.CreateSqlQuery();
-            DbSubQueryExpression subQuery = new DbSubQueryExpression(sqlQuery);
+            DbSubqueryExpression subquery = new DbSubqueryExpression(sqlQuery);
 
-            DbTableSegment tableSeg = new DbTableSegment(subQuery, alias, LockType.Unspecified);
+            DbTableSegment tableSeg = new DbTableSegment(subquery, alias, LockType.Unspecified);
             DbFromTableExpression fromTable = new DbFromTableExpression(tableSeg);
 
             DbTable aliasTable = new DbTable(tableSeg.Alias);
@@ -306,10 +306,10 @@ namespace Chloe.Query.QueryState
         public virtual JoinQueryResult ToJoinQueryResult(JoinType joinType, LambdaExpression conditionExpression, ScopeParameterDictionary scopeParameters, StringSet scopeTables, Func<string, string> tableAliasGenerator)
         {
             DbSqlQueryExpression sqlQuery = this.CreateSqlQuery();
-            DbSubQueryExpression subQuery = new DbSubQueryExpression(sqlQuery);
+            DbSubqueryExpression subquery = new DbSubqueryExpression(sqlQuery);
 
             string alias = tableAliasGenerator(UtilConstants.DefaultTableAlias);
-            DbTableSegment tableSeg = new DbTableSegment(subQuery, alias, LockType.Unspecified);
+            DbTableSegment tableSeg = new DbTableSegment(subquery, alias, LockType.Unspecified);
             DbJoinTableExpression joinTable = new DbJoinTableExpression(joinType.AsDbJoinType(), tableSeg);
 
             DbTable aliasTable = new DbTable(tableSeg.Alias);

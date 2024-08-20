@@ -3,7 +3,7 @@ using Chloe.QueryExpressions;
 
 namespace Chloe.Query.QueryState
 {
-    class DistinctQueryState : SubQueryState
+    class DistinctQueryState : SubqueryState
     {
         public DistinctQueryState(QueryContext context, QueryModel queryModel) : base(context, queryModel)
         {
@@ -11,7 +11,7 @@ namespace Chloe.Query.QueryState
 
         public override IQueryState Accept(SelectExpression exp)
         {
-            IQueryState state = this.AsSubQueryState();
+            IQueryState state = this.AsSubqueryState();
             return state.Accept(exp);
         }
 

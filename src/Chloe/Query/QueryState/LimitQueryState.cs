@@ -3,7 +3,7 @@ using Chloe.QueryExpressions;
 
 namespace Chloe.Query.QueryState
 {
-    internal sealed class LimitQueryState : SubQueryState
+    internal sealed class LimitQueryState : SubqueryState
     {
         int _skipCount;
         int _takeCount;

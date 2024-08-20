@@ -3,7 +3,7 @@ using Chloe.QueryExpressions;
 
 namespace Chloe.Query.QueryState
 {
-    internal sealed class TakeQueryState : SubQueryState
+    internal sealed class TakeQueryState : SubqueryState
     {
         int _count;
         public TakeQueryState(QueryContext context, QueryModel queryModel, int count) : base(context, queryModel)

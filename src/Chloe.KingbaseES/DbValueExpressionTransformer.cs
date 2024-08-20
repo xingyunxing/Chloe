@@ -135,7 +135,7 @@ namespace Chloe.KingbaseES
             return exp;
         }
 
-        public override DbExpression VisitSubQuery(DbSubQueryExpression exp)
+        public override DbExpression VisitSubquery(DbSubqueryExpression exp)
         {
             return exp;
         }

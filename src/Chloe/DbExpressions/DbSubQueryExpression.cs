@@ -1,10 +1,10 @@
 ﻿namespace Chloe.DbExpressions
 {
-    public class DbSubQueryExpression : DbExpression
+    public class DbSubqueryExpression : DbExpression
     {
         DbSqlQueryExpression _sqlQuery;
 
-        public DbSubQueryExpression(DbSqlQueryExpression sqlQuery) : base(DbExpressionType.SubQuery)
+        public DbSubqueryExpression(DbSqlQueryExpression sqlQuery) : base(DbExpressionType.Subquery)
         {
             this._sqlQuery = sqlQuery;
         }
@@ -14,7 +14,7 @@
 
         public override T Accept<T>(DbExpressionVisitor<T> visitor)
         {
-            return visitor.VisitSubQuery(this);
+            return visitor.VisitSubquery(this);
         }
 
     }

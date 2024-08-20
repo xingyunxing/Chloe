@@ -9,7 +9,7 @@ namespace Chloe.Extensions
     {
         public static bool IsEvaluable(this Expression exp)
         {
-            return ExpressionEvaluableJudgment.CanEvaluate(exp);
+            return ExpressionEvaluableJudgment.IsEvaluable(exp);
         }
         public static object Evaluate(this Expression exp)
         {

@@ -119,7 +119,7 @@
         {
             throw new NotImplementedException();
         }
-        public virtual T VisitSubQuery(DbSubQueryExpression exp)
+        public virtual T VisitSubquery(DbSubqueryExpression exp)
         {
             throw new NotImplementedException();
         }

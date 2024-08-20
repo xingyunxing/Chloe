@@ -200,16 +200,16 @@ namespace Chloe.Oracle
         }
         static DbSqlQueryExpression WrapSqlQuery(DbSqlQueryExpression sqlQuery, DbTable table, List<DbColumnSegment> columnSegments = null)
         {
-            DbSubQueryExpression subQuery = new DbSubQueryExpression(sqlQuery);
+            DbSubqueryExpression subquery = new DbSubqueryExpression(sqlQuery);
 
-            DbSqlQueryExpression newSqlQuery = new DbSqlQueryExpression(sqlQuery.Type, (columnSegments ?? subQuery.SqlQuery.ColumnSegments).Count, 0, 0);
+            DbSqlQueryExpression newSqlQuery = new DbSqlQueryExpression(sqlQuery.Type, (columnSegments ?? subquery.SqlQuery.ColumnSegments).Count, 0, 0);
 
-            DbTableSegment tableSeg = new DbTableSegment(subQuery, table.Name, LockType.Unspecified);
+            DbTableSegment tableSeg = new DbTableSegment(subquery, table.Name, LockType.Unspecified);
             DbFromTableExpression fromTableExp = new DbFromTableExpression(tableSeg);
 
             newSqlQuery.Table = fromTableExp;
 
-            CopyColumnSegments(columnSegments ?? subQuery.SqlQuery.ColumnSegments, newSqlQuery.ColumnSegments, table);
+            CopyColumnSegments(columnSegments ?? subquery.SqlQuery.ColumnSegments, newSqlQuery.ColumnSegments, table);
 
             return newSqlQuery;
         }

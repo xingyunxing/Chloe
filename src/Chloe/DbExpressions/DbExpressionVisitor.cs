@@ -133,9 +133,9 @@
         {
             return new DbParameterExpression(exp.Value, exp.Type, exp.DbType);
         }
-        public override DbExpression VisitSubQuery(DbSubQueryExpression exp)
+        public override DbExpression VisitSubquery(DbSubqueryExpression exp)
         {
-            return new DbSubQueryExpression((DbSqlQueryExpression)this.MakeNewExpression(exp.SqlQuery));
+            return new DbSubqueryExpression((DbSqlQueryExpression)this.MakeNewExpression(exp.SqlQuery));
         }
         public override DbExpression VisitSqlQuery(DbSqlQueryExpression exp)
         {

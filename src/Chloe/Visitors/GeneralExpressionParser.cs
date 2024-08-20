@@ -114,8 +114,8 @@ namespace Chloe.Visitors
 
             QueryExpression queryExpression = UnwrapperQueryExpression(exp.Object);
             TakeExpression takeExpression = new TakeExpression(queryExpression.ElementType, queryExpression, 1);
-            DbSubQueryExpression subQueryExpression = ConvertToDbSubQueryExpression(takeExpression, exp.Type);
-            return subQueryExpression;
+            DbSubqueryExpression subqueryExpression = ConvertToDbSubqueryExpression(takeExpression, exp.Type);
+            return subqueryExpression;
         }
         DbExpression Process_MethodCall_Aggregate(MethodCallExpression exp)
         {
@@ -125,14 +125,14 @@ namespace Chloe.Visitors
 
             AggregateQueryExpression aggregateQueryExpression = new AggregateQueryExpression(queryExpression, exp.Method, arguments);
 
-            return this.ConvertToDbSubQueryExpression(aggregateQueryExpression, calledAggregateMethod.ReturnType);
+            return this.ConvertToDbSubqueryExpression(aggregateQueryExpression, calledAggregateMethod.ReturnType);
         }
 
-        DbSubQueryExpression ConvertToDbSubQueryExpression(QueryExpression queryExpression, Type resultType)
+        DbSubqueryExpression ConvertToDbSubqueryExpression(QueryExpression queryExpression, Type resultType)
         {
             DbSqlQueryExpression sqlQueryExpression = ConvertToDbSqlQueryExpression(queryExpression, resultType);
-            DbSubQueryExpression subQueryExpression = new DbSubQueryExpression(sqlQueryExpression);
-            return subQueryExpression;
+            DbSubqueryExpression subqueryExpression = new DbSubqueryExpression(sqlQueryExpression);
+            return subqueryExpression;
         }
         DbSqlQueryExpression ConvertToDbSqlQueryExpression(QueryExpression queryExpression, Type resultType)
         {

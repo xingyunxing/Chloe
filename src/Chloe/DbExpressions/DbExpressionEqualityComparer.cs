@@ -131,9 +131,9 @@
 
                         }
                         break;
-                    case DbExpressionType.SubQuery:
-                        DbSubQueryExpression dbSubQuery = (DbSubQueryExpression)obj;
-                        hash.Add(dbSubQuery.SqlQuery, this);
+                    case DbExpressionType.Subquery:
+                        DbSubqueryExpression dbSubquery = (DbSubqueryExpression)obj;
+                        hash.Add(dbSubquery.SqlQuery, this);
                         break;
                     case DbExpressionType.Insert:
                         DbInsertExpression dbInsert = (DbInsertExpression)obj;

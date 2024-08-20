@@ -72,8 +72,8 @@
                     return this.CompareAggregate((DbAggregateExpression)left, (DbAggregateExpression)right);
                 case DbExpressionType.SqlQuery:
                     return this.CompareSqlQuery((DbSqlQueryExpression)left, (DbSqlQueryExpression)right);
-                case DbExpressionType.SubQuery:
-                    return this.CompareSubQuery((DbSubQueryExpression)left, (DbSubQueryExpression)right);
+                case DbExpressionType.Subquery:
+                    return this.CompareSubquery((DbSubqueryExpression)left, (DbSubqueryExpression)right);
                 case DbExpressionType.Insert:
                     return this.CompareInsert((DbInsertExpression)left, (DbInsertExpression)right);
                 case DbExpressionType.Update:
@@ -236,7 +236,7 @@
             return true;
         }
 
-        bool CompareSubQuery(DbSubQueryExpression left, DbSubQueryExpression right)
+        bool CompareSubquery(DbSubqueryExpression left, DbSubqueryExpression right)
         {
             return this.Compare(left.SqlQuery, right.SqlQuery);
         }

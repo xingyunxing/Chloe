@@ -41,7 +41,7 @@ namespace Chloe.RDBMS
             /* Sql.IsEqual(left, right) */
             DbMethodCallExpression left_equals_right = new DbMethodCallExpression(null, method_Sql_IsEqual, new List<DbExpression>(2) { left, right });
 
-            if (right.NodeType == DbExpressionType.Parameter || right.NodeType == DbExpressionType.Constant || left.NodeType == DbExpressionType.Parameter || left.NodeType == DbExpressionType.Constant || right.NodeType == DbExpressionType.SubQuery || left.NodeType == DbExpressionType.SubQuery || !left.Type.CanBeNull() || !right.Type.CanBeNull())
+            if (right.NodeType == DbExpressionType.Parameter || right.NodeType == DbExpressionType.Constant || left.NodeType == DbExpressionType.Parameter || left.NodeType == DbExpressionType.Constant || right.NodeType == DbExpressionType.Subquery || left.NodeType == DbExpressionType.Subquery || !left.Type.CanBeNull() || !right.Type.CanBeNull())
             {
                 /*
                  * a.Name == name --> a.Name == name
@@ -99,7 +99,7 @@ namespace Chloe.RDBMS
                 return exp;
             }
 
-            if (right.NodeType == DbExpressionType.SubQuery || left.NodeType == DbExpressionType.SubQuery)
+            if (right.NodeType == DbExpressionType.Subquery || left.NodeType == DbExpressionType.Subquery)
             {
                 /*
                  * a.Id != (select top 1 T.Id from T) --> a.Id <> (select top 1 T.Id from T)，对于这种查询，我们不考虑 null
@@ -391,7 +391,7 @@ namespace Chloe.RDBMS
             return exp;
         }
 
-        public override DbExpression VisitSubQuery(DbSubQueryExpression exp)
+        public override DbExpression VisitSubquery(DbSubqueryExpression exp)
         {
             this.SqlBuilder.Append("(");
             exp.SqlQuery.Accept(this);
@@ -486,8 +486,8 @@ namespace Chloe.RDBMS
             sqlQuery.ColumnSegments.Capacity = 1;
             sqlQuery.ColumnSegments.Add(columnSegment);
 
-            DbSubQueryExpression subQuery = new DbSubQueryExpression(sqlQuery);
-            return subQuery.Accept(this);
+            DbSubqueryExpression subquery = new DbSubqueryExpression(sqlQuery);
+            return subquery.Accept(this);
         }
 
         public override DbExpression VisitCaseWhen(DbCaseWhenExpression exp)
