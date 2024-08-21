@@ -699,23 +699,52 @@ namespace ChloeDemo
             var cityQuery = dbContext.Query<City>();
             var provinceQuery = dbContext.Query<Province>();
 
-            //只会生成一个sql语句
+            //只会生成一条包含多个 left join 的 sql 语句
             List<Province> provinces1 = provinceQuery.IncludeAll().OrderBy(a => a.Id).ToList();
+            /*
+            SELECT `T`.`Id`,`T`.`Name`,`T0`.`Id` AS `Id0`,`T0`.`Name` AS `Name0`,`T0`.`ProvinceId`,`T1`.`Name` AS `Name1`,`T1`.`Gender`,`T1`.`Age`,`T1`.`CityId`,`T1`.`CreateTime`,`T1`.`EditTime`,`T1`.`RowVersion`,`T1`.`Id` AS `Id1`,`T2`.`Id` AS `Id2`,`T2`.`IdNumber`,`T2`.`BirthDay`,`T3`.`Id` AS `Id3`,`T3`.`ProfileId`,`T3`.`FilePath` 
+            FROM `Province` AS `T` 
+            LEFT JOIN `City` AS `T0` ON (`T`.`Id` = `T0`.`ProvinceId` AND `T0`.`Id` > -2) 
+            LEFT JOIN `Person` AS `T1` ON (`T0`.`Id` = `T1`.`CityId` AND `T1`.`Id` > -100 AND `T1`.`Id` > -1) 
+            INNER JOIN `PersonProfile` AS `T2` ON (`T1`.`Id` = `T2`.`Id` AND `T2`.`Id` > -1) 
+            LEFT JOIN `ProfileAnnex` AS `T3` ON `T2`.`Id` = `T3`.`ProfileId` 
+            WHERE `T`.`Id` > -3 ORDER BY `T`.`Id` ASC,`T0`.`Id` ASC,`T2`.`Id` ASC
+            */
 
-            //调用 SplitQuery 后会拆分成多个sql语句查询
+            //调用 SplitQuery 后会拆分成多条 sql 语句查询
             List<Province> provinces2 = provinceQuery.IncludeAll().SplitQuery().OrderBy(a => a.Id).ToList();
             /*少量数据则会使用 in 查询
             SELECT `T`.`Id`,`T`.`Name` FROM `Province` AS `T` WHERE `T`.`Id` > -3 ORDER BY `T`.`Id` ASC;
+
             SELECT `T`.`Id`,`T`.`Name`,`T`.`ProvinceId` FROM `City` AS `T` WHERE (`T`.`ProvinceId` IN (1,2,3,4,5) AND `T`.`Id` > -2);
-            SELECT `T`.`Name`,`T`.`Gender`,`T`.`Age`,`T`.`CityId`,`T`.`CreateTime`,`T`.`EditTime`,`T`.`RowVersion`,`T`.`Id`,`T0`.`Id` AS `Id0`,`T0`.`IdNumber`,`T0`.`BirthDay` FROM `Person` AS `T` INNER JOIN `PersonProfile` AS `T0` ON (`T`.`Id` = `T0`.`Id` AND `T0`.`Id` > -1) WHERE (`T`.`CityId` IN (1,2,3,4,5,6,7,8,9,10,11,12,13,14) AND `T`.`Id` > -1);
+
+            SELECT `T`.`Name`,`T`.`Gender`,`T`.`Age`,`T`.`CityId`,`T`.`CreateTime`,`T`.`EditTime`,`T`.`RowVersion`,`T`.`Id`,`T0`.`Id` AS `Id0`,`T0`.`IdNumber`,`T0`.`BirthDay` 
+            FROM `Person` AS `T` 
+            INNER JOIN `PersonProfile` AS `T0` ON (`T`.`Id` = `T0`.`Id` AND `T0`.`Id` > -1) 
+            WHERE (`T`.`CityId` IN (1,2,3,4,5,6,7,8,9,10,11,12,13,14) AND `T`.`Id` > -1);
+
             SELECT `T`.`Id`,`T`.`ProfileId`,`T`.`FilePath` FROM `ProfileAnnex` AS `T` WHERE `T`.`ProfileId` IN (1,2,3,4,5,6,7,8,9,10,...);
             */
 
-            /*如果查询的数据数量多余过多，会生成多表 join 查询，如下：
+            /*如果查询的数据数量过多，会生成多表 inner join 查询，如下：
             SELECT `T`.`Id`,`T`.`Name` FROM `Province` AS `T` WHERE `T`.`Id` > -3 ORDER BY `T`.`Id` ASC;
+
             SELECT `T0`.`Id`,`T0`.`Name`,`T0`.`ProvinceId` FROM `Province` AS `T` INNER JOIN `City` AS `T0` ON (`T`.`Id` = `T0`.`ProvinceId` AND `T0`.`Id` > -2) WHERE `T`.`Id` > -3;
-            SELECT `T1`.`Name`,`T1`.`Gender`,`T1`.`Age`,`T1`.`CityId`,`T1`.`CreateTime`,`T1`.`EditTime`,`T1`.`RowVersion`,`T1`.`Id`,`T2`.`Id` AS `Id0`,`T2`.`IdNumber`,`T2`.`BirthDay` FROM `Province` AS `T` INNER JOIN `City` AS `T0` ON (`T`.`Id` = `T0`.`ProvinceId` AND `T0`.`Id` > -2) INNER JOIN `Person` AS `T1` ON (`T0`.`Id` = `T1`.`CityId` AND `T1`.`Id` > -100 AND `T1`.`Id` > -1) INNER JOIN `PersonProfile` AS `T2` ON (`T1`.`Id` = `T2`.`Id` AND `T2`.`Id` > -1) WHERE `T`.`Id` > -3;
-            SELECT `T3`.`Id`,`T3`.`ProfileId`,`T3`.`FilePath` FROM `Province` AS `T` INNER JOIN `City` AS `T0` ON (`T`.`Id` = `T0`.`ProvinceId` AND `T0`.`Id` > -2) INNER JOIN `Person` AS `T1` ON (`T0`.`Id` = `T1`.`CityId` AND `T1`.`Id` > -100 AND `T1`.`Id` > -1) INNER JOIN `PersonProfile` AS `T2` ON (`T1`.`Id` = `T2`.`Id` AND `T2`.`Id` > -1) INNER JOIN `ProfileAnnex` AS `T3` ON `T2`.`Id` = `T3`.`ProfileId` WHERE `T`.`Id` > -3;
+
+            SELECT `T1`.`Name`,`T1`.`Gender`,`T1`.`Age`,`T1`.`CityId`,`T1`.`CreateTime`,`T1`.`EditTime`,`T1`.`RowVersion`,`T1`.`Id`,`T2`.`Id` AS `Id0`,`T2`.`IdNumber`,`T2`.`BirthDay` 
+            FROM `Province` AS `T` 
+            INNER JOIN `City` AS `T0` ON (`T`.`Id` = `T0`.`ProvinceId` AND `T0`.`Id` > -2) 
+            INNER JOIN `Person` AS `T1` ON (`T0`.`Id` = `T1`.`CityId` AND `T1`.`Id` > -100 AND `T1`.`Id` > -1) 
+            INNER JOIN `PersonProfile` AS `T2` ON (`T1`.`Id` = `T2`.`Id` AND `T2`.`Id` > -1) 
+            WHERE `T`.`Id` > -3;
+
+            SELECT `T3`.`Id`,`T3`.`ProfileId`,`T3`.`FilePath` 
+            FROM `Province` AS `T` 
+            INNER JOIN `City` AS `T0` ON (`T`.`Id` = `T0`.`ProvinceId` AND `T0`.`Id` > -2) 
+            INNER JOIN `Person` AS `T1` ON (`T0`.`Id` = `T1`.`CityId` AND `T1`.`Id` > -100 AND `T1`.`Id` > -1) 
+            INNER JOIN `PersonProfile` AS `T2` ON (`T1`.`Id` = `T2`.`Id` AND `T2`.`Id` > -1) 
+            INNER JOIN `ProfileAnnex` AS `T3` ON `T2`.`Id` = `T3`.`ProfileId` 
+            WHERE `T`.`Id` > -3;
             */
 
             Debug.Assert(provinces2.Count == provinces1.Count);
