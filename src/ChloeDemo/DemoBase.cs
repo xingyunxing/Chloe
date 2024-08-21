@@ -1,11 +1,8 @@
 ﻿using Chloe;
-using Chloe.SQLite;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace ChloeDemo
@@ -46,6 +43,7 @@ namespace ChloeDemo
             this.GroupQuery();
             this.ComplexQuery();
             this.QueryWithNavigation();
+            this.SplitQuery();
             this.Insert();
             this.Update();
             this.Delete();
@@ -63,17 +61,16 @@ namespace ChloeDemo
 
         public virtual void InitData()
         {
-            List<Province> provinces = new List<Province>();
-            if (!this.DbContext.Query<Province>().Any())
-            {
-                provinces.Add(this.CreateProvince("广东", "广州", "深圳", "东莞"));
-                provinces.Add(this.CreateProvince("广西", "南宁", "柳州", "桂林", "河池"));
-                provinces.Add(this.CreateProvince("湖南", "长沙", "衡阳", "张家界"));
+            this.DbContext.Delete<Province>(a => true);
+            this.DbContext.Delete<City>(a => true);
+            this.DbContext.Delete<Person>(a => true);
+            this.DbContext.Delete<PersonProfile>(a => true);
+            this.DbContext.Delete<ProfileAnnex>(a => true);
 
-                foreach (var province in provinces)
-                {
-                    this.DbContext.Save(province);
-                }
+            List<Province> provinces = TestData.GetMockProvinces();
+            foreach (var province in provinces)
+            {
+                this.DbContext.Save(province);
             }
 
             provinces = this.DbContext.Query<Province>().IncludeAll().ToList();
@@ -109,35 +106,11 @@ namespace ChloeDemo
 
             ConsoleHelper.WriteLineAndReadKey("InitData over...");
         }
-        public Province CreateProvince(string provinceName, params string[] cityNames)
-        {
-            Province province = new Province();
-            province.Name = provinceName;
 
-            cityNames = cityNames ?? new string[0];
-            foreach (var cityName in cityNames)
-            {
-                province.Cities.Add(this.CreateCity(cityName));
-            }
-
-            return province;
-        }
-        public City CreateCity(string cityName)
-        {
-            City city = new City();
-            city.Name = cityName;
-
-            city.Persons.Add(new Person() { Name = $"{city.Name}-张三", Age = 30, Gender = Gender.Male, CreateTime = DateTime.Now, Ex = new PersonEx() { IdNumber = "452723197110211024", BirthDay = new DateTime(1971, 10, 21) } });
-            city.Persons.Add(new Person() { Name = $"{city.Name}-李四", Age = 31, Gender = Gender.Male, CreateTime = DateTime.Now, Ex = new PersonEx() { IdNumber = "452723197110221024", BirthDay = new DateTime(1971, 10, 22) } });
-            city.Persons.Add(new Person() { Name = $"{city.Name}-Chloe", Age = 18, Gender = Gender.Female, CreateTime = DateTime.Now, Ex = new PersonEx() { IdNumber = "452723197110231024", BirthDay = new DateTime(1971, 10, 23) } });
-            city.Persons.Add(new Person() { Name = $"{city.Name}-东方不败", CreateTime = DateTime.Now, Ex = new PersonEx() { IdNumber = "452723197110241024", BirthDay = new DateTime(1971, 10, 24) } });
-
-            return city;
-        }
 
         public virtual void Crud()
         {
-            Province province = this.CreateProvince("北京", "朝阳区", "海淀区");
+            Province province = TestData.CreateProvince("北京", "朝阳区", "海淀区");
             //保存数据到数据库，会将导航属性一起保存
             this.DbContext.Save(province);
 
@@ -156,9 +129,12 @@ namespace ChloeDemo
             this._result = q.Average(a => a.Age);
 
             person = new Person() { Name = "chloe", Age = 18, Gender = Gender.Female, CityId = 1, CreateTime = DateTime.Now };
+            person.Profile = new PersonProfile() { IdNumber = Guid.NewGuid().ToString(), BirthDay = DateTime.Now };
 
             //插入
             person = this.DbContext.Insert(person);
+            person.Profile.Id = person.Id;
+            this.DbContext.Insert(person.Profile);
 
             //lambda 表达式更新
             this._result = this.DbContext.Update<Person>(a => a.Id == person.Id, a => new Person() { Age = a.Age + 1, EditTime = DateTime.Now });
@@ -184,7 +160,7 @@ namespace ChloeDemo
         }
         public virtual async Task CrudAsync()
         {
-            Province province = this.CreateProvince("上海", "黄浦区", "徐汇区");
+            Province province = TestData.CreateProvince("上海", "黄浦区", "徐汇区");
             //保存数据到数据库，会将导航属性一起保存
             await this.DbContext.SaveAsync(province);
 
@@ -203,9 +179,12 @@ namespace ChloeDemo
             this._result = await q.AverageAsync(a => a.Age);
 
             person = new Person() { Name = "Chloe", Age = 18, Gender = Gender.Female, CityId = 1, CreateTime = DateTime.Now };
+            person.Profile = new PersonProfile() { IdNumber = Guid.NewGuid().ToString(), BirthDay = DateTime.Now };
 
             //插入
             person = await this.DbContext.InsertAsync(person);
+            person.Profile.Id = person.Id;
+            this.DbContext.Insert(person.Profile);
 
             //lambda 表达式更新
             this._result = await this.DbContext.UpdateAsync<Person>(a => a.Id == person.Id, a => new Person() { Age = a.Age + 1, EditTime = DateTime.Now });
@@ -696,6 +675,212 @@ namespace ChloeDemo
             ConsoleHelper.WriteLineAndReadKey("QueryWithNavigation over...");
         }
 
+        /// <summary>
+        /// 导航属性+拆分查询
+        /// </summary>
+        public virtual void SplitQuery()
+        {
+            IDbContext dbContext = this.DbContext;
+
+            List<int> ids = new List<int>() { 1, 2 };
+
+            var personQuery = dbContext.Query<Person>();
+            var cityQuery = dbContext.Query<City>();
+            var provinceQuery = dbContext.Query<Province>();
+
+            //只会生成一个sql语句
+            List<Province> provinces1 = provinceQuery.IncludeAll().OrderBy(a => a.Id).ToList();
+
+            //调用 SplitQuery 后会拆分成多个sql语句查询
+            List<Province> provinces2 = provinceQuery.IncludeAll().SplitQuery().OrderBy(a => a.Id).ToList();
+            /*少量数据则会使用 in 查询
+            SELECT `T`.`Id`,`T`.`Name` FROM `Province` AS `T` WHERE `T`.`Id` > -3 ORDER BY `T`.`Id` ASC;
+            SELECT `T`.`Id`,`T`.`Name`,`T`.`ProvinceId` FROM `City` AS `T` WHERE (`T`.`ProvinceId` IN (1,2,3,4,5) AND `T`.`Id` > -2);
+            SELECT `T`.`Name`,`T`.`Gender`,`T`.`Age`,`T`.`CityId`,`T`.`CreateTime`,`T`.`EditTime`,`T`.`RowVersion`,`T`.`Id`,`T0`.`Id` AS `Id0`,`T0`.`IdNumber`,`T0`.`BirthDay` FROM `Person` AS `T` INNER JOIN `PersonProfile` AS `T0` ON (`T`.`Id` = `T0`.`Id` AND `T0`.`Id` > -1) WHERE (`T`.`CityId` IN (1,2,3,4,5,6,7,8,9,10,11,12,13,14) AND `T`.`Id` > -1);
+            SELECT `T`.`Id`,`T`.`ProfileId`,`T`.`FilePath` FROM `ProfileAnnex` AS `T` WHERE `T`.`ProfileId` IN (1,2,3,4,5,6,7,8,9,10,...);
+            */
+
+            /*如果查询的数据数量多余过多，会生成多表 join 查询，如下：
+            SELECT `T`.`Id`,`T`.`Name` FROM `Province` AS `T` WHERE `T`.`Id` > -3 ORDER BY `T`.`Id` ASC;
+            SELECT `T0`.`Id`,`T0`.`Name`,`T0`.`ProvinceId` FROM `Province` AS `T` INNER JOIN `City` AS `T0` ON (`T`.`Id` = `T0`.`ProvinceId` AND `T0`.`Id` > -2) WHERE `T`.`Id` > -3;
+            SELECT `T1`.`Name`,`T1`.`Gender`,`T1`.`Age`,`T1`.`CityId`,`T1`.`CreateTime`,`T1`.`EditTime`,`T1`.`RowVersion`,`T1`.`Id`,`T2`.`Id` AS `Id0`,`T2`.`IdNumber`,`T2`.`BirthDay` FROM `Province` AS `T` INNER JOIN `City` AS `T0` ON (`T`.`Id` = `T0`.`ProvinceId` AND `T0`.`Id` > -2) INNER JOIN `Person` AS `T1` ON (`T0`.`Id` = `T1`.`CityId` AND `T1`.`Id` > -100 AND `T1`.`Id` > -1) INNER JOIN `PersonProfile` AS `T2` ON (`T1`.`Id` = `T2`.`Id` AND `T2`.`Id` > -1) WHERE `T`.`Id` > -3;
+            SELECT `T3`.`Id`,`T3`.`ProfileId`,`T3`.`FilePath` FROM `Province` AS `T` INNER JOIN `City` AS `T0` ON (`T`.`Id` = `T0`.`ProvinceId` AND `T0`.`Id` > -2) INNER JOIN `Person` AS `T1` ON (`T0`.`Id` = `T1`.`CityId` AND `T1`.`Id` > -100 AND `T1`.`Id` > -1) INNER JOIN `PersonProfile` AS `T2` ON (`T1`.`Id` = `T2`.`Id` AND `T2`.`Id` > -1) INNER JOIN `ProfileAnnex` AS `T3` ON `T2`.`Id` = `T3`.`ProfileId` WHERE `T`.`Id` > -3;
+            */
+
+            Debug.Assert(provinces2.Count == provinces1.Count);
+
+            for (int i = 0; i < provinces2.Count; i++)
+            {
+                var province2 = provinces2[i];
+                var province1 = provinces1[i];
+
+                Debug.Assert(province2.Id == province1.Id);
+
+                province2.Cities = province2.Cities.OrderBy(a => a.Id).ToList();
+                province1.Cities = province1.Cities.OrderBy(a => a.Id).ToList();
+
+                Debug.Assert(province2.Cities.Count == province1.Cities.Count);
+
+                for (int j = 0; j < province2.Cities.Count; j++)
+                {
+                    var city2 = province2.Cities[j];
+                    var city1 = province1.Cities[j];
+
+                    Debug.Assert(city2.Id == city1.Id);
+
+                    city2.Persons = city2.Persons.OrderBy(a => a.Id).ToList();
+                    city1.Persons = city1.Persons.OrderBy(a => a.Id).ToList();
+
+                    Debug.Assert(city2.Persons.Count == city1.Persons.Count);
+
+                    for (int k = 0; k < city2.Persons.Count; k++)
+                    {
+                        var person2 = city2.Persons[k];
+                        var person1 = city1.Persons[k];
+
+                        Debug.Assert(person2.Id == person1.Id);
+                        Debug.Assert(person2.Profile.Id == person1.Profile.Id);
+
+                        Debug.Assert(person2.Profile.Annexes.Count == person1.Profile.Annexes.Count);
+
+                        person2.Profile.Annexes = person2.Profile.Annexes.OrderBy(a => a.Id).ToList();
+                        person1.Profile.Annexes = person2.Profile.Annexes.OrderBy(a => a.Id).ToList();
+
+                        for (int i1 = 0; i1 < person2.Profile.Annexes.Count; i1++)
+                        {
+                            Debug.Assert(person2.Profile.Annexes[i1].Id == person1.Profile.Annexes[i1].Id);
+                        }
+                    }
+                }
+            }
+            //city.Province, city.Persons
+            var cityQuery1 = cityQuery.Include(a => a.Province).IncludeMany(a => a.Persons).OrderBy(a => a.Id);
+
+            List<City> cities1 = cityQuery1.ToList();
+            List<City> cities2 = cityQuery1.SplitQuery().BindTwoWay().ToList();
+            List<City> cities3 = cityQuery1.SplitQuery().BindTwoWay().IgnoreAllFilters().AsTracking().ToList();
+
+            for (int i = 0; i < cities1.Count; i++)
+            {
+                var city1 = cities1[i];
+                var city2 = cities2[i];
+                var city3 = cities3[i];
+
+                city1.Persons = city1.Persons.OrderBy(a => a.Id).ToList();
+                city2.Persons = city2.Persons.OrderBy(a => a.Id).ToList();
+                city3.Persons = city3.Persons.OrderBy(a => a.Id).ToList();
+
+                Debug.Assert(city1.Id == city2.Id);
+                Debug.Assert(city1.Id == city2.Id);
+
+                Debug.Assert(city1.Province.Id == city2.Province.Id);
+                Debug.Assert(city1.Province.Id == city3.Province.Id);
+
+                Debug.Assert(city1.Persons.Count == city2.Persons.Count);
+                Debug.Assert(city1.Persons.Count == city3.Persons.Count);
+
+                for (int j = 0; j < city1.Persons.Count; j++)
+                {
+                    Person person1 = city1.Persons[j];
+                    Person person2 = city2.Persons[j];
+                    Person person3 = city3.Persons[j];
+
+                    Debug.Assert(person1.Id == person2.Id);
+                    Debug.Assert(person1.Id == person3.Id);
+
+                    Debug.Assert(person1.City == null);
+                    Debug.Assert(person2.City != null);  //因为 person2 和 person3 查询使用了 BindTwoWay()，所以会反向赋值
+                    Debug.Assert(person3.City != null);
+
+                    Debug.Assert(person2.City.Id == person3.City.Id);
+                }
+            }
+
+            //1:1:1
+            var personQuery1 = personQuery.Include(a => a.City).ThenInclude(a => a.Province).OrderBy(a => a.Id);
+            List<Person> persons1 = personQuery1.ToList();
+            List<Person> persons2 = personQuery1.SplitQuery().ToList();
+            List<Person> persons3 = personQuery1.SplitQuery().IgnoreAllFilters().AsTracking().ToList();
+
+            Debug.Assert(persons1.Count == persons2.Count);
+            Debug.Assert(persons1.Count == persons3.Count);
+
+            for (int i = 0; i < persons1.Count; i++)
+            {
+                Person person1 = persons1[i];
+                Person person2 = persons2[i];
+                Person person3 = persons3[i];
+
+                Debug.Assert(person1.Id == person2.Id);
+                Debug.Assert(person1.Id == person3.Id);
+
+                Debug.Assert(person1.City.Id == person2.City.Id);
+                Debug.Assert(person1.City.Id == person3.City.Id);
+
+                Debug.Assert(person1.City.Province.Id == person2.City.Province.Id);
+                Debug.Assert(person1.City.Province.Id == person3.City.Province.Id);
+            }
+
+            //排除字段测试
+            var cityQueryWithExcludeField = cityQuery.Exclude(a => a.Name)
+                .Include(a => a.Province).ExcludeField(a => a.Name)
+                .IncludeMany(a => a.Persons).ExcludeField(a => new { a.Age, a.Name })
+                .OrderBy(a => a.Id).SplitQuery();
+
+            var cities4 = cityQueryWithExcludeField.ToList();
+            for (int i = 0; i < cities4.Count; i++)
+            {
+                var city = cities4[i];
+                Debug.Assert(city.Name == null);
+                Debug.Assert(city.Province.Name == null);
+                Debug.Assert(city.Persons.Count > 0);
+                foreach (var person in city.Persons)
+                {
+                    Debug.Assert(person.Age == null);
+                    Debug.Assert(person.Name == null);
+                }
+            }
+
+            //分页+拆分查询测试
+            var cityQuery2 = cityQuery.IncludeAll().Where(a => a.Id > -9999).OrderBy(a => a.Id).TakePage(1, 2).SplitQuery();
+            var cityCount = cityQuery2.Count();
+            var cities5 = cityQuery2.ToList();
+
+            Debug.Assert(cities5.Count > 0);
+            Debug.Assert(cityCount == cities5.Count);
+
+            //未使用拆分查询
+            var cityQueryWithoutSplitQuery = cityQuery.IncludeAll().OrderBy(a => a.Id).ToList();
+            var cities6 = cityQuery2.ToList();
+
+            Debug.Assert(cities5.Count == cities6.Count);
+
+            for (int i = 0; i < cities5.Count; i++)
+            {
+                var city1 = cities5[i];
+                var city2 = cities6[i];
+                city1.Persons = city1.Persons.OrderBy(a => a.Id).ToList();
+                city2.Persons = city2.Persons.OrderBy(a => a.Id).ToList();
+
+                Debug.Assert(city1.Id == city2.Id);
+                Debug.Assert(city1.Id == city2.Id);
+
+                Debug.Assert(city1.Province.Id == city2.Province.Id);
+
+                Debug.Assert(city1.Persons.Count == city2.Persons.Count);
+
+                for (int j = 0; j < city1.Persons.Count; j++)
+                {
+                    Person person1 = city1.Persons[j];
+                    Person person2 = city2.Persons[j];
+
+                    Debug.Assert(person1.Id == person2.Id);
+                }
+            }
+
+            ConsoleHelper.WriteLineAndReadKey("SplitQuery over...");
+        }
+
         public virtual void Insert()
         {
             //lambda 插入
@@ -705,6 +890,9 @@ namespace ChloeDemo
              * INSERT INTO [Person]([Name],[Age],[Gender],[CityId],[CreateTime]) VALUES('Chloe',18,2,1,DATETIME('NOW','LOCALTIME'));SELECT LAST_INSERT_ROWID()
              */
 
+            string idNumber = Guid.NewGuid().ToString();
+            this.DbContext.Insert<PersonProfile>(() => new PersonProfile() { Id = id, IdNumber = idNumber, BirthDay = DateTime.Now });
+
             //实体插入
             Person person = new Person();
             person.Name = "Chloe";
@@ -712,9 +900,12 @@ namespace ChloeDemo
             person.Gender = Gender.Female;
             person.CityId = 1;
             person.CreateTime = DateTime.Now;
+            person.Profile = new PersonProfile() { IdNumber = Guid.NewGuid().ToString(), BirthDay = DateTime.Now };
 
             //会自动将自增 Id 设置到 person 的 Id 属性上
             person = this.DbContext.Insert(person);
+            person.Profile.Id = person.Id;
+            this.DbContext.Insert(person.Profile);
             /*
              * String @P_0 = 'Chloe';
                Gender @P_1 = Female;
@@ -733,12 +924,15 @@ namespace ChloeDemo
             person.CityId = 1;
             person.CreateTime = DateTime.Now;
             person.EditTime = null;
+            person.Profile = new PersonProfile() { IdNumber = Guid.NewGuid().ToString(), BirthDay = DateTime.Now };
 
             //设置属性值为 null 和字符串空值不参与插入
             (this.DbContext as DbContext).Options.InsertStrategy = InsertStrategy.IgnoreNull | InsertStrategy.IgnoreEmptyString;
 
             //插入时 Name 和 EditTime 属性不会生成到 sql 语句中
             person = this.DbContext.Insert(person);
+            person.Profile.Id = person.Id;
+            this.DbContext.Insert(person.Profile);
             /*
              * Input Int32 @P_0 = 2;
                Input Int32 @P_1 = 18;

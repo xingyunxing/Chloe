@@ -31,7 +31,7 @@ namespace ChloeDemo
             this.Property(a => a.CreateTime).UpdateIgnore(); //更新实体时不更新此字段
 
             /* 配置导航属性关系 */
-            this.HasOne(a => a.Ex, a => a.Id);
+            this.HasOne(a => a.Profile, a => a.Id);
             this.HasOne(a => a.City, a => a.CityId);
 
             this.Ignore(a => a.NotMapped);
@@ -56,18 +56,31 @@ namespace ChloeDemo
         }
     }
 
-    public class PersonExMap : EntityTypeBuilder<PersonEx>
+    public class PersonProfileMap : EntityTypeBuilder<PersonProfile>
     {
-        public PersonExMap()
+        public PersonProfileMap()
         {
-            this.MapTo("PersonEx");
+            this.MapTo("PersonProfile");
             this.Property(a => a.Id).IsPrimaryKey().IsAutoIncrement(false);
 
             /* 配置导航属性关系 */
-            this.HasOne(a => a.Owner).WithForeignKey(a => a.Id);
+            this.HasOne(a => a.Person).WithForeignKey(a => a.Id);
+            this.HasMany(a => a.Annexes);
 
             /* global filter */
             this.HasQueryFilter(a => a.Id > -1);
+        }
+    }
+
+    public class ProfileAnnexMap : EntityTypeBuilder<ProfileAnnex>
+    {
+        public ProfileAnnexMap()
+        {
+            this.MapTo("ProfileAnnex");
+            this.Property(a => a.Id).IsPrimaryKey();
+
+            /* 配置导航属性关系 */
+            this.HasOne(a => a.Owner).WithForeignKey(a => a.ProfileId);
         }
     }
 
@@ -75,6 +88,8 @@ namespace ChloeDemo
     {
         public CityMap()
         {
+            this.Property(a => a.Id).IsPrimaryKey().IsAutoIncrement(false);
+
             /* 配置导航属性关系 */
             this.HasMany(a => a.Persons);
             this.HasOne(a => a.Province).WithForeignKey(a => a.ProvinceId);
@@ -88,6 +103,8 @@ namespace ChloeDemo
     {
         public ProvinceMap()
         {
+            this.Property(a => a.Id).IsPrimaryKey().IsAutoIncrement(false);
+
             /* 配置导航属性关系 */
             this.HasMany(a => a.Cities);
 

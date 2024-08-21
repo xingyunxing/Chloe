@@ -35,9 +35,9 @@ namespace ChloeDemo
     [TableAttribute("Person")]
     public class Person : EntityBase
     {
-        /* 1:1，注：PersonEx 那边也要做相应的配置 */
+        /* 1:1，注：PersonProfile 那边也要做相应的配置 */
         [Navigation("Id")]
-        public PersonEx Ex { get; set; }
+        public PersonProfile Profile { get; set; }
 
         /* 1:1，注：City 那边也要做相应的配置 */
         [Chloe.Annotations.NavigationAttribute("CityId")]
@@ -70,11 +70,17 @@ namespace ChloeDemo
         public string NotMapped { get; set; }
     }
 
-    public class PersonEx
+    public class PersonProfile
     {
         /* 1:1，注：Person 那边也要做相应的配置 */
         [Navigation("Id")]
-        public Person Owner { get; set; }  /* 1:1 */
+        public Person Person { get; set; }  /* 1:1 */
+
+        /// <summary>
+        /// 附件
+        /// </summary>
+        [Navigation()]
+        public List<ProfileAnnex> Annexes { get; set; } = new List<ProfileAnnex>();
 
         [Column(IsPrimaryKey = true)]
         [NonAutoIncrement]
@@ -83,8 +89,27 @@ namespace ChloeDemo
         public DateTime? BirthDay { get; set; }
     }
 
+    public class ProfileAnnex
+    {
+        [Navigation(nameof(ProfileAnnex.ProfileId))]
+        public PersonProfile Owner { get; set; }
+
+        [Column(IsPrimaryKey = true)]
+        [AutoIncrement]
+        public int Id { get; set; }
+        public int ProfileId { get; set; }
+        public string FilePath { get; set; }
+    }
+
     public class City : EntityBase
     {
+        /// <summary>
+        /// 实体id
+        /// </summary>
+        [Column(IsPrimaryKey = true)]
+        [NonAutoIncrement]
+        public override int Id { get; set; }
+
         public string Name { get; set; }
         public int ProvinceId { get; set; }
 
@@ -99,6 +124,13 @@ namespace ChloeDemo
 
     public class Province : EntityBase
     {
+        /// <summary>
+        /// 实体id
+        /// </summary>
+        [Column(IsPrimaryKey = true)]
+        [NonAutoIncrement]
+        public override int Id { get; set; }
+
         public string Name { get; set; }
 
         /* 1:N，注：City 那边也要做相应的配置 */
