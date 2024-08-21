@@ -672,6 +672,17 @@ namespace ChloeDemo
 
             result = this.DbContext.Query<City>().IncludeMany(a => a.Persons).Filter(a => a.Age > 18).ToList();
 
+            //未 Include a.City，但依然可以在表达式树中使用 a.City 相关的属性
+            List<Person> persons = this.DbContext.Query<Person>().Where(a => a.City.Name == "广州").ToList();
+            /*生成的 sql 中自动加上相关的 join 子句
+             SELECT `T`.`Name`,`T`.`Gender`,`T`.`Age`,`T`.`CityId`,`T`.`CreateTime`,`T`.`EditTime`,`T`.`RowVersion`,`T`.`Id` FROM `Person` AS `T` INNER JOIN `City` AS `T0` ON `T`.`CityId` = `T0`.`Id` WHERE `T0`.`Name` = N'广州'
+             */
+
+            foreach (Person person in persons)
+            {
+                Debug.Assert(person.City == null);
+            }
+
             ConsoleHelper.WriteLineAndReadKey("QueryWithNavigation over...");
         }
 
