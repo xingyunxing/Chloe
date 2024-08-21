@@ -1,4 +1,5 @@
 ﻿using Chloe.Descriptors;
+using System.Collections;
 using System.Reflection;
 
 namespace Chloe.Core
@@ -41,7 +42,7 @@ namespace Chloe.Core
                 return !AreEqual((byte[])oldVal, (byte[])val);
             }
 
-            return !PublicHelper.AreEqual(oldVal, val);
+            return !object.Equals(oldVal, val);
         }
         public void Refresh()
         {
@@ -81,21 +82,7 @@ namespace Chloe.Core
             if (obj1 == obj2)
                 return true;
 
-            if (obj1 != null && obj2 != null)
-            {
-                if (obj1.Length != obj2.Length)
-                    return false;
-
-                for (int i = 0; i < obj1.Length; i++)
-                {
-                    if (obj1[i] != obj2[i])
-                        return false;
-                }
-
-                return true;
-            }
-
-            return false;
+            return (obj1 as IStructuralEquatable).Equals(obj2, StructuralComparisons.StructuralEqualityComparer);
         }
     }
 }

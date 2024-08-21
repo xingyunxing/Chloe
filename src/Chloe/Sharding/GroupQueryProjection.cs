@@ -34,7 +34,7 @@ namespace Chloe.Sharding
                 var keyValueX = valueGetter(x);
                 var keyValueY = valueGetter(y);
 
-                bool equal = PublicHelper.AreEqual(keyValueX, keyValueY);
+                bool equal = object.Equals(keyValueX, keyValueY);
                 if (!equal)
                 {
                     return false;

@@ -76,7 +76,7 @@ namespace Chloe
                 }
 
                 DbParam p;
-                p = parameters.Where(a => PublicHelper.AreEqual(a.Value, paramValue)).FirstOrDefault();
+                p = parameters.Where(a => object.Equals(a.Value, paramValue)).FirstOrDefault();
 
                 if (p != null)
                 {
