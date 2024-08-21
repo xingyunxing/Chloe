@@ -32,7 +32,7 @@ namespace Chloe.Query.SplitQuery
             this._thisSideNavigationDescriptor = queryNode.ElementTypeDescriptor.ComplexPropertyDescriptors.Where(a => a.PropertyType == queryNode.Owner.ElementTypeDescriptor.EntityType).FirstOrDefault();
             if (this._thisSideNavigationDescriptor == null)
             {
-                throw new ChloeException($"You have to define a navigation property which type is '{queryNode.ElementType.FullName}' on class '{queryNode.ElementTypeDescriptor.Definition.Type.FullName}'.");
+                throw new ChloeException($"You have to define a navigation property which type is '{queryNode.Owner.ElementTypeDescriptor.EntityType.FullName}' on class '{queryNode.ElementTypeDescriptor.Definition.Type.FullName}'.");
             }
 
             this._stuffer = new CollectionStuffer(this, this._thisSideNavigationDescriptor, this._ownerIdDescriptor);

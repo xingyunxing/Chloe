@@ -9,10 +9,8 @@ namespace Chloe.Query.SplitQuery
         QueryContext _queryContext;
         IEnumerable<object> _entities;
 
-        SplitQueryExecutor _ownerQueryExecutor;
-        ComplexPropertyDescriptor _propertyDescriptor;
-
         SplitQueryNavigationNode _queryNode;
+        SplitQueryExecutor _ownerQueryExecutor;
 
         public ComplexNavigationQueryExecutor(QueryContext queryContext, SplitQueryNavigationNode queryNode, SplitQueryExecutor ownerQueryExecutor, List<SplitQueryExecutor> navigationQueryExecutors) : base(navigationQueryExecutors)
         {
@@ -36,7 +34,8 @@ namespace Chloe.Query.SplitQuery
 
         public override async Task ExecuteQuery(bool @async)
         {
-            this._entities = this._ownerQueryExecutor.Entities.Select(a => this._propertyDescriptor.GetValue(a)).Where(a => a != null); //因为做了 null 过滤，所以有可能 this.EntityCount != this.Entities.Count()
+            ComplexPropertyDescriptor propertyDescriptor = (ComplexPropertyDescriptor)this._queryNode.PropertyDescriptor;
+            this._entities = this._ownerQueryExecutor.Entities.Select(a => propertyDescriptor.GetValue(a)).Where(a => a != null); //因为做了 null 过滤，所以有可能 this.EntityCount != this.Entities.Count()
             await base.ExecuteQuery(@async);
         }
 
@@ -80,11 +79,11 @@ namespace Chloe.Query.SplitQuery
             }
 
             //a.Owner
-            ComplexPropertyDescriptor navigationDescriptor = queryNode.ElementTypeDescriptor.ComplexPropertyDescriptors.Where(a => a.PropertyType == queryNode.ElementType).FirstOrDefault();
+            ComplexPropertyDescriptor navigationDescriptor = queryNode.ElementTypeDescriptor.ComplexPropertyDescriptors.Where(a => a.PropertyType == queryNode.Owner.ElementTypeDescriptor.EntityType).FirstOrDefault();
 
             if (navigationDescriptor == null)
             {
-                throw new ChloeException($"You have to define a navigation property which type is '{queryNode.ElementType.FullName}' on class '{queryNode.ElementTypeDescriptor.Definition.Type.FullName}'.");
+                throw new ChloeException($"You have to define a navigation property which type is '{queryNode.Owner.ElementTypeDescriptor.EntityType.FullName}' on class '{queryNode.ElementTypeDescriptor.Definition.Type.FullName}'.");
             }
 
             IQuery dependQuery = this._ownerQueryExecutor.GetDependQuery();
