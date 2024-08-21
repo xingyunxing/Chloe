@@ -5,6 +5,7 @@ using Chloe.PostgreSQL;
 using Chloe.Reflection.Emit;
 using Chloe.Sharding;
 using Chloe.Sharding.Routing;
+using Chloe.Visitors;
 using ChloeDemo.Sharding;
 using Microsoft.Extensions.Primitives;
 using System;
@@ -44,7 +45,8 @@ namespace ChloeDemo
 
             /* fluent mapping */
             DbConfiguration.UseTypeBuilders(typeof(PersonMap));
-            DbConfiguration.UseTypeBuilders(typeof(PersonExMap));
+            DbConfiguration.UseTypeBuilders(typeof(PersonProfileMap));
+            DbConfiguration.UseTypeBuilders(typeof(ProfileAnnexMap));
             DbConfiguration.UseTypeBuilders(typeof(CityMap));
             DbConfiguration.UseTypeBuilders(typeof(ProvinceMap));
             DbConfiguration.UseTypeBuilders(typeof(TestEntityMap));
