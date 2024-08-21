@@ -668,19 +668,8 @@ namespace Chloe.Query
             DbJoinType joinType = DbJoinType.LeftJoin;
             if (!foreignKeyPropertyDescriptor.IsNullable)
             {
-                //如果外键是可空类型，使用 InnerJoin 连接
-                if (this.AssociatedTable is DbFromTableExpression)
-                {
-                    joinType = DbJoinType.InnerJoin;
-                }
-                else
-                {
-                    DbJoinTableExpression prevJoinTable = (DbJoinTableExpression)this.AssociatedTable;
-                    if (prevJoinTable.JoinType == DbJoinType.InnerJoin)
-                    {
-                        joinType = DbJoinType.InnerJoin;
-                    }
-                }
+                //如果外键是不可空类型，使用 InnerJoin 连接
+                joinType = DbJoinType.InnerJoin;
             }
 
             DbJoinTableExpression joinTableExp = new DbJoinTableExpression(joinType, joinTableSeg, joinCondition);

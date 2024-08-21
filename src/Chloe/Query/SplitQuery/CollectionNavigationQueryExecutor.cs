@@ -132,12 +132,12 @@ namespace Chloe.Query.SplitQuery
             if (!ignoreIncludedNavigations)
                 query = IncludeNavigation(query, queryNode, false);
 
-            //if (this._ownerQueryExecutor.EntityCount != 0 && this._ownerQueryExecutor.EntityCount <= 512)
-            //{
-            //    //少于一定数量，直接用 in 查询
-            //    query = this.MakeInQuery(query, this._thisSideNavigationDescriptor);
-            //    return query;
-            //}
+            if (this._ownerQueryExecutor.EntityCount != 0 && this._ownerQueryExecutor.EntityCount <= 512)
+            {
+                //少于一定数量，直接用 in 查询
+                query = this.MakeInQuery(query, this._thisSideNavigationDescriptor);
+                return query;
+            }
 
             IQuery dependQuery = this._ownerQueryExecutor.GetDependQuery();
 
