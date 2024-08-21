@@ -1,6 +1,5 @@
 ﻿using Chloe.Infrastructure;
 using Chloe.QueryExpressions;
-using Chloe.Reflection;
 using Chloe.Visitors;
 using Chloe.Descriptors;
 
@@ -151,8 +150,6 @@ namespace Chloe.Query.SplitQuery
         {
             this._rootNode.BindTwoWay = true;
         }
-
-
 
     }
 }
