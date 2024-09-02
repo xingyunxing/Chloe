@@ -119,6 +119,9 @@ namespace ChloeDemo
         {
             this.Property(a => a.Id).IsAutoIncrement().IsPrimaryKey();
 
+            //oralce 暂时不支持 guid
+            this.Ignore(a => a.F_Guid);
+
             /* global filter */
             this.HasQueryFilter(a => a.Id > 0);
         }
@@ -128,8 +131,7 @@ namespace ChloeDemo
     {
         public OracleTestEntityMap()
         {
-            //oralce 暂时不支持 guid
-            this.Ignore(a => a.F_Guid);
+
 
             //可以指定序列名
             //this.Property(a => a.Id).HasSequence("TestEntity_AutoId", null);

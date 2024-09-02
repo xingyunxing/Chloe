@@ -23,7 +23,8 @@ namespace ChloeDemo
 
         protected override IDbContext CreateDbContext()
         {
-            IDbContext dbContext = new OracleContext(new OracleConnectionFactory("Data Source=localhost/Chloe;User ID=system;Password=sasa;"));
+            OracleContext dbContext = new OracleContext(new OracleConnectionFactory("Data Source=localhost/FREE;User ID=system;Password=sasa;"));
+            dbContext.Options.DefaultBatchSizeForInsertRange = 200; //设置一下oracle插入时每批实体个数，不然一次插入太多会报错
 
             return dbContext;
         }

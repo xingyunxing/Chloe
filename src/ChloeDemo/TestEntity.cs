@@ -18,6 +18,9 @@ namespace ChloeDemo
         public decimal? F_Decimal { get; set; }
         public bool? F_Bool { get; set; }
         public DateTime? F_DateTime { get; set; }
+
+        //oralce 暂时不支持 guid
+        [NotMapped]
         public Guid? F_Guid { get; set; }
         public string F_String { get; set; }
         public Gender? F_Enum { get; set; }
