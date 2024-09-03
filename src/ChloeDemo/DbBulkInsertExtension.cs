@@ -69,7 +69,7 @@ namespace System.Common.Data
         /// </summary>
         public static async Task BulkInsertAsync<T>(OracleContext source, List<T> entities, int? batchSize = null, int? bulkCopyTimeout = null)
         {
-#if !NET8
+#if !NETCORE
             throw new NotSupportedException();
 #else
             DataTable dt = null;
