@@ -26,16 +26,7 @@ namespace Chloe.Dameng
 
         protected override DbContext CloneImpl()
         {
-            DamengOptions options = new DamengOptions()
-            {
-                DbConnectionFactory = this.Options.DbConnectionFactory,
-                InsertStrategy = this.Options.InsertStrategy,
-                MaxNumberOfParameters = this.Options.MaxNumberOfParameters,
-                MaxInItems = this.Options.MaxInItems,
-                DefaultBatchSizeForInsertRange = this.Options.DefaultBatchSizeForInsertRange
-            };
-
-            DamengContext dbContext = new DamengContext(options);
+            DamengContext dbContext = new DamengContext(this.Options.Clone());
             return dbContext;
         }
 

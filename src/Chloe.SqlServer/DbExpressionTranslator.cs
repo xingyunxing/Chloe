@@ -37,6 +37,7 @@ namespace Chloe.SqlServer
                 LeftQuoteChar = UtilConstants.LeftQuoteChar,
                 RightQuoteChar = UtilConstants.RightQuoteChar,
                 MaxInItems = this.ContextProvider.Options.MaxInItems,
+                RegardEmptyStringAsNull = this.ContextProvider.Options.RegardEmptyStringAsNull,
                 PagingMode = this.ContextProvider.Options.PagingMode,
                 BindParameterByName = this.ContextProvider.Options.BindParameterByName
             };

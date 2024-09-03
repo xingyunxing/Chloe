@@ -37,6 +37,7 @@ namespace Chloe.Oracle
                 LeftQuoteChar = UtilConstants.LeftQuoteChar,
                 RightQuoteChar = UtilConstants.RightQuoteChar,
                 MaxInItems = this.ContextProvider.Options.MaxInItems,
+                RegardEmptyStringAsNull = this.ContextProvider.Options.RegardEmptyStringAsNull,
                 ConvertToUppercase = this.ContextProvider.Options.ConvertToUppercase
             };
 

@@ -676,7 +676,7 @@ namespace Chloe.Query
                 else
                 {
                     DbJoinTableExpression prevJoinTable = (DbJoinTableExpression)this.AssociatedTable;
-                    //如果前一个表不是 inner join，此表用也不能用 inner join，否则有可能查不出数据
+                    //如果前一个表不是 inner join，此表也不能用 inner join，否则有可能查不出数据
                     if (prevJoinTable.JoinType == DbJoinType.InnerJoin)
                     {
                         joinType = DbJoinType.InnerJoin;

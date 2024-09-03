@@ -7,5 +7,20 @@ namespace Chloe.MySql
         {
 
         }
+
+        public MySqlOptions Clone()
+        {
+            MySqlOptions options = new MySqlOptions()
+            {
+                DbConnectionFactory = this.DbConnectionFactory,
+                InsertStrategy = this.InsertStrategy,
+                MaxNumberOfParameters = this.MaxNumberOfParameters,
+                MaxInItems = this.MaxInItems,
+                DefaultBatchSizeForInsertRange = this.DefaultBatchSizeForInsertRange,
+                RegardEmptyStringAsNull = this.RegardEmptyStringAsNull
+            };
+
+            return options;
+        }
     }
 }

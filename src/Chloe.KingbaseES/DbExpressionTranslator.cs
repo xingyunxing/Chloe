@@ -37,6 +37,7 @@ namespace Chloe.KingbaseES
                 LeftQuoteChar = UtilConstants.LeftQuoteChar,
                 RightQuoteChar = UtilConstants.RightQuoteChar,
                 MaxInItems = this.ContextProvider.Options.MaxInItems,
+                RegardEmptyStringAsNull = this.ContextProvider.Options.RegardEmptyStringAsNull,
                 ConvertToLowercase = this.ContextProvider.Options.ConvertToLowercase
             };
 

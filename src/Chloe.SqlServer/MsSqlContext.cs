@@ -31,18 +31,7 @@ namespace Chloe.SqlServer
 
         protected override DbContext CloneImpl()
         {
-            MsSqlOptions options = new MsSqlOptions()
-            {
-                DbConnectionFactory = this.Options.DbConnectionFactory,
-                InsertStrategy = this.Options.InsertStrategy,
-                MaxNumberOfParameters = this.Options.MaxNumberOfParameters,
-                MaxInItems = this.Options.MaxInItems,
-                DefaultBatchSizeForInsertRange = this.Options.DefaultBatchSizeForInsertRange,
-                PagingMode = this.Options.PagingMode,
-                BindParameterByName = this.Options.BindParameterByName
-            };
-
-            MsSqlContext dbContext = new MsSqlContext(options);
+            MsSqlContext dbContext = new MsSqlContext(this.Options.Clone());
             return dbContext;
         }
 

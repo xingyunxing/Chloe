@@ -25,17 +25,7 @@ namespace Chloe.KingbaseES
 
         protected override DbContext CloneImpl()
         {
-            KingbaseESOptions options = new KingbaseESOptions()
-            {
-                DbConnectionFactory = this.Options.DbConnectionFactory,
-                InsertStrategy = this.Options.InsertStrategy,
-                MaxNumberOfParameters = this.Options.MaxNumberOfParameters,
-                MaxInItems = this.Options.MaxInItems,
-                DefaultBatchSizeForInsertRange = this.Options.DefaultBatchSizeForInsertRange,
-                ConvertToLowercase = this.Options.ConvertToLowercase
-            };
-
-            KingbaseESContext dbContext = new KingbaseESContext(options);
+            KingbaseESContext dbContext = new KingbaseESContext(this.Options.Clone());
             return dbContext;
         }
 

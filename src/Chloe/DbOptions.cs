@@ -39,5 +39,10 @@ namespace Chloe
         /// 执行 InsertRange 插入数据时，默认分批插入的数据条数
         /// </summary>
         public int DefaultBatchSizeForInsertRange { get; set; } = 10000;
+
+        /// <summary>
+        /// 是否将空字符串视为 null
+        /// </summary>
+        public bool RegardEmptyStringAsNull { get; set; }
     }
 }

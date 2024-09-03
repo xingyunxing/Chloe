@@ -25,17 +25,7 @@ namespace Chloe.Oracle
 
         protected override DbContext CloneImpl()
         {
-            OracleOptions options = new OracleOptions()
-            {
-                DbConnectionFactory = this.Options.DbConnectionFactory,
-                InsertStrategy = this.Options.InsertStrategy,
-                MaxNumberOfParameters = this.Options.MaxNumberOfParameters,
-                MaxInItems = this.Options.MaxInItems,
-                DefaultBatchSizeForInsertRange = this.Options.DefaultBatchSizeForInsertRange,
-                ConvertToUppercase = this.Options.ConvertToUppercase
-            };
-
-            OracleContext dbContext = new OracleContext(options);
+            OracleContext dbContext = new OracleContext(this.Options.Clone());
             return dbContext;
         }
 

@@ -8,5 +8,20 @@ namespace Chloe.Dameng
             this.MaxNumberOfParameters = 32767;
             this.MaxInItems = 2048;
         }
+
+        public DamengOptions Clone()
+        {
+            DamengOptions options = new DamengOptions()
+            {
+                DbConnectionFactory = this.DbConnectionFactory,
+                InsertStrategy = this.InsertStrategy,
+                MaxNumberOfParameters = this.MaxNumberOfParameters,
+                MaxInItems = this.MaxInItems,
+                DefaultBatchSizeForInsertRange = this.DefaultBatchSizeForInsertRange,
+                RegardEmptyStringAsNull = this.RegardEmptyStringAsNull
+            };
+
+            return options;
+        }
     }
 }

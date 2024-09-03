@@ -19,5 +19,22 @@ namespace Chloe.SqlServer
         /// 默认值为 true。
         /// </summary>
         public bool BindParameterByName { get; set; } = true;
+
+        public MsSqlOptions Clone()
+        {
+            MsSqlOptions options = new MsSqlOptions()
+            {
+                DbConnectionFactory = this.DbConnectionFactory,
+                InsertStrategy = this.InsertStrategy,
+                MaxNumberOfParameters = this.MaxNumberOfParameters,
+                MaxInItems = this.MaxInItems,
+                DefaultBatchSizeForInsertRange = this.DefaultBatchSizeForInsertRange,
+                RegardEmptyStringAsNull = this.RegardEmptyStringAsNull,
+                PagingMode = this.PagingMode,
+                BindParameterByName = this.BindParameterByName
+            };
+
+            return options;
+        }
     }
 }

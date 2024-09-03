@@ -25,17 +25,7 @@ namespace Chloe.SQLite
 
         protected override DbContext CloneImpl()
         {
-            SQLiteOptions options = new SQLiteOptions()
-            {
-                DbConnectionFactory = this.Options.DbConnectionFactory,
-                InsertStrategy = this.Options.InsertStrategy,
-                MaxNumberOfParameters = this.Options.MaxNumberOfParameters,
-                MaxInItems = this.Options.MaxInItems,
-                DefaultBatchSizeForInsertRange = this.Options.DefaultBatchSizeForInsertRange,
-                ConcurrencyMode = this.Options.ConcurrencyMode
-            };
-
-            SQLiteContext dbContext = new SQLiteContext(options);
+            SQLiteContext dbContext = new SQLiteContext(this.Options.Clone());
             return dbContext;
         }
 

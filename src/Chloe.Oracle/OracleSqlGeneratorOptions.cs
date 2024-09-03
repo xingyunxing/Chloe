@@ -6,7 +6,7 @@ namespace Chloe.Oracle
     {
         public OracleSqlGeneratorOptions()
         {
-            this.RegardEmptyStringAsNull = true;
+
         }
 
         /// <summary>

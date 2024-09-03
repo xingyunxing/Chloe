@@ -25,16 +25,7 @@ namespace Chloe.MySql
 
         protected override DbContext CloneImpl()
         {
-            MySqlOptions options = new MySqlOptions()
-            {
-                DbConnectionFactory = this.Options.DbConnectionFactory,
-                InsertStrategy = this.Options.InsertStrategy,
-                MaxNumberOfParameters = this.Options.MaxNumberOfParameters,
-                MaxInItems = this.Options.MaxInItems,
-                DefaultBatchSizeForInsertRange = this.Options.DefaultBatchSizeForInsertRange
-            };
-
-            MySqlContext dbContext = new MySqlContext(options);
+            MySqlContext dbContext = new MySqlContext(this.Options.Clone());
             return dbContext;
         }
 

@@ -38,7 +38,8 @@ namespace Chloe.Dameng
             {
                 LeftQuoteChar = UtilConstants.LeftQuoteChar,
                 RightQuoteChar = UtilConstants.RightQuoteChar,
-                MaxInItems = this.ContextProvider.Options.MaxInItems
+                MaxInItems = this.ContextProvider.Options.MaxInItems,
+                RegardEmptyStringAsNull = this.ContextProvider.Options.RegardEmptyStringAsNull
             };
 
             return options;

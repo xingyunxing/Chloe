@@ -25,17 +25,7 @@ namespace Chloe.PostgreSQL
 
         protected override DbContext CloneImpl()
         {
-            PostgreSQLOptions options = new PostgreSQLOptions()
-            {
-                DbConnectionFactory = this.Options.DbConnectionFactory,
-                InsertStrategy = this.Options.InsertStrategy,
-                MaxNumberOfParameters = this.Options.MaxNumberOfParameters,
-                MaxInItems = this.Options.MaxInItems,
-                DefaultBatchSizeForInsertRange = this.Options.DefaultBatchSizeForInsertRange,
-                ConvertToLowercase = this.Options.ConvertToLowercase
-            };
-
-            PostgreSQLContext dbContext = new PostgreSQLContext(options);
+            PostgreSQLContext dbContext = new PostgreSQLContext(this.Options.Clone());
             return dbContext;
         }
 
