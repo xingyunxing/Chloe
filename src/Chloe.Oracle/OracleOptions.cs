@@ -7,7 +7,7 @@ namespace Chloe.Oracle
         {
             this.MaxNumberOfParameters = 32767;
             this.MaxInItems = 1000;
-            this.RegardEmptyStringAsNull = true;
+            this.TreatEmptyStringAsNull = true;
         }
 
         /// <summary>
@@ -24,7 +24,7 @@ namespace Chloe.Oracle
                 MaxNumberOfParameters = this.MaxNumberOfParameters,
                 MaxInItems = this.MaxInItems,
                 DefaultBatchSizeForInsertRange = this.DefaultBatchSizeForInsertRange,
-                RegardEmptyStringAsNull = this.RegardEmptyStringAsNull,
+                TreatEmptyStringAsNull = this.TreatEmptyStringAsNull,
                 ConvertToUppercase = this.ConvertToUppercase
             };
 

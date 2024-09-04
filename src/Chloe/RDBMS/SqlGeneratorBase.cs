@@ -89,7 +89,7 @@ namespace Chloe.RDBMS
             DbMethodCallExpression left_not_equals_right = new DbMethodCallExpression(null, method_Sql_IsNotEqual, new List<DbExpression>(2) { left, right });
 
             //明确 left right 其中一边一定为 null
-            if (DbExpressionExtension.AffirmExpressionRetValueIsNull(right, this.Options.RegardEmptyStringAsNull) || DbExpressionExtension.AffirmExpressionRetValueIsNull(left, this.Options.RegardEmptyStringAsNull))
+            if (DbExpressionExtension.AffirmExpressionRetValueIsNull(right, this.Options.TreatEmptyStringAsNull) || DbExpressionExtension.AffirmExpressionRetValueIsNull(left, this.Options.TreatEmptyStringAsNull))
             {
                 /*
                  * a.Name != null --> a.Name != null

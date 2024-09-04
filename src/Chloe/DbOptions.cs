@@ -41,8 +41,8 @@ namespace Chloe
         public int DefaultBatchSizeForInsertRange { get; set; } = 10000;
 
         /// <summary>
-        /// 是否将空字符串视为 null
+        /// 是否将空字符串当作 null 处理
         /// </summary>
-        public bool RegardEmptyStringAsNull { get; set; }
+        public bool TreatEmptyStringAsNull { get; set; }
     }
 }

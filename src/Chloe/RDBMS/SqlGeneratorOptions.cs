@@ -17,8 +17,8 @@
         public int MaxInItems { get; set; } = int.MaxValue;
 
         /// <summary>
-        /// 是否将空字符串视为 null
+        /// 是否将空字符串当作 null 处理
         /// </summary>
-        public bool RegardEmptyStringAsNull { get; set; }
+        public bool TreatEmptyStringAsNull { get; set; }
     }
 }

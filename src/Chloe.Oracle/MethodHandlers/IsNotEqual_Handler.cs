@@ -15,14 +15,14 @@ namespace Chloe.Oracle.MethodHandlers
             right = DbExpressionExtension.StripInvalidConvert(right);
 
             //明确 left right 其中一边一定为 null
-            if (DbExpressionExtension.AffirmExpressionRetValueIsNull(right, generator.Options.RegardEmptyStringAsNull))
+            if (DbExpressionExtension.AffirmExpressionRetValueIsNull(right, generator.Options.TreatEmptyStringAsNull))
             {
                 left.Accept(generator);
                 generator.SqlBuilder.Append(" IS NOT NULL");
                 return;
             }
 
-            if (DbExpressionExtension.AffirmExpressionRetValueIsNull(left, generator.Options.RegardEmptyStringAsNull))
+            if (DbExpressionExtension.AffirmExpressionRetValueIsNull(left, generator.Options.TreatEmptyStringAsNull))
             {
                 right.Accept(generator);
                 generator.SqlBuilder.Append(" IS NOT NULL");

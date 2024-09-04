@@ -87,6 +87,7 @@ namespace ChloeDemo.Sharding
         {
             string connString = this.GetConnString(year);
             DbContext dbContext = new OracleContext(new OracleConnectionFactory(connString));
+            dbContext.Options.DefaultBatchSizeForInsertRange = 200;
             return dbContext;
         }
 

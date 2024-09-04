@@ -39,7 +39,7 @@ namespace Chloe.Dameng
                 LeftQuoteChar = UtilConstants.LeftQuoteChar,
                 RightQuoteChar = UtilConstants.RightQuoteChar,
                 MaxInItems = this.ContextProvider.Options.MaxInItems,
-                RegardEmptyStringAsNull = this.ContextProvider.Options.RegardEmptyStringAsNull
+                TreatEmptyStringAsNull = this.ContextProvider.Options.TreatEmptyStringAsNull
             };
 
             return options;

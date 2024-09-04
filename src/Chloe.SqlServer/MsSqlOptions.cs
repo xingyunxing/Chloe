@@ -29,7 +29,7 @@ namespace Chloe.SqlServer
                 MaxNumberOfParameters = this.MaxNumberOfParameters,
                 MaxInItems = this.MaxInItems,
                 DefaultBatchSizeForInsertRange = this.DefaultBatchSizeForInsertRange,
-                RegardEmptyStringAsNull = this.RegardEmptyStringAsNull,
+                TreatEmptyStringAsNull = this.TreatEmptyStringAsNull,
                 PagingMode = this.PagingMode,
                 BindParameterByName = this.BindParameterByName
             };

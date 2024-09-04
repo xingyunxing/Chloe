@@ -20,7 +20,7 @@
                 MaxNumberOfParameters = this.MaxNumberOfParameters,
                 MaxInItems = this.MaxInItems,
                 DefaultBatchSizeForInsertRange = this.DefaultBatchSizeForInsertRange,
-                RegardEmptyStringAsNull = this.RegardEmptyStringAsNull,
+                TreatEmptyStringAsNull = this.TreatEmptyStringAsNull,
                 ConvertToLowercase = this.ConvertToLowercase
             };
 

@@ -20,7 +20,7 @@ namespace Chloe.RDBMS.MethodHandlers
             DbEqualExpression equalNullExpression = new DbEqualExpression(e, DbConstantExpression.StringNull);
             expression = equalNullExpression;
 
-            if (!generator.Options.RegardEmptyStringAsNull)
+            if (!generator.Options.TreatEmptyStringAsNull)
             {
                 DbEqualExpression equalEmptyExpression = new DbEqualExpression(e, DbConstantExpression.StringEmpty);
                 DbOrExpression orExpression = new DbOrExpression(equalNullExpression, equalEmptyExpression);
