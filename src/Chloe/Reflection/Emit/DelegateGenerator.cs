@@ -308,7 +308,7 @@ namespace Chloe.Reflection.Emit
                     var convertedValue = Expression.Call(Expression.Constant(memberMap.DbValueConverter), convertMethod, value);
 
                     /*
-                     * if(value == null)
+                     * if(value != null)
                      * {
                      *      value = mapInfo.DbValueConverter.Convert(value);
                      * }
