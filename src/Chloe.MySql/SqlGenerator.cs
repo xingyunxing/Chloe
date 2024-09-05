@@ -35,7 +35,7 @@ namespace Chloe.MySql
             CastTypeMap = PublicHelper.Clone(castTypeMap);
 
 
-            int cacheParameterNameCount = 2 * 12;
+            int cacheParameterNameCount = 4 * 12;
             List<string> cacheParameterNames = new List<string>(cacheParameterNameCount);
             for (int i = 0; i < cacheParameterNameCount; i++)
             {

@@ -166,7 +166,7 @@ namespace Chloe.SqlServer
             {
                 dbCommandInfo = translator.Translate(insertExpression);
 
-                /* 自增 id 不能用 output  inserted.Id 输出，因为如果表设置了触发器的话会报错 */
+                /* 自增 id 不能用 output inserted.Id 输出，因为如果表设置了触发器的话会报错 */
                 dbCommandInfo.CommandText = string.Concat(dbCommandInfo.CommandText, ";", this.GetSelectLastInsertIdClause());
                 mappers.Add(PublicHelper.GetMapper<TEntity>(outputColumns[0], 0));
             }
@@ -272,7 +272,7 @@ namespace Chloe.SqlServer
 
             if (keyPropertyDescriptor.IsAutoIncrement)
             {
-                /* 自增 id 不能用 output  inserted.Id 输出，因为如果表设置了触发器的话会报错 */
+                /* 自增 id 不能用 output inserted.Id 输出，因为如果表设置了触发器的话会报错 */
                 dbCommandInfo.CommandText = string.Concat(dbCommandInfo.CommandText, ";", this.GetSelectLastInsertIdClause());
             }
             else if (keyPropertyDescriptor.HasSequence())

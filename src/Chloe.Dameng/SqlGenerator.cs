@@ -33,7 +33,7 @@ namespace Chloe.Dameng
             castTypeMap.Add(typeof(Guid), "VARCHAR(36)");
             CastTypeMap = PublicHelper.Clone(castTypeMap);
 
-            int cacheParameterNameCount = 2 * 12;
+            int cacheParameterNameCount = 4 * 12;
             List<string> cacheParameterNames = new List<string>(cacheParameterNameCount);
             for (int i = 0; i < cacheParameterNameCount; i++)
             {
