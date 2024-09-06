@@ -98,7 +98,7 @@ namespace Chloe.DbExpressions
             hash.Add(dbColumn.Scale);
             hash.Add(dbColumn.Precision);
 
-            return hash.GetHashCode();
+            return hash.ToHashCode();
         }
     }
 
