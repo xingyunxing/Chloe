@@ -162,7 +162,7 @@ namespace Chloe
         public static DbParam[] BuildParams(DbContextProvider dbContextProvider, object parameter)
         {
             if (parameter == null)
-                return new DbParam[0];
+                return Array.Empty<DbParam>();
 
             if (parameter is IEnumerable<DbParam>)
             {

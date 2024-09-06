@@ -2,3 +2,18 @@
 
 # CS1591: 缺少对公共可见类型或成员的 XML 注释
 dotnet_diagnostic.CS1591.severity = none
+
+# 简化 new 表达式 (IDE0090)
+dotnet_diagnostic.IDE0090.severity = none
+
+# 使用模式匹配来避免 as 后跟 null 检查 (IDE0019)
+dotnet_diagnostic.IDE0019.severity = none
+
+# 添加 readonly 修饰符 (IDE0044)
+dotnet_diagnostic.IDE0044.severity = none
+
+# 内联变量声明 (IDE0018)
+dotnet_diagnostic.IDE0018.severity = none
+
+# CA1822:将成员标记为 static
+dotnet_diagnostic.CA1822.severity = none

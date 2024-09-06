@@ -18,7 +18,7 @@ namespace Chloe
             MethodInfo_Sql_LongCount = (longCountExp.Body as MethodCallExpression).Method.GetGenericMethodDefinition();
         }
 
-        public static readonly object[] EmptyArray = new object[0];
+        public static readonly object[] EmptyArray = Array.Empty<object>();
 
         #region Types
         public static readonly Type TypeOfVoid = typeof(void);
@@ -49,8 +49,8 @@ namespace Chloe
         public static readonly MethodInfo MethodInfo_Sql_IsNotEqual = typeof(Sql).GetMethod(nameof(Sql.IsNotEqual));
         public static readonly MethodInfo MethodInfo_Sql_NextValueForSequence = typeof(Sql).GetMethod(nameof(Sql.NextValueForSequence));
 
-        public static MethodInfo MethodInfo_Sql_Sum_DecimalN;
-        public static MethodInfo MethodInfo_Sql_LongCount;
+        public readonly static MethodInfo MethodInfo_Sql_Sum_DecimalN;
+        public readonly static MethodInfo MethodInfo_Sql_LongCount;
         #endregion
 
 
