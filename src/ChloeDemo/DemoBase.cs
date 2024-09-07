@@ -882,23 +882,24 @@ namespace ChloeDemo
             }
 
             //分页+拆分查询测试
-            var cityQuery2 = cityQuery.IncludeAll().Where(a => a.Id > -9999).OrderBy(a => a.Id).TakePage(1, 2).SplitQuery();
-            var cityCount = cityQuery2.Count();
-            var cities5 = cityQuery2.ToList();
 
-            Debug.Assert(cities5.Count > 0);
-            Debug.Assert(cityCount == cities5.Count);
+            var pageQuery = cityQuery.IncludeAll().Where(a => a.Id > -9999).OrderBy(a => a.Id).TakePage(1, 2);
 
-            //未使用拆分查询
-            var cityQueryWithoutSplitQuery = cityQuery.IncludeAll().OrderBy(a => a.Id).ToList();
-            var cities6 = cityQuery2.ToList();
+            //未使用拆分查询的查询结果
+            var citiesWithoutSplitQuery = pageQuery.ToList();
 
-            Debug.Assert(cities5.Count == cities6.Count);
+            //使用拆分查询的查询结果
+            var cityCount = pageQuery.SplitQuery().Count();
+            var citiesWithSplitQuery = pageQuery.SplitQuery().ToList();
 
-            for (int i = 0; i < cities5.Count; i++)
+            Debug.Assert(citiesWithSplitQuery.Count > 0);
+            Debug.Assert(citiesWithSplitQuery.Count == citiesWithoutSplitQuery.Count);
+            Debug.Assert(cityCount == citiesWithSplitQuery.Count);
+
+            for (int i = 0; i < citiesWithSplitQuery.Count; i++)
             {
-                var city1 = cities5[i];
-                var city2 = cities6[i];
+                var city1 = citiesWithSplitQuery[i];
+                var city2 = citiesWithoutSplitQuery[i];
                 city1.Persons = city1.Persons.OrderBy(a => a.Id).ToList();
                 city2.Persons = city2.Persons.OrderBy(a => a.Id).ToList();
 
