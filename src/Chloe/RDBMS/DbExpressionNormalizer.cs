@@ -219,9 +219,7 @@ namespace Chloe.RDBMS
             bool hasReversed = false;
             if (right.NodeType == DbExpressionType.ColumnAccess && left.NodeType == DbExpressionType.Parameter)
             {
-                var t = right;
-                left = right;
-                right = t;
+                (left, right) = (right, left);
                 hasReversed = true;
             }
 
