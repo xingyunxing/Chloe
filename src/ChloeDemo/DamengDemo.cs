@@ -19,7 +19,9 @@ namespace ChloeDemo
         protected override IDbContext CreateDbContext()
         {
             //DAMENG DMSERVER 5236  SYSDBA dm12345678
-            IDbContext dbContext = new DamengContext(new DamengConnectionFactory("Server=localhost; User Id=SYSDBA; PWD=dm12345678;"));
+            DamengContext dbContext = new DamengContext(new DamengConnectionFactory("Server=localhost; User Id=SYSDBA; PWD=dm12345678;"));
+            dbContext.Options.DefaultBatchSizeForInsertRange = 500;
+
             return dbContext;
         }
 

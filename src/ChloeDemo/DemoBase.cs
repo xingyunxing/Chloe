@@ -1257,7 +1257,6 @@ namespace ChloeDemo
             }
 
             //二元表达式测试
-
             var result2 = personQuery.Where(a => a.CityId == (cityId1 ?? cityId)).Select(a => new { Id = a.Id, CityId = (cityId1 ?? cityId) }).ToList();
             var result3 = personQuery.Where(a => a.CityId == cityId).Select(a => new { Id = a.Id, CityId = cityId }).ToList();
             for (int i = 0; i < result2.Count; i++)

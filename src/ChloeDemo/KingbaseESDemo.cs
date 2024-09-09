@@ -16,7 +16,8 @@ namespace ChloeDemo
 
         protected override IDbContext CreateDbContext()
         {
-            IDbContext dbContext = new KingbaseESContext(new KingbaseESConnectionFactory("Server=localhost;User Id=sa;Password=sa;Database=Chloe;Port=54321;"));
+            KingbaseESContext dbContext = new KingbaseESContext(new KingbaseESConnectionFactory("Server=localhost;User Id=sa;Password=sa;Database=Chloe;Port=54321;"));
+            dbContext.Options.DefaultBatchSizeForInsertRange = 500;
 
             return dbContext;
         }
