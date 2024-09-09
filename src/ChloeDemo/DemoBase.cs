@@ -50,6 +50,7 @@ namespace ChloeDemo
             this.Method();
             this.ExecuteCommandText();
             this.DoWithTransaction();
+            this.OtherTest();
 
             ConsoleHelper.WriteLineAndReadKey("Run over...");
         }
@@ -216,19 +217,22 @@ namespace ChloeDemo
         {
             IQuery<Person> q = this.DbContext.Query<Person>();
 
+            Person person = q.First();
+
             string name = "Chloe";
             this._result = q.Where(a => a.Name == name).ToList();
 
-            this._result = q.Where(a => a.Id == 1).FirstOrDefault();
+            this._result = q.Where(a => a.Id == person.Id).FirstOrDefault();
             /*
-             * SELECT [Person].[Id] AS [Id],[Person].[Name] AS [Name],[Person].[Gender] AS [Gender],[Person].[Age] AS [Age],[Person].[CityId] AS [CityId],[Person].[EditTime] AS [EditTime] FROM [Person] AS [Person] WHERE [Person].[Id] = 1 LIMIT 1 OFFSET 0
+             * SELECT [Person].[Id] AS [Id],[Person].[Name] AS [Name],[Person].[Gender] AS [Gender],[Person].[Age] AS [Age],[Person].[CityId] AS [CityId],[Person].[EditTime] AS [EditTime]
+             * FROM [Person] AS [Person] WHERE [Person].[Id] = @P_0 LIMIT 1 OFFSET 0
              */
 
 
             //可以选取指定的字段
-            this._result = q.Where(a => a.Id == 1).Select(a => new { a.Id, a.Name }).FirstOrDefault();
+            this._result = q.Where(a => a.Id == person.Id).Select(a => new { a.Id, a.Name }).FirstOrDefault();
             /*
-             * SELECT [Person].[Id] AS [Id],[Person].[Name] AS [Name] FROM [Person] AS [Person] WHERE [Person].[Id] = 1 LIMIT 1 OFFSET 0
+             * SELECT [Person].[Id] AS [Id],[Person].[Name] AS [Name] FROM [Person] AS [Person] WHERE [Person].[Id] = @P_0 LIMIT 1 OFFSET 0
              */
 
 
@@ -1158,8 +1162,6 @@ namespace ChloeDemo
 
                 Bool_Parse = bool.Parse("1"),//CAST('1' AS INTEGER)
                 DateTime_Parse = DateTime.Parse("2014-01-01"),//DATETIME('2014-01-01')
-
-                B = a.Age == null ? false : a.Age > 1, //三元表达式
                 CaseWhen = Case.When(a.Id > 100).Then(1).Else(0) //case when
             }).ToList();
 
@@ -1228,5 +1230,44 @@ namespace ChloeDemo
             ConsoleHelper.WriteLineAndReadKey("DoWithTransaction over...");
         }
 
+
+        /// <summary>
+        /// 其它测试
+        /// </summary>
+        public virtual void OtherTest()
+        {
+            var personQuery = this.DbContext.Query<Person>();
+            var cityQuery = this.DbContext.Query<City>();
+
+            //参数在左边测试
+            int cityId = cityQuery.First().Id;
+            var city1 = cityQuery.Where(a => cityId == a.Id).First();
+            var city2 = cityQuery.Where(a => a.Id == cityId).First();
+            Debug.Assert(city1.Id == cityId);
+            Debug.Assert(city1.Id == city2.Id);
+
+            int? cityId1 = null;
+
+            //三元表达式测试
+            var result1 = personQuery.Where(a => a.CityId == (cityId1 == null ? cityId : cityId1.Value)).Select(a => new { Id = a.Id, CityId = a.CityId, Age = a.Age, B = a.Age == null ? false : a.Age > 1 }).ToList();
+            for (int i = 0; i < result1.Count; i++)
+            {
+                Debug.Assert(result1[i].CityId == (cityId1 == null ? cityId : cityId1.Value));
+                Debug.Assert(result1[i].B == (result1[i].Age == null ? false : result1[i].Age > 1));
+            }
+
+            //二元表达式测试
+
+            var result2 = personQuery.Where(a => a.CityId == (cityId1 ?? cityId)).Select(a => new { Id = a.Id, CityId = (cityId1 ?? cityId) }).ToList();
+            var result3 = personQuery.Where(a => a.CityId == cityId).Select(a => new { Id = a.Id, CityId = cityId }).ToList();
+            for (int i = 0; i < result2.Count; i++)
+            {
+                Debug.Assert(result2[i].CityId == cityId);
+                Debug.Assert(result2[i].CityId == result3[i].CityId);
+                Debug.Assert(result2[i].Id == result3[i].Id);
+            }
+
+            ConsoleHelper.WriteLineAndReadKey("OtherTest over...");
+        }
     }
 }
