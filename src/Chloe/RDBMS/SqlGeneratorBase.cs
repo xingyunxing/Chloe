@@ -681,6 +681,17 @@ namespace Chloe.RDBMS
             {
                 if (i > 0)
                 {
+                    /*
+                     * 由于有些数据库（如SqlServer）不支持 order by T.Id asc,T.Id asc，所以得去重
+                     */
+                    if (orderings[i].OrderType == orderings[i - 1].OrderType)
+                    {
+                        if (DbExpressionEqualityComparer.Instance.Equals(orderings[i].Expression, orderings[i - 1].Expression))
+                        {
+                            continue;
+                        }
+                    }
+
                     this.SqlBuilder.Append(",");
                 }
 
