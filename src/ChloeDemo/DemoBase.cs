@@ -1256,6 +1256,7 @@ namespace ChloeDemo
                 Debug.Assert(result1[i].B == (result1[i].Age == null ? false : result1[i].Age > 1));
             }
 
+
             //二元表达式测试
             var result2 = personQuery.Where(a => a.CityId == (cityId1 ?? cityId)).Select(a => new { Id = a.Id, CityId = (cityId1 ?? cityId) }).ToList();
             var result3 = personQuery.Where(a => a.CityId == cityId).Select(a => new { Id = a.Id, CityId = cityId }).ToList();
@@ -1265,6 +1266,91 @@ namespace ChloeDemo
                 Debug.Assert(result2[i].CityId == result3[i].CityId);
                 Debug.Assert(result2[i].Id == result3[i].Id);
             }
+
+
+            //表达式中多层嵌套 IQuery 对象测试
+            //多层嵌套中使用 First()
+            this.DbContext.Query<Person>().IgnoreAllFilters()
+            .Where(a => this.DbContext
+                        .Query<City>().IgnoreAllFilters()
+                        .Where(c => this.DbContext
+                                    .Query<Province>().IgnoreAllFilters()
+                                    .Select(p => p.Id)
+                                    .First() == c.ProvinceId
+                              )
+                        .Select(c => c.Id)
+                        .First() == a.CityId
+                  ).ToList();
+            /*
+             * SELECT [T].[Name],[T].[Gender],[T].[Age],[T].[CityId],[T].[CreateTime],[T].[EditTime],[T].[RowVersion],[T].[Id] 
+             * FROM [Person] AS [T] 
+             * WHERE 
+             * (
+             *   SELECT [T0].[Id] AS [C] 
+             *   FROM [City] AS [T0] WHERE 
+             *   (
+             *     SELECT [T1].[Id] AS [C] FROM [Province] AS [T1] LIMIT 1 OFFSET 0
+             *   ) = [T0].[ProvinceId] LIMIT 1 OFFSET 0
+             * ) = [T].[CityId]
+             */
+
+
+            //多层嵌套中使用 ToList().Contains() 组合
+            this.DbContext.Query<Person>().IgnoreAllFilters()
+            .Where(a => this.DbContext
+                        .Query<City>().IgnoreAllFilters()
+                        .Where(c => this.DbContext
+                                    .Query<Province>().IgnoreAllFilters()
+                                    .Select(p => p.Id)
+                                    .ToList().Contains(c.ProvinceId)
+                              )
+                        .Select(c => c.Id)
+                        .ToList().Contains(a.CityId)
+                  ).ToList();
+            /*
+             * SELECT [T].[Name],[T].[Gender],[T].[Age],[T].[CityId],[T].[CreateTime],[T].[EditTime],[T].[RowVersion],[T].[Id] 
+             * FROM [Person] AS [T] 
+             * WHERE [T].[CityId] IN 
+             * (
+             *   SELECT [T0].[Id] AS [C] 
+             *   FROM [City] AS [T0] 
+             *   WHERE [T0].[ProvinceId] IN 
+             *   (
+             *     SELECT [T1].[Id] AS [C] FROM [Province] AS [T1]
+             *   )
+             * )
+             */
+
+
+            //多层嵌套中使用 Any
+            this.DbContext.Query<Person>().IgnoreAllFilters()
+            .Where(a => this.DbContext.Query<City>().IgnoreAllFilters()
+                            .Where(
+                                    c => c.Name == a.Name && this.DbContext.Query<Province>().IgnoreAllFilters().Where(p => c.ProvinceId == p.Id).Any()
+                                  )
+                            .Any()
+                  ).ToList();
+            /*
+             * Input String @P_0 = '1';
+             * SELECT [T].[Name],[T].[Gender],[T].[Age],[T].[CityId],[T].[CreateTime],[T].[EditTime],[T].[RowVersion],[T].[Id] 
+             * FROM [Person] AS [T] 
+             * WHERE Exists 
+             * (
+             *   SELECT @P_0 AS [C] 
+             *   FROM [City] AS [T0] 
+             *   WHERE 
+             *   (
+             *     (
+             *       [T0].[Name] = [T].[Name] OR ([T0].[Name] IS NULL AND [T].[Name] IS NULL)
+             *     ) 
+             *     AND Exists 
+             *     (
+             *       SELECT @P_0 AS [C] FROM [Province] AS [T1] WHERE [T0].[ProvinceId] = [T1].[Id]
+             *     )
+             *   )
+             * )
+             */
+
 
             ConsoleHelper.WriteLineAndReadKey("OtherTest over...");
         }
