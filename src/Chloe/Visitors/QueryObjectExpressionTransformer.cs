@@ -91,13 +91,13 @@ namespace Chloe.Visitors
                 {
                     //IQuery 对象的泛型参数必须是映射类型
                     EnsureIsMappingType(exp.Type.GetGenericArguments()[0], exp);
-                    return MakeWrapperCall(this.Visit(exp.Object), exp.Method);
+                    return this.MakeWrapperCall(this.Visit(exp.Object), exp.Method);
                 }
                 else if (methodName == nameof(IQuery<int>.Any))
                 {
                     /* query.Any() --> exists 查询 */
                     exp = OptimizeCondition(exp);
-                    return MakeWrapperCall(this.Visit(exp.Object), exp.Method);
+                    return this.MakeWrapperCall(this.Visit(exp.Object), exp.Method);
                 }
                 else if (AggregateMethods.Contains(methodName))
                 {
@@ -110,7 +110,7 @@ namespace Chloe.Visitors
 
         Expression Process_MethodCall_Aggregate(MethodCallExpression exp)
         {
-            return MakeWrapperCall(this.Visit(exp.Object), exp.Method, exp.Arguments);
+            return this.MakeWrapperCall(this.Visit(exp.Object), exp.Method, exp.Arguments);
         }
 
         Expression Process_MethodCall_First_Or_FirstOrDefault(MethodCallExpression exp)
@@ -123,7 +123,7 @@ namespace Chloe.Visitors
 
             //IQuery 对象的泛型参数必须是映射类型
             EnsureIsMappingType(exp.Type, exp);
-            return MakeWrapperCall(this.Visit(exp.Object), exp.Method);
+            return this.MakeWrapperCall(this.Visit(exp.Object), exp.Method);
         }
 
         Expression Process_MemberAccess_Which_Link_First_Or_FirstOrDefault(MemberExpression exp)
@@ -202,8 +202,13 @@ namespace Chloe.Visitors
             return query.QueryExpression;
         }
 
-        static Expression MakeWrapperCall(Expression queryObjectExpression, MethodInfo method, IEnumerable<Expression>? arguments = null)
+        Expression MakeWrapperCall(Expression queryObjectExpression, MethodInfo method, IEnumerable<Expression>? arguments = null)
         {
+            if (arguments != null)
+            {
+                arguments = arguments.Select(a => this.Visit(a));
+            }
+
             return Expression.Call(MakeWrapper(queryObjectExpression), method, arguments);
         }
         static Expression MakeWrapper(Expression queryObjectExpression)
