@@ -5,10 +5,10 @@ namespace Chloe.Query
 {
     class GroupingQuery<T> : IGroupingQuery<T>
     {
-        protected Query<T> _fromQuery;
-        protected List<LambdaExpression> _groupKeySelectors;
-        protected List<LambdaExpression> _havingPredicates;
-        protected List<GroupingQueryOrdering> _orderings;
+        Query<T> _fromQuery;
+        List<LambdaExpression> _groupKeySelectors;
+        List<LambdaExpression> _havingPredicates;
+        List<GroupingQueryOrdering> _orderings;
 
         public GroupingQuery(Query<T> fromQuery, LambdaExpression keySelector)
         {
@@ -77,8 +77,7 @@ namespace Chloe.Query
 
     class OrderedGroupingQuery<T> : GroupingQuery<T>, IOrderedGroupingQuery<T>
     {
-        public OrderedGroupingQuery(Query<T> fromQuery, List<LambdaExpression> groupKeySelectors, List<LambdaExpression> havingPredicates, List<GroupingQueryOrdering> orderings)
-            : base(fromQuery, groupKeySelectors, havingPredicates, orderings)
+        public OrderedGroupingQuery(Query<T> fromQuery, List<LambdaExpression> groupKeySelectors, List<LambdaExpression> havingPredicates, List<GroupingQueryOrdering> orderings) : base(fromQuery, groupKeySelectors, havingPredicates, orderings)
         {
         }
 

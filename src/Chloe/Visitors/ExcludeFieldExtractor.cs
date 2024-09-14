@@ -17,14 +17,14 @@ namespace Chloe.Visitors
         /// <param name="fieldsLambdaExpression">a => a.Name || a => new { a.Name, a.Age } || a => new object[] { a.Name, a.Age }</param>
         /// <returns></returns>
         /// <exception cref="NotSupportedException"></exception>
-        public static List<LinkeNode<MemberInfo>> Extract(LambdaExpression fieldsLambdaExpression)
+        public static List<LinkedNode<MemberInfo>> Extract(LambdaExpression fieldsLambdaExpression)
         {
             var body = ExpressionExtension.StripConvert(fieldsLambdaExpression.Body);
 
             if (body.NodeType == ExpressionType.MemberAccess)
             {
                 //a => a.Name
-                return new List<LinkeNode<MemberInfo>>(1) { ExcludeFieldExtractorCore.Extract(body as MemberExpression) };
+                return new List<LinkedNode<MemberInfo>>(1) { ExcludeFieldExtractorCore.Extract(body as MemberExpression) };
             }
 
             ReadOnlyCollection<Expression> fieldExps = null;
@@ -55,7 +55,7 @@ namespace Chloe.Visitors
                 throw new NotSupportedException($"Not support exclude expression '{fieldsLambdaExpression.ToString()}'.");
             }
 
-            List<LinkeNode<MemberInfo>> fields = new List<LinkeNode<MemberInfo>>(fieldExps.Count);
+            List<LinkedNode<MemberInfo>> fields = new List<LinkedNode<MemberInfo>>(fieldExps.Count);
 
             foreach (var fieldExp in fieldExps)
             {
@@ -65,7 +65,7 @@ namespace Chloe.Visitors
             return fields;
         }
 
-        class ExcludeFieldExtractorCore : ExpressionVisitor<LinkeNode<MemberInfo>>
+        class ExcludeFieldExtractorCore : ExpressionVisitor<LinkedNode<MemberInfo>>
         {
             static readonly ExcludeFieldExtractorCore _extractor = new ExcludeFieldExtractorCore();
 
@@ -73,11 +73,11 @@ namespace Chloe.Visitors
             {
             }
 
-            public static LinkeNode<MemberInfo> Extract(Expression exp)
+            public static LinkedNode<MemberInfo> Extract(Expression exp)
             {
-                LinkeNode<MemberInfo> node = _extractor.Visit(exp);
+                LinkedNode<MemberInfo> node = _extractor.Visit(exp);
 
-                LinkeNode<MemberInfo> headNode = node;
+                LinkedNode<MemberInfo> headNode = node;
                 while (headNode.Previous != null)
                 {
                     headNode = headNode.Previous;
@@ -86,7 +86,7 @@ namespace Chloe.Visitors
                 return headNode;
             }
 
-            public override LinkeNode<MemberInfo> Visit(Expression exp)
+            public override LinkedNode<MemberInfo> Visit(Expression exp)
             {
                 if (exp == null)
                     return null;
@@ -106,20 +106,20 @@ namespace Chloe.Visitors
                 }
             }
 
-            protected override LinkeNode<MemberInfo> VisitParameter(ParameterExpression exp)
+            protected override LinkedNode<MemberInfo> VisitParameter(ParameterExpression exp)
             {
                 return null;
             }
 
-            protected override LinkeNode<MemberInfo> VisitLambda(LambdaExpression exp)
+            protected override LinkedNode<MemberInfo> VisitLambda(LambdaExpression exp)
             {
                 return this.Visit(exp.Body);
             }
 
-            protected override LinkeNode<MemberInfo> VisitMemberAccess(MemberExpression exp)
+            protected override LinkedNode<MemberInfo> VisitMemberAccess(MemberExpression exp)
             {
                 var parentNode = this.Visit(exp.Expression);
-                LinkeNode<MemberInfo> node = new LinkeNode<MemberInfo>(exp.Member);
+                LinkedNode<MemberInfo> node = new LinkedNode<MemberInfo>(exp.Member);
 
                 if (parentNode != null)
                 {
@@ -130,7 +130,7 @@ namespace Chloe.Visitors
                 return node;
             }
 
-            protected override LinkeNode<MemberInfo> VisitUnary_Convert(UnaryExpression exp)
+            protected override LinkedNode<MemberInfo> VisitUnary_Convert(UnaryExpression exp)
             {
                 return this.Visit(exp.Operand);
             }

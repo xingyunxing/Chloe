@@ -478,7 +478,7 @@ namespace Chloe.Query
 
             for (int i = 0; i < navigationNode.ExcludedFields.Count; i++)
             {
-                List<LinkeNode<MemberInfo>> fields = ExcludeFieldExtractor.Extract(navigationNode.ExcludedFields[i]);
+                List<LinkedNode<MemberInfo>> fields = ExcludeFieldExtractor.Extract(navigationNode.ExcludedFields[i]);
                 objectModel.ExcludePrimitiveMembers(fields);
             }
 
@@ -546,7 +546,7 @@ namespace Chloe.Query
             return false;
         }
 
-        public void ExcludePrimitiveMember(LinkeNode<MemberInfo> memberLink)
+        public void ExcludePrimitiveMember(LinkedNode<MemberInfo> memberLink)
         {
             MemberInfo memberInfo = memberLink.Value;
             memberInfo = memberInfo.AsReflectedMemberOf(this.ObjectType);
@@ -593,7 +593,7 @@ namespace Chloe.Query
 
             throw new NotSupportedException($"Not support exclude field '{memberLink.Value.Name}'.");
         }
-        public void ExcludePrimitiveMembers(IEnumerable<LinkeNode<MemberInfo>> memberLinks)
+        public void ExcludePrimitiveMembers(IEnumerable<LinkedNode<MemberInfo>> memberLinks)
         {
             foreach (var memberLink in memberLinks)
             {

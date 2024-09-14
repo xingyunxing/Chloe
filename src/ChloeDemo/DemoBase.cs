@@ -1325,10 +1325,10 @@ namespace ChloeDemo
             //多层嵌套中使用 Any
             this.DbContext.Query<Person>().IgnoreAllFilters()
             .Where(a => this.DbContext.Query<City>().IgnoreAllFilters()
-                            .Where(
-                                    c => c.Name == a.Name && this.DbContext.Query<Province>().IgnoreAllFilters().Where(p => c.ProvinceId == p.Id).Any()
-                                  )
-                            .Any()
+                        .Where(
+                                  c => c.Name == a.Name && this.DbContext.Query<Province>().IgnoreAllFilters().Where(p => c.ProvinceId == p.Id).Any()
+                              )
+                        .Any()
                   ).ToList();
             /*
              * Input String @P_0 = '1';

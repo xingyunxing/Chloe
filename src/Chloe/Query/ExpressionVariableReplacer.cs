@@ -1,10 +1,6 @@
 ﻿using Chloe.QueryExpressions;
 using Chloe.Reflection;
-using Chloe.Visitors;
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Text;
 
 namespace Chloe.Query
 {

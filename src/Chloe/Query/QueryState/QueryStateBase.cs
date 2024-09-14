@@ -141,7 +141,7 @@ namespace Chloe.Query.QueryState
         }
         public virtual IQueryState Accept(ExcludeExpression exp)
         {
-            List<LinkeNode<MemberInfo>> fields = ExcludeFieldExtractor.Extract(exp.Field);
+            List<LinkedNode<MemberInfo>> fields = ExcludeFieldExtractor.Extract(exp.Field);
             this.QueryModel.ResultModel.ExcludePrimitiveMembers(fields);
 
             return this;
