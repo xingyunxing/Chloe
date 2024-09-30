@@ -141,7 +141,7 @@ namespace Chloe.Sharding.QueryState
                 }
             }
 
-            if (queryPlan.IsOrderedTables)
+            if (queryPlan.QueryModel.Orderings.Count > 0 && queryPlan.IsOrderedTables)
             {
                 //走分页逻辑，对程序性能有可能好点？
 

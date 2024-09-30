@@ -70,8 +70,15 @@ namespace Chloe.Sharding.Enumerables
 
             IFeatureEnumerator<object> CreateQueryEntityEnumerator(ParallelQueryContext queryContext, QueryProjection queryProjection, List<TableDataQueryPlan> dataQueryPlans)
             {
+                if (this.QueryModel.Orderings.Count == 0)
+                {
+                    ParallelConcatEnumerable<object> noOrderingMergeResult = new ParallelConcatEnumerable<object>(queryContext, dataQueryPlans.Select(a => a.Query));
+                    var noOrdeingEnumerator = noOrderingMergeResult.Select(a => queryProjection.ResultMapper(a)).GetFeatureEnumerator(this._cancellationToken);
+                    return noOrdeingEnumerator;
+                }
+
                 List<OrderProperty> orders = queryProjection.OrderProperties;
-                ParallelMergeEnumerable<object> mergeResult = new ParallelMergeEnumerable<object>(queryContext, dataQueryPlans.Select(a => new OrderedFeatureEnumerable<object>(a.Query, orders)));
+                ParallelMergeOrderedEnumerable<object> mergeResult = new ParallelMergeOrderedEnumerable<object>(queryContext, dataQueryPlans.Select(a => new OrderedFeatureEnumerable<object>(a.Query, orders)));
 
                 var enumerator = mergeResult.Select(a => queryProjection.ResultMapper(a)).GetFeatureEnumerator(this._cancellationToken);
 

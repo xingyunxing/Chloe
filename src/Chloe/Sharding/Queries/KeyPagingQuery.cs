@@ -136,7 +136,7 @@ namespace Chloe.Sharding.Queries
 
             async Task ExecuteQuery(ParallelQueryContext queryContext, List<DynamicDataQueryPlan> dataQueryPlans, DynamicType dynamicType, List<OrderProperty> orders)
             {
-                ParallelMergeEnumerable<object> mergeEnumerable = new ParallelMergeEnumerable<object>(queryContext, dataQueryPlans.Select(a => new OrderedFeatureEnumerable<object>(a.Query, orders)));
+                ParallelMergeOrderedEnumerable<object> mergeEnumerable = new ParallelMergeOrderedEnumerable<object>(queryContext, dataQueryPlans.Select(a => new OrderedFeatureEnumerable<object>(a.Query, orders)));
 
                 MemberGetter keyGetter = dynamicType.GetPrimaryKeyGetter();
 

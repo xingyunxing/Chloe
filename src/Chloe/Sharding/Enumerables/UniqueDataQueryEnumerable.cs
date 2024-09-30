@@ -39,7 +39,7 @@ namespace Chloe.Sharding.Enumerables
                 {
                     List<TableDataQueryPlan> dataQueryPlans = this.MakeQueryPlans(queryContext);
                     List<OrderProperty> orders = new List<OrderProperty>();
-                    ParallelMergeEnumerable<object> mergeResult = new ParallelMergeEnumerable<object>(queryContext, dataQueryPlans.Select(a => new OrderedFeatureEnumerable<object>(a.Query, orders)));
+                    ParallelMergeOrderedEnumerable<object> mergeResult = new ParallelMergeOrderedEnumerable<object>(queryContext, dataQueryPlans.Select(a => new OrderedFeatureEnumerable<object>(a.Query, orders)));
 
                     var enumerator = mergeResult.GetFeatureEnumerator(this._cancellationToken);
 

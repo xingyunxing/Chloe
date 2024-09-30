@@ -8,7 +8,7 @@ namespace Chloe.Sharding
     /// 并行合并数据源
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal class ParallelMergeEnumerable<T> : FeatureEnumerable<T>
+    internal class ParallelMergeOrderedEnumerable<T> : FeatureEnumerable<T>
     {
         IParallelQueryContext _queryContext;
         List<OrderedFeatureEnumerable<T>> _sources;
@@ -18,7 +18,7 @@ namespace Chloe.Sharding
         /// </summary>
         /// <param name="queryContext"></param>
         /// <param name="sources"></param>
-        public ParallelMergeEnumerable(IParallelQueryContext queryContext, IEnumerable<OrderedFeatureEnumerable<T>> sources)
+        public ParallelMergeOrderedEnumerable(IParallelQueryContext queryContext, IEnumerable<OrderedFeatureEnumerable<T>> sources)
         {
             this._queryContext = queryContext;
             this._sources = sources.ToList();
@@ -32,13 +32,13 @@ namespace Chloe.Sharding
         class Enumerator : IFeatureEnumerator<T>
         {
             bool _disposed = false;
-            ParallelMergeEnumerable<T> _enumerable;
+            ParallelMergeOrderedEnumerable<T> _enumerable;
             CancellationToken _cancellationToken;
 
             PriorityQueue<IOrderedFeatureEnumerator<T>> _queue;
             IOrderedFeatureEnumerator<T> _currentEnumerator;
 
-            public Enumerator(ParallelMergeEnumerable<T> enumerable, CancellationToken cancellationToken = default)
+            public Enumerator(ParallelMergeOrderedEnumerable<T> enumerable, CancellationToken cancellationToken = default)
             {
                 this._enumerable = enumerable;
                 this._cancellationToken = cancellationToken;
