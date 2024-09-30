@@ -35,7 +35,7 @@ namespace Chloe.SQLite
                 {
                     if (!_RWLocks.TryGetValue(connString, out rwLockSlim))
                     {
-                        rwLockSlim = new ReaderWriterLockSlim();
+                        rwLockSlim = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
                         _RWLocks[connString] = rwLockSlim;
                     }
                 }
