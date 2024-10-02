@@ -75,7 +75,7 @@ namespace ChloeDemo.Sharding
              * 所以只使用普通的 DbContext（如果有非分表，请使用 MsSqlContext、MySqlContext、OracleContext 等上下文类）
              */
             DbContext dbContext = new DbContext();  //实际应用中应该使用 MsSqlContext、MySqlContext、OracleContext 等上下文类
-            dbContext.ShardingOptions.MaxConnectionsPerDataSource = 6; //注：如果类似 SQLite 不支持多线程读写的数据库，一定要将此属性值设置为 1。
+            dbContext.ShardingOptions.MaxConnectionsPerDataSource = 6;
             return dbContext;
         }
 
