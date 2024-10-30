@@ -28,7 +28,8 @@ namespace Chloe.Query.Internals
 
         DbCommandFactor GenerateCommandFactor()
         {
-            QueryExpression queryExpression = QueryObjectExpressionTransformer.Transform(this._query.QueryExpression);
+            QueryExpression queryExpression = LambdaVariableWrapperExpressionTransformer.Transform(this._query.QueryExpression);
+            queryExpression = QueryObjectExpressionTransformer.Transform(queryExpression);
 
             List<object> variables;
             queryExpression = ExpressionVariableReplacer.Replace(queryExpression, out variables);
@@ -66,7 +67,8 @@ namespace Chloe.Query.Internals
 
         DbCommandFactor GenerateCommandFactorWithoutCache()
         {
-            QueryExpression queryExpression = QueryObjectExpressionTransformer.Transform(this._query.QueryExpression);
+            QueryExpression queryExpression = LambdaVariableWrapperExpressionTransformer.Transform(this._query.QueryExpression);
+            queryExpression = QueryObjectExpressionTransformer.Transform(queryExpression);
             QueryStateBase qs = QueryExpressionResolver.Resolve(this._queryContext, queryExpression, new ScopeParameterDictionary(), new StringSet());
             MappingData data = qs.GenerateMappingData();
 

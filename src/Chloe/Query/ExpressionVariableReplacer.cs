@@ -21,7 +21,7 @@ namespace Chloe.Query
 
         protected override Expression VisitConstant(ConstantExpression node)
         {
-            if (IsVariableWrapperTyper(node.Type) || IsChloeConstantWrapperType(node.Type))
+            if (Utils.IsVariableWrapperType(node.Type) || Utils.IsChloeConstantWrapperType(node.Type))
             {
                 Type slotType = typeof(VariableSlot<>).MakeGenericType(node.Type);
                 var slot = slotType.GetConstructor(new Type[] { typeof(int) }).FastCreateInstance(this._variables.Count);
@@ -31,16 +31,5 @@ namespace Chloe.Query
 
             return base.VisitConstant(node);
         }
-
-        static bool IsVariableWrapperTyper(Type type)
-        {
-            return type.Name.StartsWith("<>c__"); //<>c__DisplayClass1_0 变量包装类型
-        }
-
-        static bool IsChloeConstantWrapperType(Type type)
-        {
-            return type.Name == "ConstantWrapper`1" && type.Namespace == "Chloe";
-        }
-
     }
 }

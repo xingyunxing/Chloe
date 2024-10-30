@@ -1352,6 +1352,39 @@ namespace ChloeDemo
              */
 
 
+            //表达式树中使用变量的形式传入 IQuery 对象【暂未支持】
+            //var qq = this.DbContext.Query<Person>().IgnoreAllFilters().Where(a => this.DbContext.Query<Person>().Where(b => b.Name == "1").IgnoreAllFilters().Any());
+            //this.DbContext.Query<Person>().Where(c => qq.Any()).IgnoreAllFilters().Count();
+            /*
+             * Input String ?P_0 = '1';
+             * SELECT COUNT(1) AS `C` FROM `Person` AS `T` 
+             * WHERE Exists 
+             * (
+             *   SELECT ?P_0 AS `C` FROM `Person` AS `T0` 
+             *   WHERE Exists 
+             *   (
+             *     SELECT ?P_0 AS `C` FROM `Person` AS `T1` WHERE `T1`.`Name` = N'1'
+             *   )
+             * )
+             */
+
+
+            //表达式树中使用变量的形式将 lambda 传入表达式树中，如下中的 mm 变量
+            System.Linq.Expressions.Expression<Func<Person, bool>> mm = a => this.DbContext.Query<Person>().IgnoreAllFilters().Where(b => b.Name == "1").Any();
+            this.DbContext.Query<Person>().Where(c => this.DbContext.Query<Person>().IgnoreAllFilters().Where(mm).Any()).IgnoreAllFilters().Count();
+            /*
+             * Input String ?P_0 = '1';
+             * SELECT COUNT(1) AS `C` FROM `Person` AS `T` 
+             * WHERE Exists 
+             * (
+             *   SELECT ?P_0 AS `C` FROM `Person` AS `T0` 
+             *   WHERE Exists 
+             *   (
+             *     SELECT ?P_0 AS `C` FROM `Person` AS `T1` WHERE `T1`.`Name` = N'1'
+             *   )
+             * )
+             */
+
             ConsoleHelper.WriteLineAndReadKey("OtherTest over...");
         }
     }

@@ -87,5 +87,25 @@ namespace Chloe
             implementedInterface = implementedInterface.GetGenericTypeDefinition();
             return queryType == implementedInterface;
         }
+
+        /// <summary>
+        /// 判断是否是变量包装类型
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static bool IsVariableWrapperType(Type type)
+        {
+            return type.Name.StartsWith("<>c__"); //<>c__DisplayClass1_0 变量包装类型
+        }
+
+        /// <summary>
+        /// 判断是否是 Chloe.ConstantWrapper`1 类型
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static bool IsChloeConstantWrapperType(Type type)
+        {
+            return type.Name == "ConstantWrapper`1" && type.Namespace == "Chloe";
+        }
     }
 }
