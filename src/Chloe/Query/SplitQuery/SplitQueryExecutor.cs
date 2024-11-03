@@ -33,7 +33,7 @@ namespace Chloe.Query.SplitQuery
             }
         }
 
-        public abstract IQuery GetDependQuery();
+        public abstract IQuery GetDependQuery(SplitQueryNode fromNode);
 
         public static IQuery IncludeNavigation(IQuery query, SplitQueryNode node, bool isThenInclude)
         {

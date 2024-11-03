@@ -37,17 +37,36 @@ namespace Chloe.Query.SplitQuery
         }
 
 
-        public override IQuery GetDependQuery()
+        public override IQuery GetDependQuery(SplitQueryNode fromNode)
         {
             IQuery query = this.MakeQuery(true, true);
 
-            TypeDescriptor entityTypeDescriptor = this._queryNode.ElementTypeDescriptor;
-            var a = Expression.Parameter(entityTypeDescriptor.EntityType, "a");
-            var id = Expression.MakeMemberAccess(a, entityTypeDescriptor.PrimaryKeys[0].Property); //a.Id
-            var idSelector = Expression.Lambda(id, a); //a => a.Id
+            var collectionPropertyDescriptor = this._queryNode.ElementTypeDescriptor.CollectionPropertyDescriptors.Where(a => a.ElementType == fromNode.ElementType).FirstOrDefault();
 
-            query = query.Select(idSelector);
-            return query;
+            if (collectionPropertyDescriptor != null)
+            {
+                //thisNode:fromNode 的关系是 1:N
+                TypeDescriptor entityTypeDescriptor = this._queryNode.ElementTypeDescriptor;
+                var a = Expression.Parameter(entityTypeDescriptor.EntityType, "a");
+                var id = Expression.MakeMemberAccess(a, entityTypeDescriptor.PrimaryKeys[0].Property); //a.Id
+                var idSelector = Expression.Lambda(id, a); //a => a.Id
+
+                query = query.Select(idSelector);
+                return query;
+            }
+            else
+            {
+                var complexPropertyDescriptor = this._queryNode.ElementTypeDescriptor.ComplexPropertyDescriptors.Where(a => a.PropertyType == fromNode.ElementType).FirstOrDefault();
+
+                //thisNode:fromNode 的关系是 N:1
+                TypeDescriptor entityTypeDescriptor = this._queryNode.ElementTypeDescriptor;
+                var a = Expression.Parameter(entityTypeDescriptor.EntityType, "a");
+                var ownerId = Expression.MakeMemberAccess(a, complexPropertyDescriptor.ForeignKeyProperty.Property); //a.OwnerId
+                var ownerIdSelector = Expression.Lambda(ownerId, a); //a => a.OwnerId
+
+                query = query.Select(ownerIdSelector);
+                return query;
+            }
         }
 
 

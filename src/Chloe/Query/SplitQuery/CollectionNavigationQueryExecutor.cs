@@ -12,7 +12,7 @@ namespace Chloe.Query.SplitQuery
         QueryContext _queryContext;
         IList _entities;
 
-        SplitQueryExecutor _ownerQueryExecutor;
+        SplitQueryExecutor _prevQueryExecutor;
         CollectionStuffer _stuffer;
         SplitQueryNavigationNode _queryNode;
 
@@ -21,26 +21,26 @@ namespace Chloe.Query.SplitQuery
         //Item.Owner，外键对应的导航属性 
         ComplexPropertyDescriptor _thisSideNavigationDescriptor;
 
-        public CollectionNavigationQueryExecutor(QueryContext queryContext, SplitQueryNavigationNode queryNode, SplitQueryExecutor ownerQueryExecutor, List<SplitQueryExecutor> navigationQueryExecutors) : base(navigationQueryExecutors)
+        public CollectionNavigationQueryExecutor(QueryContext queryContext, SplitQueryNavigationNode queryNode, SplitQueryExecutor prevQueryExecutor, List<SplitQueryExecutor> navigationQueryExecutors) : base(navigationQueryExecutors)
         {
             this._queryContext = queryContext;
             this._queryNode = queryNode;
-            this._ownerQueryExecutor = ownerQueryExecutor;
-            this._ownerIdDescriptor = queryNode.Owner.ElementTypeDescriptor.PrimaryKeys.FirstOrDefault();
+            this._prevQueryExecutor = prevQueryExecutor;
+            this._ownerIdDescriptor = queryNode.PrevNode.ElementTypeDescriptor.PrimaryKeys.FirstOrDefault();
 
             //a.Owner
-            this._thisSideNavigationDescriptor = queryNode.ElementTypeDescriptor.ComplexPropertyDescriptors.Where(a => a.PropertyType == queryNode.Owner.ElementTypeDescriptor.EntityType).FirstOrDefault();
+            this._thisSideNavigationDescriptor = queryNode.ElementTypeDescriptor.ComplexPropertyDescriptors.Where(a => a.PropertyType == queryNode.PrevNode.ElementTypeDescriptor.EntityType).FirstOrDefault();
             if (this._thisSideNavigationDescriptor == null)
             {
-                throw new ChloeException($"You have to define a navigation property which type is '{queryNode.Owner.ElementTypeDescriptor.EntityType.FullName}' on class '{queryNode.ElementTypeDescriptor.Definition.Type.FullName}'.");
+                throw new ChloeException($"You have to define a navigation property which type is '{queryNode.PrevNode.ElementTypeDescriptor.EntityType.FullName}' on class '{queryNode.ElementTypeDescriptor.Definition.Type.FullName}'.");
             }
 
-            this._stuffer = new CollectionStuffer(this, this._thisSideNavigationDescriptor, this._ownerIdDescriptor);
+            this._stuffer = new CollectionStuffer(this, queryNode.ElementTypeDescriptor, this._thisSideNavigationDescriptor, this._ownerIdDescriptor);
         }
 
         public SplitQueryNavigationNode QueryNode { get { return this._queryNode; } }
 
-        public SplitQueryExecutor OwnerQueryExecutor { get { return this._ownerQueryExecutor; } }
+        public SplitQueryExecutor PrevQueryExecutor { get { return this._prevQueryExecutor; } }
 
         public override IEnumerable<object> Entities { get { return this._entities.AsGenericEnumerable(); } }
 
@@ -65,7 +65,7 @@ namespace Chloe.Query.SplitQuery
 
         async Task<IList> LoadEntities(bool @async)
         {
-            if (this._ownerQueryExecutor.EntityCount == 0)
+            if (this._prevQueryExecutor.EntityCount == 0)
             {
                 return new List<object>();
             }
@@ -85,7 +85,7 @@ namespace Chloe.Query.SplitQuery
             return entities;
         }
 
-        public override IQuery GetDependQuery()
+        public override IQuery GetDependQuery(SplitQueryNode fromNode)
         {
             IQuery query = this.MakeQuery(true);
 
@@ -132,14 +132,14 @@ namespace Chloe.Query.SplitQuery
             if (!ignoreIncludedNavigations)
                 query = IncludeNavigation(query, queryNode, false);
 
-            if (this._ownerQueryExecutor.EntityCount != 0 && this._ownerQueryExecutor.EntityCount <= 512)
+            if (this._prevQueryExecutor.EntityCount != 0 && this._prevQueryExecutor.EntityCount <= 512)
             {
                 //少于一定数量，直接用 in 查询
                 query = this.MakeInQuery(query, this._thisSideNavigationDescriptor);
                 return query;
             }
 
-            IQuery dependQuery = this._ownerQueryExecutor.GetDependQuery();
+            IQuery dependQuery = this._prevQueryExecutor.GetDependQuery(this._queryNode);
 
             ParameterExpression p1 = Expression.Parameter(dependQuery.ElementType, "p1"); //p1, p1 is owner.Id
             ParameterExpression p2 = Expression.Parameter(query.ElementType, "p2"); //p2
@@ -167,7 +167,7 @@ namespace Chloe.Query.SplitQuery
             var listConstructor = typeof(List<>).MakeGenericType(this._ownerIdDescriptor.PropertyType).GetConstructor(Type.EmptyTypes);
             InstanceCreator listCreator = InstanceCreatorContainer.Get(listConstructor);
             IList ownerIds = (IList)listCreator();
-            foreach (object owner in this._ownerQueryExecutor.Entities)
+            foreach (object owner in this._prevQueryExecutor.Entities)
             {
                 var ownerId = this._ownerIdDescriptor.GetValue(owner);
                 ownerIds.Add(ownerId);

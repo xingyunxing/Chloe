@@ -52,7 +52,7 @@ namespace Chloe.Query.SplitQuery
 
         }
 
-        public SplitQueryNode Owner { get; set; }
+        public SplitQueryNode PrevNode { get; set; }
 
         public PropertyDescriptor PropertyDescriptor { get; set; }
 

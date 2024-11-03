@@ -64,7 +64,7 @@ namespace Chloe.Query.SplitQuery
 
                     node = new SplitQueryNavigationNode();
                     node.ElementTypeDescriptor = EntityTypeContainer.GetDescriptor(elementType);
-                    node.Owner = queryNode;
+                    node.PrevNode = queryNode;
                     node.PropertyDescriptor = propertyDescriptor;
                 }
 

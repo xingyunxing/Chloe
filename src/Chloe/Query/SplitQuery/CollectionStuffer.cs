@@ -13,15 +13,17 @@ namespace Chloe.Query.SplitQuery
         ComplexPropertyDescriptor _thisSideNavigationDescriptor; //a.Owner
 
         InstanceCreator _collectionCreator;
-        Dictionary<object, Tuple<object, IList>> _collectionMap; //以 owner.Id 为 key，(owner,owner.Collection) 为 value
+        Dictionary<object, Tuple<object, IList, HashSet<object>>> _collectionMap; //以 owner.Id 为 key，(owner,owner.Collection, HashSet<object>) 为 value
+        TypeDescriptor _elementTypeDescriptor;
         PrimitivePropertyDescriptor _foreignKeyDescriptor;
 
         PrimitivePropertyDescriptor _ownerIdDescriptor;
         CollectionPropertyDescriptor _collectionPropertyDescriptor;
 
-        public CollectionStuffer(CollectionNavigationQueryExecutor queryExecutor, ComplexPropertyDescriptor thisSideNavigationDescriptor, PrimitivePropertyDescriptor ownerIdDescriptor)
+        public CollectionStuffer(CollectionNavigationQueryExecutor queryExecutor, TypeDescriptor elementTypeDescriptor, ComplexPropertyDescriptor thisSideNavigationDescriptor, PrimitivePropertyDescriptor ownerIdDescriptor)
         {
             this._queryExecutor = queryExecutor;
+            this._elementTypeDescriptor = elementTypeDescriptor;
             this._thisSideNavigationDescriptor = thisSideNavigationDescriptor; //a.Owner
             this._foreignKeyDescriptor = thisSideNavigationDescriptor.ForeignKeyProperty; //a.OwnerId，外键
             this._ownerIdDescriptor = ownerIdDescriptor;
@@ -31,13 +33,13 @@ namespace Chloe.Query.SplitQuery
         public void InitCollection()
         {
             this._collectionCreator = InstanceCreatorContainer.Get(this._collectionPropertyDescriptor.PropertyType.GetDefaultConstructor());
-            this._collectionMap = new Dictionary<object, Tuple<object, IList>>(this._queryExecutor.OwnerQueryExecutor.EntityCount);
-            foreach (var owner in this._queryExecutor.OwnerQueryExecutor.Entities)
+            this._collectionMap = new Dictionary<object, Tuple<object, IList, HashSet<object>>>(this._queryExecutor.PrevQueryExecutor.EntityCount);
+            foreach (var owner in this._queryExecutor.PrevQueryExecutor.Entities)
             {
                 IList collection = (IList)this._collectionCreator();
                 this._collectionPropertyDescriptor.SetValue(owner, collection);
                 var ownerId = this._ownerIdDescriptor.GetValue(owner);
-                this._collectionMap[ownerId] = new Tuple<object, IList>(owner, collection);
+                this._collectionMap[ownerId] = new Tuple<object, IList, HashSet<object>>(owner, collection, new HashSet<object>());
             }
         }
 
@@ -45,13 +47,22 @@ namespace Chloe.Query.SplitQuery
         {
             object foreignKey = this._foreignKeyDescriptor.GetValue(entity);
 
-            Tuple<object, IList> collection;
+            Tuple<object, IList, HashSet<object>> collection;
             if (!this._collectionMap.TryGetValue(foreignKey, out collection))
             {
                 return;
             }
 
+            object id = this._elementTypeDescriptor.PrimaryKeys[0].GetValue(entity);
+
+            if (collection.Item3.Contains(id))
+            {
+                //已经存在则不重复添加。因为连接查询结果集有重复的数据
+                return;
+            }
+
             collection.Item2.Add(entity);
+            collection.Item3.Add(id);
             if (this._queryExecutor.QueryNode.BindTwoWay)
             {
                 this._thisSideNavigationDescriptor.SetValue(entity, collection.Item1);
