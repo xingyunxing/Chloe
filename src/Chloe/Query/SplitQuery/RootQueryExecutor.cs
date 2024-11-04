@@ -1,6 +1,7 @@
 ﻿using Chloe.Descriptors;
+using Chloe.Extensions;
 using System.Collections;
-using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Chloe.Query.SplitQuery
 {
@@ -41,32 +42,26 @@ namespace Chloe.Query.SplitQuery
         {
             IQuery query = this.MakeQuery(true, true);
 
-            var collectionPropertyDescriptor = this._queryNode.ElementTypeDescriptor.CollectionPropertyDescriptors.Where(a => a.ElementType == fromNode.ElementType).FirstOrDefault();
+            TypeDescriptor entityTypeDescriptor = this._queryNode.ElementTypeDescriptor;
+            var collectionPropertyDescriptor = entityTypeDescriptor.CollectionPropertyDescriptors.Where(a => a.ElementType == fromNode.ElementType).FirstOrDefault();
 
+            PropertyInfo property;
             if (collectionPropertyDescriptor != null)
             {
                 //thisNode:fromNode 的关系是 1:N
-                TypeDescriptor entityTypeDescriptor = this._queryNode.ElementTypeDescriptor;
-                var a = Expression.Parameter(entityTypeDescriptor.EntityType, "a");
-                var id = Expression.MakeMemberAccess(a, entityTypeDescriptor.PrimaryKeys[0].Property); //a.Id
-                var idSelector = Expression.Lambda(id, a); //a => a.Id
-
-                query = query.Select(idSelector);
-                return query;
+                property = entityTypeDescriptor.PrimaryKeys[0].Property;  //this.Id
             }
             else
             {
-                var complexPropertyDescriptor = this._queryNode.ElementTypeDescriptor.ComplexPropertyDescriptors.Where(a => a.PropertyType == fromNode.ElementType).FirstOrDefault();
-
                 //thisNode:fromNode 的关系是 N:1
-                TypeDescriptor entityTypeDescriptor = this._queryNode.ElementTypeDescriptor;
-                var a = Expression.Parameter(entityTypeDescriptor.EntityType, "a");
-                var ownerId = Expression.MakeMemberAccess(a, complexPropertyDescriptor.ForeignKeyProperty.Property); //a.OwnerId
-                var ownerIdSelector = Expression.Lambda(ownerId, a); //a => a.OwnerId
-
-                query = query.Select(ownerIdSelector);
-                return query;
+                var complexPropertyDescriptor = entityTypeDescriptor.ComplexPropertyDescriptors.Where(a => a.PropertyType == fromNode.ElementType).FirstOrDefault();
+                property = complexPropertyDescriptor.ForeignKeyProperty.Property;  //this.OwnerId
             }
+
+            //a => a.Id | a => a.OwnerId
+            var selector = ExpressionExtension.MakeMemberAccessLambda(entityTypeDescriptor.EntityType, property);
+            query = query.Select(selector);
+            return query;
         }
 
 

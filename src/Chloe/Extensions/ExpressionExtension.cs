@@ -18,12 +18,12 @@ namespace Chloe.Extensions
 
         public static BinaryExpression Assign(MemberInfo propertyOrField, Expression instance, Expression value)
         {
-            var member = MakeMemberExpression(propertyOrField, instance);
+            var member = MakeMemberAccessExpression(instance, propertyOrField);
             var setValue = Expression.Assign(member, value);
             return setValue;
         }
 
-        public static MemberExpression MakeMemberExpression(MemberInfo propertyOrField, Expression instance)
+        public static MemberExpression MakeMemberAccessExpression(Expression instance, MemberInfo propertyOrField)
         {
             if (propertyOrField.MemberType == MemberTypes.Property)
             {
@@ -38,6 +38,15 @@ namespace Chloe.Extensions
             }
 
             throw new ArgumentException();
+        }
+
+        public static LambdaExpression MakeMemberAccessLambda(Type parameterType, PropertyInfo property)
+        {
+            var a = Expression.Parameter(parameterType, "a");
+            var memberAccess = Expression.MakeMemberAccess(a, property); //a.XX
+            var memberAccessLambda = Expression.Lambda(memberAccess, a); //a => a.XX
+
+            return memberAccessLambda;
         }
 
         public static LambdaExpression AndAlso(this LambdaExpression a, LambdaExpression b)
