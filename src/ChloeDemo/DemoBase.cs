@@ -1239,6 +1239,20 @@ namespace ChloeDemo
             var personQuery = this.DbContext.Query<Person>();
             var cityQuery = this.DbContext.Query<City>();
 
+
+            personQuery.OrderBy(a => a.Id).Select(a => a.CityId).Distinct().Count();
+            /*
+             * SELECT COUNT(1) AS `C` FROM (SELECT DISTINCT `T`.`CityId` AS `C` FROM `Person` AS `T`) AS `T0`
+             * 生成的 sql 语句中的子句不包含排序字段
+             */
+
+            personQuery.OrderBy(a => a.Id).Select(a => new { a.Id, a.CityId }).Distinct().Count();
+            /*
+             * SELECT COUNT(1) AS `C` FROM (SELECT DISTINCT `T`.`Id`,`T`.`CityId` FROM `Person` AS `T` WHERE ORDER BY `T`.`Id` ASC) AS `T0`
+             * 生成的 sql 语句中的子句包含排序字段
+             */
+
+
             //参数在左边测试
             int cityId = cityQuery.First().Id;
             var city1 = cityQuery.Where(a => cityId == a.Id).First();

@@ -225,35 +225,25 @@ namespace Chloe.Query.QueryState
             IObjectModel newResultModel = this.QueryModel.ResultModel.ToNewObjectModel(sqlQuery.ColumnSegments, columnAliasSet, aliasTable, fromTable);
             newQueryModel.ResultModel = newResultModel;
 
-            if (!sqlQuery.IsDistinct || this.QueryModel.Orderings.All(a => sqlQuery.ColumnSegments.Find(columnSegment => DbExpressionEqualityComparer.Instance.Equals(a.Expression, columnSegment.Body)) != null))
+            if (!sqlQuery.IsDistinct)
             {
-                //注：如果是 distinct 查询，排序的字段不在 ColumnSegments 之中，则不能往 ColumnSegments 中添加字段，否则查出的数据会不准
-
-                //得将 subquery.SqlQuery.Orders 告诉 以下创建的 result
-                //将 orderPart 传递下去
-                for (int i = 0; i < this.QueryModel.Orderings.Count; i++)
+                this.AppendOrderingsToNewQueryModel(sqlQuery, newQueryModel, aliasTable, columnAliasSet);
+            }
+            else
+            {
+                //distinct 查询
+                bool allOrderingsInSelectList = this.QueryModel.Orderings.All(a => sqlQuery.ColumnSegments.Find(columnSegment => DbExpressionEqualityComparer.Instance.Equals(a.Expression, columnSegment.Body)) != null);
+                if (allOrderingsInSelectList)
                 {
-                    DbOrdering ordering = this.QueryModel.Orderings[i];
-                    DbExpression orderingExp = ordering.Expression;
-
-                    string alias = null;
-
-                    DbColumnSegment columnExpression = sqlQuery.ColumnSegments.Find(a => DbExpressionEqualityComparer.Instance.Equals(orderingExp, a.Body));
-
-                    // 对于重复的则不需要往 sqlQuery.Columns 重复添加了
-                    if (columnExpression != null)
-                    {
-                        alias = columnExpression.Alias;
-                    }
-                    else
-                    {
-                        alias = Utils.GenerateUniqueColumnAlias(columnAliasSet);
-                        DbColumnSegment columnSeg = new DbColumnSegment(orderingExp, alias);
-                        sqlQuery.ColumnSegments.Add(columnSeg);
-                    }
-
-                    DbColumnAccessExpression columnAccessExpression = new DbColumnAccessExpression(aliasTable, DbColumn.MakeColumn(orderingExp, alias));
-                    newQueryModel.Orderings.Add(new DbOrdering(columnAccessExpression, ordering.OrderType));
+                    this.AppendOrderingsToNewQueryModel(sqlQuery, newQueryModel, aliasTable, columnAliasSet);
+                }
+                else
+                {
+                    /* 
+                     * sql1: SELECT COUNT(1) AS `C` FROM (SELECT DISTINCT `T`.`CityId` AS `C` FROM `Person` AS `T` WHERE ORDER BY `T`.`Id` ASC) AS `T0`
+                     * 在部分数据库中（如 SQLite），上述查询是可以执行的，但是在有些数据库（如 MySql）不能执行，会报 ORDER BY clause is not in SELECT list 错误，为了统一，如果排序字段不在 select list 中，我们就移除掉排序 
+                     */
+                    sqlQuery.Orderings.Clear();
                 }
             }
 
@@ -262,6 +252,37 @@ namespace Chloe.Query.QueryState
             GeneralQueryState queryState = new GeneralQueryState(this.QueryContext, newQueryModel);
             return queryState;
         }
+
+        void AppendOrderingsToNewQueryModel(DbSqlQueryExpression subsqlQuery, QueryModel newQueryModel, DbTable aliasTable, HashSet<string> columnAliasSet)
+        {
+            //得将 subquery.SqlQuery.Orders 告诉以下创建的 result
+            //将 orderPart 传递下去
+            for (int i = 0; i < this.QueryModel.Orderings.Count; i++)
+            {
+                DbOrdering ordering = this.QueryModel.Orderings[i];
+                DbExpression orderingExp = ordering.Expression;
+
+                string alias = null;
+
+                DbColumnSegment columnExpression = subsqlQuery.ColumnSegments.Find(a => DbExpressionEqualityComparer.Instance.Equals(orderingExp, a.Body));
+
+                // 对于重复的则不需要往 sqlQuery.Columns 重复添加了
+                if (columnExpression != null)
+                {
+                    alias = columnExpression.Alias;
+                }
+                else
+                {
+                    alias = Utils.GenerateUniqueColumnAlias(columnAliasSet);
+                    DbColumnSegment columnSeg = new DbColumnSegment(orderingExp, alias);
+                    subsqlQuery.ColumnSegments.Add(columnSeg);
+                }
+
+                DbColumnAccessExpression columnAccessExpression = new DbColumnAccessExpression(aliasTable, DbColumn.MakeColumn(orderingExp, alias));
+                newQueryModel.Orderings.Add(new DbOrdering(columnAccessExpression, ordering.OrderType));
+            }
+        }
+
         public virtual DbSqlQueryExpression CreateSqlQuery()
         {
             DbSqlQueryExpression sqlQuery = this._queryModel.CreateSqlQuery();
