@@ -13,7 +13,7 @@ namespace Chloe.Query.SplitQuery
         ComplexPropertyDescriptor _thisSideNavigationDescriptor; //a.Owner
 
         InstanceCreator _collectionCreator;
-        Dictionary<object, Tuple<object, IList, HashSet<object>>> _collectionMap; //以 owner.Id 为 key，(owner,owner.Collection, HashSet<object>) 为 value
+        Dictionary<object, List<Tuple<object, IList, HashSet<object>>>> _collectionMap; //以 owner.Id 为 key，List<(owner,owner.Collection, HashSet<object>)> 为 value
         TypeDescriptor _elementTypeDescriptor;
         PrimitivePropertyDescriptor _foreignKeyDescriptor;
 
@@ -33,13 +33,28 @@ namespace Chloe.Query.SplitQuery
         public void InitCollection()
         {
             this._collectionCreator = InstanceCreatorContainer.Get(this._collectionPropertyDescriptor.PropertyType.GetDefaultConstructor());
-            this._collectionMap = new Dictionary<object, Tuple<object, IList, HashSet<object>>>(this._queryExecutor.PrevQueryExecutor.EntityCount);
+            this._collectionMap = new Dictionary<object, List<Tuple<object, IList, HashSet<object>>>>(this._queryExecutor.PrevQueryExecutor.EntityCount);
             foreach (var owner in this._queryExecutor.PrevQueryExecutor.Entities)
             {
-                IList collection = (IList)this._collectionCreator();
-                this._collectionPropertyDescriptor.SetValue(owner, collection);
                 var ownerId = this._ownerIdDescriptor.GetValue(owner);
-                this._collectionMap[ownerId] = new Tuple<object, IList, HashSet<object>>(owner, collection, new HashSet<object>());
+
+                /*
+                 * 要用集合存
+                 * 比如此类查询：dbContext.Query<GoodsSku>().Include(a => a.Goods).ThenIncludeMany(a => a.GoodsSupplierMaps).ThenInclude(a => a.Supplier).Where(a => a.GoodsId == 18220).SplitQuery().ToList();
+                 * 保证每个 Goods 的 GoodsSupplierMaps 都能填充上
+                 */
+                List<Tuple<object, IList, HashSet<object>>> ownerContainer;
+                if (!this._collectionMap.TryGetValue(ownerId, out ownerContainer))
+                {
+                    ownerContainer = new List<Tuple<object, IList, HashSet<object>>>();
+                    this._collectionMap[ownerId] = ownerContainer;
+                }
+
+                IList collection = (IList)this._collectionCreator();//导航集合
+                this._collectionPropertyDescriptor.SetValue(owner, collection);
+
+                var ownerBak = new Tuple<object, IList, HashSet<object>>(owner, collection, new HashSet<object>()/* 用于记录已经往导航集合添加过的数据。因为连接查询结果集有重复的数据，所以要记录起来，防止重复添加 */);
+                ownerContainer.Add(ownerBak);
             }
         }
 
@@ -47,25 +62,29 @@ namespace Chloe.Query.SplitQuery
         {
             object foreignKey = this._foreignKeyDescriptor.GetValue(entity);
 
-            Tuple<object, IList, HashSet<object>> collection;
-            if (!this._collectionMap.TryGetValue(foreignKey, out collection))
+            List<Tuple<object, IList, HashSet<object>>> ownerContainer;
+            if (!this._collectionMap.TryGetValue(foreignKey, out ownerContainer))
             {
                 return;
             }
 
-            object id = this._elementTypeDescriptor.PrimaryKeys[0].GetValue(entity);
-
-            if (collection.Item3.Contains(id))
+            for (int i = 0; i < ownerContainer.Count; i++)
             {
-                //已经存在则不重复添加。因为连接查询结果集有重复的数据
-                return;
-            }
+                Tuple<object, IList, HashSet<object>> ownerBak = ownerContainer[i];
 
-            collection.Item2.Add(entity);
-            collection.Item3.Add(id);
-            if (this._queryExecutor.QueryNode.BindTwoWay)
-            {
-                this._thisSideNavigationDescriptor.SetValue(entity, collection.Item1);
+                object id = this._elementTypeDescriptor.PrimaryKeys[0].GetValue(entity);
+                if (ownerBak.Item3.Contains(id))
+                {
+                    //已经存在则不重复添加。因为连接查询结果集有重复的数据
+                    return;
+                }
+
+                ownerBak.Item2.Add(entity);
+                ownerBak.Item3.Add(id);
+                if (this._queryExecutor.QueryNode.BindTwoWay)
+                {
+                    this._thisSideNavigationDescriptor.SetValue(entity, ownerBak.Item1);
+                }
             }
         }
     }
