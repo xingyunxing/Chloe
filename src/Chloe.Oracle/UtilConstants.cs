@@ -7,9 +7,9 @@ namespace Chloe.Oracle
         public const string LeftQuoteChar = "\"";
         public const string RightQuoteChar = "\"";
 
-        public const string ParameterNamePlaceholer = ":";
-        public static readonly string ParameterNamePrefix = ParameterNamePlaceholer + "P_";
-        public static readonly string OutputParameterNamePrefix = ParameterNamePlaceholer + "R_";
+        public const string ParameterNamePlaceholder = ":";
+        public static readonly string ParameterNamePrefix = ParameterNamePlaceholder + "P_";
+        public static readonly string OutputParameterNamePrefix = ParameterNamePlaceholder + "R_";
 
         #region MemberInfo constants
 

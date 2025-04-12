@@ -5,7 +5,7 @@
         public const string LeftQuoteChar = "[";
         public const string RightQuoteChar = "]";
 
-        public const string ParameterNamePlaceholer = "@";
-        public static readonly string ParameterNamePrefix = ParameterNamePlaceholer + "P_";
+        public const string ParameterNamePlaceholder = "@";
+        public static readonly string ParameterNamePrefix = ParameterNamePlaceholder + "P_";
     }
 }

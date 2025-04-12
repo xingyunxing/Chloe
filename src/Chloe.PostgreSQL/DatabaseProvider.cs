@@ -30,12 +30,12 @@ namespace Chloe.PostgreSQL
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentNullException("name");
 
-            if (name[0] == UtilConstants.ParameterNamePlaceholer[0])
+            if (name[0] == UtilConstants.ParameterNamePlaceholder[0])
             {
                 return name;
             }
 
-            return UtilConstants.ParameterNamePlaceholer + name;
+            return UtilConstants.ParameterNamePlaceholder + name;
         }
     }
 }
