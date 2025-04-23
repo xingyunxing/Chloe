@@ -123,6 +123,16 @@ namespace Chloe
 
             return entity;
         }
+
+        /// <summary>
+        /// save entity to database
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="dbContextProvider"></param>
+        /// <param name="entity"></param>
+        /// <param name="declaringTypeDescriptor"></param>
+        /// <param name="async"></param>
+        /// <returns></returns>
         static async Task Save<TEntity>(IDbContextProvider dbContextProvider, TEntity entity, TypeDescriptor declaringTypeDescriptor, bool @async)
         {
             if (@async)
@@ -156,47 +166,71 @@ namespace Chloe
                 await SaveCollection(dbContextProvider, collectionPropertyDescriptor, entity, typeDescriptor, @async);
             }
         }
-        static async Task SaveOneToOne(IDbContextProvider dbContextProvider, ComplexPropertyDescriptor navPropertyDescriptor, object owner, TypeDescriptor ownerTypeDescriptor, bool @async)
+
+        /// <summary>
+        /// save T.TOther to database
+        /// </summary>
+        /// <param name="dbContextProvider"></param>
+        /// <param name="navPropertyDescriptor"></param>
+        /// <param name="owner"></param>
+        /// <param name="ownerTypeDescriptor"></param>
+        /// <param name="async"></param>
+        /// <returns></returns>
+        static async Task SaveOneToOne(IDbContextProvider dbContextProvider, ComplexPropertyDescriptor navPropertyDescriptor /* T.TOther */, object owner /* T */, TypeDescriptor ownerTypeDescriptor, bool @async)
         {
             /*
              * 1:1
              * T    <1:1>    TOther
-             * T.TOther <--> TOther.T
-             * T.Id <--> TOther.Id
+             * T.TOther <1:1> TOther.T
+             * T.ForeignKey <--> TOther.ForeignKey
              */
 
             //owner is T
-            //navPropertyDescriptor is T.TOther
+            //navPropertyDescriptor is descriptor of T.TOther
             //TypeDescriptor of T.TOther
             TypeDescriptor navTypeDescriptor = EntityTypeContainer.GetDescriptor(navPropertyDescriptor.PropertyType);
             //TOther.T
-            ComplexPropertyDescriptor TOtherDotT = navTypeDescriptor.ComplexPropertyDescriptors.Where(a => a.PropertyType == ownerTypeDescriptor.Definition.Type).FirstOrDefault();
+            ComplexPropertyDescriptor propertyDescriptorOfTOther_T = navTypeDescriptor.ComplexPropertyDescriptors.Where(a => a.PropertyType == ownerTypeDescriptor.Definition.Type).FirstOrDefault();
 
-            bool isOneToOne = TOtherDotT != null;
+            bool isOneToOne = propertyDescriptorOfTOther_T != null;
             if (!isOneToOne)
                 return;
 
             //instance of T.TOther
-            object navValue = navPropertyDescriptor.GetValue(owner);
-            if (navValue == null)
+            object navInstance = navPropertyDescriptor.GetValue(owner);
+            if (navInstance == null)
                 return;
 
-            //T.Id
+            //T.ForeignKey
             PrimitivePropertyDescriptor foreignKeyProperty = navPropertyDescriptor.ForeignKeyProperty;
             if (foreignKeyProperty.IsAutoIncrement || foreignKeyProperty.HasSequence())
             {
-                //value of T.Id
+                //T.ForeignKey is IsAutoIncrement or Sequence
+                //value of TOther.ForeignKey
                 object foreignKeyValue = foreignKeyProperty.GetValue(owner);
 
-                //T.TOther.Id = T.Id
-                TOtherDotT.ForeignKeyProperty.SetValue(navValue, foreignKeyValue);
+                //TOther.ForeignKey
+                PrimitivePropertyDescriptor foreignKeyOfTOther = propertyDescriptorOfTOther_T.ForeignKeyProperty;
+
+                //TOther.ForeignKey = T.ForeignKey
+                foreignKeyOfTOther.SetValue(navInstance, foreignKeyValue);
             }
 
             MethodInfo saveMethod = GetSaveMethod(navPropertyDescriptor.PropertyType);
             //DbContextProvider.Save(navValue, ownerTypeDescriptor, @async);
-            Task task = (Task)saveMethod.FastInvoke(null, dbContextProvider, navValue, ownerTypeDescriptor, @async);
+            Task task = (Task)saveMethod.FastInvoke(null, dbContextProvider, navInstance, ownerTypeDescriptor, @async);
             await task;
         }
+
+        /// <summary>
+        /// save T.TOthers to database
+        /// </summary>
+        /// <param name="dbContextProvider"></param>
+        /// <param name="collectionPropertyDescriptor"></param>
+        /// <param name="owner"></param>
+        /// <param name="ownerTypeDescriptor"></param>
+        /// <param name="async"></param>
+        /// <returns></returns>
         static async Task SaveCollection(IDbContextProvider dbContextProvider, CollectionPropertyDescriptor collectionPropertyDescriptor, object owner, TypeDescriptor ownerTypeDescriptor, bool @async)
         {
             PrimitivePropertyDescriptor ownerKeyPropertyDescriptor = ownerTypeDescriptor.PrimaryKeys.FirstOrDefault();
