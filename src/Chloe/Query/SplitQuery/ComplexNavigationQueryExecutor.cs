@@ -52,7 +52,9 @@ namespace Chloe.Query.SplitQuery
             if (collectionPropertyDescriptor != null)
             {
                 //thisNode:fromNode 的关系是 1:N
-                property = entityTypeDescriptor.PrimaryKeys[0].Property;  //this.Id
+                ComplexPropertyDescriptor fromNodeElementDotOwner_Descriptor = fromNode.ElementTypeDescriptor.GetComplexPropertyDescriptorByPropertyType(this._queryNode.ElementType);
+
+                property = fromNodeElementDotOwner_Descriptor.GetOtherSideProperty(entityTypeDescriptor);  //this.AssociatedKey
             }
             else
             {
@@ -61,7 +63,7 @@ namespace Chloe.Query.SplitQuery
                 property = complexPropertyDescriptor.ForeignKeyProperty.Property;  //this.OwnerId
             }
 
-            //a => a.Id | a => a.OwnerId
+            //a => a.AssociatedKey | a => a.OwnerId
             var selector = ExpressionExtension.MakeMemberAccessLambda(entityTypeDescriptor.EntityType, property);
             query = query.Select(selector);
             return query;
@@ -93,7 +95,7 @@ namespace Chloe.Query.SplitQuery
                 query = query.Exclude(queryNode.ExcludedFields[i]);
             }
 
-            ComplexPropertyDescriptor navigationDescriptor = queryNode.ElementTypeDescriptor.ComplexPropertyDescriptors.Where(a => a.PropertyType == queryNode.PrevNode.ElementTypeDescriptor.EntityType).FirstOrDefault();
+            ComplexPropertyDescriptor navigationDescriptor = queryNode.ElementTypeDescriptor.GetComplexPropertyDescriptorByPropertyType(queryNode.PrevNode.ElementTypeDescriptor.EntityType);
 
             if (navigationDescriptor == null)
             {
@@ -110,14 +112,18 @@ namespace Chloe.Query.SplitQuery
                 ParameterExpression p1 = Expression.Parameter(dependQuery.ElementType, "p1"); //p1, p1 is prevNode.OwnerId
                 ParameterExpression p2 = Expression.Parameter(query.ElementType, "p2"); //p2
 
-                Expression keySelector = Expression.MakeMemberAccess(p2, this._queryNode.ElementTypeDescriptor.PrimaryKeys[0].Property); //p2.Id
-                if (keySelector.Type != p1.Type)
-                    keySelector = Expression.Convert(keySelector, p1.Type); //(int)p2.Id
+                ComplexPropertyDescriptor prevNodeElementDotOwner_Descriptor = queryNode.PrevNode.ElementTypeDescriptor.GetComplexPropertyDescriptorByPropertyType(this._queryNode.ElementType);
 
-                Expression eq = Expression.Equal(p1, keySelector); //p1 == p2.Id
+                PropertyInfo associatedThisNodeKey = prevNodeElementDotOwner_Descriptor.GetOtherSideProperty(queryNode.ElementTypeDescriptor);
+
+                Expression keySelector = Expression.MakeMemberAccess(p2, associatedThisNodeKey); //p2.AssociatedKey
+                if (keySelector.Type != p1.Type)
+                    keySelector = Expression.Convert(keySelector, p1.Type); //(int)p2.AssociatedKey
+
+                Expression eq = Expression.Equal(p1, keySelector); //p1 == p2.AssociatedKey
 
                 Type delegateType = typeof(Func<,,>).MakeGenericType(p1.Type, p2.Type, typeof(bool)); //Func<P1, P2, bool>
-                LambdaExpression on = Expression.Lambda(delegateType, eq, p1, p2); //(p1, p2) => p1 == p2.Id
+                LambdaExpression on = Expression.Lambda(delegateType, eq, p1, p2); //(p1, p2) => p1 == p2.AssociatedKey
 
                 Type selectorDelegateType = typeof(Func<,,>).MakeGenericType(p1.Type, p2.Type, p2.Type); //Func<P1, P2, P2>
                 LambdaExpression selector = Expression.Lambda(selectorDelegateType, p2, p1, p2); //(p1, p2) => p2
@@ -130,9 +136,9 @@ namespace Chloe.Query.SplitQuery
             else
             {
                 //thisNode:prevNode 的关系是 N:1
-                IQuery dependQuery = this._prevQueryExecutor.GetDependQuery(this._queryNode);
+                IQuery dependQuery = this._prevQueryExecutor.GetDependQuery(this._queryNode); //owner.AssociatedKey
 
-                ParameterExpression p1 = Expression.Parameter(dependQuery.ElementType, "p1"); //p1, p1 is owner.Id
+                ParameterExpression p1 = Expression.Parameter(dependQuery.ElementType, "p1"); //p1, p1 is owner.AssociatedKey
                 ParameterExpression p2 = Expression.Parameter(query.ElementType, "p2"); //p2
 
                 Expression foreignKey = Expression.MakeMemberAccess(p2, navigationDescriptor.ForeignKeyProperty.Property); //p2.OwnerId

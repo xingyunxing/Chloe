@@ -223,7 +223,7 @@ namespace Chloe
         }
 
         /// <summary>
-        /// save T.TOthers to database
+        /// save T.Elements to database
         /// </summary>
         /// <param name="dbContextProvider"></param>
         /// <param name="collectionPropertyDescriptor"></param>
@@ -233,10 +233,6 @@ namespace Chloe
         /// <returns></returns>
         static async Task SaveCollection(IDbContextProvider dbContextProvider, CollectionPropertyDescriptor collectionPropertyDescriptor, object owner, TypeDescriptor ownerTypeDescriptor, bool @async)
         {
-            PrimitivePropertyDescriptor ownerKeyPropertyDescriptor = ownerTypeDescriptor.PrimaryKeys.FirstOrDefault();
-            if (ownerKeyPropertyDescriptor == null)
-                return;
-
             //T.Elements
             IList elementList = collectionPropertyDescriptor.GetValue(owner) as IList;
             if (elementList == null || elementList.Count == 0)
@@ -246,7 +242,14 @@ namespace Chloe
             //Element.T
             ComplexPropertyDescriptor elementDotT = elementTypeDescriptor.ComplexPropertyDescriptors.Where(a => a.PropertyType == ownerTypeDescriptor.Definition.Type).FirstOrDefault();
 
-            object ownerKeyValue = ownerKeyPropertyDescriptor.GetValue(owner);
+            PrimitivePropertyDescriptor associatedKeyProperty = elementDotT.GetOtherSidePropertyDescriptor(ownerTypeDescriptor);
+            if (associatedKeyProperty == null)
+            {
+                return;
+            }
+
+            object associatedKeyValue = associatedKeyProperty.GetValue(owner);
+
             MethodInfo saveMethod = GetSaveMethod(collectionPropertyDescriptor.ElementType);
             for (int i = 0; i < elementList.Count; i++)
             {
@@ -254,8 +257,8 @@ namespace Chloe
                 if (element == null)
                     continue;
 
-                //element.ForeignKey = T.Id
-                elementDotT.ForeignKeyProperty.SetValue(element, ownerKeyValue);
+                //element.ForeignKey = T.AssociatedKey
+                elementDotT.ForeignKeyProperty.SetValue(element, associatedKeyValue);
                 //DbContext.Save(element, ownerTypeDescriptor, @async);
                 Task task = (Task)saveMethod.FastInvoke(null, dbContextProvider, element, ownerTypeDescriptor, @async);
                 await task;

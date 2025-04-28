@@ -663,7 +663,11 @@ namespace Chloe.Query
 
             PrimitivePropertyDescriptor foreignKeyPropertyDescriptor = navigationDescriptor.ForeignKeyProperty;
             DbExpression foreignKeyColumn = this.GetPrimitiveMember(foreignKeyPropertyDescriptor.Property);
-            DbExpression joinCondition = new DbEqualExpression(foreignKeyColumn, navigationObjectModel.PrimaryKey);
+
+            DbExpression otherSideKeyExp = navigationObjectModel.GetPrimitiveMember(navigationDescriptor.GetOtherSideProperty(navigationTypeDescriptor));
+
+            //a.ForeignKey == otherSide.AssociatedKey
+            DbExpression joinCondition = new DbEqualExpression(foreignKeyColumn, otherSideKeyExp);
 
             DbJoinType joinType = DbJoinType.LeftJoin;
             if (!foreignKeyPropertyDescriptor.IsNullable)
@@ -703,15 +707,13 @@ namespace Chloe.Query
             ComplexObjectModel elementObjectModel = elementTypeDescriptor.GenObjectModel(alias, this._queryContext, queryModel.Options);
             elementObjectModel.NullChecking = elementObjectModel.PrimaryKey;
 
-            ComplexPropertyDescriptor navigationDescriptor = elementTypeDescriptor.ComplexPropertyDescriptors.Where(a => a.PropertyType == this.ObjectType).FirstOrDefault();
-
-            if (navigationDescriptor == null)
-            {
-                throw new ChloeException($"You have to define a navigation property which type is '{this.ObjectType.FullName}' on class '{elementTypeDescriptor.Definition.Type.FullName}'.");
-            }
-
+            ComplexPropertyDescriptor navigationDescriptor = elementTypeDescriptor.GetComplexPropertyDescriptorByPropertyType(this.ObjectType);
             DbExpression elementForeignKeyColumn = elementObjectModel.GetPrimitiveMember(navigationDescriptor.ForeignKeyProperty.Property);
-            DbExpression joinCondition = new DbEqualExpression(this.PrimaryKey, elementForeignKeyColumn);
+
+            TypeDescriptor thisSideTypeDescriptor = EntityTypeContainer.GetDescriptor(this.ObjectType);
+            DbExpression associatedThisSideKeyExp = this.GetPrimitiveMember(navigationDescriptor.GetOtherSideProperty(thisSideTypeDescriptor));
+
+            DbExpression joinCondition = new DbEqualExpression(associatedThisSideKeyExp, elementForeignKeyColumn);
             DbJoinTableExpression joinTableExp = new DbJoinTableExpression(DbJoinType.LeftJoin, joinTableSeg, joinCondition);
             joinTableExp.AppendTo(this.AssociatedTable);
 

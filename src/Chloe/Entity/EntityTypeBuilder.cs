@@ -74,6 +74,10 @@ namespace Chloe.Entity
         {
             return this.HasOne(property).WithForeignKey(foreignKey);
         }
+        public virtual IComplexPropertyBuilder HasOne(string property, string foreignKey, string otherSideKey)
+        {
+            return this.HasOne(property).WithForeignKey(foreignKey).AssociateWithOtherSide(otherSideKey);
+        }
 
         public virtual ICollectionPropertyBuilder HasMany(string property)
         {
@@ -266,6 +270,7 @@ namespace Chloe.Entity
 
                 ComplexProperty complexProperty = new ComplexProperty(property);
                 complexProperty.ForeignKey = navigationAttribute.ForeignKey;
+                complexProperty.OtherSideKey = navigationAttribute.OtherSideKey;
                 this.EntityType.ComplexProperties.Add(complexProperty);
             }
         }

@@ -192,5 +192,23 @@ namespace Chloe.Descriptors
 
             return dbTable;
         }
+
+        /// <summary>
+        /// 根据传入的类型，获取对应的导航属性
+        /// </summary>
+        /// <param name="propertyType"></param>
+        /// <returns></returns>
+        /// <exception cref="ChloeException"></exception>
+        internal ComplexPropertyDescriptor GetComplexPropertyDescriptorByPropertyType(Type propertyType)
+        {
+            ComplexPropertyDescriptor complexPropertyDescriptor = this.ComplexPropertyDescriptors.Where(a => a.PropertyType == propertyType).FirstOrDefault();
+
+            if (complexPropertyDescriptor == null)
+            {
+                throw new ChloeException($"You have to define a navigation property which type is '{propertyType.FullName}' on class '{this.EntityType.FullName}'.");
+            }
+
+            return complexPropertyDescriptor;
+        }
     }
 }

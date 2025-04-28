@@ -71,6 +71,10 @@ namespace Chloe.Entity
         {
             return this.HasOne(property).WithForeignKey(foreignKey);
         }
+        public IComplexPropertyBuilder<TProperty, TEntity> HasOne<TProperty, TForeignKey, TOtherSideKey>(Expression<Func<TEntity, TProperty>> property, Expression<Func<TEntity, TForeignKey>> foreignKey, Expression<Func<TProperty, TOtherSideKey>> otherSideKey)
+        {
+            return this.HasOne(property).WithForeignKey(foreignKey).AssociateWithOtherSide(otherSideKey);
+        }
 
         public ICollectionPropertyBuilder<TProperty, TEntity> HasMany<TProperty>(Expression<Func<TEntity, TProperty>> property)
         {

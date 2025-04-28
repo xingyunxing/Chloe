@@ -19,5 +19,11 @@ namespace Chloe.Entity
             this.Property.ForeignKey = foreignKey;
             return this;
         }
+
+        public IComplexPropertyBuilder AssociateWithOtherSide(string otherSideKey)
+        {
+            this.Property.OtherSideKey = otherSideKey;
+            return this;
+        }
     }
 }

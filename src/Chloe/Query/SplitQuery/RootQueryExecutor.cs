@@ -49,12 +49,14 @@ namespace Chloe.Query.SplitQuery
             if (collectionPropertyDescriptor != null)
             {
                 //thisNode:fromNode 的关系是 1:N
-                property = entityTypeDescriptor.PrimaryKeys[0].Property;  //this.Id
+                ComplexPropertyDescriptor fromNodeElementDotOwner_Descriptor = fromNode.ElementTypeDescriptor.GetComplexPropertyDescriptorByPropertyType(this._queryNode.ElementType);
+
+                property = fromNodeElementDotOwner_Descriptor.GetOtherSideProperty(entityTypeDescriptor);  //this.AssociatedKey
             }
             else
             {
                 //thisNode:fromNode 的关系是 N:1
-                var complexPropertyDescriptor = entityTypeDescriptor.ComplexPropertyDescriptors.Where(a => a.PropertyType == fromNode.ElementType).FirstOrDefault();
+                ComplexPropertyDescriptor complexPropertyDescriptor = entityTypeDescriptor.GetComplexPropertyDescriptorByPropertyType(fromNode.ElementType);
                 property = complexPropertyDescriptor.ForeignKeyProperty.Property;  //this.OwnerId
             }
 

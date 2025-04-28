@@ -4,6 +4,7 @@ using Chloe.Extensions;
 using Chloe.Reflection;
 using System.Collections;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Chloe.Query.SplitQuery
 {
@@ -90,11 +91,17 @@ namespace Chloe.Query.SplitQuery
             IQuery query = this.MakeQuery(true);
 
             TypeDescriptor entityTypeDescriptor = this._queryNode.ElementTypeDescriptor;
-            var a = Expression.Parameter(entityTypeDescriptor.EntityType, "a");
-            var id = Expression.MakeMemberAccess(a, entityTypeDescriptor.PrimaryKeys[0].Property); //a.Id
-            var idSelector = Expression.Lambda(id, a); //a => a.Id
 
-            query = query.Select(idSelector);
+            //thisNode:fromNode 的关系是 1:N
+            ComplexPropertyDescriptor fromNodeElementDotOwner_Descriptor = fromNode.ElementTypeDescriptor.GetComplexPropertyDescriptorByPropertyType(this._queryNode.ElementType);
+
+            PropertyInfo associatedThisSideKey = fromNodeElementDotOwner_Descriptor.GetOtherSideProperty(entityTypeDescriptor);  //this.AssociatedKey
+
+            var a = Expression.Parameter(entityTypeDescriptor.EntityType, "a");
+            var associatedThisSideKeyExp = Expression.MakeMemberAccess(a, associatedThisSideKey); //a.AssociatedKey
+            var associatedThisSideKeySelector = Expression.Lambda(associatedThisSideKeyExp, a); //a => a.AssociatedKey
+
+            query = query.Select(associatedThisSideKeySelector);
             return query;
         }
 
