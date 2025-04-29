@@ -31,8 +31,8 @@ namespace ChloeDemo
             this.Property(a => a.CreateTime).UpdateIgnore(); //更新实体时不更新此字段
 
             /* 配置导航属性关系 */
-            this.HasOne(a => a.Profile, a => a.Id);
-            this.HasOne(a => a.City, a => a.CityId);
+            this.HasOne(a => a.Profile, a => a.Id, a => a.Id);
+            this.HasOne(a => a.City, a => a.CityId, a => a.Id);
 
             this.Ignore(a => a.NotMapped);
 
