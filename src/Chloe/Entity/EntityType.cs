@@ -61,32 +61,32 @@ namespace Chloe.Entity
             if (autoIncrementProperties.Count > 1)
             {
                 /* 一个实体不能有多个自增成员 */
-                throw new NotSupportedException(string.Format("The entity type '{0}' can not define multiple auto increment members.", this.Type.FullName));
+                throw new NotSupportedException($"'{this.Type.FullName}': Can not define multiple auto increment members.");
             }
             if (autoIncrementProperties.Exists(a => !Utils.IsAutoIncrementType(a.Property.PropertyType)))
             {
                 /* 限定自增类型 */
-                throw new ChloeException("Auto increment member type must be Int16, Int32 or Int64.");
+                throw new ChloeException($"'{this.Type.FullName}': Auto increment member type must be Int16, Int32 or Int64.");
             }
 
             var primaryKeys = primitiveProperties.Where(a => a.IsPrimaryKey).ToList();
             if (primaryKeys.Count > 1 && primaryKeys.Exists(a => a.IsAutoIncrement))
             {
                 /* 自增列不能作为联合主键 */
-                throw new ChloeException("Auto increment member can not be union key.");
+                throw new ChloeException($"'{this.Type.FullName}': Auto increment member can not be union key.");
             }
 
             var rowVersionProperties = primitiveProperties.Where(a => a.IsRowVersion).ToList();
             if (rowVersionProperties.Count > 1)
             {
-                throw new NotSupportedException(string.Format("The entity type '{0}' can not define multiple row version members.", this.Type.FullName));
+                throw new NotSupportedException($"'{this.Type.FullName}': Can not define multiple row version members.");
             }
             else if (rowVersionProperties.Count == 1)
             {
                 var rowVersionProperty = rowVersionProperties.First().Property;
                 if (rowVersionProperty.PropertyType != PublicConstants.TypeOfInt32 && rowVersionProperty.PropertyType != PublicConstants.TypeOfInt64 && rowVersionProperty.PropertyType != PublicConstants.TypeOfByteArray)
                 {
-                    throw new ChloeException("Row version member type must be Int32, Int64 or Byte[].");
+                    throw new ChloeException($"'{this.Type.FullName}': Row version member type must be Int32, Int64 or Byte[].");
                 }
             }
 
