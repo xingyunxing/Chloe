@@ -35,7 +35,7 @@ namespace Chloe.Query.SplitQuery
 
         public abstract IQuery GetDependQuery(SplitQueryNode fromNode);
 
-        public static IQuery IncludeNavigation(IQuery query, SplitQueryNode node, bool isThenInclude)
+        public static IQuery IncludeNavigation(IQuery query, SplitQueryNode node, LambdaExpression[] navigationChain)
         {
             for (int i = 0; i < node.IncludeNodes.Count; i++)
             {
@@ -48,8 +48,20 @@ namespace Chloe.Query.SplitQuery
                 var includeProperty = Expression.MakeMemberAccess(a, includeNode.Property); //a.XXX
                 var navigationProperty = Expression.Lambda(includeProperty, a); //a => a.XXX
 
-                if (isThenInclude)
+                if (navigationChain.Length > 0)
                 {
+                    for (int j = 0; j < navigationChain.Length; j++)
+                    {
+                        if (j == 0)
+                        {
+                            query = query.Include(navigationChain[j]);
+                        }
+                        else
+                        {
+                            query = query.ThenInclude(navigationChain[j]);
+                        }
+                    }
+
                     query = query.ThenInclude(navigationProperty);
                 }
                 else
@@ -67,7 +79,18 @@ namespace Chloe.Query.SplitQuery
                     query = query.ExcludeField(includeNode.ExcludedFields[j]);
                 }
 
-                query = IncludeNavigation(query, includeNode, true);
+                if (includeNode.IncludeNodes.Count > 0)
+                {
+                    LambdaExpression[] toNextChain = new LambdaExpression[navigationChain.Length + 1];
+                    for (int j = 0; j < navigationChain.Length; j++)
+                    {
+                        toNextChain[j] = navigationChain[j];
+                    }
+
+                    toNextChain[toNextChain.Length - 1] = navigationProperty;
+
+                    query = IncludeNavigation(query, includeNode, toNextChain);
+                }
             }
 
             return query;

@@ -137,7 +137,7 @@ namespace Chloe.Query.SplitQuery
             }
 
             if (!ignoreIncludedNavigations)
-                query = IncludeNavigation(query, queryNode, false);
+                query = IncludeNavigation(query, queryNode, Array.Empty<LambdaExpression>());
 
             if (this._prevQueryExecutor.EntityCount != 0 && this._prevQueryExecutor.EntityCount <= 512)
             {

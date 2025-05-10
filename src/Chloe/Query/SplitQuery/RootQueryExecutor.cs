@@ -1,6 +1,7 @@
 ﻿using Chloe.Descriptors;
 using Chloe.Extensions;
 using System.Collections;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Chloe.Query.SplitQuery
@@ -117,7 +118,7 @@ namespace Chloe.Query.SplitQuery
 
             if (!ignoreIncludedNavigations)
             {
-                query = IncludeNavigation(query, queryNode, false);
+                query = IncludeNavigation(query, queryNode, Array.Empty<LambdaExpression>());
             }
 
             if (!ignoreOrder)
