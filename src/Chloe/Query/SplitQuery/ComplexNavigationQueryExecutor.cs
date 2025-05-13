@@ -95,7 +95,7 @@ namespace Chloe.Query.SplitQuery
                 query = query.Exclude(queryNode.ExcludedFields[i]);
             }
 
-            ComplexPropertyDescriptor navigationDescriptor = queryNode.ElementTypeDescriptor.GetComplexPropertyDescriptorByPropertyType(queryNode.PrevNode.ElementTypeDescriptor.EntityType);
+            ComplexPropertyDescriptor navigationDescriptor = queryNode.ElementTypeDescriptor.FindComplexPropertyDescriptorByPropertyType(queryNode.PrevNode.ElementTypeDescriptor.EntityType);
 
             if (navigationDescriptor == null)
             {
