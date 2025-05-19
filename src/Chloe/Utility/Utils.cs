@@ -1,4 +1,6 @@
 ﻿using Chloe.DbExpressions;
+using Chloe.QueryExpressions;
+using System.Linq.Expressions;
 
 namespace Chloe
 {
@@ -106,6 +108,29 @@ namespace Chloe
         public static bool IsChloeConstantWrapperType(Type type)
         {
             return type.Name == "ConstantWrapper`1" && type.Namespace == "Chloe";
+        }
+
+        /// <summary>
+        /// 判断表达式树是否是对 QueryExpression 的包装对象
+        /// </summary>
+        /// <param name="exp"></param>
+        /// <returns></returns>
+        public static bool IsQueryExpressionWrapper(Expression exp)
+        {
+            if (exp.NodeType == ExpressionType.Convert)
+            {
+                Expression operandExp = (exp as UnaryExpression).Operand;
+                if (operandExp.NodeType == ExpressionType.Constant)
+                {
+                    ConstantExpression constantExpression = (ConstantExpression)operandExp;
+                    if (constantExpression.Value != null && (constantExpression.Value is QueryExpression))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }

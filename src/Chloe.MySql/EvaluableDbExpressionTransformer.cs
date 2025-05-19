@@ -74,7 +74,7 @@ namespace Chloe.MySql
             return ret;
         }
 
-        DbExpression MakeNewExpression(DbExpression exp)
+        new DbExpression MakeNewExpression(DbExpression exp)
         {
             if (exp == null)
                 return null;

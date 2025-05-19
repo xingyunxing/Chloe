@@ -1365,10 +1365,12 @@ namespace ChloeDemo
              * )
              */
 
+            //复杂多层嵌套
+            this.DbContext.Query<Person>().Where(c => this.DbContext.Query<Person>().IgnoreAllFilters().Where(a => this.DbContext.Query<Person>().Where(b => b.Name == "1").IgnoreAllFilters().Any()).Any()).IgnoreAllFilters().Count();
 
-            //表达式树中使用变量的形式传入 IQuery 对象【暂未支持】
-            //var qq = this.DbContext.Query<Person>().IgnoreAllFilters().Where(a => this.DbContext.Query<Person>().Where(b => b.Name == "1").IgnoreAllFilters().Any());
-            //this.DbContext.Query<Person>().Where(c => qq.Any()).IgnoreAllFilters().Count();
+            //表达式树中使用变量的形式传入 IQuery 对象
+            var qq = this.DbContext.Query<Person>().IgnoreAllFilters().Where(a => this.DbContext.Query<Person>().Where(b => b.Name == "1").IgnoreAllFilters().Any());
+            this.DbContext.Query<Person>().Where(c => qq.Any()).IgnoreAllFilters().Count();
             /*
              * Input String ?P_0 = '1';
              * SELECT COUNT(1) AS `C` FROM `Person` AS `T` 
@@ -1381,6 +1383,12 @@ namespace ChloeDemo
              *   )
              * )
              */
+
+            //以下两个查询生成的 sql 是一样的
+            string sql1 = this.DbContext.Query<Person>().Where(c => this.DbContext.Query<Person>().IgnoreAllFilters().Where(a => this.DbContext.Query<Person>().Where(b => b.Name == "1").IgnoreAllFilters().Any()).Any()).IgnoreAllFilters().ToString();
+            string sql2 = this.DbContext.Query<Person>().Where(c => qq.Any()).IgnoreAllFilters().ToString();
+
+            Debug.Assert(sql1 == sql2);
 
 
             //表达式树中使用变量的形式将 lambda 传入表达式树中，如下中的 mm 变量

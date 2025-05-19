@@ -199,7 +199,12 @@ namespace Chloe.Visitors
             }
 
             IQuery query = ExpressionEvaluator.Evaluate(queryObjectExpression) as IQuery;
-            return query.QueryExpression;
+            //要对计算出来的 query.QueryExpression 进行处理，因为 query.QueryExpression 会有可能存在变量和 IQuery 对象(嵌套查询中包含)
+            QueryExpression queryExpression = query.QueryExpression;
+            queryExpression = LambdaVariableWrapperExpressionTransformer.Transform(queryExpression);
+            queryExpression = QueryObjectExpressionTransformer.Transform(queryExpression);
+
+            return queryExpression;
         }
 
         Expression MakeWrapperCall(Expression queryObjectExpression, MethodInfo method, IEnumerable<Expression>? arguments = null)
@@ -213,10 +218,18 @@ namespace Chloe.Visitors
         }
         static Expression MakeWrapper(Expression queryObjectExpression)
         {
+            if (Utils.IsQueryExpressionWrapper(queryObjectExpression))
+            {
+                return queryObjectExpression;
+            }
+
             //将 IQuery 对象转成 QueryExpression
             QueryExpression queryExpression = ExtractQueryExpression(queryObjectExpression);
 
-            /* queryObjectExpression.Type 为 IQuery<T>，与 queryExpression 的 Type 不等，这里设计不合理，将就这样包装先。注意，在后续解析处理的时候要使用 Convert 与 Constant.Value.Type=QueryExpression 组合判断 */
+            /* 
+             * queryObjectExpression.Type 为 IQuery<T>，与 queryExpression 的 Type 不等，这里设计不合理，将就这样包装先。注意，在后续解析处理的时候要使用 Convert 与 Constant.Value.Type=QueryExpression 组合判断
+             * ps：目前在 GeneralExpressionParser 里有解析
+             */
             var wrapper = Expression.Convert(Expression.Constant(queryExpression, typeof(object)), queryObjectExpression.Type);
 
             return wrapper;
