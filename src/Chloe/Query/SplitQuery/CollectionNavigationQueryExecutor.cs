@@ -185,10 +185,16 @@ namespace Chloe.Query.SplitQuery
             var a = Expression.Parameter(query.ElementType); //a
             Expression foreignKeyAccess = Expression.MakeMemberAccess(a, navigationDescriptor.ForeignKeyProperty.Property); //a.OwnerId
 
+            var foreignKeyAccessExp = foreignKeyAccess;
+            if (foreignKeyAccessExp.Type != this._ownerIdDescriptor.PropertyType)
+            {
+                foreignKeyAccessExp = Expression.Convert(foreignKeyAccessExp, this._ownerIdDescriptor.PropertyType);
+            }
+
             if (ownerIds.Count == 1)
             {
                 var ownerId = ExpressionExtension.MakeWrapperAccess(ownerIds[0], this._ownerIdDescriptor.PropertyType);
-                conditionBody = Expression.Equal(foreignKeyAccess, ownerId); //a.OwnerId == ownerId
+                conditionBody = Expression.Equal(foreignKeyAccessExp, ownerId); //a.OwnerId == ownerId
             }
             else
             {
@@ -197,7 +203,8 @@ namespace Chloe.Query.SplitQuery
                  * 如果用常量会则会导致每次查询都是新的键，导致始终不会命中缓存，而且会持续往缓存里添加数据，最后导致程序占用内存持续增长！！！
                  */
                 var ownerIdsWrapper = ExpressionExtension.MakeWrapperAccess(ownerIds, ownerIds.GetType());
-                Expression containsCall = Expression.Call(ownerIdsWrapper, ownerIds.GetType().GetMethod(nameof(List<object>.Contains)), foreignKeyAccess); //ownerIds.Contains(a.OwnerId)
+
+                Expression containsCall = Expression.Call(ownerIdsWrapper, ownerIds.GetType().GetMethod(nameof(List<object>.Contains)), foreignKeyAccessExp); //ownerIds.Contains(a.OwnerId)
                 conditionBody = containsCall;
             }
 
