@@ -75,15 +75,13 @@ namespace Chloe.RDBMS
             if (method.Name == nameof(object.Equals) && method.ReturnType == PublicConstants.TypeOfBoolean && !method.IsStatic && exp.Arguments.Count == 1)
             {
                 // obj.Equals(other)
+                return AmendMethodCallParameterDbInfo(exp);
+            }
 
-                DbExpression left = exp.Object;
-                DbExpression right = exp.Arguments[0];
-                if (IsColumnAccessAndParameter(left, right))
-                {
-                    AmendDbInfo(ref left, ref right);
-                }
-
-                return new DbMethodCallExpression(left, exp.Method, new List<DbExpression>(1) { right });
+            if (method == PublicConstants.MethodInfo_String_StartsWith || method == PublicConstants.MethodInfo_String_EndsWith)
+            {
+                // str.StartsWith("xx") || str.EndsWith("xx")
+                return AmendMethodCallParameterDbInfo(exp);
             }
 
             return base.VisitMethodCall(exp);
@@ -257,5 +255,16 @@ namespace Chloe.RDBMS
             }
         }
 
+        static DbMethodCallExpression AmendMethodCallParameterDbInfo(DbMethodCallExpression exp)
+        {
+            DbExpression obj = exp.Object;
+            DbExpression parameter = exp.Arguments[0];
+            if (IsColumnAccessAndParameter(obj, parameter))
+            {
+                AmendDbInfo(ref obj, ref parameter);
+            }
+
+            return new DbMethodCallExpression(obj, exp.Method, new List<DbExpression>(1) { parameter });
+        }
     }
 }
