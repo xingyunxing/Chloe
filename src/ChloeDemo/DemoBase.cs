@@ -1407,6 +1407,14 @@ namespace ChloeDemo
              * )
              */
 
+
+            //join 中使用子查询
+            var query1 = this.DbContext.Query<Person>().Where(a => a.CreateTime >= this.DbContext.Query<Person>().Max(c => c.CreateTime));
+            var zas = this.DbContext.Query<Person>()
+            .LeftJoin(query1, (a, b) => a.Name == b.Name)
+            .Select((a, b) => a).ToList();
+
+
             ConsoleHelper.WriteLineAndReadKey("OtherTest over...");
         }
     }
