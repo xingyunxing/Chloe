@@ -328,6 +328,7 @@ namespace Chloe.Visitors
 
             for (int i = 0; i < exp.JoinedQueries.Count; i++)
             {
+                this.Visit(exp.JoinedQueries[i].Query);
                 this.Visit(exp.JoinedQueries[i].Condition);
             }
         }

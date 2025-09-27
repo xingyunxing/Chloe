@@ -78,7 +78,7 @@ namespace Chloe.QueryExpressions
             for (int i = 0; i < exp.JoinedQueries.Count; i++)
             {
                 LambdaExpression condition = (LambdaExpression)this.Visit(exp.JoinedQueries[i].Condition);
-                JoinQueryInfo joinedQuery = new JoinQueryInfo(exp.JoinedQueries[i].Query, exp.JoinedQueries[i].JoinType, condition);
+                JoinQueryInfo joinedQuery = new JoinQueryInfo(exp.JoinedQueries[i].Query.Accept(this), exp.JoinedQueries[i].JoinType, condition);
                 joinedQueries.Add(joinedQuery);
             }
 
