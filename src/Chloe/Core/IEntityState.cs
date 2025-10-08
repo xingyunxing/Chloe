@@ -82,6 +82,9 @@ namespace Chloe.Core
             if (obj1 == obj2)
                 return true;
 
+            if (obj1 == null || obj2 == null)
+                return false;
+
             return (obj1 as IStructuralEquatable).Equals(obj2, StructuralComparisons.StructuralEqualityComparer);
         }
     }
